@@ -15,27 +15,27 @@ void drawCircleAtPoint(int x, int y, int radius)
 	pd->graphics->drawEllipse(drawX, drawY, width, height, 1, 0, 0, kColorWhite);
 }
 
-int playerX = 200, playerY = 120;
+int playerX = 100, playerY = 120;
 int playerRadius = 8;
 int speed = 3;
 
 int cellSize = 20;
-int mapWidth = 20;
+int mapWidth = 10;
 int mapHeight = 12;
 int map[] =
 {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 0, 0, 1, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 1, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 1, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 1, 1, 1, 1, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 0, 0, 1, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
 // Lua program to create basic map
@@ -69,6 +69,7 @@ static void gameInit()
 
 void drawMap()
 {
+	pd->graphics->fillRect(0, 0, mapWidth * cellSize, mapHeight * cellSize, kColorWhite);
 	for(int y = 0; y < mapHeight; y++)
 	{
 		for(int x = 0; x < mapWidth; x++)
@@ -114,7 +115,7 @@ void handleInput()
 static int gameUpdate(lua_State* L)
 {
 	// pd->sprite->updateAndDrawSprites();
-	pd->graphics->clear(kColorWhite);
+	pd->graphics->clear(kColorBlack);
 
 	handleInput();
 	drawMap();
