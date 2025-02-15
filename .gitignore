@@ -1,0 +1,6 @@
+*.dll
+*.pdx
+/build
+.sentry-native
+.vscode
+CmakeLists.txt
