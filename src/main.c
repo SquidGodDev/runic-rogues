@@ -1,28 +1,26 @@
 #define TARGET_EXTENSION 1
-#ifdef _WINDLL
-__declspec(dllexport)
-#endif
+
+#include <stdio.h>
+#include <math.h>
+#define PI 3.141592f
+#define TARGET_FPS 30
 
 #include "pd_api.h"
 static PlaydateAPI* pd = NULL;
 
-void drawCircleAtPoint(int x, int y, int radius)
+static void drawCircleAtPoint(float x, float y, int radius)
 {
-	int drawX = x - radius;
-	int drawY = y - radius;
+	int drawX = (int)x - radius;
+	int drawY = (int)y - radius;
 	int width = radius * 2;
 	int height = radius * 2;
 	pd->graphics->drawEllipse(drawX, drawY, width, height, 1, 0, 0, kColorWhite);
 }
 
-int playerX = 100, playerY = 120;
-int playerRadius = 8;
-int speed = 3;
-
-int cellSize = 20;
-int mapWidth = 10;
-int mapHeight = 12;
-int map[] =
+static int cellSize = 20;
+static int mapWidth = 10;
+static int mapHeight = 12;
+static int map[] =
 {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 0, 0, 1, 0, 0, 0, 0, 0, 1,
@@ -38,36 +36,50 @@ int map[] =
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
-// Lua program to create basic map
-// ================================
-// local width = 20
-// local height = 12
+/* Lua program to create basic map
+================================
+local width = 20
+local height = 12
 
-// for h = 1, height do
-//   local rowString = ""
-//   for w = 1, width do
-//       local cell = "0, "
-//       if w == width then
-//         if h == height then
-//           cell = "1"
-//         else
-//           cell = "1,"
-//         end
-//       elseif h == 1 or h == height or w == 1 then
-//         cell = "1, "
-//       end
-//       rowString = rowString .. cell
-//   end
-//   print(rowString)
-// end
+for h = 1, height do
+  local rowString = ""
+  for w = 1, width do
+      local cell = "0, "
+      if w == width then
+        if h == height then
+          cell = "1"
+        else
+          cell = "1,"
+        end
+      elseif h == 1 or h == height or w == 1 then
+        cell = "1, "
+      end
+      rowString = rowString .. cell
+  end
+  print(rowString)
+end
+*/
 
-static void gameInit()
+static float playerX, playerY;
+static int playerRadius;
+static float playerAngle;
+static float playerTurnSpeed;
+static float playerMaxSpeed;
+static float playerXVelocity, playerYVelocity;
+
+static void gameInit(void)
 {
 	playerX = 200;
 	playerY = 120;
+	playerRadius = 6;
+	playerAngle = 0;
+	playerTurnSpeed = 0.1f * TARGET_FPS;
+	playerMaxSpeed = 2.0f * TARGET_FPS;
+	playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
+	playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
 }
 
-void drawMap()
+static void drawMap(void)
 {
 	pd->graphics->fillRect(0, 0, mapWidth * cellSize, mapHeight * cellSize, kColorWhite);
 	for(int y = 0; y < mapHeight; y++)
@@ -89,35 +101,68 @@ void drawMap()
 	}
 }
 
-void drawPlayer()
+static void drawPlayer(void)
 {
 	drawCircleAtPoint(playerX, playerY, playerRadius);
+	
+	int angleIndicatorX = (int)(playerX + playerXVelocity/2);
+	int angleIndicatorY = (int)(playerY + playerYVelocity/2);
+	pd->graphics->drawLine((int)playerX, (int)playerY, angleIndicatorX, angleIndicatorY, 2, kColorWhite);
 }
 
-void handleInput()
+static void handleInput(float deltaTime)
 {
+	// char str_num[50];
+	// sprintf(str_num, "%f", deltaTime);
+	// pd->system->logToConsole(str_num);
+
 	PDButtons current;
 	pd->system->getButtonState(&current, NULL, NULL);
 
-	if (current & kButtonLeft) { 
-		playerX -= speed;
-	} else if (current & kButtonRight) { 
-		playerX += speed;
+	if (current & kButtonLeft)
+	{ 
+		playerAngle -= playerTurnSpeed * deltaTime;
+		if (playerAngle < 0)
+		{
+			playerAngle += 2 * PI;
+		}
+		playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
+		playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
+	}
+	else if (current & kButtonRight)
+	{ 
+		playerAngle += playerTurnSpeed * deltaTime;
+		if (playerAngle > 2 * PI)
+		{
+			playerAngle -= 2 * PI;
+		}
+		playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
+		playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
 	}
 
-	if (current & kButtonUp) {
-		playerY -= speed;
-	} else if (current & kButtonDown) {
-		playerY += speed;
+	if (current & kButtonUp)
+	{
+		playerX += playerXVelocity * deltaTime;
+		playerY += playerYVelocity * deltaTime;
+	}
+	else if (current & kButtonDown)
+	{
+		playerX -= playerXVelocity * deltaTime;
+		playerY -= playerYVelocity * deltaTime;
 	}
 }
 
 static int gameUpdate(lua_State* L)
 {
+	(void)L;
+
+	float deltaTime = pd->system->getElapsedTime();
+	pd->system->resetElapsedTime();
+
 	// pd->sprite->updateAndDrawSprites();
 	pd->graphics->clear(kColorBlack);
 
-	handleInput();
+	handleInput(deltaTime);
 	drawMap();
 	drawPlayer();
 
@@ -127,12 +172,16 @@ static int gameUpdate(lua_State* L)
 
 int eventHandler(PlaydateAPI* playdate, PDSystemEvent event, uint32_t arg)
 {
+	(void)arg;
+
 	if (event == kEventInitLua)
 	{
 		pd = playdate;
+		pd->system->resetElapsedTime();
 
-		const char* err;
-		pd->lua->addFunction(gameUpdate, "game.update", &err);
+		gameInit();
+
+		pd->lua->addFunction(gameUpdate, "game.update", NULL);
 	}
 
 	return 0;
