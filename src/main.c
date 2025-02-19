@@ -105,9 +105,67 @@ static void drawPlayer(void)
 {
 	drawCircleAtPoint(playerX, playerY, playerRadius);
 	
-	int angleIndicatorX = (int)(playerX + playerXVelocity/2);
-	int angleIndicatorY = (int)(playerY + playerYVelocity/2);
+	int angleIndicatorX = (int)(playerX + playerXVelocity/4);
+	int angleIndicatorY = (int)(playerY + playerYVelocity/4);
 	pd->graphics->drawLine((int)playerX, (int)playerY, angleIndicatorX, angleIndicatorY, 2, kColorWhite);
+}
+
+void drawRays(void)
+{
+	int maxFieldDepth = 8;
+	float rayAngle = playerAngle;
+	int rayCount = 1;
+	for (int ray = 0; ray < rayCount; ray++)
+	{
+		// === Check for horizontal lines ===
+		float rayX = playerX;
+		float rayY = playerY;
+		float xOffset = 0;
+		float yOffset = 0;
+		int depthOfField = 0;
+		float raySlope = -1 / tanf(rayAngle);
+
+		if (rayAngle > PI)
+		{
+			// Looking up
+			rayY = floorf(playerY / cellSize) * cellSize - 0.01f;
+			rayX = (playerY - rayY) * raySlope + playerX;
+			yOffset = -cellSize;
+			xOffset = -yOffset * raySlope;
+		}
+		else if (rayAngle < PI && rayAngle > 0)
+		{
+			// Looking down
+			rayY = floorf(playerY / cellSize) * cellSize + cellSize;
+			rayX = (playerY - rayY) * raySlope + playerX;
+			yOffset = cellSize;
+			xOffset = -yOffset * raySlope;
+		}
+		else
+		{
+			// Looking straight left or right
+			depthOfField = maxFieldDepth;
+		}
+
+		while (depthOfField < maxFieldDepth)
+		{
+			int mapX = (int)(rayX / cellSize);
+			int mapY = (int)(rayY / cellSize);
+			int mapIndex = mapY * mapWidth + mapX;
+			if (mapIndex < mapWidth * mapHeight && map[mapIndex] == 1)
+			{
+				depthOfField = maxFieldDepth; // Hit wall
+			}
+			else
+			{
+				rayX += xOffset;
+				rayY += yOffset;
+				depthOfField += 1;
+			}
+		}
+
+		pd->graphics->drawLine((int)playerX, (int)playerY, (int)rayX, (int)rayY, 1, kColorWhite);
+	}
 }
 
 static void handleInput(float deltaTime)
@@ -154,8 +212,6 @@ static void handleInput(float deltaTime)
 
 static int gameUpdate(lua_State* L)
 {
-	(void)L;
-
 	float deltaTime = pd->system->getElapsedTime();
 	pd->system->resetElapsedTime();
 
@@ -165,6 +221,7 @@ static int gameUpdate(lua_State* L)
 	handleInput(deltaTime);
 	drawMap();
 	drawPlayer();
+	drawRays();
 
 	pd->lua->pushNil();
 	return 1;
@@ -172,8 +229,6 @@ static int gameUpdate(lua_State* L)
 
 int eventHandler(PlaydateAPI* playdate, PDSystemEvent event, uint32_t arg)
 {
-	(void)arg;
-
 	if (event == kEventInitLua)
 	{
 		pd = playdate;
