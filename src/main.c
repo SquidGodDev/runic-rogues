@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <math.h>
 #define PI 3.141592f
+#define P2 PI/2
+#define P3 3*PI/2
 #define TARGET_FPS 30
 
 #include "pd_api.h"
@@ -69,7 +71,7 @@ static float playerXVelocity, playerYVelocity;
 
 static void gameInit(void)
 {
-	playerX = 200;
+	playerX = 100;
 	playerY = 120;
 	playerRadius = 6;
 	playerAngle = 0;
@@ -117,34 +119,84 @@ void drawRays(void)
 	int rayCount = 1;
 	for (int ray = 0; ray < rayCount; ray++)
 	{
-		// === Check for horizontal lines ===
 		float rayX = playerX;
 		float rayY = playerY;
 		float xOffset = 0;
 		float yOffset = 0;
 		int depthOfField = 0;
-		float raySlope = -1 / tanf(rayAngle);
 
-		if (rayAngle > PI)
+		// === Check for horizontal lines ===
+		float rayPerpendicularSlope = -1 / tanf(rayAngle);
+
+		if (rayAngle == 0 || rayAngle == PI)
+		{
+			// Looking straight left or right
+			depthOfField = maxFieldDepth;
+			rayX = playerX;
+			rayY = playerY;
+		}
+		else if (rayAngle > PI)
 		{
 			// Looking up
 			rayY = floorf(playerY / cellSize) * cellSize - 0.01f;
-			rayX = (playerY - rayY) * raySlope + playerX;
+			rayX = (playerY - rayY) * rayPerpendicularSlope + playerX;
 			yOffset = -cellSize;
-			xOffset = -yOffset * raySlope;
+			xOffset = -yOffset * rayPerpendicularSlope;
 		}
 		else if (rayAngle < PI && rayAngle > 0)
 		{
 			// Looking down
 			rayY = floorf(playerY / cellSize) * cellSize + cellSize;
-			rayX = (playerY - rayY) * raySlope + playerX;
+			rayX = (playerY - rayY) * rayPerpendicularSlope + playerX;
 			yOffset = cellSize;
-			xOffset = -yOffset * raySlope;
+			xOffset = -yOffset * rayPerpendicularSlope;
 		}
-		else
+
+		while (depthOfField < maxFieldDepth)
 		{
-			// Looking straight left or right
+			int mapX = (int)(rayX / cellSize);
+			int mapY = (int)(rayY / cellSize);
+			int mapIndex = mapY * mapWidth + mapX;
+			if (mapIndex < mapWidth * mapHeight && map[mapIndex] == 1)
+			{
+				depthOfField = maxFieldDepth; // Hit wall
+			}
+			else
+			{
+				rayX += xOffset;
+				rayY += yOffset;
+				depthOfField += 1;
+			}
+		}
+
+		pd->graphics->drawLine((int)playerX, (int)playerY, (int)rayX, (int)rayY, 1, kColorWhite);
+
+		// === Check for vertical lines ===
+		depthOfField = 0;
+		float rayNegSlope = -tanf(rayAngle);
+
+		if (rayAngle == P2 || rayAngle == P3)
+		{
+			// Looking straight up or down
 			depthOfField = maxFieldDepth;
+			rayX = playerX;
+			rayY = playerY;
+		}
+		else if (rayAngle > P2 && rayAngle < P3)
+		{
+			// Looking left
+			rayX = floorf(playerX / cellSize) * cellSize - 0.01f;
+			rayY = (playerX - rayX) * rayNegSlope + playerY;
+			xOffset = -cellSize;
+			yOffset = -xOffset * rayNegSlope;
+		}
+		else if (rayAngle < P2 || rayAngle > P3)
+		{
+			// Looking right
+			rayX = floorf(playerX / cellSize) * cellSize + cellSize;
+			rayY = (playerX - rayX) * rayNegSlope + playerY;
+			xOffset = cellSize;
+			yOffset = -xOffset * rayNegSlope;
 		}
 
 		while (depthOfField < maxFieldDepth)
