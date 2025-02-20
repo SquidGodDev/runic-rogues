@@ -26,6 +26,27 @@ static float distance(float x1, float y1, float x2, float y2)
 	return sqrtf((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
 }
 
+static LCDPattern shadePattern = {
+	// Bitmap
+	0b10101010,
+	0b01010101,
+	0b10101010,
+	0b01010101,
+	0b10101010,
+	0b01010101,
+	0b10101010,
+	0b01010101,
+
+	// Mask
+	0b11111111,
+	0b11111111,
+	0b11111111,
+	0b11111111,
+	0b11111111,
+	0b11111111,
+	0b11111111,
+	0b11111111,
+};
 static int cellSize = 20;
 static int mapWidth = 10;
 static int mapHeight = 12;
@@ -247,6 +268,7 @@ static void drawRays(void)
 		}
 
 		float rayDistance = 0;
+		LCDColor drawColor = kColorWhite;
 		if (verticalDistance < horizontalDistance)
 		{
 			rayX = verticalRayX;
@@ -258,6 +280,7 @@ static void drawRays(void)
 			rayX = horizontalRayX;
 			rayY = horizontalRayY;
 			rayDistance = horizontalDistance;
+			drawColor = (LCDColor)shadePattern;
 		}
 
 		pd->graphics->drawLine((int)playerX, (int)playerY, (int)rayX, (int)rayY, 1, kColorWhite);
@@ -286,7 +309,7 @@ static void drawRays(void)
 
 		// Draw wall slice
 		int wallSliceX = ray * rayWidth + renderStartX;
-		pd->graphics->drawLine(wallSliceX, lineOffset, wallSliceX, lineHeight + lineOffset, rayWidth, kColorWhite);
+		pd->graphics->drawLine(wallSliceX, lineOffset, wallSliceX, lineHeight + lineOffset, rayWidth, drawColor);
 
 		rayAngle += rayInterval;
 	}
