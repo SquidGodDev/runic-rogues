@@ -122,7 +122,11 @@ static void drawPlayer(void)
 static void drawRays(void)
 {
 	int maxFieldDepth = 8;
+	int screenWidth = 200;
+	int screenHeight = 240;
+	int renderStartX = 200;
 	int rayCount = 50;
+	int rayWidth = screenWidth / rayCount;
 	float rayInterval = 2*PI/360;
 	float rayAngle = playerAngle - rayInterval * rayCount / 2;
 
@@ -259,8 +263,20 @@ static void drawRays(void)
 		pd->graphics->drawLine((int)playerX, (int)playerY, (int)rayX, (int)rayY, 1, kColorWhite);
 
 		// === Draw 3D Walls ===
-		int screenWidth = 200;
-		int screenHeight = 240;
+
+		// Fix fisheye
+		float offsetAngle = playerAngle - rayAngle;
+		if (offsetAngle < 0)
+		{
+			offsetAngle += 2*PI;
+		}
+		else if (offsetAngle > 2*PI)
+		{
+			offsetAngle -= 2*PI;
+		}
+		rayDistance = rayDistance * cosf(offsetAngle);
+
+		// Get wall slice draw height
 		float lineHeight = (cellSize * screenHeight) / rayDistance;
 		if (lineHeight > screenHeight)
 		{
@@ -268,10 +284,9 @@ static void drawRays(void)
 		}
 		float lineOffset = screenHeight / 2 - lineHeight / 2;
 
-		int rayWidth = screenWidth / rayCount;
-		int renderStartX = 200;
-		int wallX = ray*rayWidth + renderStartX;
-		pd->graphics->drawLine(wallX, lineOffset, wallX, lineHeight + lineOffset, rayWidth, kColorWhite);
+		// Draw wall slice
+		int wallSliceX = ray * rayWidth + renderStartX;
+		pd->graphics->drawLine(wallSliceX, lineOffset, wallSliceX, lineHeight + lineOffset, rayWidth, kColorWhite);
 
 		rayAngle += rayInterval;
 	}
