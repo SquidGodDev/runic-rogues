@@ -122,10 +122,21 @@ static void drawPlayer(void)
 static void drawRays(void)
 {
 	int maxFieldDepth = 8;
-	float rayAngle = playerAngle;
-	int rayCount = 1;
+	int rayCount = 60;
+	float rayInterval = 2*PI/360;
+	float rayAngle = playerAngle - rayInterval * rayCount / 2;
+
 	for (int ray = 0; ray < rayCount; ray++)
 	{
+		if (rayAngle < 0)
+		{
+			rayAngle += 2*PI;
+		}
+		else if (rayAngle > 2*PI)
+		{
+			rayAngle -= 2*PI;
+		}
+
 		float rayX = playerX;
 		float rayY = playerY;
 		float xOffset = 0;
@@ -243,6 +254,8 @@ static void drawRays(void)
 		}
 
 		pd->graphics->drawLine((int)playerX, (int)playerY, (int)rayX, (int)rayY, 1, kColorWhite);
+
+		rayAngle += rayInterval;
 	}
 }
 
