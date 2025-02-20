@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <float.h>
+
 #define PI 3.141592f
 #define P2 PI/2
 #define P3 3*PI/2
@@ -17,6 +19,11 @@ static void drawCircleAtPoint(float x, float y, int radius)
 	int width = radius * 2;
 	int height = radius * 2;
 	pd->graphics->drawEllipse(drawX, drawY, width, height, 1, 0, 0, kColorWhite);
+}
+
+static float squaredDistance(float x1, float y1, float x2, float y2)
+{
+	return (y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1);
 }
 
 static int cellSize = 20;
@@ -112,7 +119,7 @@ static void drawPlayer(void)
 	pd->graphics->drawLine((int)playerX, (int)playerY, angleIndicatorX, angleIndicatorY, 2, kColorWhite);
 }
 
-void drawRays(void)
+static void drawRays(void)
 {
 	int maxFieldDepth = 8;
 	float rayAngle = playerAngle;
@@ -126,6 +133,8 @@ void drawRays(void)
 		int depthOfField = 0;
 
 		// === Check for horizontal lines ===
+		float horizontalRayX, horizontalRayY;
+		float horizontalDistance = 1000000;
 		float rayPerpendicularSlope = -1 / tanf(rayAngle);
 
 		if (rayAngle == 0 || rayAngle == PI)
@@ -157,9 +166,12 @@ void drawRays(void)
 			int mapX = (int)(rayX / cellSize);
 			int mapY = (int)(rayY / cellSize);
 			int mapIndex = mapY * mapWidth + mapX;
-			if (mapIndex < mapWidth * mapHeight && map[mapIndex] == 1)
+			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1)
 			{
 				depthOfField = maxFieldDepth; // Hit wall
+				horizontalDistance = squaredDistance(playerX, playerY, rayX, rayY);
+				horizontalRayX = rayX;
+				horizontalRayY = rayY;
 			}
 			else
 			{
@@ -169,10 +181,10 @@ void drawRays(void)
 			}
 		}
 
-		pd->graphics->drawLine((int)playerX, (int)playerY, (int)rayX, (int)rayY, 1, kColorWhite);
-
 		// === Check for vertical lines ===
 		depthOfField = 0;
+		float verticalRayX, verticalRayY;
+		float verticalDistance = 1000000;
 		float rayNegSlope = -tanf(rayAngle);
 
 		if (rayAngle == P2 || rayAngle == P3)
@@ -204,9 +216,12 @@ void drawRays(void)
 			int mapX = (int)(rayX / cellSize);
 			int mapY = (int)(rayY / cellSize);
 			int mapIndex = mapY * mapWidth + mapX;
-			if (mapIndex < mapWidth * mapHeight && map[mapIndex] == 1)
+			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1)
 			{
 				depthOfField = maxFieldDepth; // Hit wall
+				verticalDistance = squaredDistance(playerX, playerY, rayX, rayY);
+				verticalRayX = rayX;
+				verticalRayY = rayY;
 			}
 			else
 			{
@@ -214,6 +229,17 @@ void drawRays(void)
 				rayY += yOffset;
 				depthOfField += 1;
 			}
+		}
+
+		if (verticalDistance < horizontalDistance)
+		{
+			rayX = verticalRayX;
+			rayY = verticalRayY;
+		}
+		else if (horizontalDistance < verticalDistance)
+		{
+			rayX = horizontalRayX;
+			rayY = horizontalRayY;
 		}
 
 		pd->graphics->drawLine((int)playerX, (int)playerY, (int)rayX, (int)rayY, 1, kColorWhite);
