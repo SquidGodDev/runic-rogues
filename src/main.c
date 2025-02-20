@@ -21,9 +21,9 @@ static void drawCircleAtPoint(float x, float y, int radius)
 	pd->graphics->drawEllipse(drawX, drawY, width, height, 1, 0, 0, kColorWhite);
 }
 
-static float squaredDistance(float x1, float y1, float x2, float y2)
+static float distance(float x1, float y1, float x2, float y2)
 {
-	return (y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1);
+	return sqrtf((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
 }
 
 static int cellSize = 20;
@@ -122,7 +122,7 @@ static void drawPlayer(void)
 static void drawRays(void)
 {
 	int maxFieldDepth = 8;
-	int rayCount = 60;
+	int rayCount = 50;
 	float rayInterval = 2*PI/360;
 	float rayAngle = playerAngle - rayInterval * rayCount / 2;
 
@@ -180,7 +180,7 @@ static void drawRays(void)
 			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1)
 			{
 				depthOfField = maxFieldDepth; // Hit wall
-				horizontalDistance = squaredDistance(playerX, playerY, rayX, rayY);
+				horizontalDistance = distance(playerX, playerY, rayX, rayY);
 				horizontalRayX = rayX;
 				horizontalRayY = rayY;
 			}
@@ -230,7 +230,7 @@ static void drawRays(void)
 			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1)
 			{
 				depthOfField = maxFieldDepth; // Hit wall
-				verticalDistance = squaredDistance(playerX, playerY, rayX, rayY);
+				verticalDistance = distance(playerX, playerY, rayX, rayY);
 				verticalRayX = rayX;
 				verticalRayY = rayY;
 			}
@@ -242,18 +242,36 @@ static void drawRays(void)
 			}
 		}
 
+		float rayDistance = 0;
 		if (verticalDistance < horizontalDistance)
 		{
 			rayX = verticalRayX;
 			rayY = verticalRayY;
+			rayDistance = verticalDistance;
 		}
 		else if (horizontalDistance < verticalDistance)
 		{
 			rayX = horizontalRayX;
 			rayY = horizontalRayY;
+			rayDistance = horizontalDistance;
 		}
 
 		pd->graphics->drawLine((int)playerX, (int)playerY, (int)rayX, (int)rayY, 1, kColorWhite);
+
+		// === Draw 3D Walls ===
+		int screenWidth = 200;
+		int screenHeight = 240;
+		float lineHeight = (cellSize * screenHeight) / rayDistance;
+		if (lineHeight > screenHeight)
+		{
+			lineHeight = screenHeight;
+		}
+		float lineOffset = screenHeight / 2 - lineHeight / 2;
+
+		int rayWidth = screenWidth / rayCount;
+		int renderStartX = 200;
+		int wallX = ray*rayWidth + renderStartX;
+		pd->graphics->drawLine(wallX, lineOffset, wallX, lineHeight + lineOffset, rayWidth, kColorWhite);
 
 		rayAngle += rayInterval;
 	}
