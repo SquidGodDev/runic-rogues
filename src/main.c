@@ -333,8 +333,7 @@ static void handleInput(float deltaTime)
 		}
 		playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
 		playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
-	}
-	else if (current & kButtonRight)
+	} else if (current & kButtonRight)
 	{ 
 		playerAngle += playerTurnSpeed * deltaTime;
 		if (playerAngle > 2 * PI)
@@ -345,15 +344,50 @@ static void handleInput(float deltaTime)
 		playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
 	}
 
+	int wallCollisionDist = 10;
+	int xOffset = 0;
+	if (playerXVelocity < 0)
+	{
+		xOffset = -wallCollisionDist;
+	} else
+	{
+		xOffset = wallCollisionDist;
+	}
+	int yOffset = 0;
+	if (playerYVelocity < 0) {
+		yOffset = -wallCollisionDist;
+	} else {
+		yOffset = wallCollisionDist;
+	}
+
+	// Player coordinates -> Map coordinates
+	int xIndex = playerX / cellSize;
+	int lookAheadXIndex = (playerX + xOffset) / cellSize;
+	int lookBehindXIndex = (playerX - xOffset) / cellSize;
+	int yIndex = playerY / cellSize;
+	int lookAheadYIndex = (playerY + yOffset) / cellSize;
+	int lookBehindYIndex = (playerY - yOffset) / cellSize;
+
 	if (current & kButtonUp)
 	{
-		playerX += playerXVelocity * deltaTime;
-		playerY += playerYVelocity * deltaTime;
-	}
-	else if (current & kButtonDown)
+		if (map[yIndex * mapWidth + lookAheadXIndex] == 0)
+		{
+			playerX += playerXVelocity * deltaTime;
+		}
+		if (map[lookAheadYIndex * mapWidth + xIndex] == 0)
+		{
+			playerY += playerYVelocity * deltaTime;
+		}
+	} else if (current & kButtonDown)
 	{
-		playerX -= playerXVelocity * deltaTime;
-		playerY -= playerYVelocity * deltaTime;
+		if (map[yIndex * mapWidth + lookBehindXIndex] == 0)
+		{
+			playerX -= playerXVelocity * deltaTime;
+		}
+		if (map[lookBehindYIndex * mapWidth + xIndex] == 0)
+		{
+			playerY -= playerYVelocity * deltaTime;
+		}
 	}
 }
 
@@ -369,6 +403,8 @@ static int gameUpdate(lua_State* L)
 	drawMap();
 	drawPlayer();
 	drawRays();
+
+	pd->system->drawFPS(0, 0);
 
 	pd->lua->pushNil();
 	return 1;
