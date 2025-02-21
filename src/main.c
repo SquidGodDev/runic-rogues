@@ -5,12 +5,12 @@
 #include <float.h>
 
 #define PI 3.141592f
-#define P2 PI/2
-#define P3 3*PI/2
+#define P2 PI / 2
+#define P3 3 * PI / 2
 #define TARGET_FPS 30
 
 #include "pd_api.h"
-static PlaydateAPI* pd = NULL;
+static PlaydateAPI *pd = NULL;
 
 static void drawCircleAtPoint(float x, float y, int radius)
 {
@@ -74,17 +74,17 @@ local height = 12
 for h = 1, height do
   local rowString = ""
   for w = 1, width do
-      local cell = "0, "
-      if w == width then
-        if h == height then
-          cell = "1"
-        else
-          cell = "1,"
-        end
-      elseif h == 1 or h == height or w == 1 then
-        cell = "1, "
-      end
-      rowString = rowString .. cell
+	  local cell = "0, "
+	  if w == width then
+		if h == height then
+		  cell = "1"
+		else
+		  cell = "1,"
+		end
+	  elseif h == 1 or h == height or w == 1 then
+		cell = "1, "
+	  end
+	  rowString = rowString .. cell
   end
   print(rowString)
 end
@@ -112,19 +112,14 @@ static void gameInit(void)
 static void drawMap(void)
 {
 	pd->graphics->fillRect(0, 0, mapWidth * cellSize, mapHeight * cellSize, kColorWhite);
-	for(int y = 0; y < mapHeight; y++)
-	{
-		for(int x = 0; x < mapWidth; x++)
-		{
+	for (int y = 0; y < mapHeight; y++) {
+		for (int x = 0; x < mapWidth; x++) {
 			int cellValue = map[y * mapWidth + x];
 			int drawX = x * cellSize;
 			int drawY = y * cellSize;
-			if (cellValue == 1)
-			{
+			if (cellValue == 1) {
 				pd->graphics->drawRect(drawX, drawY, cellSize, cellSize, kColorBlack);
-			}
-			else
-			{
+			} else {
 				pd->graphics->fillRect(drawX, drawY, cellSize, cellSize, kColorBlack);
 			}
 		}
@@ -134,9 +129,9 @@ static void drawMap(void)
 static void drawPlayer(void)
 {
 	drawCircleAtPoint(playerX, playerY, playerRadius);
-	
-	int angleIndicatorX = (int)(playerX + playerXVelocity/4);
-	int angleIndicatorY = (int)(playerY + playerYVelocity/4);
+
+	int angleIndicatorX = (int)(playerX + playerXVelocity / 4);
+	int angleIndicatorY = (int)(playerY + playerYVelocity / 4);
 	pd->graphics->drawLine((int)playerX, (int)playerY, angleIndicatorX, angleIndicatorY, 2, kColorWhite);
 }
 
@@ -148,18 +143,14 @@ static void drawRays(void)
 	int renderStartX = 200;
 	int rayCount = 50;
 	int rayWidth = screenWidth / rayCount;
-	float rayInterval = 2*PI/360;
+	float rayInterval = 2 * PI / 360;
 	float rayAngle = playerAngle - rayInterval * rayCount / 2;
 
-	for (int ray = 0; ray < rayCount; ray++)
-	{
-		if (rayAngle < 0)
-		{
-			rayAngle += 2*PI;
-		}
-		else if (rayAngle > 2*PI)
-		{
-			rayAngle -= 2*PI;
+	for (int ray = 0; ray < rayCount; ray++) {
+		if (rayAngle < 0) {
+			rayAngle += 2 * PI;
+		} else if (rayAngle > 2 * PI) {
+			rayAngle -= 2 * PI;
 		}
 
 		float rayX = playerX;
@@ -173,23 +164,18 @@ static void drawRays(void)
 		float horizontalDistance = 1000000;
 		float rayPerpendicularSlope = -1 / tanf(rayAngle);
 
-		if (rayAngle == 0 || rayAngle == PI)
-		{
+		if (rayAngle == 0 || rayAngle == PI) {
 			// Looking straight left or right
 			depthOfField = maxFieldDepth;
 			rayX = playerX;
 			rayY = playerY;
-		}
-		else if (rayAngle > PI)
-		{
+		} else if (rayAngle > PI) {
 			// Looking up
 			rayY = floorf(playerY / cellSize) * cellSize - 0.01f;
 			rayX = (playerY - rayY) * rayPerpendicularSlope + playerX;
 			yOffset = -cellSize;
 			xOffset = -yOffset * rayPerpendicularSlope;
-		}
-		else if (rayAngle < PI && rayAngle > 0)
-		{
+		} else if (rayAngle < PI && rayAngle > 0) {
 			// Looking down
 			rayY = floorf(playerY / cellSize) * cellSize + cellSize;
 			rayX = (playerY - rayY) * rayPerpendicularSlope + playerX;
@@ -197,20 +183,16 @@ static void drawRays(void)
 			xOffset = -yOffset * rayPerpendicularSlope;
 		}
 
-		while (depthOfField < maxFieldDepth)
-		{
+		while (depthOfField < maxFieldDepth) {
 			int mapX = (int)(rayX / cellSize);
 			int mapY = (int)(rayY / cellSize);
 			int mapIndex = mapY * mapWidth + mapX;
-			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1)
-			{
+			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1) {
 				depthOfField = maxFieldDepth; // Hit wall
 				horizontalDistance = distance(playerX, playerY, rayX, rayY);
 				horizontalRayX = rayX;
 				horizontalRayY = rayY;
-			}
-			else
-			{
+			} else {
 				rayX += xOffset;
 				rayY += yOffset;
 				depthOfField += 1;
@@ -223,23 +205,18 @@ static void drawRays(void)
 		float verticalDistance = 1000000;
 		float rayNegSlope = -tanf(rayAngle);
 
-		if (rayAngle == P2 || rayAngle == P3)
-		{
+		if (rayAngle == P2 || rayAngle == P3) {
 			// Looking straight up or down
 			depthOfField = maxFieldDepth;
 			rayX = playerX;
 			rayY = playerY;
-		}
-		else if (rayAngle > P2 && rayAngle < P3)
-		{
+		} else if (rayAngle > P2 && rayAngle < P3) {
 			// Looking left
 			rayX = floorf(playerX / cellSize) * cellSize - 0.01f;
 			rayY = (playerX - rayX) * rayNegSlope + playerY;
 			xOffset = -cellSize;
 			yOffset = -xOffset * rayNegSlope;
-		}
-		else if (rayAngle < P2 || rayAngle > P3)
-		{
+		} else if (rayAngle < P2 || rayAngle > P3) {
 			// Looking right
 			rayX = floorf(playerX / cellSize) * cellSize + cellSize;
 			rayY = (playerX - rayX) * rayNegSlope + playerY;
@@ -247,20 +224,16 @@ static void drawRays(void)
 			yOffset = -xOffset * rayNegSlope;
 		}
 
-		while (depthOfField < maxFieldDepth)
-		{
+		while (depthOfField < maxFieldDepth) {
 			int mapX = (int)(rayX / cellSize);
 			int mapY = (int)(rayY / cellSize);
 			int mapIndex = mapY * mapWidth + mapX;
-			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1)
-			{
+			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1) {
 				depthOfField = maxFieldDepth; // Hit wall
 				verticalDistance = distance(playerX, playerY, rayX, rayY);
 				verticalRayX = rayX;
 				verticalRayY = rayY;
-			}
-			else
-			{
+			} else {
 				rayX += xOffset;
 				rayY += yOffset;
 				depthOfField += 1;
@@ -269,14 +242,11 @@ static void drawRays(void)
 
 		float rayDistance = 0;
 		LCDColor drawColor = kColorWhite;
-		if (verticalDistance < horizontalDistance)
-		{
+		if (verticalDistance < horizontalDistance) {
 			rayX = verticalRayX;
 			rayY = verticalRayY;
 			rayDistance = verticalDistance;
-		}
-		else if (horizontalDistance < verticalDistance)
-		{
+		} else if (horizontalDistance < verticalDistance) {
 			rayX = horizontalRayX;
 			rayY = horizontalRayY;
 			rayDistance = horizontalDistance;
@@ -289,20 +259,16 @@ static void drawRays(void)
 
 		// Fix fisheye
 		float offsetAngle = playerAngle - rayAngle;
-		if (offsetAngle < 0)
-		{
-			offsetAngle += 2*PI;
-		}
-		else if (offsetAngle > 2*PI)
-		{
-			offsetAngle -= 2*PI;
+		if (offsetAngle < 0) {
+			offsetAngle += 2 * PI;
+		} else if (offsetAngle > 2 * PI) {
+			offsetAngle -= 2 * PI;
 		}
 		rayDistance = rayDistance * cosf(offsetAngle);
 
 		// Get wall slice draw height
 		float lineHeight = (cellSize * screenHeight) / rayDistance;
-		if (lineHeight > screenHeight)
-		{
+		if (lineHeight > screenHeight) {
 			lineHeight = screenHeight;
 		}
 		float lineOffset = screenHeight / 2 - lineHeight / 2;
@@ -324,20 +290,16 @@ static void handleInput(float deltaTime)
 	PDButtons current;
 	pd->system->getButtonState(&current, NULL, NULL);
 
-	if (current & kButtonLeft)
-	{ 
+	if (current & kButtonLeft) {
 		playerAngle -= playerTurnSpeed * deltaTime;
-		if (playerAngle < 0)
-		{
+		if (playerAngle < 0) {
 			playerAngle += 2 * PI;
 		}
 		playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
 		playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
-	} else if (current & kButtonRight)
-	{ 
+	} else if (current & kButtonRight) {
 		playerAngle += playerTurnSpeed * deltaTime;
-		if (playerAngle > 2 * PI)
-		{
+		if (playerAngle > 2 * PI) {
 			playerAngle -= 2 * PI;
 		}
 		playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
@@ -346,13 +308,12 @@ static void handleInput(float deltaTime)
 
 	int wallCollisionDist = 10;
 	int xOffset = 0;
-	if (playerXVelocity < 0)
-	{
+	if (playerXVelocity < 0) {
 		xOffset = -wallCollisionDist;
-	} else
-	{
+	} else {
 		xOffset = wallCollisionDist;
 	}
+
 	int yOffset = 0;
 	if (playerYVelocity < 0) {
 		yOffset = -wallCollisionDist;
@@ -368,30 +329,26 @@ static void handleInput(float deltaTime)
 	int lookAheadYIndex = (playerY + yOffset) / cellSize;
 	int lookBehindYIndex = (playerY - yOffset) / cellSize;
 
-	if (current & kButtonUp)
-	{
-		if (map[yIndex * mapWidth + lookAheadXIndex] == 0)
-		{
+	if (current & kButtonUp) {
+		if (map[yIndex * mapWidth + lookAheadXIndex] == 0) {
 			playerX += playerXVelocity * deltaTime;
 		}
-		if (map[lookAheadYIndex * mapWidth + xIndex] == 0)
-		{
+
+		if (map[lookAheadYIndex * mapWidth + xIndex] == 0) {
 			playerY += playerYVelocity * deltaTime;
 		}
-	} else if (current & kButtonDown)
-	{
-		if (map[yIndex * mapWidth + lookBehindXIndex] == 0)
-		{
+	} else if (current & kButtonDown) {
+		if (map[yIndex * mapWidth + lookBehindXIndex] == 0) {
 			playerX -= playerXVelocity * deltaTime;
 		}
-		if (map[lookBehindYIndex * mapWidth + xIndex] == 0)
-		{
+
+		if (map[lookBehindYIndex * mapWidth + xIndex] == 0) {
 			playerY -= playerYVelocity * deltaTime;
 		}
 	}
 }
 
-static int gameUpdate(lua_State* L)
+static int gameUpdate(lua_State *L)
 {
 	float deltaTime = pd->system->getElapsedTime();
 	pd->system->resetElapsedTime();
@@ -410,10 +367,9 @@ static int gameUpdate(lua_State* L)
 	return 1;
 }
 
-int eventHandler(PlaydateAPI* playdate, PDSystemEvent event, uint32_t arg)
+int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 {
-	if (event == kEventInitLua)
-	{
+	if (event == kEventInitLua) {
 		pd = playdate;
 		pd->system->resetElapsedTime();
 
