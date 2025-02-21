@@ -38,6 +38,10 @@ file(GLOB HEADERS
     "src/*.h"
 )
 
+file(GLOB IMAGES
+	"Source/images/*"
+)
+
 if (TOOLCHAIN STREQUAL "armgcc")
     add_executable(${PLAYDATE_GAME_DEVICE} ${SOURCES})
 else()

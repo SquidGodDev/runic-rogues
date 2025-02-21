@@ -26,6 +26,7 @@ static float distance(float x1, float y1, float x2, float y2)
 	return sqrtf((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
 }
 
+LCDBitmap *brickTexture;
 static LCDPattern shadePattern = {
 	// Bitmap
 	0b10101010,
@@ -47,6 +48,28 @@ static LCDPattern shadePattern = {
 	0b11111111,
 	0b11111111,
 };
+// static LCDPattern whiteShadePattern = {
+// 	// Bitmap
+// 	0b01010101,
+// 	0b10101010,
+// 	0b01010101,
+// 	0b10101010,
+// 	0b01010101,
+// 	0b10101010,
+// 	0b01010101,
+// 	0b10101010,	
+
+// 	// Mask
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// };
+
 static int cellSize = 20;
 static int mapWidth = 10;
 static int mapHeight = 12;
@@ -99,6 +122,7 @@ static float playerXVelocity, playerYVelocity;
 
 static void gameInit(void)
 {
+	brickTexture = pd->graphics->loadBitmap("images/brickTexture", NULL);
 	playerX = 100;
 	playerY = 120;
 	playerRadius = 6;
@@ -241,7 +265,7 @@ static void drawRays(void)
 		}
 
 		float rayDistance = 0;
-		LCDColor drawColor = kColorWhite;
+		int isShaded = 0;
 		if (verticalDistance < horizontalDistance) {
 			rayX = verticalRayX;
 			rayY = verticalRayY;
@@ -250,7 +274,7 @@ static void drawRays(void)
 			rayX = horizontalRayX;
 			rayY = horizontalRayY;
 			rayDistance = horizontalDistance;
-			drawColor = (LCDColor)shadePattern;
+			isShaded = 1;
 		}
 
 		pd->graphics->drawLine((int)playerX, (int)playerY, (int)rayX, (int)rayY, 1, kColorWhite);
@@ -267,15 +291,50 @@ static void drawRays(void)
 		rayDistance = rayDistance * cosf(offsetAngle);
 
 		// Get wall slice draw height
+		int textureSize = 16;
 		float lineHeight = (cellSize * screenHeight) / rayDistance;
+		float textureYStep = textureSize / lineHeight;
+		float textureYOffset = 0;
 		if (lineHeight > screenHeight) {
+			textureYOffset = (lineHeight - screenHeight) / 2.0f;
 			lineHeight = screenHeight;
 		}
 		float lineOffset = screenHeight / 2 - lineHeight / 2;
 
 		// Draw wall slice
 		int wallSliceX = ray * rayWidth + renderStartX;
-		pd->graphics->drawLine(wallSliceX, lineOffset, wallSliceX, lineHeight + lineOffset, rayWidth, drawColor);
+		float textureY = textureYOffset * textureYStep;
+		float textureX = (int)(rayX / 2.0f) % textureSize;
+		if (isShaded == 1)
+		{
+			textureX = (int)(rayX / 2.0f) % textureSize;
+			if (rayAngle < PI)
+			{
+				textureX = textureSize - textureX - 1;
+			}
+		}
+		else
+		{
+			textureX = (int)(rayY / 2.0f) % textureSize;
+			if (rayAngle > P2 && rayAngle < P3)
+			{
+				textureX = textureSize - textureX - 1;
+			}
+		}
+
+		for (int drawY = 0; drawY < lineHeight; drawY++)
+		{
+			LCDColor drawColor = pd->graphics->getBitmapPixel(brickTexture, textureX, textureY);
+			if (isShaded == 1) {
+				if (drawColor == kColorWhite) {
+					drawColor = (LCDColor)shadePattern;
+				}
+			}
+			int rectX = wallSliceX - rayWidth / 2;
+			int rectY = drawY + lineOffset - rayWidth / 2;
+			pd->graphics->fillRect(rectX, rectY, rayWidth, rayWidth, drawColor);
+			textureY += textureYStep;
+		}
 
 		rayAngle += rayInterval;
 	}
