@@ -12,7 +12,7 @@
 #define TARGET_FPS 30
 #define SCREEN_WIDTH 400
 #define SCREEN_HEIGHT 240
-#define CELL_SIZE 20
+#define CELL_SIZE 16
 #define MAP_WIDTH 10
 #define MAP_HEIGHT 12
 
@@ -216,19 +216,18 @@ void drawPlayer(void)
 void drawRays(void)
 {
 	int cellSize = CELL_SIZE;
+	int cellSizeBit = 4;
 	int mapWidth = MAP_WIDTH;
 	int mapHeight = MAP_HEIGHT;
 
 	float lineHeights[SCREEN_WIDTH];
-	float lineOffsets[SCREEN_WIDTH];
-	float lineTextureX[SCREEN_WIDTH];
-	float lineIsShaded[SCREEN_WIDTH];
+	int lineTextureX[SCREEN_WIDTH];
 
 	int maxFieldDepth = 10;
-	int screenWidth = 400;
+	// int screenWidth = 400;
 	int screenHeight = 240;
 	// int renderStartX = 400 - screenWidth;
-	int rayCount = screenWidth;
+	int rayCount = 400;
 	// int rayWidth = screenWidth / rayCount;
 	float fov = 70 * (PI / 180.0f);
 	float rayInterval = fov / rayCount;
@@ -259,21 +258,21 @@ void drawRays(void)
 			rayY = playerY;
 		} else if (rayAngle > PI) {
 			// Looking up
-			rayY = floorf(playerY / cellSize) * cellSize - 0.01f;
+			rayY = (float)(((int)playerY >> cellSizeBit) << cellSizeBit) - 0.01f;
 			rayX = (playerY - rayY) * rayPerpendicularSlope + playerX;
 			yOffset = -cellSize;
 			xOffset = -yOffset * rayPerpendicularSlope;
 		} else if (rayAngle < PI && rayAngle > 0) {
 			// Looking down
-			rayY = floorf(playerY / cellSize) * cellSize + cellSize;
+			rayY = (((int)playerY >> cellSizeBit) << cellSizeBit) + cellSize;
 			rayX = (playerY - rayY) * rayPerpendicularSlope + playerX;
 			yOffset = cellSize;
 			xOffset = -yOffset * rayPerpendicularSlope;
 		}
 
 		while (depthOfField < maxFieldDepth) {
-			int mapX = (int)(rayX / cellSize);
-			int mapY = (int)(rayY / cellSize);
+			int mapX = (int)rayX >> cellSizeBit;
+			int mapY = (int)rayY >> cellSizeBit;
 			int mapIndex = mapY * mapWidth + mapX;
 			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1) {
 				depthOfField = maxFieldDepth; // Hit wall
@@ -300,21 +299,21 @@ void drawRays(void)
 			rayY = playerY;
 		} else if (rayAngle > P2 && rayAngle < P3) {
 			// Looking left
-			rayX = (int)(playerX / cellSize) * cellSize - 0.01f;
+			rayX = (float)(((int)playerX >> cellSizeBit) << cellSizeBit) - 0.01f;
 			rayY = (playerX - rayX) * rayNegSlope + playerY;
 			xOffset = -cellSize;
 			yOffset = -xOffset * rayNegSlope;
 		} else if (rayAngle < P2 || rayAngle > P3) {
 			// Looking right
-			rayX = (int)(playerX / cellSize) * cellSize + cellSize;
+			rayX = (((int)playerX >> cellSizeBit) << cellSizeBit) + cellSize;
 			rayY = (playerX - rayX) * rayNegSlope + playerY;
 			xOffset = cellSize;
 			yOffset = -xOffset * rayNegSlope;
 		}
 
 		while (depthOfField < maxFieldDepth) {
-			int mapX = (int)(rayX / cellSize);
-			int mapY = (int)(rayY / cellSize);
+			int mapX = (int)rayX >> cellSizeBit;
+			int mapY = (int)rayY >> cellSizeBit;
 			int mapIndex = mapY * mapWidth + mapX;
 			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1) {
 				depthOfField = maxFieldDepth; // Hit wall
@@ -365,23 +364,20 @@ void drawRays(void)
 			lineHeight = screenHeight;
 		}
 
-		float lineOffset = screenHeight / 2 - lineHeight / 2;
-		lineOffsets[ray] = lineOffset;
-
-		float textureX = (int)(rayX / 2.0f) % textureSize;
+		int textureX;
 		if (isShaded == 1) {
-			textureX = (int)(rayX / 2.0f) % textureSize;
+			textureX = ((int)rayX >> 1) % textureSize;
 			if (rayAngle < PI) {
 				textureX = textureSize - textureX - 1;
 			}
+			textureX += 16;
 		} else {
-			textureX = (int)(rayY / 2.0f) % textureSize;
+			textureX = ((int)rayY >> 1) % textureSize;
 			if (rayAngle > P2 && rayAngle < P3) {
 				textureX = textureSize - textureX - 1;
 			}
 		}
 		lineTextureX[ray] = textureX;
-		lineIsShaded[ray] = isShaded;
 
 		rayAngle += rayInterval;
 	}
@@ -396,19 +392,27 @@ void drawRays(void)
 			{
 				int textureSize = 16;
 				int drawX = drawInt32 * 32 + drawBit;
+				if (drawX >= 400) {
+					continue;
+				}
+
 				float lineHeight = lineHeights[drawX];
-				float lineOffset = lineOffsets[drawX];
 				float textureYStep = textureSize / lineHeight;
 				float textureYOffset = 0;
 				if (lineHeight > screenHeight) {
 					textureYOffset = (lineHeight - screenHeight) / 2.0f;
 					lineHeight = screenHeight;
 				}
+				float lineOffset = (screenHeight >> 1) - lineHeight / 2;
 				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
 					continue;
 				}
-				int textureX = (int)lineTextureX[drawX];
-				float isShaded = lineIsShaded[drawX];
+				int textureX = lineTextureX[drawX];
+				int isShaded = 0;
+				if (textureX >= 16) {
+					textureX -= 16;
+					isShaded = 1;
+				}
 
 				int textureY = (int)(textureYOffset * textureYStep + textureYStep * (drawY - lineOffset));
 
