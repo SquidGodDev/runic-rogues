@@ -60,7 +60,8 @@ void drawCircleAtPoint(float x, float y, int radius)
 	pd->graphics->drawEllipse(drawX, drawY, width, height, 1, 0, 0, kColorWhite);
 }
 
-LCDBitmap *brickTexture;
+LCDSolidColor brickTexture[256];
+
 // LCDPattern shadePattern = {
 // 	// Bitmap
 // 	0b10101010,
@@ -151,9 +152,20 @@ float playerTurnSpeed;
 float playerMaxSpeed;
 float playerXVelocity, playerYVelocity;
 
+void loadTextures(void)
+{
+	LCDBitmap* brickTextureBitmap = pd->graphics->loadBitmap("images/brickTexture", NULL);
+	for (int x = 0; x < 16; x++) {
+		for (int y = 0; y < 16; y++) {
+			LCDColor drawColor = pd->graphics->getBitmapPixel(brickTextureBitmap, x, y);
+			brickTexture[y * 16 + x] = drawColor;
+		}
+	}
+}
+
 void gameInit(void)
 {
-	brickTexture = pd->graphics->loadBitmap("images/brickTexture", NULL);
+	loadTextures();
 	playerX = 100;
 	playerY = 120;
 	playerRadius = 6;
@@ -395,12 +407,12 @@ void drawRays(void)
 				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
 					continue;
 				}
-				float textureX = lineTextureX[drawX];
+				int textureX = (int)lineTextureX[drawX];
 				float isShaded = lineIsShaded[drawX];
 
-				float textureY = textureYOffset * textureYStep + textureYStep * (drawY - lineOffset);
+				int textureY = (int)(textureYOffset * textureYStep + textureYStep * (drawY - lineOffset));
 
-				LCDColor drawColor = pd->graphics->getBitmapPixel(brickTexture, textureX, textureY);
+				LCDColor drawColor = brickTexture[textureX + textureY * textureSize];
 				if (isShaded == 1) {
 					if (drawColor == kColorWhite) {
 						if (drawX % 2 == 0 || drawY % 2 == 1) {
