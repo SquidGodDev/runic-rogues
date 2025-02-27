@@ -12,11 +12,14 @@
 #define TARGET_FPS 30
 #define SCREEN_WIDTH 400
 #define SCREEN_HEIGHT 240
+#define CELL_SIZE 20
+#define MAP_WIDTH 10
+#define MAP_HEIGHT 12
 
 #include "pd_api.h"
 static PlaydateAPI *pd = NULL;
 
-inline float fastRsqrt(float x)
+static inline float fastRsqrt(float x)
 {
 	union {
 		float f;
@@ -27,20 +30,10 @@ inline float fastRsqrt(float x)
 	f32u32.f *= 1.5f - (x * 0.5f * f32u32.f * f32u32.f);
 	return f32u32.f;
 }
-inline float fastRcp(float x) { x = fastRsqrt(x); return x * x; }
-inline float fastDiv(float x, float y) { return x * fastRcp(y); }
-inline float fastSqrt(float x) { return x * fastRsqrt(x); }
-
-static void drawCircleAtPoint(float x, float y, int radius)
-{
-	int drawX = (int)x - radius;
-	int drawY = (int)y - radius;
-	int width = radius * 2;
-	int height = radius * 2;
-	pd->graphics->drawEllipse(drawX, drawY, width, height, 1, 0, 0, kColorWhite);
-}
-
-static float distanceSquared(float x1, float y1, float x2, float y2)
+// static inline float fastRcp(float x) { x = fastRsqrt(x); return x * x; }
+// static inline float fastDiv(float x, float y) { return x * fastRcp(y); }
+static inline float fastSqrt(float x) { return x * fastRsqrt(x); }
+static inline float distanceSquared(float x1, float y1, float x2, float y2)
 {
 	return (y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1);
 }
@@ -58,8 +51,17 @@ static inline uint32_t swap(uint32_t n)
 #endif
 }
 
+void drawCircleAtPoint(float x, float y, int radius)
+{
+	int drawX = (int)x - radius;
+	int drawY = (int)y - radius;
+	int width = radius * 2;
+	int height = radius * 2;
+	pd->graphics->drawEllipse(drawX, drawY, width, height, 1, 0, 0, kColorWhite);
+}
+
 LCDBitmap *brickTexture;
-// static LCDPattern shadePattern = {
+// LCDPattern shadePattern = {
 // 	// Bitmap
 // 	0b10101010,
 // 	0b01010101,
@@ -80,7 +82,7 @@ LCDBitmap *brickTexture;
 // 	0b11111111,
 // 	0b11111111,
 // };
-// static LCDPattern whiteShadePattern = {
+// LCDPattern whiteShadePattern = {
 // 	// Bitmap
 // 	0b01010101,
 // 	0b10101010,
@@ -102,10 +104,7 @@ LCDBitmap *brickTexture;
 // 	0b11111111,
 // };
 
-static int cellSize = 20;
-static int mapWidth = 10;
-static int mapHeight = 12;
-static int map[] =
+int map[] =
 {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 0, 0, 1, 0, 0, 0, 0, 0, 1,
@@ -145,14 +144,14 @@ for h = 1, height do
 end
 */
 
-static float playerX, playerY;
-static int playerRadius;
-static float playerAngle;
-static float playerTurnSpeed;
-static float playerMaxSpeed;
-static float playerXVelocity, playerYVelocity;
+float playerX, playerY;
+int playerRadius;
+float playerAngle;
+float playerTurnSpeed;
+float playerMaxSpeed;
+float playerXVelocity, playerYVelocity;
 
-static void gameInit(void)
+void gameInit(void)
 {
 	brickTexture = pd->graphics->loadBitmap("images/brickTexture", NULL);
 	playerX = 100;
@@ -165,12 +164,15 @@ static void gameInit(void)
 	playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
 }
 
-static void drawMap(void)
+void drawMap(void)
 {
 	if (DRAW_MAP == 0) {
 		return;
 	}
 
+	int cellSize = CELL_SIZE;
+	int mapWidth = MAP_WIDTH;
+	int mapHeight = MAP_HEIGHT;
 	pd->graphics->fillRect(0, 0, mapWidth * cellSize, mapHeight * cellSize, kColorWhite);
 	for (int y = 0; y < mapHeight; y++) {
 		for (int x = 0; x < mapWidth; x++) {
@@ -186,7 +188,7 @@ static void drawMap(void)
 	}
 }
 
-static void drawPlayer(void)
+void drawPlayer(void)
 {
 	if (DRAW_MAP == 0) {
 		return;
@@ -199,13 +201,17 @@ static void drawPlayer(void)
 	pd->graphics->drawLine((int)playerX, (int)playerY, angleIndicatorX, angleIndicatorY, 2, kColorWhite);
 }
 
-static float lineHeights[SCREEN_WIDTH];
-static float lineOffsets[SCREEN_WIDTH];
-static float lineTextureX[SCREEN_WIDTH];
-static float lineIsShaded[SCREEN_WIDTH];
-
-static void drawRays(void)
+void drawRays(void)
 {
+	int cellSize = CELL_SIZE;
+	int mapWidth = MAP_WIDTH;
+	int mapHeight = MAP_HEIGHT;
+
+	float lineHeights[SCREEN_WIDTH];
+	float lineOffsets[SCREEN_WIDTH];
+	float lineTextureX[SCREEN_WIDTH];
+	float lineIsShaded[SCREEN_WIDTH];
+
 	int maxFieldDepth = 10;
 	int screenWidth = 400;
 	int screenHeight = 240;
@@ -282,13 +288,13 @@ static void drawRays(void)
 			rayY = playerY;
 		} else if (rayAngle > P2 && rayAngle < P3) {
 			// Looking left
-			rayX = floorf(playerX / cellSize) * cellSize - 0.01f;
+			rayX = (int)(playerX / cellSize) * cellSize - 0.01f;
 			rayY = (playerX - rayX) * rayNegSlope + playerY;
 			xOffset = -cellSize;
 			yOffset = -xOffset * rayNegSlope;
 		} else if (rayAngle < P2 || rayAngle > P3) {
 			// Looking right
-			rayX = floorf(playerX / cellSize) * cellSize + cellSize;
+			rayX = (int)(playerX / cellSize) * cellSize + cellSize;
 			rayY = (playerX - rayX) * rayNegSlope + playerY;
 			xOffset = cellSize;
 			yOffset = -xOffset * rayNegSlope;
@@ -417,8 +423,11 @@ static void drawRays(void)
 	pd->graphics->markUpdatedRows(0, LCD_ROWS - 1);
 }
 
-static void handleInput(float deltaTime)
+void handleInput(float deltaTime)
 {
+	int cellSize = CELL_SIZE;
+	int mapWidth = MAP_WIDTH;
+
 	// char str_num[50];
 	// sprintf(str_num, "%f", deltaTime);
 	// pd->system->logToConsole(str_num);
@@ -484,7 +493,7 @@ static void handleInput(float deltaTime)
 	}
 }
 
-static int gameUpdate(void* userdata)
+int gameUpdate(void* userdata)
 {
 	float deltaTime = pd->system->getElapsedTime();
 	pd->system->resetElapsedTime();
