@@ -44,6 +44,9 @@ file(GLOB IMAGES
 
 if (TOOLCHAIN STREQUAL "armgcc")
     add_executable(${PLAYDATE_GAME_DEVICE} ${SOURCES})
+	target_compile_options(${PLAYDATE_GAME_DEVICE} PRIVATE 
+		-ffast-math
+	)
 else()
 	add_library(${PLAYDATE_GAME_NAME} SHARED ${SOURCES} ${HEADERS})
 	target_compile_options(${PLAYDATE_GAME_NAME} PRIVATE 
@@ -53,6 +56,7 @@ else()
 		-Wno-unsafe-buffer-usage
 		-Wdouble-promotion
 		-Wno-unused-parameter
+		-Wno-implicit-function-declaration
 	)
 endif()
 

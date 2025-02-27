@@ -4,13 +4,32 @@
 #include <math.h>
 #include <float.h>
 
+#define DRAW_MAP 0
+
 #define PI 3.141592f
 #define P2 PI / 2
 #define P3 3 * PI / 2
 #define TARGET_FPS 30
+#define SCREEN_WIDTH 400
+#define SCREEN_HEIGHT 240
 
 #include "pd_api.h"
 static PlaydateAPI *pd = NULL;
+
+inline float fastRsqrt(float x)
+{
+	union {
+		float f;
+		uint32_t u;
+	} f32u32;
+	f32u32.f = x;
+	f32u32.u = 0x5f3759df - (f32u32.u >> 1);
+	f32u32.f *= 1.5f - (x * 0.5f * f32u32.f * f32u32.f);
+	return f32u32.f;
+}
+inline float fastRcp(float x) { x = fastRsqrt(x); return x * x; }
+inline float fastDiv(float x, float y) { return x * fastRcp(y); }
+inline float fastSqrt(float x) { return x * fastRsqrt(x); }
 
 static void drawCircleAtPoint(float x, float y, int radius)
 {
@@ -21,33 +40,46 @@ static void drawCircleAtPoint(float x, float y, int radius)
 	pd->graphics->drawEllipse(drawX, drawY, width, height, 1, 0, 0, kColorWhite);
 }
 
-static float distance(float x1, float y1, float x2, float y2)
+static float distanceSquared(float x1, float y1, float x2, float y2)
 {
-	return sqrtf((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
+	return (y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1);
+}
+
+static inline uint32_t swap(uint32_t n)
+{
+#if TARGET_PLAYDATE
+	//return __REV(n);
+	uint32_t result;
+	
+	__asm volatile ("rev %0, %1" : "=l" (result) : "l" (n));
+	return(result);
+#else
+	return ((n & 0xff000000) >> 24) | ((n & 0xff0000) >> 8) | ((n & 0xff00) << 8) | (n << 24);
+#endif
 }
 
 LCDBitmap *brickTexture;
-static LCDPattern shadePattern = {
-	// Bitmap
-	0b10101010,
-	0b01010101,
-	0b10101010,
-	0b01010101,
-	0b10101010,
-	0b01010101,
-	0b10101010,
-	0b01010101,
+// static LCDPattern shadePattern = {
+// 	// Bitmap
+// 	0b10101010,
+// 	0b01010101,
+// 	0b10101010,
+// 	0b01010101,
+// 	0b10101010,
+// 	0b01010101,
+// 	0b10101010,
+// 	0b01010101,
 
-	// Mask
-	0b11111111,
-	0b11111111,
-	0b11111111,
-	0b11111111,
-	0b11111111,
-	0b11111111,
-	0b11111111,
-	0b11111111,
-};
+// 	// Mask
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// 	0b11111111,
+// };
 // static LCDPattern whiteShadePattern = {
 // 	// Bitmap
 // 	0b01010101,
@@ -135,6 +167,10 @@ static void gameInit(void)
 
 static void drawMap(void)
 {
+	if (DRAW_MAP == 0) {
+		return;
+	}
+
 	pd->graphics->fillRect(0, 0, mapWidth * cellSize, mapHeight * cellSize, kColorWhite);
 	for (int y = 0; y < mapHeight; y++) {
 		for (int x = 0; x < mapWidth; x++) {
@@ -152,6 +188,10 @@ static void drawMap(void)
 
 static void drawPlayer(void)
 {
+	if (DRAW_MAP == 0) {
+		return;
+	}
+
 	drawCircleAtPoint(playerX, playerY, playerRadius);
 
 	int angleIndicatorX = (int)(playerX + playerXVelocity / 4);
@@ -159,17 +199,23 @@ static void drawPlayer(void)
 	pd->graphics->drawLine((int)playerX, (int)playerY, angleIndicatorX, angleIndicatorY, 2, kColorWhite);
 }
 
+static float lineHeights[SCREEN_WIDTH];
+static float lineOffsets[SCREEN_WIDTH];
+static float lineTextureX[SCREEN_WIDTH];
+static float lineIsShaded[SCREEN_WIDTH];
+
 static void drawRays(void)
 {
-	int maxFieldDepth = 8;
-	int screenWidth = 200;
+	int maxFieldDepth = 10;
+	int screenWidth = 400;
 	int screenHeight = 240;
-	int renderStartX = 200;
-	int rayCount = 50;
-	int rayWidth = screenWidth / rayCount;
-	float rayInterval = 2 * PI / 360;
+	// int renderStartX = 400 - screenWidth;
+	int rayCount = screenWidth;
+	// int rayWidth = screenWidth / rayCount;
+	float fov = 70 * (PI / 180.0f);
+	float rayInterval = fov / rayCount;
 	float rayAngle = playerAngle - rayInterval * rayCount / 2;
-
+	
 	for (int ray = 0; ray < rayCount; ray++) {
 		if (rayAngle < 0) {
 			rayAngle += 2 * PI;
@@ -213,7 +259,7 @@ static void drawRays(void)
 			int mapIndex = mapY * mapWidth + mapX;
 			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1) {
 				depthOfField = maxFieldDepth; // Hit wall
-				horizontalDistance = distance(playerX, playerY, rayX, rayY);
+				horizontalDistance = distanceSquared(playerX, playerY, rayX, rayY);
 				horizontalRayX = rayX;
 				horizontalRayY = rayY;
 			} else {
@@ -254,7 +300,7 @@ static void drawRays(void)
 			int mapIndex = mapY * mapWidth + mapX;
 			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1) {
 				depthOfField = maxFieldDepth; // Hit wall
-				verticalDistance = distance(playerX, playerY, rayX, rayY);
+				verticalDistance = distanceSquared(playerX, playerY, rayX, rayY);
 				verticalRayX = rayX;
 				verticalRayY = rayY;
 			} else {
@@ -269,15 +315,17 @@ static void drawRays(void)
 		if (verticalDistance < horizontalDistance) {
 			rayX = verticalRayX;
 			rayY = verticalRayY;
-			rayDistance = verticalDistance;
+			rayDistance = fastSqrt(verticalDistance);
 		} else if (horizontalDistance < verticalDistance) {
 			rayX = horizontalRayX;
 			rayY = horizontalRayY;
-			rayDistance = horizontalDistance;
+			rayDistance = fastSqrt(horizontalDistance);
 			isShaded = 1;
 		}
 
-		pd->graphics->drawLine((int)playerX, (int)playerY, (int)rayX, (int)rayY, 1, kColorWhite);
+		if (DRAW_MAP != 0) {
+			pd->graphics->drawLine((int)playerX, (int)playerY, (int)rayX, (int)rayY, 1, kColorWhite);
+		}
 
 		// === Draw 3D Walls ===
 
@@ -293,51 +341,80 @@ static void drawRays(void)
 		// Get wall slice draw height
 		int textureSize = 16;
 		float lineHeight = (cellSize * screenHeight) / rayDistance;
-		float textureYStep = textureSize / lineHeight;
-		float textureYOffset = 0;
+		lineHeights[ray] = lineHeight;
+
 		if (lineHeight > screenHeight) {
-			textureYOffset = (lineHeight - screenHeight) / 2.0f;
 			lineHeight = screenHeight;
 		}
+
 		float lineOffset = screenHeight / 2 - lineHeight / 2;
+		lineOffsets[ray] = lineOffset;
 
-		// Draw wall slice
-		int wallSliceX = ray * rayWidth + renderStartX;
-		float textureY = textureYOffset * textureYStep;
 		float textureX = (int)(rayX / 2.0f) % textureSize;
-		if (isShaded == 1)
-		{
+		if (isShaded == 1) {
 			textureX = (int)(rayX / 2.0f) % textureSize;
-			if (rayAngle < PI)
-			{
+			if (rayAngle < PI) {
 				textureX = textureSize - textureX - 1;
 			}
-		}
-		else
-		{
+		} else {
 			textureX = (int)(rayY / 2.0f) % textureSize;
-			if (rayAngle > P2 && rayAngle < P3)
-			{
+			if (rayAngle > P2 && rayAngle < P3) {
 				textureX = textureSize - textureX - 1;
 			}
 		}
-
-		for (int drawY = 0; drawY < lineHeight; drawY++)
-		{
-			LCDColor drawColor = pd->graphics->getBitmapPixel(brickTexture, textureX, textureY);
-			if (isShaded == 1) {
-				if (drawColor == kColorWhite) {
-					drawColor = (LCDColor)shadePattern;
-				}
-			}
-			int rectX = wallSliceX - rayWidth / 2;
-			int rectY = drawY + lineOffset - rayWidth / 2;
-			pd->graphics->fillRect(rectX, rectY, rayWidth, rayWidth, drawColor);
-			textureY += textureYStep;
-		}
+		lineTextureX[ray] = textureX;
+		lineIsShaded[ray] = isShaded;
 
 		rayAngle += rayInterval;
 	}
+
+	uint32_t *frameBuffer = (uint32_t*)pd->graphics->getFrame();
+	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++)
+	{
+		for (int drawInt32 = 0; drawInt32 < 13; drawInt32++)
+		{
+			uint32_t curDrawInt = 0;
+			for (int drawBit = 0; drawBit < 32; drawBit++)
+			{
+				int textureSize = 16;
+				int drawX = drawInt32 * 32 + drawBit;
+				float lineHeight = lineHeights[drawX];
+				float lineOffset = lineOffsets[drawX];
+				float textureYStep = textureSize / lineHeight;
+				float textureYOffset = 0;
+				if (lineHeight > screenHeight) {
+					textureYOffset = (lineHeight - screenHeight) / 2.0f;
+					lineHeight = screenHeight;
+				}
+				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
+					continue;
+				}
+				float textureX = lineTextureX[drawX];
+				float isShaded = lineIsShaded[drawX];
+
+				float textureY = textureYOffset * textureYStep + textureYStep * (drawY - lineOffset);
+
+				LCDColor drawColor = pd->graphics->getBitmapPixel(brickTexture, textureX, textureY);
+				if (isShaded == 1) {
+					if (drawColor == kColorWhite) {
+						if (drawX % 2 == 0 || drawY % 2 == 1) {
+							drawColor = kColorBlack;
+						}
+					}
+				}
+
+				if (drawColor == kColorWhite)
+				{
+					curDrawInt |= 1 << (31 - (drawBit & 31));
+				}
+				// pd->graphics->setPixel(drawX, drawY, drawColor);
+			}
+			curDrawInt = swap(curDrawInt);
+			frameBuffer[drawY * 13 + drawInt32] = curDrawInt;
+		}
+	}
+
+	pd->graphics->markUpdatedRows(0, LCD_ROWS - 1);
 }
 
 static void handleInput(float deltaTime)
@@ -407,13 +484,13 @@ static void handleInput(float deltaTime)
 	}
 }
 
-static int gameUpdate(lua_State *L)
+static int gameUpdate(void* userdata)
 {
 	float deltaTime = pd->system->getElapsedTime();
 	pd->system->resetElapsedTime();
 
 	// pd->sprite->updateAndDrawSprites();
-	pd->graphics->clear(kColorBlack);
+	// pd->graphics->clear(kColorBlack);
 
 	handleInput(deltaTime);
 	drawMap();
@@ -428,14 +505,20 @@ static int gameUpdate(lua_State *L)
 
 int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 {
-	if (event == kEventInitLua) {
+	if (event == kEventInit) {
 		pd = playdate;
 		pd->system->resetElapsedTime();
-
 		gameInit();
-
-		pd->lua->addFunction(gameUpdate, "game.update", NULL);
+		pd->system->setUpdateCallback(gameUpdate, NULL);
 	}
+	// if (event == kEventInitLua) {
+	// 	pd = playdate;
+	// 	pd->system->resetElapsedTime();
+
+	// 	gameInit();
+
+	// 	pd->lua->addFunction(gameUpdate, "game.update", NULL);
+	// }
 
 	return 0;
 }
