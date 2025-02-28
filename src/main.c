@@ -227,7 +227,7 @@ void drawRays(void)
 	// int screenWidth = 400;
 	int screenHeight = 240;
 	// int renderStartX = 400 - screenWidth;
-	int rayCount = 200;
+	int rayCount = 100;
 	// int rayWidth = screenWidth / rayCount;
 	float fov = 70 * (PI / 180.0f);
 	float rayInterval = fov / rayCount;
@@ -404,9 +404,9 @@ void drawRays(void)
 					continue;
 				}
 
-				if (drawBit % 2 == 0)
+				if (drawBit % 4 == 0)
 				{
-					int index = drawX >> 1;
+					int index = drawX >> 2;
 					lineHeight = lineHeights[index];
 					textureYStep = textureSize / lineHeight;
 					textureYOffset = 0;
@@ -435,15 +435,16 @@ void drawRays(void)
 					}
 				}
 
+				LCDColor curDrawColor = drawColor;
 				if (isShaded == 1) {
 					if (drawColor == kColorWhite) {
-						if (drawX % 2 == 1 || drawY % 2 == 1) {
-							drawColor = kColorBlack;
+						if ((drawY % 2 == 0 && drawX % 2 == 0) || (drawY % 2 == 1 && drawX % 2 == 1)) {
+							curDrawColor = kColorBlack;
 						}
 					}
 				}
 
-				if (drawColor == kColorWhite)
+				if (curDrawColor == kColorWhite)
 				{
 					curDrawInt |= 1 << (31 - (drawBit & 31));
 				}
