@@ -227,7 +227,7 @@ void drawRays(void)
 	// int screenWidth = 400;
 	int screenHeight = 240;
 	// int renderStartX = 400 - screenWidth;
-	int rayCount = 400;
+	int rayCount = 200;
 	// int rayWidth = screenWidth / rayCount;
 	float fov = 70 * (PI / 180.0f);
 	float rayInterval = fov / rayCount;
@@ -388,38 +388,56 @@ void drawRays(void)
 		for (int drawInt32 = 0; drawInt32 < 13; drawInt32++)
 		{
 			uint32_t curDrawInt = 0;
+			int textureSize = 16;
+			float lineHeight = 0;
+			float textureYStep = 0;
+			float textureYOffset = 0;
+			float lineOffset = 0;
+			int textureX = 0;
+			int isShaded = 0;
+			int textureY = 0;
+			LCDColor drawColor;
 			for (int drawBit = 0; drawBit < 32; drawBit++)
 			{
-				int textureSize = 16;
 				int drawX = drawInt32 * 32 + drawBit;
 				if (drawX >= 400) {
 					continue;
 				}
 
-				float lineHeight = lineHeights[drawX];
-				float textureYStep = textureSize / lineHeight;
-				float textureYOffset = 0;
-				if (lineHeight > screenHeight) {
-					textureYOffset = (lineHeight - screenHeight) / 2.0f;
-					lineHeight = screenHeight;
+				if (drawBit % 2 == 0)
+				{
+					int index = drawX >> 1;
+					lineHeight = lineHeights[index];
+					textureYStep = textureSize / lineHeight;
+					textureYOffset = 0;
+					if (lineHeight > screenHeight) {
+						textureYOffset = (lineHeight - screenHeight) / 2.0f;
+						lineHeight = screenHeight;
+					}
+					lineOffset = (screenHeight >> 1) - lineHeight / 2;
+					if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
+						continue;
+					}
+					textureX = lineTextureX[index];
+					isShaded = 0;
+					if (textureX >= 16) {
+						textureX -= 16;
+						isShaded = 1;
+					}
+	
+					textureY = (int)(textureYOffset * textureYStep + textureYStep * (drawY - lineOffset));
+	
+					drawColor = brickTexture[textureX + textureY * textureSize];
 				}
-				float lineOffset = (screenHeight >> 1) - lineHeight / 2;
-				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
-					continue;
-				}
-				int textureX = lineTextureX[drawX];
-				int isShaded = 0;
-				if (textureX >= 16) {
-					textureX -= 16;
-					isShaded = 1;
+				else {
+					if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
+						continue;
+					}
 				}
 
-				int textureY = (int)(textureYOffset * textureYStep + textureYStep * (drawY - lineOffset));
-
-				LCDColor drawColor = brickTexture[textureX + textureY * textureSize];
 				if (isShaded == 1) {
 					if (drawColor == kColorWhite) {
-						if (drawX % 2 == 0 || drawY % 2 == 1) {
+						if (drawX % 2 == 1 || drawY % 2 == 1) {
 							drawColor = kColorBlack;
 						}
 					}
