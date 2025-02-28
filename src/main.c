@@ -397,13 +397,10 @@ void drawRays(void)
 			int isShaded = 0;
 			int textureY = 0;
 			LCDColor drawColor;
-			for (int drawBit = 0; drawBit < 32; drawBit++)
+			int drawBitMax = drawInt32 == 12 ? 16 : 32;
+			for (int drawBit = 0; drawBit < drawBitMax; drawBit++)
 			{
 				int drawX = drawInt32 * 32 + drawBit;
-				if (drawX >= 400) {
-					continue;
-				}
-
 				if (drawBit % 4 == 0)
 				{
 					int index = drawX >> 2;
@@ -532,6 +529,8 @@ int gameUpdate(void* userdata)
 {
 	float deltaTime = pd->system->getElapsedTime();
 	pd->system->resetElapsedTime();
+
+	pd->display->setRefreshRate(0);
 
 	// pd->sprite->updateAndDrawSprites();
 	// pd->graphics->clear(kColorBlack);
