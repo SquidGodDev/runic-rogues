@@ -258,7 +258,7 @@ void drawRays(void)
 			rayY = playerY;
 		} else if (rayAngle > PI) {
 			// Looking up
-			rayY = (float)(((int)playerY >> cellSizeBit) << cellSizeBit) - 0.01f;
+			rayY = (float)(((int)playerY >> cellSizeBit) << cellSizeBit) - 0.0001f;
 			rayX = (playerY - rayY) * rayPerpendicularSlope + playerX;
 			yOffset = -cellSize;
 			xOffset = -yOffset * rayPerpendicularSlope;
@@ -299,7 +299,7 @@ void drawRays(void)
 			rayY = playerY;
 		} else if (rayAngle > P2 && rayAngle < P3) {
 			// Looking left
-			rayX = (float)(((int)playerX >> cellSizeBit) << cellSizeBit) - 0.01f;
+			rayX = (float)(((int)playerX >> cellSizeBit) << cellSizeBit) - 0.0001f;
 			rayY = (playerX - rayX) * rayNegSlope + playerY;
 			xOffset = -cellSize;
 			yOffset = -xOffset * rayNegSlope;
