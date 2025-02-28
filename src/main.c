@@ -413,6 +413,7 @@ void drawRays(void)
 					}
 					lineOffset = (screenHeight >> 1) - lineHeight / 2;
 					if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
+						drawBit += 3;
 						continue;
 					}
 					textureX = lineTextureX[index];
@@ -425,11 +426,6 @@ void drawRays(void)
 					textureY = (int)(textureYOffset * textureYStep + textureYStep * (drawY - lineOffset));
 	
 					drawColor = brickTexture[textureX + textureY * textureSize];
-				}
-				else {
-					if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
-						continue;
-					}
 				}
 
 				LCDColor curDrawColor = drawColor;
