@@ -227,7 +227,7 @@ void drawRays(void)
 	// int screenWidth = 400;
 	int screenHeight = 240;
 	// int renderStartX = 400 - screenWidth;
-	int rayCount = 100;
+	int rayCount = 400;
 	// int rayWidth = screenWidth / rayCount;
 	float fov = 70 * (PI / 180.0f);
 	float rayInterval = fov / rayCount;
@@ -397,13 +397,14 @@ void drawRays(void)
 			int isShaded = 0;
 			int textureY = 0;
 			LCDColor drawColor;
+			int dynamicResolution = 1;
 			int drawBitMax = drawInt32 == 12 ? 16 : 32;
 			for (int drawBit = 0; drawBit < drawBitMax; drawBit++)
 			{
 				int drawX = drawInt32 * 32 + drawBit;
-				if (drawBit % 4 == 0)
+				if (drawBit % dynamicResolution == 0)
 				{
-					int index = drawX >> 2;
+					int index = drawX;
 					lineHeight = lineHeights[index];
 					textureYStep = textureSize / lineHeight;
 					textureYOffset = 0;
@@ -413,8 +414,17 @@ void drawRays(void)
 					}
 					lineOffset = (screenHeight >> 1) - lineHeight / 2;
 					if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
-						drawBit += 3;
+						drawBit = drawBit + 3 - (drawBit % 4);
 						continue;
+					}
+					if (drawBit % 4 == 0) {
+						if (lineHeight < 100) {
+							dynamicResolution = 1;
+						} else if (lineHeight < 200) {
+							dynamicResolution = 2;
+						} else {
+							dynamicResolution = 4;
+						}
 					}
 					textureX = lineTextureX[index];
 					isShaded = 0;
