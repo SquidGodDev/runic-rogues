@@ -237,6 +237,7 @@ typedef struct LineData {
 	float textureYStep;
 	float textureYModifier;
 	float lineOffset;
+	float intersectSlope;
 	int textureX;
 } LineData;
 
@@ -276,6 +277,7 @@ void drawRays(void)
 		float horizontalRayX, horizontalRayY;
 		float horizontalDistance = 1000000;
 		float rayPerpendicularSlope = -1 / tanf(rayAngle);
+		float horizontalIntersectSlope = 0;
 
 		if (rayAngle == 0 || rayAngle == PI) {
 			// Looking straight left or right
@@ -295,6 +297,8 @@ void drawRays(void)
 			yOffset = cellSize;
 			xOffset = -yOffset * rayPerpendicularSlope;
 		}
+
+		horizontalIntersectSlope = fabsf(yOffset / xOffset);
 
 		while (depthOfField < maxFieldDepth) {
 			int mapX = (int)rayX >> cellSizeBit;
@@ -317,6 +321,7 @@ void drawRays(void)
 		float verticalRayX, verticalRayY;
 		float verticalDistance = 1000000;
 		float rayNegSlope = -tanf(rayAngle);
+		float verticalIntersectSlope = 0;
 
 		if (rayAngle == P2 || rayAngle == P3) {
 			// Looking straight up or down
@@ -337,6 +342,8 @@ void drawRays(void)
 			yOffset = -xOffset * rayNegSlope;
 		}
 
+		verticalIntersectSlope = fabsf(yOffset / xOffset);
+
 		while (depthOfField < maxFieldDepth) {
 			int mapX = (int)rayX >> cellSizeBit;
 			int mapY = (int)rayY >> cellSizeBit;
@@ -353,17 +360,20 @@ void drawRays(void)
 			}
 		}
 
+		LineData curLineData;
 		float rayDistance = 0;
 		int isShaded = 0;
 		if (verticalDistance < horizontalDistance) {
 			rayX = verticalRayX;
 			rayY = verticalRayY;
 			rayDistance = fastSqrt(verticalDistance);
+			curLineData.intersectSlope = verticalIntersectSlope;
 		} else if (horizontalDistance < verticalDistance) {
 			rayX = horizontalRayX;
 			rayY = horizontalRayY;
 			rayDistance = fastSqrt(horizontalDistance);
 			isShaded = 1;
+			curLineData.intersectSlope = horizontalIntersectSlope;
 		}
 
 		if (DRAW_MAP != 0) {
@@ -380,8 +390,6 @@ void drawRays(void)
 			offsetAngle -= 2 * PI;
 		}
 		rayDistance = rayDistance * cosf(offsetAngle);
-
-		LineData curLineData;
 
 		// Get wall slice draw height
 		int textureSize = 16;
@@ -430,35 +438,49 @@ void drawRays(void)
 			float textureYStep = 0;
 			float textureYModifier = 0;
 			float lineOffset = 0;
+			float intersectSlope = 0;
 			int textureX = 0;
 			int isShaded = 0;
 			int textureY = 0;
 			LCDColor drawColor;
 			int drawBitMax = drawInt32 == 12 ? 16 : 32;
+			int dynamicResolution = 4;
+			int drawIntOffset = drawInt32 * 32;
 			for (int drawBit = 0; drawBit < drawBitMax; drawBit++)
 			{
-				int drawX = drawInt32 * 32 + drawBit;
-				int index = drawX;
-
-				curLineData = lineData[index];
-				lineHeight = curLineData.lineHeight;
-				lineOffset = curLineData.lineOffset;
-				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
-					drawBit = drawBit + 3 - (drawBit % 4);
-					continue;
+				int drawX = drawIntOffset + drawBit;
+				if (drawBit % dynamicResolution == 0) {
+					curLineData = lineData[drawX];
+					lineHeight = curLineData.lineHeight;
+					lineOffset = curLineData.lineOffset;
+					intersectSlope = curLineData.intersectSlope;
+					if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
+						drawBit = drawBit + 3 - (drawBit % 4);
+						continue;
+					}
+					if (drawBit % 4 == 0) {
+						if (intersectSlope > 4) {
+							dynamicResolution = 1;
+						} else if (intersectSlope > 2) {
+							dynamicResolution = 2;
+						} else {
+							dynamicResolution = 4;
+						}
+					}
+					textureX = curLineData.textureX;
+					isShaded = 0;
+					if (textureX >= 16) {
+						textureX -= 16;
+						isShaded = 1;
+					}
+	
+					textureYModifier = curLineData.textureYModifier;
+					textureYStep = curLineData.textureYStep;
+					textureY = (int)(textureYModifier + textureYStep * drawY);
+	
+					drawColor = brickTexture[textureX + textureY * textureSize];
 				}
-				textureX = curLineData.textureX;
-				isShaded = 0;
-				if (textureX >= 16) {
-					textureX -= 16;
-					isShaded = 1;
-				}
 
-				textureYModifier = curLineData.textureYModifier;
-				textureYStep = curLineData.textureYStep;
-				textureY = (int)(textureYModifier + textureYStep * drawY);
-
-				drawColor = brickTexture[textureX + textureY * textureSize];
 
 				LCDColor curDrawColor = drawColor;
 				if (isShaded == 1) {
