@@ -62,6 +62,25 @@ void drawCircleAtPoint(float x, float y, int radius)
 
 LCDSolidColor brickTexture[256];
 
+// Source: https://github.com/TheMediocritist/Wolf_3D/
+// int fillPatterns[17][8] = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+//                       	   {0xFF, 0xFF, 0xFF, 0xEE, 0xFF, 0xFF, 0xFF, 0xEE},
+//                       	   {0xFF, 0xBB, 0xFF, 0xEE, 0xFF, 0xBB, 0xFF, 0xEE},
+//                       	   {0xFF, 0xBB, 0xFF, 0xAA, 0xFF, 0xBB, 0xFF, 0xAA},
+//                       	   {0xFF, 0xAA, 0xFF, 0xAA, 0xFF, 0xAA, 0xFF, 0xAA},
+//                       	   {0xFF, 0xAA, 0xDD, 0xAA, 0xFF, 0xAA, 0xDD, 0xAA},
+//                       	   {0x77, 0xAA, 0xDD, 0xAA, 0x77, 0xAA, 0xDD, 0xAA},
+//                       	   {0x55, 0xAA, 0xDD, 0xAA, 0x55, 0xAA, 0xDD, 0xAA},
+//                       	   {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA},
+//                       	   {0x55, 0xAA, 0x55, 0x88, 0x55, 0xAA, 0x55, 0x88},
+//                       	   {0x55, 0x22, 0x55, 0x88, 0x55, 0x22, 0x55, 0x88},
+//                       	   {0x55, 0x00, 0x55, 0x88, 0x55, 0x00, 0x55, 0x88},
+//                       	   {0x55, 0x00, 0x55, 0x00, 0x55, 0x00, 0x55, 0x00},
+//                       	   {0x55, 0x00, 0x44, 0x00, 0x55, 0x00, 0x44, 0x00},
+//                       	   {0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x00},
+//                       	   {0x11, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00},
+//                       	   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
+
 // LCDPattern shadePattern = {
 // 	// Bitmap
 // 	0b10101010,
@@ -216,7 +235,7 @@ void drawPlayer(void)
 typedef struct LineData {
 	float lineHeight;
 	float textureYStep;
-	float textureYOffset;
+	float textureYModifier;
 	float lineOffset;
 	int textureX;
 } LineData;
@@ -377,7 +396,7 @@ void drawRays(void)
 		}
 		float lineOffset = (screenHeight >> 1) - lineHeight / 2;
 		curLineData.textureYStep = textureYStep;
-		curLineData.textureYOffset = textureYOffset;
+		curLineData.textureYModifier = textureYOffset * textureYStep - textureYStep * lineOffset;
 		curLineData.lineOffset = lineOffset;
 
 		int textureX;
@@ -409,7 +428,7 @@ void drawRays(void)
 			LineData curLineData;
 			float lineHeight = 0;
 			float textureYStep = 0;
-			float textureYOffset = 0;
+			float textureYModifier = 0;
 			float lineOffset = 0;
 			int textureX = 0;
 			int isShaded = 0;
@@ -435,9 +454,9 @@ void drawRays(void)
 					isShaded = 1;
 				}
 
-				textureYOffset = curLineData.textureYOffset;
+				textureYModifier = curLineData.textureYModifier;
 				textureYStep = curLineData.textureYStep;
-				textureY = (int)(textureYOffset * textureYStep + textureYStep * (drawY - lineOffset));
+				textureY = (int)(textureYModifier + textureYStep * drawY);
 
 				drawColor = brickTexture[textureX + textureY * textureSize];
 
