@@ -213,6 +213,14 @@ void drawPlayer(void)
 	pd->graphics->drawLine((int)playerX, (int)playerY, angleIndicatorX, angleIndicatorY, 2, kColorWhite);
 }
 
+typedef struct LineData {
+	float lineHeight;
+	float textureYStep;
+	float textureYOffset;
+	float lineOffset;
+	int textureX;
+} LineData;
+
 void drawRays(void)
 {
 	int cellSize = CELL_SIZE;
@@ -220,11 +228,7 @@ void drawRays(void)
 	int mapWidth = MAP_WIDTH;
 	int mapHeight = MAP_HEIGHT;
 
-	float lineHeights[SCREEN_WIDTH];
-	float lineTextureYSteps[SCREEN_WIDTH];
-	float lineTextureYOffsets[SCREEN_WIDTH];
-	float lineOffsets[SCREEN_WIDTH];
-	int lineTextureX[SCREEN_WIDTH];
+	LineData lineData[SCREEN_WIDTH];
 
 	int maxFieldDepth = 10;
 	// int screenWidth = 400;
@@ -358,10 +362,12 @@ void drawRays(void)
 		}
 		rayDistance = rayDistance * cosf(offsetAngle);
 
+		LineData curLineData;
+
 		// Get wall slice draw height
 		int textureSize = 16;
 		float lineHeight = (cellSize * screenHeight) / rayDistance;
-		lineHeights[ray] = lineHeight;
+		curLineData.lineHeight = lineHeight;
 
 		float textureYStep = textureSize / lineHeight;
 		float textureYOffset = 0;
@@ -370,9 +376,9 @@ void drawRays(void)
 			lineHeight = screenHeight;
 		}
 		float lineOffset = (screenHeight >> 1) - lineHeight / 2;
-		lineTextureYSteps[ray] = textureYStep;
-		lineTextureYOffsets[ray] = textureYOffset;
-		lineOffsets[ray] = lineOffset;
+		curLineData.textureYStep = textureYStep;
+		curLineData.textureYOffset = textureYOffset;
+		curLineData.lineOffset = lineOffset;
 
 		int textureX;
 		if (isShaded == 1) {
@@ -387,7 +393,8 @@ void drawRays(void)
 				textureX = textureSize - textureX - 1;
 			}
 		}
-		lineTextureX[ray] = textureX;
+		curLineData.textureX = textureX;
+		lineData[ray] = curLineData;
 
 		rayAngle += rayInterval;
 	}
@@ -399,6 +406,7 @@ void drawRays(void)
 		{
 			uint32_t curDrawInt = 0;
 			int textureSize = 16;
+			LineData curLineData;
 			float lineHeight = 0;
 			float textureYStep = 0;
 			float textureYOffset = 0;
@@ -412,21 +420,23 @@ void drawRays(void)
 			{
 				int drawX = drawInt32 * 32 + drawBit;
 				int index = drawX;
-				lineHeight = lineHeights[index];
-				lineOffset = lineOffsets[index];
+
+				curLineData = lineData[index];
+				lineHeight = curLineData.lineHeight;
+				lineOffset = curLineData.lineOffset;
 				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
 					drawBit = drawBit + 3 - (drawBit % 4);
 					continue;
 				}
-				textureX = lineTextureX[index];
+				textureX = curLineData.textureX;
 				isShaded = 0;
 				if (textureX >= 16) {
 					textureX -= 16;
 					isShaded = 1;
 				}
 
-				textureYOffset = lineTextureYOffsets[index];
-				textureYStep = lineTextureYSteps[index];
+				textureYOffset = curLineData.textureYOffset;
+				textureYStep = curLineData.textureYStep;
 				textureY = (int)(textureYOffset * textureYStep + textureYStep * (drawY - lineOffset));
 
 				drawColor = brickTexture[textureX + textureY * textureSize];
