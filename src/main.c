@@ -419,26 +419,17 @@ void drawRays(void)
 	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++) {
 		for (int drawInt32 = 0; drawInt32 < 13; drawInt32++) {
 			uint32_t curDrawInt = 0;
-			int textureSizeBit = 4;
-			LineData curLineData;
-			int lineHeight = 0;
-			int lineOffset = 0;
-			float textureYStep = 0;
-			float textureYModifier = 0;
-			int textureX = 0;
-			int textureY = 0;
-			LCDColor drawColor;
 			int drawBitMax = drawInt32 == 12 ? 16 : 32;
 			int drawIntOffset = drawInt32 * 32;
 			for (int drawBit = 0; drawBit < drawBitMax; drawBit++) {
 				int drawX = drawIntOffset + drawBit;
-				curLineData = lineData[drawX];
-				lineHeight = curLineData.lineHeight;
-				lineOffset = curLineData.lineOffset;
+				LineData curLineData = lineData[drawX];
+				int lineHeight = curLineData.lineHeight;
+				int lineOffset = curLineData.lineOffset;
 				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
 					continue;
 				}
-				textureX = curLineData.textureX;
+				int textureX = curLineData.textureX;
 				if (textureX >= 16) {
 					textureX -= 16;
 					if ((drawX + drawY) % 2 == 0) {
@@ -446,11 +437,11 @@ void drawRays(void)
 					}
 				}
 
-				textureYModifier = curLineData.textureYModifier;
-				textureYStep = curLineData.textureYStep;
-				textureY = (int)(textureYModifier + textureYStep * drawY);
+				float textureYModifier = curLineData.textureYModifier;
+				float textureYStep = curLineData.textureYStep;
+				int textureY = (int)(textureYModifier + textureYStep * drawY);
 
-				drawColor = brickTexture[textureX + (textureY << textureSizeBit)];
+				LCDColor drawColor = brickTexture[textureX + (textureY << 4)];
 
 				if (drawColor == kColorWhite) {
 					curDrawInt |= 1 << (31 - (drawBit & 31));
