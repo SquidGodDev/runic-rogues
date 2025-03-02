@@ -431,7 +431,6 @@ void drawRays(void)
 			float textureYStep = 0;
 			float textureYModifier = 0;
 			int textureX = 0;
-			int isShaded = 0;
 			int textureY = 0;
 			LCDColor drawColor;
 			int drawBitMax = drawInt32 == 12 ? 16 : 32;
@@ -446,10 +445,11 @@ void drawRays(void)
 					continue;
 				}
 				textureX = curLineData.textureX;
-				isShaded = 0;
 				if (textureX >= 16) {
 					textureX -= 16;
-					isShaded = 1;
+					if ((drawX + drawY) % 2 == 0) {
+						continue;
+					}
 				}
 
 				textureYModifier = curLineData.textureYModifier;
@@ -458,16 +458,7 @@ void drawRays(void)
 
 				drawColor = brickTexture[textureX + (textureY << textureSizeBit)];
 
-				LCDColor curDrawColor = drawColor;
-				if (isShaded == 1) {
-					if (drawColor == kColorWhite) {
-						if ((drawY % 2 == 0 && drawX % 2 == 0) || (drawY % 2 == 1 && drawX % 2 == 1)) {
-							curDrawColor = kColorBlack;
-						}
-					}
-				}
-
-				if (curDrawColor == kColorWhite)
+				if (drawColor == kColorWhite)
 				{
 					curDrawInt |= 1 << (31 - (drawBit & 31));
 				}
