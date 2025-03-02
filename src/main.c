@@ -43,7 +43,7 @@ static inline uint32_t swap(uint32_t n)
 #if TARGET_PLAYDATE
 	//return __REV(n);
 	uint32_t result;
-	
+
 	__asm volatile ("rev %0, %1" : "=l" (result) : "l" (n));
 	return(result);
 #else
@@ -173,7 +173,7 @@ float playerXVelocity, playerYVelocity;
 
 void loadTextures(void)
 {
-	LCDBitmap* brickTextureBitmap = pd->graphics->loadBitmap("images/brickTexture", NULL);
+	LCDBitmap *brickTextureBitmap = pd->graphics->loadBitmap("images/brickTexture", NULL);
 	for (int y = 0; y < 16; y++) {
 		for (int x = 0; x < 16; x++) {
 			LCDColor drawColor = pd->graphics->getBitmapPixel(brickTextureBitmap, x, y);
@@ -251,15 +251,12 @@ void drawRays(void)
 	LineData lineData[SCREEN_WIDTH];
 
 	int maxFieldDepth = 10;
-	// int screenWidth = 400;
 	int screenHeight = 240;
-	// int renderStartX = 400 - screenWidth;
 	int rayCount = 400;
-	// int rayWidth = screenWidth / rayCount;
 	float fov = 70 * (PI / 180.0f);
 	float rayInterval = fov / rayCount;
 	float rayAngle = playerAngle - rayInterval * rayCount / 2;
-	
+
 	for (int ray = 0; ray < rayCount; ray++) {
 		if (rayAngle < 0) {
 			rayAngle += 2 * PI;
@@ -418,11 +415,9 @@ void drawRays(void)
 		rayAngle += rayInterval;
 	}
 
-	uint32_t *frameBuffer = (uint32_t*)pd->graphics->getFrame();
-	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++)
-	{
-		for (int drawInt32 = 0; drawInt32 < 13; drawInt32++)
-		{
+	uint32_t *frameBuffer = (uint32_t *)pd->graphics->getFrame();
+	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++) {
+		for (int drawInt32 = 0; drawInt32 < 13; drawInt32++) {
 			uint32_t curDrawInt = 0;
 			int textureSizeBit = 4;
 			LineData curLineData;
@@ -435,8 +430,7 @@ void drawRays(void)
 			LCDColor drawColor;
 			int drawBitMax = drawInt32 == 12 ? 16 : 32;
 			int drawIntOffset = drawInt32 * 32;
-			for (int drawBit = 0; drawBit < drawBitMax; drawBit++)
-			{
+			for (int drawBit = 0; drawBit < drawBitMax; drawBit++) {
 				int drawX = drawIntOffset + drawBit;
 				curLineData = lineData[drawX];
 				lineHeight = curLineData.lineHeight;
@@ -458,11 +452,9 @@ void drawRays(void)
 
 				drawColor = brickTexture[textureX + (textureY << textureSizeBit)];
 
-				if (drawColor == kColorWhite)
-				{
+				if (drawColor == kColorWhite) {
 					curDrawInt |= 1 << (31 - (drawBit & 31));
 				}
-				// pd->graphics->setPixel(drawX, drawY, drawColor);
 			}
 			curDrawInt = swap(curDrawInt);
 			frameBuffer[drawY * 13 + drawInt32] = curDrawInt;
@@ -542,7 +534,7 @@ void handleInput(float deltaTime)
 	}
 }
 
-int gameUpdate(void* userdata)
+int gameUpdate(void *userdata)
 {
 	float deltaTime = pd->system->getElapsedTime();
 	pd->system->resetElapsedTime();
