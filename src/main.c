@@ -443,7 +443,6 @@ void drawRays(void)
 				lineHeight = curLineData.lineHeight;
 				lineOffset = curLineData.lineOffset;
 				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
-					drawBit = drawBit + 3 - (drawBit % 4);
 					continue;
 				}
 				textureX = curLineData.textureX;
