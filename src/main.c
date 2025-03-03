@@ -61,6 +61,7 @@ void drawCircleAtPoint(float x, float y, int radius)
 }
 
 LCDSolidColor brickTexture[256];
+LCDSolidColor floorTexture[256];
 
 // Source: https://github.com/TheMediocritist/Wolf_3D/
 // int fillPatterns[17][8] = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
@@ -171,15 +172,22 @@ float playerTurnSpeed;
 float playerMaxSpeed;
 float playerXVelocity, playerYVelocity;
 
-void loadTextures(void)
-{
-	LCDBitmap *brickTextureBitmap = pd->graphics->loadBitmap("images/brickTexture", NULL);
-	for (int y = 0; y < 16; y++) {
-		for (int x = 0; x < 16; x++) {
-			LCDColor drawColor = pd->graphics->getBitmapPixel(brickTextureBitmap, x, y);
-			brickTexture[y * 16 + x] = drawColor;
+void loadTexture(const char *texturePath, LCDSolidColor *textureArray) {
+	LCDBitmap *textureBitmap = pd->graphics->loadBitmap(texturePath, NULL);
+	int width, height;
+	pd->graphics->getBitmapData(textureBitmap, &width, &height, NULL, NULL, NULL);
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			LCDColor drawColor = pd->graphics->getBitmapPixel(textureBitmap, x, y);
+			textureArray[y * width + x] = drawColor;
 		}
 	}
+}
+
+void loadTextures(void)
+{
+	loadTexture("images/brickTexture", brickTexture);
+	loadTexture("images/floorTexture", floorTexture);
 }
 
 void gameInit(void)
@@ -239,6 +247,8 @@ typedef struct LineData {
 	uint32_t lineOffset;
 	float textureYStep; // 32 bits
 	float textureYModifier; // 32 bits
+	float floorTextureXModifier;
+	float floorTextureYModifier;
 } LineData;
 
 void drawRays(void)
@@ -253,7 +263,7 @@ void drawRays(void)
 	int maxFieldDepth = 10;
 	int screenHeight = 240;
 	int rayCount = 400;
-	float fov = 70 * (PI / 180.0f);
+	float fov = 66 * (PI / 180.0f);
 	float rayInterval = fov / rayCount;
 	float rayAngle = playerAngle - rayInterval * rayCount / 2;
 
@@ -410,6 +420,12 @@ void drawRays(void)
 			}
 		}
 		curLineData.textureX = textureX;
+
+		float floorTextureXModifier = cosf(rayAngle) * (120) * 16 / cosf(offsetAngle);
+		float floorTextureYModifier = sinf(rayAngle) * (120) * 16 / cosf(offsetAngle);
+		curLineData.floorTextureXModifier = floorTextureXModifier;
+		curLineData.floorTextureYModifier = floorTextureYModifier;
+
 		lineData[ray] = curLineData;
 
 		rayAngle += rayInterval;
@@ -417,6 +433,9 @@ void drawRays(void)
 
 	uint32_t *frameBuffer = (uint32_t *)pd->graphics->getFrame();
 	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++) {
+		float distanceToFloor = drawY - (SCREEN_HEIGHT / 2.0f);
+		float halfPlayerX = playerX / 2.0f;
+		float halfPlayerY = playerY / 2.0f;
 		for (int drawInt32 = 0; drawInt32 < 13; drawInt32++) {
 			uint32_t curDrawInt = 0;
 			int drawBitMax = drawInt32 == 12 ? 16 : 32;
@@ -426,7 +445,16 @@ void drawRays(void)
 				LineData curLineData = lineData[drawX];
 				int lineHeight = curLineData.lineHeight;
 				int lineOffset = curLineData.lineOffset;
-				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
+				if (drawY < lineOffset) {
+					continue;
+				} else if (drawY > lineHeight + lineOffset) {
+					int textureX = (int)(halfPlayerX + curLineData.floorTextureXModifier / distanceToFloor) & 15;
+					int textureY = (int)(halfPlayerY - curLineData.floorTextureYModifier / distanceToFloor) & 15;
+
+					LCDColor drawColor = brickTexture[textureX + (textureY << 4)];
+					if (drawColor == kColorWhite) {
+						curDrawInt |= 1 << (31 - (drawBit & 31));
+					}
 					continue;
 				}
 				int textureX = curLineData.textureX;
