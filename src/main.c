@@ -12,6 +12,7 @@
 #define TARGET_FPS 30
 #define SCREEN_WIDTH 400
 #define SCREEN_HEIGHT 240
+#define HALF_SCREEN_HEIGHT SCREEN_HEIGHT / 2
 #define CELL_SIZE 16
 #define MAP_WIDTH 10
 #define MAP_HEIGHT 12
@@ -168,20 +169,31 @@ float playerAngle;
 float playerTurnSpeed;
 float playerMaxSpeed;
 float playerXVelocity, playerYVelocity;
+float planeX, planeY;
+float dirX, dirY;
 
 #define SKYBOX_SIZE (SCREEN_HEIGHT / 2) * 13
 LCDSolidColor brickTexture[256];
+LCDSolidColor floorTexture[256];
 uint32_t skybox[SKYBOX_SIZE];
-void loadTextures(void)
-{
-	LCDBitmap *brickTextureBitmap = pd->graphics->loadBitmap("images/brickTexture", NULL);
-	for (int y = 0; y < 16; y++) {
-		for (int x = 0; x < 16; x++) {
-			LCDColor drawColor = pd->graphics->getBitmapPixel(brickTextureBitmap, x, y);
-			brickTexture[y * 16 + x] = drawColor;
+
+void loadTexture(const char *texturePath, LCDSolidColor *textureArray) {
+	LCDBitmap *textureBitmap = pd->graphics->loadBitmap(texturePath, NULL);
+	int width, height;
+	pd->graphics->getBitmapData(textureBitmap, &width, &height, NULL, NULL, NULL);
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			LCDColor drawColor = pd->graphics->getBitmapPixel(textureBitmap, x, y);
+			textureArray[y * width + x] = drawColor;
 		}
 	}
-		
+}
+
+void loadTextures(void)
+{
+	loadTexture("images/brickTexture", brickTexture);
+	loadTexture("images/floorTexture", floorTexture);
+
 	LCDBitmap *skyboxBitmap = pd->graphics->loadBitmap("images/skybox", NULL);
 	for (int y = 0; y < SCREEN_HEIGHT / 2; y++) {
 		for (int drawInt32 = 0; drawInt32 < 13; drawInt32++) {
@@ -211,6 +223,10 @@ void gameInit(void)
 	playerMaxSpeed = 2.0f * TARGET_FPS;
 	playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
 	playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
+	planeX = 0;
+	planeY = -0.59f; // Related to fov somehow - not sure so I just tweaked it until it looked right
+	dirX = 1;
+	dirY = 0;
 }
 
 void drawMap(void)
@@ -271,7 +287,7 @@ void drawRays(void)
 	int maxFieldDepth = 10;
 	int screenHeight = 240;
 	int rayCount = 400;
-	float fov = 70 * (PI / 180.0f);
+	float fov = 66 * (PI / 180.0f);
 	float rayInterval = fov / rayCount;
 	float rayAngle = playerAngle - rayInterval * rayCount / 2;
 
@@ -433,15 +449,39 @@ void drawRays(void)
 		rayAngle += rayInterval;
 	}
 
+	float rayDirX0 = dirX + planeX;
+	float rayDirY0 = dirY + planeY;
+	float rayDirX1 = dirX - planeX;
+	float rayDirY1 = dirY - planeY;
+	float floorStepXModifier = (rayDirX1 - rayDirX0) / SCREEN_WIDTH;
+	float floorStepYModifier = (rayDirY1 - rayDirY0) / SCREEN_WIDTH;
+	float playerMapX = playerX / CELL_SIZE;
+	float playerMapY = playerY / CELL_SIZE;
+
 	uint32_t *frameBuffer = (uint32_t *)pd->graphics->getFrame();
-	// memcpy(frameBuffer, skybox, SKYBOX_SIZE);
 	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++) {
+
+		// Current y position compared to the center of the screen (the horizon)
+		int p = drawY - HALF_SCREEN_HEIGHT;
+		// Horizontal distance from the camera to the floor for the current row.
+		// 0.5 is the z position exactly in the middle between floor and ceiling.
+		float rowDistance = (float)HALF_SCREEN_HEIGHT / p;
+
+		// calculate the real world step vector we have to add for each x (parallel to camera plane)
+		// adding step by step avoids multiplications with a weight in the inner loop
+		float floorStepX = rowDistance * floorStepXModifier;
+		float floorStepY = rowDistance * floorStepYModifier;
+
+		// real world coordinates of the leftmost column. This will be updated as we step to the right.
+		float floorX = playerMapX + rowDistance * rayDirX0 - floorStepX;
+		float floorY = playerMapY + rowDistance * rayDirY0 - floorStepY;
+
 		for (int drawInt32 = 0; drawInt32 < 13; drawInt32++) {
 			int frameBufferIndex = drawY * 13 + drawInt32;
 			uint32_t curDrawInt = 0;
-			if (drawY < SCREEN_HEIGHT / 2) {
-				curDrawInt = skybox[frameBufferIndex];
-			}
+			// if (drawY < SCREEN_HEIGHT / 2) {
+			// 	curDrawInt = skybox[frameBufferIndex];
+			// }
 			int drawBitMax = drawInt32 == 12 ? 16 : 32;
 			int drawIntOffset = drawInt32 * 32;
 			for (int drawBit = 0; drawBit < drawBitMax; drawBit++) {
@@ -449,23 +489,38 @@ void drawRays(void)
 				LineData curLineData = lineData[drawX];
 				int lineHeight = curLineData.lineHeight;
 				int lineOffset = curLineData.lineOffset;
-				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
+				LCDColor drawColor;
+				floorX += floorStepX;
+				floorY += floorStepY;
+				if (drawY < lineOffset) {
 					continue;
-				}
-				int textureX = curLineData.textureX;
-				if (textureX >= 16) {
-					textureX -= 16;
-					if ((drawX + drawY) % 2 == 0) {
-						curDrawInt &= ~(1 << (31 - (drawBit & 31)));
-						continue;
+				} else if (drawY > lineHeight + lineOffset) {
+					// the cell coord is simply got from the integer parts of floorX and floorY
+					int cellX = (int)(floorX);
+					int cellY = (int)(floorY);
+			
+					// get the texture coordinate from the fractional part
+					int textureX = (int)(CELL_SIZE * (floorX - cellX)) & (CELL_SIZE - 1);
+					int textureY = (int)(CELL_SIZE * (floorY - cellY)) & (CELL_SIZE - 1);
+			
+					// floor
+					drawColor = floorTexture[textureX + (textureY << 4)];
+				} else {
+					int textureX = curLineData.textureX;
+					if (textureX >= 16) {
+						textureX -= 16;
+						if ((drawX + drawY) % 2 == 0) {
+							curDrawInt &= ~(1 << (31 - (drawBit & 31)));
+							continue;
+						}
 					}
+	
+					float textureYModifier = curLineData.textureYModifier;
+					float textureYStep = curLineData.textureYStep;
+					int textureY = (int)(textureYModifier + textureYStep * drawY);
+	
+					drawColor = brickTexture[textureX + (textureY << 4)];
 				}
-
-				float textureYModifier = curLineData.textureYModifier;
-				float textureYStep = curLineData.textureYStep;
-				int textureY = (int)(textureYModifier + textureYStep * drawY);
-
-				LCDColor drawColor = brickTexture[textureX + (textureY << 4)];
 
 				if (drawColor == kColorWhite) {
 					curDrawInt |= 1 << (31 - (drawBit & 31));
@@ -500,6 +555,14 @@ void handleInput(float deltaTime)
 		}
 		playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
 		playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
+
+		float adjustedTurnSpeed = playerTurnSpeed * deltaTime;
+		float oldDirX = dirX;
+		dirX = dirX * cosf(-adjustedTurnSpeed) - dirY * sinf(-adjustedTurnSpeed);
+		dirY = oldDirX * sinf(-adjustedTurnSpeed) + dirY * cosf(-adjustedTurnSpeed);
+		float oldPlaneX = planeX;
+		planeX = planeX * cosf(-adjustedTurnSpeed) - planeY * sinf(-adjustedTurnSpeed);
+		planeY = oldPlaneX * sinf(-adjustedTurnSpeed) + planeY * cosf(-adjustedTurnSpeed);
 	} else if (current & kButtonRight) {
 		playerAngle += playerTurnSpeed * deltaTime;
 		if (playerAngle > 2 * PI) {
@@ -507,6 +570,14 @@ void handleInput(float deltaTime)
 		}
 		playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
 		playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
+
+		float adjustedTurnSpeed = playerTurnSpeed * deltaTime;
+		float oldDirX = dirX;
+      	dirX = dirX * cosf(adjustedTurnSpeed) - dirY * sinf(adjustedTurnSpeed);
+		dirY = oldDirX * sinf(adjustedTurnSpeed) + dirY * cosf(adjustedTurnSpeed);
+		float oldPlaneX = planeX;
+		planeX = planeX * cosf(adjustedTurnSpeed) - planeY * sinf(adjustedTurnSpeed);
+		planeY = oldPlaneX * sinf(adjustedTurnSpeed) + planeY * cosf(adjustedTurnSpeed);
 	}
 
 	int wallCollisionDist = 10;
@@ -534,19 +605,19 @@ void handleInput(float deltaTime)
 
 	if (current & kButtonUp) {
 		if (map[yIndex * mapWidth + lookAheadXIndex] == 0) {
-			playerX += playerXVelocity * deltaTime;
+			playerX += dirX * playerMaxSpeed * deltaTime;
 		}
 
 		if (map[lookAheadYIndex * mapWidth + xIndex] == 0) {
-			playerY += playerYVelocity * deltaTime;
+			playerY +=  dirY * playerMaxSpeed * deltaTime;
 		}
 	} else if (current & kButtonDown) {
 		if (map[yIndex * mapWidth + lookBehindXIndex] == 0) {
-			playerX -= playerXVelocity * deltaTime;
+			playerX -=  dirX * playerMaxSpeed * deltaTime;
 		}
 
 		if (map[lookBehindYIndex * mapWidth + xIndex] == 0) {
-			playerY -= playerYVelocity * deltaTime;
+			playerY -=  dirY * playerMaxSpeed * deltaTime;
 		}
 	}
 }
