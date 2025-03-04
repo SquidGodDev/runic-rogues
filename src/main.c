@@ -525,7 +525,7 @@ void drawRays(void)
 						floorFrameBufferInt &= ~(1 << (31 - (drawBit & 31)));
 					}
 					frameBuffer[floorFrameBufferIndex] = floorFrameBufferInt;
-				} else if (drawY > lineHeight + lineOffset) {
+				} else if (drawY > lineHeight + lineOffset + 1) {
 					continue;
 				} else {
 					int textureX = curLineData.textureX;
