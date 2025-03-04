@@ -173,18 +173,19 @@ float planeX, planeY;
 float dirX, dirY;
 
 #define SKYBOX_SIZE (SCREEN_HEIGHT / 2) * 13
-LCDSolidColor brickTexture[256];
-LCDSolidColor floorTexture[256];
+uint8_t brickTexture[256];
+uint8_t floorTexture[256];
+uint8_t ceilingTexture[256];
 uint32_t skybox[SKYBOX_SIZE];
 
-void loadTexture(const char *texturePath, LCDSolidColor *textureArray) {
+void loadTexture(const char *texturePath, uint8_t *textureArray) {
 	LCDBitmap *textureBitmap = pd->graphics->loadBitmap(texturePath, NULL);
 	int width, height;
 	pd->graphics->getBitmapData(textureBitmap, &width, &height, NULL, NULL, NULL);
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
 			LCDColor drawColor = pd->graphics->getBitmapPixel(textureBitmap, x, y);
-			textureArray[y * width + x] = drawColor;
+			textureArray[y * width + x] = (uint8_t)drawColor;
 		}
 	}
 }
@@ -193,6 +194,7 @@ void loadTextures(void)
 {
 	loadTexture("images/brickTexture", brickTexture);
 	loadTexture("images/floorTexture", floorTexture);
+	loadTexture("images/ceilingTexture", ceilingTexture);
 
 	LCDBitmap *skyboxBitmap = pd->graphics->loadBitmap("images/skybox", NULL);
 	for (int y = 0; y < SCREEN_HEIGHT / 2; y++) {
@@ -449,6 +451,7 @@ void drawRays(void)
 		rayAngle += rayInterval;
 	}
 
+	// Draw to screen
 	float rayDirX0 = dirX + planeX;
 	float rayDirY0 = dirY + planeY;
 	float rayDirX1 = dirX - planeX;
@@ -462,7 +465,7 @@ void drawRays(void)
 	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++) {
 
 		// Current y position compared to the center of the screen (the horizon)
-		int p = drawY - HALF_SCREEN_HEIGHT;
+		int p = drawY >= HALF_SCREEN_HEIGHT ? drawY - HALF_SCREEN_HEIGHT : HALF_SCREEN_HEIGHT - drawY;
 		// Horizontal distance from the camera to the floor for the current row.
 		// 0.5 is the z position exactly in the middle between floor and ceiling.
 		float rowDistance = (float)HALF_SCREEN_HEIGHT / p;
@@ -489,12 +492,10 @@ void drawRays(void)
 				LineData curLineData = lineData[drawX];
 				int lineHeight = curLineData.lineHeight;
 				int lineOffset = curLineData.lineOffset;
-				LCDColor drawColor;
+				uint8_t drawColor;
 				floorX += floorStepX;
 				floorY += floorStepY;
-				if (drawY < lineOffset) {
-					continue;
-				} else if (drawY > lineHeight + lineOffset) {
+				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
 					// the cell coord is simply got from the integer parts of floorX and floorY
 					int cellX = (int)(floorX);
 					int cellY = (int)(floorY);
@@ -504,7 +505,11 @@ void drawRays(void)
 					int textureY = (int)(CELL_SIZE * (floorY - cellY)) & (CELL_SIZE - 1);
 			
 					// floor
-					drawColor = floorTexture[textureX + (textureY << 4)];
+					if (drawY < lineOffset) {
+						drawColor = ceilingTexture[textureX + (textureY << 4)];
+					} else {
+						drawColor = floorTexture[textureX + (textureY << 4)];
+					}
 				} else {
 					int textureX = curLineData.textureX;
 					if (textureX >= 16) {
@@ -522,7 +527,7 @@ void drawRays(void)
 					drawColor = brickTexture[textureX + (textureY << 4)];
 				}
 
-				if (drawColor == kColorWhite) {
+				if (drawColor == 1) {
 					curDrawInt |= 1 << (31 - (drawBit & 31));
 				} else {
 					curDrawInt &= ~(1 << (31 - (drawBit & 31)));
