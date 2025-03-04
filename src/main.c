@@ -481,7 +481,7 @@ void drawRays(void)
 
 		for (int drawInt32 = 0; drawInt32 < 13; drawInt32++) {
 			int frameBufferIndex = drawY * 13 + drawInt32;
-			uint32_t curDrawInt = 0;
+			uint32_t curDrawInt = frameBuffer[frameBufferIndex];
 			// if (drawY < SCREEN_HEIGHT / 2) {
 			// 	curDrawInt = skybox[frameBufferIndex];
 			// }
@@ -499,7 +499,7 @@ void drawRays(void)
 				uint8_t drawColor;
 				floorX += floorStepX;
 				floorY += floorStepY;
-				if (drawY < lineOffset || drawY > lineHeight + lineOffset) {
+				if (drawY < lineOffset) {
 					// the cell coord is simply got from the integer parts of floorX and floorY
 					int cellX = (int)(floorX);
 					int cellY = (int)(floorY);
@@ -508,11 +508,22 @@ void drawRays(void)
 					int textureX = (int)(CELL_SIZE * (floorX - cellX)) & (CELL_SIZE - 1);
 					int textureY = (int)(CELL_SIZE * (floorY - cellY)) & (CELL_SIZE - 1);
 
-					if (drawY < lineOffset) {
-						drawColor = ceilingTexture[textureX + (textureY << 4)];
+					// Draw ceiling
+					int textureIndex = textureX + (textureY << 4);
+					drawColor = ceilingTexture[textureIndex];
+
+					// Draw floor
+					int floorDrawColor = floorTexture[textureIndex];
+					int floorFrameBufferIndex = (SCREEN_HEIGHT - drawY - 1) * 13 + drawInt32;
+					uint32_t floorFrameBufferInt = frameBuffer[floorFrameBufferIndex];
+					if (floorDrawColor == 1) {
+						floorFrameBufferInt |= 1 << (31 - (drawBit & 31));
 					} else {
-						drawColor = floorTexture[textureX + (textureY << 4)];
+						floorFrameBufferInt &= ~(1 << (31 - (drawBit & 31)));
 					}
+					frameBuffer[floorFrameBufferIndex] = floorFrameBufferInt;
+				} else if (drawY > lineHeight + lineOffset) {
+					continue;
 				} else {
 					int textureX = curLineData.textureX;
 					if (textureX >= 16) {
@@ -527,7 +538,11 @@ void drawRays(void)
 					drawColor = brickTexture[textureX + (textureY << 4)];
 				}
 
-				curDrawInt |= drawColor << (31 - (drawBit & 31));
+				if (drawColor == 1) {
+					curDrawInt |= 1 << (31 - (drawBit & 31));
+				} else {
+					curDrawInt &= ~(1 << (31 - (drawBit & 31)));
+				}
 			}
 			curDrawInt = swap(curDrawInt);
 			frameBuffer[frameBufferIndex] = curDrawInt;
