@@ -474,7 +474,7 @@ void drawRays(void)
 		// adding step by step avoids multiplications with a weight in the inner loop
 		float floorStepX = rowDistance * floorStepXModifier;
 		float floorStepY = rowDistance * floorStepYModifier;
-
+		
 		// real world coordinates of the leftmost column. This will be updated as we step to the right.
 		float floorX = playerMapX + rowDistance * rayDirX0 - floorStepX;
 		float floorY = playerMapY + rowDistance * rayDirY0 - floorStepY;
@@ -492,6 +492,10 @@ void drawRays(void)
 				LineData curLineData = lineData[drawX];
 				int lineHeight = curLineData.lineHeight;
 				int lineOffset = curLineData.lineOffset;
+				float textureYModifier = curLineData.textureYModifier;
+				float textureYStep = curLineData.textureYStep;
+				curLineData.textureYModifier = textureYModifier + textureYStep;
+				lineData[drawX] = curLineData;
 				uint8_t drawColor;
 				floorX += floorStepX;
 				floorY += floorStepY;
@@ -503,8 +507,7 @@ void drawRays(void)
 					// get the texture coordinate from the fractional part
 					int textureX = (int)(CELL_SIZE * (floorX - cellX)) & (CELL_SIZE - 1);
 					int textureY = (int)(CELL_SIZE * (floorY - cellY)) & (CELL_SIZE - 1);
-			
-					// floor
+
 					if (drawY < lineOffset) {
 						drawColor = ceilingTexture[textureX + (textureY << 4)];
 					} else {
@@ -520,18 +523,11 @@ void drawRays(void)
 						}
 					}
 	
-					float textureYModifier = curLineData.textureYModifier;
-					float textureYStep = curLineData.textureYStep;
-					int textureY = (int)(textureYModifier + textureYStep * drawY);
-	
+					int textureY = (int)(textureYModifier);
 					drawColor = brickTexture[textureX + (textureY << 4)];
 				}
 
-				if (drawColor == 1) {
-					curDrawInt |= 1 << (31 - (drawBit & 31));
-				} else {
-					curDrawInt &= ~(1 << (31 - (drawBit & 31)));
-				}
+				curDrawInt |= drawColor << (31 - (drawBit & 31));
 			}
 			curDrawInt = swap(curDrawInt);
 			frameBuffer[frameBufferIndex] = curDrawInt;
