@@ -548,6 +548,12 @@ void drawRays(void)
 	}
 	sortSprites(spriteOrder, spriteDistance, SPRITE_COUNT);
 
+	//transform sprite with the inverse camera matrix
+	// [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+	// [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+	// [ planeY   dirY ]                                          [ -planeY  planeX ]
+	float inverseDeterminant = 1.0f / (planeX * dirY - dirX * planeY);
+	int fixedPointScreenHeight = SCREEN_HEIGHT << 7;
 	int spriteTextureWidth = 32;
 	int spriteTextureHeight = 32;
 	for (int i = 0; i < SPRITE_COUNT; i++) {
@@ -555,41 +561,42 @@ void drawRays(void)
 		float spriteX = curSprite.x - playerMapX;
 		float spriteY = curSprite.y - playerMapY;
 
-		//transform sprite with the inverse camera matrix
-		// [ planeX   dirX ] -1                                       [ dirY      -dirX ]
-		// [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
-		// [ planeY   dirY ]                                          [ -planeY  planeX ]
-		float inverseDeterminant = 1.0f / (planeX * dirY - dirX * planeY);
-
-		float transformX = inverseDeterminant * (dirX * spriteY - dirY * spriteX);
 		float transformY = inverseDeterminant * (-planeY * spriteX + planeX * spriteY);
-		float spriteDistance = transformY * CELL_SIZE;
-
-		int spriteScreenX = (int)((float)HALF_SCREEN_WIDTH * (1 + transformX / transformY));
-
-		int spriteHeight = abs((int)((float)SCREEN_HEIGHT / transformY));
-		int drawStartY = -spriteHeight / 2 + HALF_SCREEN_HEIGHT;
-		if (drawStartY < 0) { drawStartY = 0; }
-		int drawEndY = spriteHeight / 2 + HALF_SCREEN_HEIGHT;
-		if (drawEndY >= SCREEN_HEIGHT) { drawEndY = SCREEN_HEIGHT; }
-
-		int spriteWidth = abs((int)((float)SCREEN_HEIGHT / transformY));
-		int drawStartX = -spriteWidth / 2 + spriteScreenX;
-		if (drawStartX < 0) { drawStartX = 0; }
-		int drawEndX = spriteWidth / 2 + spriteScreenX;
-		if (drawEndX >= SCREEN_WIDTH) { drawEndX = SCREEN_WIDTH - 1; }
-		
-		for (int drawX = drawStartX; drawX < drawEndX; drawX++) {
-			int textureX = (int)(256 * (drawX - (-spriteWidth / 2 + spriteScreenX)) * spriteTextureWidth / spriteWidth) / 256;
-			if (transformY > 0 && drawX > 0 && drawX < SCREEN_WIDTH && spriteDistance < zBuffer[drawX]) {
-				for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
-					int d = drawY * 256 - SCREEN_HEIGHT * 128 + spriteHeight * 128; //256 and 128 factors to avoid floats
-					int textureY = ((d * spriteTextureHeight) / spriteHeight) / 256;
-					uint8_t color = enemyTexture[spriteTextureWidth * textureY + textureX];
-					if (color == 1) {
-						frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] |= (1 << (7 - (drawX & 7)));
-					} else if (color == 0) {
-						frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] &= ~(1 << (7 - (drawX & 7)));
+		if (transformY > 0) {
+			float transformX = inverseDeterminant * (dirX * spriteY - dirY * spriteX);
+			float spriteDistance = transformY * CELL_SIZE;
+	
+			int spriteScreenX = (int)((float)HALF_SCREEN_WIDTH * (1 + transformX / transformY));
+	
+			int spriteHeight = abs((int)((float)SCREEN_HEIGHT / transformY));
+			int drawStartY = -(spriteHeight >> 1) + HALF_SCREEN_HEIGHT;
+			if (drawStartY < 0) { drawStartY = 0; }
+			int drawEndY = (spriteHeight >> 1) + HALF_SCREEN_HEIGHT;
+			if (drawEndY >= SCREEN_HEIGHT) { drawEndY = SCREEN_HEIGHT; }
+			int fixedPointSpriteHeight = spriteHeight << 7;
+	
+			int spriteWidth = abs((int)((float)SCREEN_HEIGHT / transformY));
+			int drawStartX = -(spriteWidth >> 1) + spriteScreenX;
+			if (drawStartX < 0) { drawStartX = 0; }
+			int drawEndX = (spriteWidth >> 1) + spriteScreenX;
+			if (drawEndX >= SCREEN_WIDTH) { drawEndX = SCREEN_WIDTH; }
+			
+			int textureYCache[drawEndY - drawStartY + 1];
+			for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
+				int d = (drawY << 8) - fixedPointScreenHeight + fixedPointSpriteHeight; // 256 and 128 factors to avoid floats
+				int textureY = ((d * spriteTextureHeight) / spriteHeight) >> 8;
+				textureYCache[drawY - drawStartY] = spriteTextureWidth * textureY;
+			}
+			for (int drawX = drawStartX; drawX < drawEndX; drawX++) {
+				if (spriteDistance < zBuffer[drawX]) {
+					int textureX = (int)(((drawX - (-(spriteWidth >> 1) + spriteScreenX)) << 8) * spriteTextureWidth / spriteWidth) >> 8;
+					for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
+						uint8_t color = enemyTexture[textureYCache[drawY - drawStartY] + textureX];
+						if (color == 1) {
+							frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] |= (1 << (7 - (drawX & 7)));
+						} else if (color == 0) {
+							frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] &= ~(1 << (7 - (drawX & 7)));
+						}
 					}
 				}
 			}
