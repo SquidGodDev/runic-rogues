@@ -583,18 +583,20 @@ void drawRays(void)
 			if (drawEndX >= SCREEN_WIDTH) { drawEndX = SCREEN_WIDTH; }
 			
 			int textureYCache[drawEndY - drawStartY + 1];
+			for (int drawY = 0; drawY < drawEndY - drawStartY; drawY++) {
+				textureYCache[drawY] = -1;
+			}
+
 			for (int drawX = drawStartX; drawX < drawEndX; drawX++) {
 				if (spriteDistance < zBuffer[drawX]) {
 					int textureX = (int)(((drawX - (-(spriteWidth >> 1) + spriteScreenX)) << 8) * spriteTextureWidth / spriteWidth) >> 8;
 					for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
-						int textureYIndex = 0;
-						if (drawX == drawStartX) {
+						int textureYIndex = textureYCache[drawY - drawStartY];
+						if (textureYIndex == -1) {
 							int d = (drawY << 8) - fixedPointScreenHeight + fixedPointSpriteHeight; // 256 and 128 factors to avoid floats
 							int textureY = ((d * spriteTextureHeight) / spriteHeight) >> 8;
 							textureYIndex = spriteTextureWidth * textureY;
 							textureYCache[drawY - drawStartY] = textureYIndex;
-						} else {
-							textureYIndex = textureYCache[drawY - drawStartY];
 						}
 						uint8_t color = enemyTexture[textureYIndex + textureX];
 						if (color == 1) {
