@@ -11,11 +11,13 @@
 #define P3 3 * PI / 2
 #define TARGET_FPS 30
 #define SCREEN_WIDTH 400
+#define HALF_SCREEN_WIDTH SCREEN_WIDTH / 2
 #define SCREEN_HEIGHT 240
 #define HALF_SCREEN_HEIGHT SCREEN_HEIGHT / 2
 #define CELL_SIZE 16
 #define MAP_WIDTH 10
 #define MAP_HEIGHT 12
+#define SPRITE_COUNT 5
 
 #include "pd_api.h"
 static PlaydateAPI *pd = NULL;
@@ -52,6 +54,30 @@ static inline uint32_t swap(uint32_t n)
 #endif
 }
 
+typedef struct SpritePair {
+	int order;
+	float dist;
+} SpritePair;
+
+int spritePairComparison(const void *a, const void *b) {
+	return ((SpritePair *)b)->dist - ((SpritePair *)a)->dist;
+}
+
+void sortSprites(int* order, float* dist, int count) {
+	SpritePair spritePairs[count];
+	for (int i = 0; i < count; i++) {
+		spritePairs[i].order = order[i];
+		spritePairs[i].dist = dist[i];
+	}
+
+	qsort(spritePairs, count, sizeof(SpritePair), spritePairComparison);
+
+	for (int i = 0; i < count; i++) {
+		order[i] = spritePairs[i].order;
+		dist[i] = spritePairs[i].dist;
+	}
+}
+
 void drawCircleAtPoint(float x, float y, int radius)
 {
 	int drawX = (int)x - radius;
@@ -60,68 +86,6 @@ void drawCircleAtPoint(float x, float y, int radius)
 	int height = radius * 2;
 	pd->graphics->drawEllipse(drawX, drawY, width, height, 1, 0, 0, kColorWhite);
 }
-
-// Source: https://github.com/TheMediocritist/Wolf_3D/
-// int fillPatterns[17][8] = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
-//                       	   {0xFF, 0xFF, 0xFF, 0xEE, 0xFF, 0xFF, 0xFF, 0xEE},
-//                       	   {0xFF, 0xBB, 0xFF, 0xEE, 0xFF, 0xBB, 0xFF, 0xEE},
-//                       	   {0xFF, 0xBB, 0xFF, 0xAA, 0xFF, 0xBB, 0xFF, 0xAA},
-//                       	   {0xFF, 0xAA, 0xFF, 0xAA, 0xFF, 0xAA, 0xFF, 0xAA},
-//                       	   {0xFF, 0xAA, 0xDD, 0xAA, 0xFF, 0xAA, 0xDD, 0xAA},
-//                       	   {0x77, 0xAA, 0xDD, 0xAA, 0x77, 0xAA, 0xDD, 0xAA},
-//                       	   {0x55, 0xAA, 0xDD, 0xAA, 0x55, 0xAA, 0xDD, 0xAA},
-//                       	   {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA},
-//                       	   {0x55, 0xAA, 0x55, 0x88, 0x55, 0xAA, 0x55, 0x88},
-//                       	   {0x55, 0x22, 0x55, 0x88, 0x55, 0x22, 0x55, 0x88},
-//                       	   {0x55, 0x00, 0x55, 0x88, 0x55, 0x00, 0x55, 0x88},
-//                       	   {0x55, 0x00, 0x55, 0x00, 0x55, 0x00, 0x55, 0x00},
-//                       	   {0x55, 0x00, 0x44, 0x00, 0x55, 0x00, 0x44, 0x00},
-//                       	   {0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x00},
-//                       	   {0x11, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00},
-//                       	   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
-
-// LCDPattern shadePattern = {
-// 	// Bitmap
-// 	0b10101010,
-// 	0b01010101,
-// 	0b10101010,
-// 	0b01010101,
-// 	0b10101010,
-// 	0b01010101,
-// 	0b10101010,
-// 	0b01010101,
-
-// 	// Mask
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// };
-// LCDPattern whiteShadePattern = {
-// 	// Bitmap
-// 	0b01010101,
-// 	0b10101010,
-// 	0b01010101,
-// 	0b10101010,
-// 	0b01010101,
-// 	0b10101010,
-// 	0b01010101,
-// 	0b10101010,	
-
-// 	// Mask
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// 	0b11111111,
-// };
 
 int map[] =
 {
@@ -172,10 +136,29 @@ float playerXVelocity, playerYVelocity;
 float planeX, planeY;
 float dirX, dirY;
 
+enum SpriteType {
+	Enemy
+};
+
+typedef struct Sprite {
+	float x;
+	float y;
+	uint8_t type;
+} Sprite;
+
+Sprite sprites[SPRITE_COUNT] = {
+	{8, 5, 0},
+	{8, 6, 0},
+	{8, 7, 0},
+	{8, 8, 0},
+	{8, 9, 0}
+};
+
 #define SKYBOX_SIZE (SCREEN_HEIGHT / 2) * 13
 uint8_t brickTexture[256];
 uint8_t floorTexture[256];
 uint8_t ceilingTexture[256];
+uint8_t enemyTexture[1024];
 uint32_t skybox[SKYBOX_SIZE];
 
 void loadTexture(const char *texturePath, uint8_t *textureArray) {
@@ -195,6 +178,7 @@ void loadTextures(void)
 	loadTexture("images/brickTexture", brickTexture);
 	loadTexture("images/floorTexture", floorTexture);
 	loadTexture("images/ceilingTexture", ceilingTexture);
+	loadTexture("images/enemyTexture", enemyTexture);
 
 	LCDBitmap *skyboxBitmap = pd->graphics->loadBitmap("images/skybox", NULL);
 	for (int y = 0; y < SCREEN_HEIGHT / 2; y++) {
@@ -285,6 +269,7 @@ void drawRays(void)
 	int mapHeight = MAP_HEIGHT;
 
 	LineData lineData[SCREEN_WIDTH];
+	float zBuffer[SCREEN_WIDTH];
 
 	int maxFieldDepth = 10;
 	int screenHeight = 240;
@@ -447,6 +432,7 @@ void drawRays(void)
 		}
 		curLineData.textureX = textureX;
 		lineData[ray] = curLineData;
+		zBuffer[ray] = rayDistance;
 
 		rayAngle += rayInterval;
 	}
@@ -549,6 +535,64 @@ void drawRays(void)
 			}
 			curDrawInt = swap(curDrawInt);
 			frameBuffer[frameBufferIndex] = curDrawInt;
+		}
+	}
+
+	uint8_t *frameBufferU8 = (uint8_t *)pd->graphics->getFrame();
+	int spriteOrder[SPRITE_COUNT];
+	float spriteDistance[SPRITE_COUNT];
+	for (int i = 0; i < SPRITE_COUNT; i++) {
+		spriteOrder[i] = i;
+		Sprite curSprite = sprites[i];
+		spriteDistance[i] = distanceSquared(playerMapX, playerMapY, curSprite.x, curSprite.y);
+	}
+	sortSprites(spriteOrder, spriteDistance, SPRITE_COUNT);
+
+	int spriteTextureWidth = 32;
+	int spriteTextureHeight = 32;
+	for (int i = 0; i < SPRITE_COUNT; i++) {
+		Sprite curSprite = sprites[spriteOrder[i]];
+		float spriteX = curSprite.x - playerMapX;
+		float spriteY = curSprite.y - playerMapY;
+
+		//transform sprite with the inverse camera matrix
+		// [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+		// [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+		// [ planeY   dirY ]                                          [ -planeY  planeX ]
+		float inverseDeterminant = 1.0f / (planeX * dirY - dirX * planeY);
+
+		float transformX = inverseDeterminant * (dirX * spriteY - dirY * spriteX);
+		float transformY = inverseDeterminant * (-planeY * spriteX + planeX * spriteY);
+		float spriteDistance = transformY * CELL_SIZE;
+
+		int spriteScreenX = (int)((float)HALF_SCREEN_WIDTH * (1 + transformX / transformY));
+
+		int spriteHeight = abs((int)((float)SCREEN_HEIGHT / transformY));
+		int drawStartY = -spriteHeight / 2 + HALF_SCREEN_HEIGHT;
+		if (drawStartY < 0) { drawStartY = 0; }
+		int drawEndY = spriteHeight / 2 + HALF_SCREEN_HEIGHT;
+		if (drawEndY >= SCREEN_HEIGHT) { drawEndY = SCREEN_HEIGHT; }
+
+		int spriteWidth = abs((int)((float)SCREEN_HEIGHT / transformY));
+		int drawStartX = -spriteWidth / 2 + spriteScreenX;
+		if (drawStartX < 0) { drawStartX = 0; }
+		int drawEndX = spriteWidth / 2 + spriteScreenX;
+		if (drawEndX >= SCREEN_WIDTH) { drawEndX = SCREEN_WIDTH - 1; }
+		
+		for (int drawX = drawStartX; drawX < drawEndX; drawX++) {
+			int textureX = (int)(256 * (drawX - (-spriteWidth / 2 + spriteScreenX)) * spriteTextureWidth / spriteWidth) / 256;
+			if (transformY > 0 && drawX > 0 && drawX < SCREEN_WIDTH && spriteDistance < zBuffer[drawX]) {
+				for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
+					int d = drawY * 256 - SCREEN_HEIGHT * 128 + spriteHeight * 128; //256 and 128 factors to avoid floats
+					int textureY = ((d * spriteTextureHeight) / spriteHeight) / 256;
+					uint8_t color = enemyTexture[spriteTextureWidth * textureY + textureX];
+					if (color == 1) {
+						frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] |= (1 << (7 - (drawX & 7)));
+					} else if (color == 0) {
+						frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] &= ~(1 << (7 - (drawX & 7)));
+					}
+				}
+			}
 		}
 	}
 
