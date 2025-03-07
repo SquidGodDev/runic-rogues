@@ -10,9 +10,9 @@
 #define P2 PI / 2
 #define P3 3 * PI / 2
 #define TARGET_FPS 30
-#define SCREEN_WIDTH 400
+#define SCREEN_WIDTH 200
 #define HALF_SCREEN_WIDTH SCREEN_WIDTH / 2
-#define SCREEN_HEIGHT 240
+#define SCREEN_HEIGHT 120
 #define HALF_SCREEN_HEIGHT SCREEN_HEIGHT / 2
 #define CELL_SIZE 16
 #define MAP_WIDTH 10
@@ -272,8 +272,7 @@ void drawRays(void)
 	float zBuffer[SCREEN_WIDTH];
 
 	int maxFieldDepth = 10;
-	int screenHeight = 240;
-	int rayCount = 400;
+	int rayCount = SCREEN_WIDTH;
 	float fov = 66 * (PI / 180.0f);
 	float rayInterval = fov / rayCount;
 	float rayAngle = playerAngle - rayInterval * rayCount / 2;
@@ -403,16 +402,16 @@ void drawRays(void)
 
 		// Get wall slice draw height
 		int textureSize = 16;
-		float lineHeight = (cellSize * screenHeight) / rayDistance;
+		float lineHeight = (cellSize * SCREEN_HEIGHT) / rayDistance;
 		curLineData.lineHeight = (int)lineHeight;
 
 		float textureYStep = textureSize / lineHeight;
 		float textureYOffset = 0;
-		if (lineHeight > screenHeight) {
-			textureYOffset = (lineHeight - screenHeight) / 2.0f;
-			lineHeight = screenHeight;
+		if (lineHeight > SCREEN_HEIGHT) {
+			textureYOffset = (lineHeight - SCREEN_HEIGHT) / 2.0f;
+			lineHeight = SCREEN_HEIGHT;
 		}
-		float lineOffset = (screenHeight >> 1) - lineHeight / 2;
+		float lineOffset = (SCREEN_HEIGHT >> 1) - lineHeight / 2;
 		curLineData.textureYStep = textureYStep;
 		curLineData.textureYModifier = textureYOffset * textureYStep - textureYStep * lineOffset;
 		curLineData.lineOffset = (int)lineOffset;
@@ -447,6 +446,9 @@ void drawRays(void)
 	float playerMapX = playerX / CELL_SIZE;
 	float playerMapY = playerY / CELL_SIZE;
 
+	int frameBuffer32BitIntsPerRow = ceilf((float)LCD_COLUMNS / 32);
+	int maxDrawInt = ceilf((float)SCREEN_WIDTH / 32);
+	int bitRemainder = SCREEN_WIDTH % 32;
 	uint32_t *frameBuffer = (uint32_t *)pd->graphics->getFrame();
 	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++) {
 
@@ -465,13 +467,13 @@ void drawRays(void)
 		float ceilingX = playerMapX + rowDistance * rayDirX0 - ceilingStepX;
 		float ceilingY = playerMapY + rowDistance * rayDirY0 - ceilingStepY;
 
-		for (int drawInt32 = 0; drawInt32 < 13; drawInt32++) {
-			int frameBufferIndex = drawY * 13 + drawInt32;
+		for (int drawInt32 = 0; drawInt32 < maxDrawInt; drawInt32++) {
+			int frameBufferIndex = drawY * frameBuffer32BitIntsPerRow + drawInt32;
 			uint32_t curDrawInt = frameBuffer[frameBufferIndex];
 			// if (drawY < SCREEN_HEIGHT / 2) {
 			// 	curDrawInt = skybox[frameBufferIndex];
 			// }
-			int drawBitMax = drawInt32 == 12 ? 16 : 32;
+			int drawBitMax = drawInt32 == (maxDrawInt - 1) ? bitRemainder : 32;
 			int drawIntOffset = drawInt32 * 32;
 			for (int drawBit = 0; drawBit < drawBitMax; drawBit++) {
 				uint8_t drawColor;
@@ -503,7 +505,7 @@ void drawRays(void)
 
 					// Draw floor
 					int floorDrawColor = floorTexture[textureIndex];
-					int floorFrameBufferIndex = (SCREEN_HEIGHT - drawY - 1) * 13 + drawInt32;
+					int floorFrameBufferIndex = (SCREEN_HEIGHT - drawY - 1) * frameBuffer32BitIntsPerRow + drawInt32;
 					uint32_t floorFrameBufferInt = frameBuffer[floorFrameBufferIndex];
 					if (floorDrawColor == 1) {
 						floorFrameBufferInt |= 1 << (31 - (drawBit & 31));
@@ -608,7 +610,7 @@ void drawRays(void)
 		}
 	}
 
-	pd->graphics->markUpdatedRows(0, LCD_ROWS - 1);
+	pd->graphics->markUpdatedRows(0, SCREEN_HEIGHT - 1);
 }
 
 void handleInput(float deltaTime)
@@ -723,6 +725,7 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 	if (event == kEventInit) {
 		pd = playdate;
 		pd->system->resetElapsedTime();
+		pd->display->setScale(2);
 		gameInit();
 		pd->system->setUpdateCallback(gameUpdate, NULL);
 	}
