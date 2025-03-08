@@ -18,6 +18,10 @@
 #define MAP_WIDTH 10
 #define MAP_HEIGHT 12
 #define SPRITE_COUNT 5
+#define FOG_LEVELS 16
+#define FOG_STEP 4
+#define FOG_MIN_DIST 40
+#define FOG_MAX_DIST (FOG_MIN_DIST + FOG_STEP * FOG_LEVELS)
 
 #include "pd_api.h"
 static PlaydateAPI *pd = NULL;
@@ -126,6 +130,23 @@ for h = 1, height do
   print(rowString)
 end
 */
+
+int fogPatterns[FOG_LEVELS][8] = {{0x11, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00},
+								  {0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x00},
+								  {0x55, 0x00, 0x44, 0x00, 0x55, 0x00, 0x44, 0x00},
+								  {0x55, 0x00, 0x55, 0x00, 0x55, 0x00, 0x55, 0x00},
+								  {0x55, 0x00, 0x55, 0x88, 0x55, 0x00, 0x55, 0x88},
+								  {0x55, 0x22, 0x55, 0x88, 0x55, 0x22, 0x55, 0x88},
+								  {0x55, 0xAA, 0x55, 0x88, 0x55, 0xAA, 0x55, 0x88},
+								  {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA},
+								  {0x55, 0xAA, 0xDD, 0xAA, 0x55, 0xAA, 0xDD, 0xAA},
+								  {0x77, 0xAA, 0xDD, 0xAA, 0x77, 0xAA, 0xDD, 0xAA},
+								  {0xFF, 0xAA, 0xDD, 0xAA, 0xFF, 0xAA, 0xDD, 0xAA},
+								  {0xFF, 0xAA, 0xFF, 0xAA, 0xFF, 0xAA, 0xFF, 0xAA},
+								  {0xFF, 0xBB, 0xFF, 0xAA, 0xFF, 0xBB, 0xFF, 0xAA},
+								  {0xFF, 0xBB, 0xFF, 0xEE, 0xFF, 0xBB, 0xFF, 0xEE},
+								  {0xFF, 0xFF, 0xFF, 0xEE, 0xFF, 0xFF, 0xFF, 0xEE},
+								  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
 
 float playerX, playerY;
 int playerRadius;
@@ -451,12 +472,28 @@ void drawRays(void)
 	int bitRemainder = SCREEN_WIDTH % 32;
 	uint32_t *frameBuffer = (uint32_t *)pd->graphics->getFrame();
 	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++) {
-
 		// Current y position compared to the center of the screen (the horizon)
 		int p = HALF_SCREEN_HEIGHT - drawY;
 		// Horizontal distance from the camera to the floor for the current row.
 		// 0.5 is the z position exactly in the middle between floor and ceiling.
 		float rowDistance = (float)HALF_SCREEN_HEIGHT / p;
+
+		int inFog = 0;
+		int fogRow = drawY % 8;
+		int fogShade = 0;
+		float ceilingDistance = rowDistance * CELL_SIZE;
+		if (ceilingDistance < FOG_MIN_DIST) {
+			inFog = 0;
+		} else if (ceilingDistance > FOG_MAX_DIST) {
+			inFog = 1;
+			int *fogPattern = fogPatterns[FOG_LEVELS - 1];
+			fogShade = fogPattern[fogRow];
+		} else {
+			inFog = 1;
+			int fogPatternIndex = (ceilingDistance - FOG_MIN_DIST) / FOG_STEP;
+			int *fogPattern = fogPatterns[fogPatternIndex];
+			fogShade = fogPattern[fogRow];
+		}
 
 		// calculate the real world step vector we have to add for each x (parallel to camera plane)
 		// adding step by step avoids multiplications with a weight in the inner loop
@@ -478,6 +515,7 @@ void drawRays(void)
 			for (int drawBit = 0; drawBit < drawBitMax; drawBit++) {
 				uint8_t drawColor;
 				int drawX = drawIntOffset + drawBit;
+				int fogShadeBit = drawX % 8;
 
 				LineData curLineData = lineData[drawX];
 				int lineHeight = curLineData.lineHeight;
@@ -491,20 +529,27 @@ void drawRays(void)
 				ceilingX += ceilingStepX;
 				ceilingY += ceilingStepY;
 				if (drawY < lineOffset) {
-					// the cell coord is simply got from the integer parts of floorX and floorY
-					int cellX = (int)(ceilingX);
-					int cellY = (int)(ceilingY);
-			
-					// get the texture coordinate from the fractional part
-					int textureX = (int)(CELL_SIZE * (ceilingX - cellX)) & (CELL_SIZE - 1);
-					int textureY = (int)(CELL_SIZE * (ceilingY - cellY)) & (CELL_SIZE - 1);
+					int floorDrawColor = 0;
+					if (inFog & ((fogShade >> fogShadeBit) & 1)) {
+						drawColor = 0;
+						floorDrawColor = 0;
+					} else {
+						// the cell coord is simply got from the integer parts of floorX and floorY
+						int cellX = (int)(ceilingX);
+						int cellY = (int)(ceilingY);
+				
+						// get the texture coordinate from the fractional part
+						int textureX = (int)(CELL_SIZE * (ceilingX - cellX)) & (CELL_SIZE - 1);
+						int textureY = (int)(CELL_SIZE * (ceilingY - cellY)) & (CELL_SIZE - 1);
+	
+						// Draw ceiling
+						int textureIndex = textureX + (textureY << 4);
+						drawColor = ceilingTexture[textureIndex];
+	
+						// Draw floor
+						floorDrawColor = floorTexture[textureIndex];
+					}
 
-					// Draw ceiling
-					int textureIndex = textureX + (textureY << 4);
-					drawColor = ceilingTexture[textureIndex];
-
-					// Draw floor
-					int floorDrawColor = floorTexture[textureIndex];
 					int floorFrameBufferIndex = (SCREEN_HEIGHT - drawY - 1) * frameBuffer32BitIntsPerRow + drawInt32;
 					uint32_t floorFrameBufferInt = frameBuffer[floorFrameBufferIndex];
 					if (floorDrawColor == 1) {
@@ -527,6 +572,23 @@ void drawRays(void)
 	
 					int textureY = (int)(textureYModifier);
 					drawColor = brickTexture[textureX + (textureY << 4)];
+
+					int fogShade = 0;
+					float wallDistance = zBuffer[drawX];
+					if (wallDistance < FOG_MIN_DIST) {
+						fogShade = 0;
+					} else if (wallDistance > FOG_MAX_DIST) {
+						int *fogPattern = fogPatterns[FOG_LEVELS - 1];
+						fogShade = fogPattern[fogRow];
+					} else if (wallDistance >= FOG_MIN_DIST) {
+						int fogPatternIndex = (int)((float)(wallDistance - FOG_MIN_DIST) / (float)FOG_STEP);
+						int *fogPattern = fogPatterns[fogPatternIndex];
+						fogShade = fogPattern[fogRow];
+					}
+
+					if ((fogShade >> fogShadeBit) & 1) {
+						drawColor = 0;
+					}
 				}
 
 				if (drawColor == 1) {
@@ -589,6 +651,7 @@ void drawRays(void)
 
 			for (int drawX = drawStartX; drawX < drawEndX; drawX++) {
 				if (spriteDistance < zBuffer[drawX]) {
+					int fogShadeBit = drawX % 8;
 					int textureX = (int)(((drawX - (-(spriteWidth >> 1) + spriteScreenX)) << 8) * spriteTextureWidth / spriteWidth) >> 8;
 					for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
 						int textureYIndex = textureYCache[drawY];
@@ -598,8 +661,23 @@ void drawRays(void)
 							textureYIndex = spriteTextureWidth * textureY;
 							textureYCache[drawY] = textureYIndex;
 						}
+						int inFog = 0;
+						int fogRow = drawY % 8;
+						int fogShade = 0;
+						if (spriteDistance < FOG_MIN_DIST) {
+							inFog = 0;
+						} else if (spriteDistance > FOG_MAX_DIST) {
+							inFog = 1;
+							int *fogPattern = fogPatterns[FOG_LEVELS - 1];
+							fogShade = fogPattern[fogRow];
+						} else {
+							inFog = 1;
+							int fogPatternIndex = (spriteDistance - FOG_MIN_DIST) / FOG_STEP;
+							int *fogPattern = fogPatterns[fogPatternIndex];
+							fogShade = fogPattern[fogRow];
+						}
 						uint8_t color = enemyTexture[textureYIndex + textureX];
-						if (color == 1) {
+						if (color == 1 && !(inFog && ((fogShade >> fogShadeBit) & 1))) {
 							frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] |= (1 << (7 - (drawX & 7)));
 						} else if (color == 0) {
 							frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] &= ~(1 << (7 - (drawX & 7)));
@@ -725,7 +803,7 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 	if (event == kEventInit) {
 		pd = playdate;
 		pd->system->resetElapsedTime();
-		pd->display->setScale(2);
+		pd->display->setScale(400 / SCREEN_WIDTH);
 		gameInit();
 		pd->system->setUpdateCallback(gameUpdate, NULL);
 	}
