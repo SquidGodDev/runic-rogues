@@ -9,6 +9,7 @@
 #define PI 3.141592f
 #define P2 PI / 2
 #define P3 3 * PI / 2
+
 #define TARGET_FPS 30
 #define SCREEN_WIDTH 200
 #define HALF_SCREEN_WIDTH SCREEN_WIDTH / 2
@@ -17,7 +18,10 @@
 #define CELL_SIZE 16
 #define MAP_WIDTH 20
 #define MAP_HEIGHT 20
+
 #define SPRITE_COUNT 5
+#define SPRITE_TEXTURE_SIZE 32
+
 #define FOG_LEVELS 15
 #define FOG_STEP 6
 #define FOG_MIN_DIST 60
@@ -159,6 +163,10 @@ float playerX, playerY;
 int playerRadius;
 float playerAngle;
 float playerTurnSpeed;
+float playerTurnAccel;
+float playerTurnDrag;
+float playerTurnMaxSpeed;
+float playerTurnInitialSpeed;
 float playerMaxSpeed;
 float playerXVelocity, playerYVelocity;
 float planeX, planeY;
@@ -205,7 +213,7 @@ void loadTextures(void)
 {
 	loadTexture("images/brickTexture", brickTexture);
 	loadTexture("images/floorTexture", floorTexture);
-	loadTexture("images/ceilingTexture", ceilingTexture);
+	loadTexture("images/floorTexture", ceilingTexture);
 	loadTexture("images/enemyTexture", enemyTexture);
 
 	LCDBitmap *skyboxBitmap = pd->graphics->loadBitmap("images/skybox", NULL);
@@ -233,7 +241,11 @@ void gameInit(void)
 	playerY = 120;
 	playerRadius = 6;
 	playerAngle = 0;
-	playerTurnSpeed = 0.1f * TARGET_FPS;
+	playerTurnSpeed = 0;
+	playerTurnMaxSpeed = 0.06f * TARGET_FPS;
+	playerTurnInitialSpeed = 0.01f * TARGET_FPS;
+	playerTurnAccel = 0.3f * TARGET_FPS;
+	playerTurnDrag = 0.4f * TARGET_FPS;
 	playerMaxSpeed = 2.0f * TARGET_FPS;
 	playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
 	playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
@@ -634,8 +646,6 @@ void drawRays(void)
 	// [ planeY   dirY ]                                          [ -planeY  planeX ]
 	float inverseDeterminant = 1.0f / (planeX * dirY - dirX * planeY);
 	int fixedPointScreenHeight = SCREEN_HEIGHT << 7;
-	int spriteTextureWidth = 32;
-	int spriteTextureHeight = 32;
 	for (int i = 0; i < SPRITE_COUNT; i++) {
 		Sprite curSprite = sprites[spriteOrder[i]];
 		float spriteX = curSprite.x - playerMapX;
@@ -668,13 +678,13 @@ void drawRays(void)
 			for (int drawX = drawStartX; drawX < drawEndX; drawX++) {
 				if (spriteDistance < zBuffer[drawX]) {
 					int fogShadeBit = drawX % 8;
-					int textureX = (int)(((drawX - (-(spriteWidth >> 1) + spriteScreenX)) << 8) * spriteTextureWidth / spriteWidth) >> 8;
+					int textureX = (int)(((drawX - (-(spriteWidth >> 1) + spriteScreenX)) << 8) * SPRITE_TEXTURE_SIZE / spriteWidth) >> 8;
 					for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
 						int textureYIndex = textureYCache[drawY];
 						if (textureYIndex == -1) {
 							int d = (drawY << 8) - fixedPointScreenHeight + fixedPointSpriteHeight; // 256 and 128 factors to avoid floats
-							int textureY = ((d * spriteTextureHeight) / spriteHeight) >> 8;
-							textureYIndex = spriteTextureWidth * textureY;
+							int textureY = ((d * SPRITE_TEXTURE_SIZE) / spriteHeight) >> 8;
+							textureYIndex = SPRITE_TEXTURE_SIZE * textureY;
 							textureYCache[drawY] = textureYIndex;
 						}
 						int inFog = 0;
@@ -720,36 +730,47 @@ void handleInput(float deltaTime)
 	pd->system->getButtonState(&current, NULL, NULL);
 
 	if (current & kButtonLeft) {
-		playerAngle -= playerTurnSpeed * deltaTime;
-		if (playerAngle < 0) {
-			playerAngle += 2 * PI;
+		if (playerTurnSpeed > -playerTurnInitialSpeed) {
+			playerTurnSpeed = -playerTurnInitialSpeed;
 		}
-		playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
-		playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
-
-		float adjustedTurnSpeed = playerTurnSpeed * deltaTime;
-		float oldDirX = dirX;
-		dirX = dirX * cosf(-adjustedTurnSpeed) - dirY * sinf(-adjustedTurnSpeed);
-		dirY = oldDirX * sinf(-adjustedTurnSpeed) + dirY * cosf(-adjustedTurnSpeed);
-		float oldPlaneX = planeX;
-		planeX = planeX * cosf(-adjustedTurnSpeed) - planeY * sinf(-adjustedTurnSpeed);
-		planeY = oldPlaneX * sinf(-adjustedTurnSpeed) + planeY * cosf(-adjustedTurnSpeed);
+		playerTurnSpeed -= playerTurnAccel * deltaTime; 
+		if (playerTurnSpeed < -playerTurnMaxSpeed) {
+			playerTurnSpeed = -playerTurnMaxSpeed;
+		}
 	} else if (current & kButtonRight) {
-		playerAngle += playerTurnSpeed * deltaTime;
-		if (playerAngle > 2 * PI) {
-			playerAngle -= 2 * PI;
+		if (playerTurnSpeed < playerTurnInitialSpeed) {
+			playerTurnSpeed = playerTurnInitialSpeed;
 		}
-		playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
-		playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
-
-		float adjustedTurnSpeed = playerTurnSpeed * deltaTime;
-		float oldDirX = dirX;
-      	dirX = dirX * cosf(adjustedTurnSpeed) - dirY * sinf(adjustedTurnSpeed);
-		dirY = oldDirX * sinf(adjustedTurnSpeed) + dirY * cosf(adjustedTurnSpeed);
-		float oldPlaneX = planeX;
-		planeX = planeX * cosf(adjustedTurnSpeed) - planeY * sinf(adjustedTurnSpeed);
-		planeY = oldPlaneX * sinf(adjustedTurnSpeed) + planeY * cosf(adjustedTurnSpeed);
+		playerTurnSpeed += playerTurnAccel * deltaTime; 
+		if (playerTurnSpeed > playerTurnMaxSpeed) {
+			playerTurnSpeed = playerTurnMaxSpeed;
+		}
+	} else {
+		if (playerTurnSpeed < 0.5f && playerTurnSpeed > -0.5f) {
+			playerTurnSpeed = 0;
+		} else if (playerTurnSpeed > 0) {
+			playerTurnSpeed -= playerTurnDrag * deltaTime;
+		} else if (playerTurnSpeed < 0) {
+			playerTurnSpeed += playerTurnDrag * deltaTime;
+		}
 	}
+
+	playerAngle += playerTurnSpeed * deltaTime;
+	if (playerAngle < 0) {
+		playerAngle += 2 * PI;
+	} else if (playerAngle > 2 * PI) {
+		playerAngle -= 2 * PI;
+	}
+	playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
+	playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
+
+	float adjustedTurnSpeed = playerTurnSpeed * deltaTime;
+	float oldDirX = dirX;
+	dirX = dirX * cosf(adjustedTurnSpeed) - dirY * sinf(adjustedTurnSpeed);
+	dirY = oldDirX * sinf(adjustedTurnSpeed) + dirY * cosf(adjustedTurnSpeed);
+	float oldPlaneX = planeX;
+	planeX = planeX * cosf(adjustedTurnSpeed) - planeY * sinf(adjustedTurnSpeed);
+	planeY = oldPlaneX * sinf(adjustedTurnSpeed) + planeY * cosf(adjustedTurnSpeed);
 
 	int wallCollisionDist = 10;
 	int xOffset = 0;
