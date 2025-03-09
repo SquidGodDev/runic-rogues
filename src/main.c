@@ -167,6 +167,10 @@ float playerTurnAccel;
 float playerTurnDrag;
 float playerTurnMaxSpeed;
 float playerTurnInitialSpeed;
+float playerSpeed;
+float playerInitialSpeed;
+float playerAccel;
+float playerDrag;
 float playerMaxSpeed;
 float playerXVelocity, playerYVelocity;
 float planeX, planeY;
@@ -244,11 +248,15 @@ void gameInit(void)
 	playerTurnSpeed = 0;
 	playerTurnMaxSpeed = 0.06f * TARGET_FPS;
 	playerTurnInitialSpeed = 0.01f * TARGET_FPS;
-	playerTurnAccel = 0.3f * TARGET_FPS;
+	playerTurnAccel = 0.2f * TARGET_FPS;
 	playerTurnDrag = 0.4f * TARGET_FPS;
-	playerMaxSpeed = 2.0f * TARGET_FPS;
-	playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
-	playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
+	playerMaxSpeed = 1.4f * TARGET_FPS;
+	playerInitialSpeed = 0.7f * TARGET_FPS;
+	playerSpeed = 0;
+	playerAccel = 6.0f * TARGET_FPS;
+	playerDrag = 6.0f * TARGET_FPS;
+	playerXVelocity = 0;
+	playerYVelocity = 0;
 	planeX = 0;
 	planeY = -0.59f; // Related to fov somehow - not sure so I just tweaked it until it looked right
 	dirX = 1;
@@ -656,6 +664,9 @@ void drawRays(void)
 			float invTransformY = 1 / transformY;
 			float transformX = inverseDeterminant * (dirX * spriteY - dirY * spriteX);
 			float spriteDistance = transformY * CELL_SIZE;
+			if (spriteDistance > FOG_MAX_DIST) {
+				continue;
+			}
 	
 			int spriteScreenX = (int)((float)HALF_SCREEN_WIDTH * (1 + transformX * invTransformY));
 	
@@ -692,10 +703,6 @@ void drawRays(void)
 						int fogShade = 0;
 						if (spriteDistance < FOG_MIN_DIST) {
 							inFog = 0;
-						} else if (spriteDistance > FOG_MAX_DIST) {
-							inFog = 1;
-							int *fogPattern = fogPatterns[FOG_LEVELS - 1];
-							fogShade = fogPattern[fogRow];
 						} else {
 							inFog = 1;
 							int fogPatternIndex = (spriteDistance - FOG_MIN_DIST) / FOG_STEP;
@@ -761,8 +768,6 @@ void handleInput(float deltaTime)
 	} else if (playerAngle > 2 * PI) {
 		playerAngle -= 2 * PI;
 	}
-	playerXVelocity = cosf(playerAngle) * playerMaxSpeed;
-	playerYVelocity = sinf(playerAngle) * playerMaxSpeed;
 
 	float adjustedTurnSpeed = playerTurnSpeed * deltaTime;
 	float oldDirX = dirX;
@@ -771,6 +776,36 @@ void handleInput(float deltaTime)
 	float oldPlaneX = planeX;
 	planeX = planeX * cosf(adjustedTurnSpeed) - planeY * sinf(adjustedTurnSpeed);
 	planeY = oldPlaneX * sinf(adjustedTurnSpeed) + planeY * cosf(adjustedTurnSpeed);
+
+	if (current & kButtonUp) {
+		if (playerSpeed < playerInitialSpeed) {
+			playerSpeed = playerInitialSpeed;
+		}
+		playerSpeed += playerAccel * deltaTime;
+		if (playerSpeed > playerMaxSpeed) {
+			playerSpeed = playerMaxSpeed;
+		}
+	} else if (current & kButtonDown) {
+		if (playerSpeed > -playerInitialSpeed) {
+			playerSpeed = -playerInitialSpeed;
+		}
+		playerSpeed -= playerAccel * deltaTime;
+		if (playerSpeed < -playerMaxSpeed) {
+			playerSpeed = -playerMaxSpeed;
+		}
+	} else {
+		float dragCutoff = 0.1f * playerMaxSpeed;
+		if (playerSpeed < dragCutoff && playerSpeed > -dragCutoff) {
+			playerSpeed = 0;
+		} else if (playerSpeed > 0) {
+			playerSpeed -= playerDrag * deltaTime;
+		} else if (playerSpeed < 0) {
+			playerSpeed += playerDrag * deltaTime;
+		}
+	}
+
+	playerXVelocity = cosf(playerAngle) * playerSpeed;
+	playerYVelocity = sinf(playerAngle) * playerSpeed;
 
 	int wallCollisionDist = 10;
 	int xOffset = 0;
@@ -790,27 +825,15 @@ void handleInput(float deltaTime)
 	// Player coordinates -> Map coordinates
 	int xIndex = playerX / cellSize;
 	int lookAheadXIndex = (playerX + xOffset) / cellSize;
-	int lookBehindXIndex = (playerX - xOffset) / cellSize;
 	int yIndex = playerY / cellSize;
 	int lookAheadYIndex = (playerY + yOffset) / cellSize;
-	int lookBehindYIndex = (playerY - yOffset) / cellSize;
 
-	if (current & kButtonUp) {
-		if (map[yIndex * mapWidth + lookAheadXIndex] == 0) {
-			playerX += dirX * playerMaxSpeed * deltaTime;
-		}
+	if (map[yIndex * mapWidth + lookAheadXIndex] == 0) {
+		playerX += playerXVelocity * deltaTime;
+	}
 
-		if (map[lookAheadYIndex * mapWidth + xIndex] == 0) {
-			playerY +=  dirY * playerMaxSpeed * deltaTime;
-		}
-	} else if (current & kButtonDown) {
-		if (map[yIndex * mapWidth + lookBehindXIndex] == 0) {
-			playerX -=  dirX * playerMaxSpeed * deltaTime;
-		}
-
-		if (map[lookBehindYIndex * mapWidth + xIndex] == 0) {
-			playerY -=  dirY * playerMaxSpeed * deltaTime;
-		}
+	if (map[lookAheadYIndex * mapWidth + xIndex] == 0) {
+		playerY += playerYVelocity * deltaTime;
 	}
 }
 
