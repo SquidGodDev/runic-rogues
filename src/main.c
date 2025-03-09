@@ -15,12 +15,12 @@
 #define SCREEN_HEIGHT 120
 #define HALF_SCREEN_HEIGHT SCREEN_HEIGHT / 2
 #define CELL_SIZE 16
-#define MAP_WIDTH 10
-#define MAP_HEIGHT 12
+#define MAP_WIDTH 20
+#define MAP_HEIGHT 20
 #define SPRITE_COUNT 5
-#define FOG_LEVELS 16
-#define FOG_STEP 4
-#define FOG_MIN_DIST 40
+#define FOG_LEVELS 15
+#define FOG_STEP 6
+#define FOG_MIN_DIST 60
 #define FOG_MAX_DIST (FOG_MIN_DIST + FOG_STEP * FOG_LEVELS)
 
 #include "pd_api.h"
@@ -93,18 +93,26 @@ void drawCircleAtPoint(float x, float y, int radius)
 
 int map[] =
 {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 0, 0, 1, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 1, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 1, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 1, 1, 1, 1, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 1, 0, 0, 1, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
 /* Lua program to create basic map
@@ -131,8 +139,7 @@ for h = 1, height do
 end
 */
 
-int fogPatterns[FOG_LEVELS][8] = {{0x11, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00},
-								  {0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x00},
+int fogPatterns[FOG_LEVELS][8] = {{0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x00},
 								  {0x55, 0x00, 0x44, 0x00, 0x55, 0x00, 0x44, 0x00},
 								  {0x55, 0x00, 0x55, 0x00, 0x55, 0x00, 0x55, 0x00},
 								  {0x55, 0x00, 0x55, 0x88, 0x55, 0x00, 0x55, 0x88},
@@ -292,7 +299,7 @@ void drawRays(void)
 	LineData lineData[SCREEN_WIDTH];
 	float zBuffer[SCREEN_WIDTH];
 
-	int maxFieldDepth = 10;
+	int maxFieldDepth = 8;
 	int rayCount = SCREEN_WIDTH;
 	float fov = 66 * (PI / 180.0f);
 	float rayInterval = fov / rayCount;
@@ -310,10 +317,11 @@ void drawRays(void)
 		float xOffset = 0;
 		float yOffset = 0;
 		int depthOfField = 0;
+		int maxDistance = 10000000;
 
 		// === Check for horizontal lines ===
 		float horizontalRayX, horizontalRayY;
-		float horizontalDistance = 1000000;
+		float horizontalDistance = maxDistance;
 		float rayPerpendicularSlope = -1 / tanf(rayAngle);
 
 		if (rayAngle == 0 || rayAngle == PI) {
@@ -354,7 +362,7 @@ void drawRays(void)
 		// === Check for vertical lines ===
 		depthOfField = 0;
 		float verticalRayX, verticalRayY;
-		float verticalDistance = 1000000;
+		float verticalDistance = maxDistance;
 		float rayNegSlope = -tanf(rayAngle);
 
 		if (rayAngle == P2 || rayAngle == P3) {
@@ -393,7 +401,7 @@ void drawRays(void)
 		}
 
 		LineData curLineData;
-		float rayDistance = 0;
+		float rayDistance = maxDistance;
 		int isShaded = 0;
 		if (verticalDistance < horizontalDistance) {
 			rayX = verticalRayX;
@@ -404,6 +412,16 @@ void drawRays(void)
 			rayY = horizontalRayY;
 			rayDistance = fastSqrt(horizontalDistance);
 			isShaded = 1;
+		}
+
+		if (verticalDistance > (maxDistance - 1) && horizontalDistance > (maxDistance - 1)) {
+			curLineData.lineHeight = 0;
+			curLineData.lineOffset = HALF_SCREEN_HEIGHT;
+			lineData[ray] = curLineData;
+			zBuffer[ray] = rayDistance;
+
+			rayAngle += rayInterval;
+			continue;
 		}
 
 		if (DRAW_MAP != 0) {
@@ -479,16 +497,13 @@ void drawRays(void)
 		float rowDistance = (float)HALF_SCREEN_HEIGHT / p;
 
 		int inFog = 0;
+		float ceilingDistance = rowDistance * CELL_SIZE;
+		int skipCeilingFloor = ceilingDistance > FOG_MAX_DIST;
 		int fogRow = drawY % 8;
 		int fogShade = 0;
-		float ceilingDistance = rowDistance * CELL_SIZE;
 		if (ceilingDistance < FOG_MIN_DIST) {
 			inFog = 0;
-		} else if (ceilingDistance > FOG_MAX_DIST) {
-			inFog = 1;
-			int *fogPattern = fogPatterns[FOG_LEVELS - 1];
-			fogShade = fogPattern[fogRow];
-		} else {
+		} else if (ceilingDistance <= FOG_MAX_DIST) {
 			inFog = 1;
 			int fogPatternIndex = (ceilingDistance - FOG_MIN_DIST) / FOG_STEP;
 			int *fogPattern = fogPatterns[fogPatternIndex];
@@ -530,7 +545,7 @@ void drawRays(void)
 				ceilingY += ceilingStepY;
 				if (drawY < lineOffset) {
 					int floorDrawColor = 0;
-					if (inFog & ((fogShade >> fogShadeBit) & 1)) {
+					if (skipCeilingFloor || (inFog & ((fogShade >> fogShadeBit) & 1))) {
 						drawColor = 0;
 						floorDrawColor = 0;
 					} else {
@@ -561,6 +576,11 @@ void drawRays(void)
 				} else if (drawY > lineHeight + lineOffset + 1) {
 					continue;
 				} else {
+					float wallDistance = zBuffer[drawX];
+					if (wallDistance > FOG_MAX_DIST) {
+						curDrawInt &= ~(1 << (31 - (drawBit & 31)));
+						continue;
+					}
 					int textureX = curLineData.textureX;
 					if (textureX >= 16) {
 						textureX -= 16;
@@ -574,12 +594,8 @@ void drawRays(void)
 					drawColor = brickTexture[textureX + (textureY << 4)];
 
 					int fogShade = 0;
-					float wallDistance = zBuffer[drawX];
 					if (wallDistance < FOG_MIN_DIST) {
 						fogShade = 0;
-					} else if (wallDistance > FOG_MAX_DIST) {
-						int *fogPattern = fogPatterns[FOG_LEVELS - 1];
-						fogShade = fogPattern[fogRow];
 					} else if (wallDistance >= FOG_MIN_DIST) {
 						int fogPatternIndex = (int)((float)(wallDistance - FOG_MIN_DIST) / (float)FOG_STEP);
 						int *fogPattern = fogPatterns[fogPatternIndex];
