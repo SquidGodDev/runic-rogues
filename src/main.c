@@ -167,12 +167,15 @@ float playerTurnAccel;
 float playerTurnDrag;
 float playerTurnMaxSpeed;
 float playerTurnInitialSpeed;
+
+float playerXVelocity, playerYVelocity;
 float playerSpeed;
 float playerInitialSpeed;
 float playerAccel;
 float playerDrag;
 float playerMaxSpeed;
-float playerXVelocity, playerYVelocity;
+float playerStrafeSpeed;
+
 float planeX, planeY;
 float dirX, dirY;
 
@@ -253,6 +256,7 @@ void gameInit(void)
 	playerMaxSpeed = 1.4f * TARGET_FPS;
 	playerInitialSpeed = 0.7f * TARGET_FPS;
 	playerSpeed = 0;
+	playerStrafeSpeed = 0;
 	playerAccel = 6.0f * TARGET_FPS;
 	playerDrag = 6.0f * TARGET_FPS;
 	playerXVelocity = 0;
@@ -736,7 +740,7 @@ void handleInput(float deltaTime)
 	PDButtons current;
 	pd->system->getButtonState(&current, NULL, NULL);
 
-	if (current & kButtonLeft) {
+	if ((current & kButtonLeft) && !(current & kButtonB)) {
 		if (playerTurnSpeed > -playerTurnInitialSpeed) {
 			playerTurnSpeed = -playerTurnInitialSpeed;
 		}
@@ -744,7 +748,7 @@ void handleInput(float deltaTime)
 		if (playerTurnSpeed < -playerTurnMaxSpeed) {
 			playerTurnSpeed = -playerTurnMaxSpeed;
 		}
-	} else if (current & kButtonRight) {
+	} else if ((current & kButtonRight) && !(current & kButtonB)) {
 		if (playerTurnSpeed < playerTurnInitialSpeed) {
 			playerTurnSpeed = playerTurnInitialSpeed;
 		}
@@ -777,6 +781,33 @@ void handleInput(float deltaTime)
 	planeX = planeX * cosf(adjustedTurnSpeed) - planeY * sinf(adjustedTurnSpeed);
 	planeY = oldPlaneX * sinf(adjustedTurnSpeed) + planeY * cosf(adjustedTurnSpeed);
 
+	if ((current & kButtonB) && (current & kButtonRight)) {
+		if (playerStrafeSpeed < playerInitialSpeed) {
+			playerStrafeSpeed = playerInitialSpeed;
+		}
+		playerStrafeSpeed += playerAccel * deltaTime;
+		if (playerStrafeSpeed > playerMaxSpeed) {
+			playerStrafeSpeed = playerMaxSpeed;
+		}
+	} else if ((current & kButtonB) && (current & kButtonLeft)) {
+		if (playerStrafeSpeed > -playerInitialSpeed) {
+			playerStrafeSpeed = -playerInitialSpeed;
+		}
+		playerStrafeSpeed -= playerAccel * deltaTime;
+		if (playerStrafeSpeed < -playerMaxSpeed) {
+			playerStrafeSpeed = -playerMaxSpeed;
+		}
+	} else {
+		float dragCutoff = 0.1f * playerMaxSpeed;
+		if (playerStrafeSpeed < dragCutoff && playerStrafeSpeed > -dragCutoff) {
+			playerStrafeSpeed = 0;
+		} else if (playerStrafeSpeed > 0) {
+			playerStrafeSpeed -= playerDrag * deltaTime;
+		} else if (playerStrafeSpeed < 0) {
+			playerStrafeSpeed += playerDrag * deltaTime;
+		}
+	}
+
 	if (current & kButtonUp) {
 		if (playerSpeed < playerInitialSpeed) {
 			playerSpeed = playerInitialSpeed;
@@ -804,8 +835,17 @@ void handleInput(float deltaTime)
 		}
 	}
 
-	playerXVelocity = cosf(playerAngle) * playerSpeed;
-	playerYVelocity = sinf(playerAngle) * playerSpeed;
+	float combinedMagnitude = sqrtf((playerSpeed * playerSpeed) + (playerStrafeSpeed * playerStrafeSpeed));
+	float normalizedSpeed = 0;
+	float normalizedStrafeSpeed = 0;
+
+	if (combinedMagnitude != 0) {
+		normalizedSpeed = playerSpeed * (fabsf(playerSpeed) / combinedMagnitude);
+		normalizedStrafeSpeed = playerStrafeSpeed * (fabsf(playerStrafeSpeed) / combinedMagnitude);
+	}
+
+	playerXVelocity = cosf(playerAngle) * normalizedSpeed + cosf(playerAngle + PI / 2) * normalizedStrafeSpeed;
+	playerYVelocity = sinf(playerAngle) * normalizedSpeed + sinf(playerAngle + PI / 2) * normalizedStrafeSpeed;
 
 	int wallCollisionDist = 10;
 	int xOffset = 0;
