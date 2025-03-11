@@ -159,6 +159,10 @@ int fogPatterns[FOG_LEVELS][8] = {{0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x0
 								  {0xFF, 0xFF, 0xFF, 0xEE, 0xFF, 0xFF, 0xFF, 0xEE},
 								  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
 
+int defaultStrafeSetting = 0;
+int toggleMovementSetting = 0;
+int movementToggled = 0;
+
 float playerX, playerY;
 int playerRadius;
 float playerAngle;
@@ -242,7 +246,7 @@ void loadTextures(void)
 }
 
 void gameInit(void)
-{
+{	
 	loadTextures();
 	playerX = 100;
 	playerY = 120;
@@ -554,7 +558,7 @@ void drawRays(void)
 			for (int drawBit = 0; drawBit < drawBitMax; drawBit++) {
 				uint8_t drawColor;
 				int drawX = drawIntOffset + drawBit;
-				int fogShadeBit = drawX % 8;
+				int fogShadeBit = (drawX) % 8;
 
 				LineData curLineData = lineData[drawX];
 				int lineHeight = curLineData.lineHeight;
@@ -733,14 +737,22 @@ void handleInput(float deltaTime)
 	int cellSize = CELL_SIZE;
 	int mapWidth = MAP_WIDTH;
 
-	// char str_num[50];
-	// sprintf(str_num, "%f", deltaTime);
-	// pd->system->logToConsole(str_num);
-
 	PDButtons current;
-	pd->system->getButtonState(&current, NULL, NULL);
+	PDButtons pushed;
+	pd->system->getButtonState(&current, &pushed, NULL);
 
-	if ((current & kButtonLeft) && !(current & kButtonB)) {
+	if ((pushed & kButtonB)) {
+		movementToggled ^= 1;
+	}
+
+	int bButtonPressed = (current & kButtonB) != 0;
+	if (toggleMovementSetting) {
+		bButtonPressed = movementToggled;
+	}
+	int rotationEnabled = (defaultStrafeSetting == bButtonPressed);
+	int strafeEnabled = (defaultStrafeSetting != bButtonPressed);
+
+	if ((current & kButtonLeft) && rotationEnabled) {
 		if (playerTurnSpeed > -playerTurnInitialSpeed) {
 			playerTurnSpeed = -playerTurnInitialSpeed;
 		}
@@ -748,7 +760,7 @@ void handleInput(float deltaTime)
 		if (playerTurnSpeed < -playerTurnMaxSpeed) {
 			playerTurnSpeed = -playerTurnMaxSpeed;
 		}
-	} else if ((current & kButtonRight) && !(current & kButtonB)) {
+	} else if ((current & kButtonRight) && rotationEnabled) {
 		if (playerTurnSpeed < playerTurnInitialSpeed) {
 			playerTurnSpeed = playerTurnInitialSpeed;
 		}
@@ -781,7 +793,7 @@ void handleInput(float deltaTime)
 	planeX = planeX * cosf(adjustedTurnSpeed) - planeY * sinf(adjustedTurnSpeed);
 	planeY = oldPlaneX * sinf(adjustedTurnSpeed) + planeY * cosf(adjustedTurnSpeed);
 
-	if ((current & kButtonB) && (current & kButtonRight)) {
+	if ((current & kButtonRight) && strafeEnabled) {
 		if (playerStrafeSpeed < playerInitialSpeed) {
 			playerStrafeSpeed = playerInitialSpeed;
 		}
@@ -789,7 +801,7 @@ void handleInput(float deltaTime)
 		if (playerStrafeSpeed > playerMaxSpeed) {
 			playerStrafeSpeed = playerMaxSpeed;
 		}
-	} else if ((current & kButtonB) && (current & kButtonLeft)) {
+	} else if ((current & kButtonLeft) && strafeEnabled) {
 		if (playerStrafeSpeed > -playerInitialSpeed) {
 			playerStrafeSpeed = -playerInitialSpeed;
 		}
@@ -898,12 +910,32 @@ int gameUpdate(void *userdata)
 	return 1;
 }
 
+PDMenuItem* toggleDefaultStrafeMenuItem;
+PDMenuItem* toggleMovementMenuItem;
+
+void toggleDefaultStrafeCallback(void* userdata) {
+	int value = pd->system->getMenuItemValue(toggleDefaultStrafeMenuItem);
+	defaultStrafeSetting = value;
+}
+
+void toggleMovementCallback(void* userdata) {
+	int value = pd->system->getMenuItemValue(toggleMovementMenuItem);
+	toggleMovementSetting = value;
+	movementToggled = 0;
+}
+
 int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 {
 	if (event == kEventInit) {
 		pd = playdate;
 		pd->system->resetElapsedTime();
 		pd->display->setScale(400 / SCREEN_WIDTH);
+
+		const char *movementOptions[] = {"rotate", "strafe"};
+		toggleDefaultStrafeMenuItem = pd->system->addOptionsMenuItem("Default", movementOptions, 2, toggleDefaultStrafeCallback, NULL);
+
+		toggleMovementMenuItem = pd->system->addCheckmarkMenuItem("Toggle", 0, toggleMovementCallback, NULL);
+
 		gameInit();
 		pd->system->setUpdateCallback(gameUpdate, NULL);
 	}
