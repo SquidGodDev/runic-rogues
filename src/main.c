@@ -202,7 +202,7 @@ Sprite sprites[SPRITE_COUNT] = {
 };
 
 #define SKYBOX_SIZE (SCREEN_HEIGHT / 2) * 13
-uint8_t brickTexture[256];
+uint8_t wallTexture[256];
 uint8_t floorTexture[256];
 uint8_t ceilingTexture[256];
 uint8_t enemyTexture[1024];
@@ -222,7 +222,7 @@ void loadTexture(const char *texturePath, uint8_t *textureArray) {
 
 void loadTextures(void)
 {
-	loadTexture("images/brickTexture", brickTexture);
+	loadTexture("images/brickTexture", wallTexture);
 	loadTexture("images/floorTexture", floorTexture);
 	loadTexture("images/floorTexture", ceilingTexture);
 	loadTexture("images/enemyTexture", enemyTexture);
@@ -621,7 +621,7 @@ void drawRays(void)
 					}
 	
 					int textureY = (int)(textureYModifier);
-					drawColor = brickTexture[textureX + (textureY << 4)];
+					drawColor = wallTexture[textureX + (textureY << 4)];
 
 					int fogShade = 0;
 					if (wallDistance < FOG_MIN_DIST) {
