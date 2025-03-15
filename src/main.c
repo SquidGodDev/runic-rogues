@@ -187,12 +187,16 @@ float playerStrafeSpeed;
 float planeX, planeY;
 float dirX, dirY;
 
+float weaponCooldown = 0.3f; // Seconds
+float weaponCurCooldown = 0;
 float weaponBobCounter = 0;
 float weaponBobSpeed = 0.15f;
 int weaponBasePositionX = 126;
-int weaponBasePositionY = 79;
+int weaponBasePositionY = 75;
 int weaponXOffset = 5;
 int weaponYOffset = 3;
+int weaponActiveXOffset = -4;
+int weaponActiveYOffset = -7;
 float weaponTargetDrawX = 0;
 float weaponTargetDrawY = 0;
 float weaponDrawX = 0;
@@ -224,6 +228,7 @@ uint8_t enemyTexture[1024];
 uint32_t skybox[SKYBOX_SIZE];
 
 LCDBitmap *handBitmap;
+LCDBitmap *handOpenBitmap;
 
 void loadTexture(const char *texturePath, uint8_t *textureArray) {
 	LCDBitmap *textureBitmap = pd->graphics->loadBitmap(texturePath, NULL);
@@ -245,6 +250,7 @@ void loadTextures(void)
 	loadTexture("images/enemyTexture", enemyTexture);
 
 	handBitmap = pd->graphics->loadBitmap("images/hand", NULL);
+	handOpenBitmap = pd->graphics->loadBitmap("images/handOpen", NULL);
 
 	LCDBitmap *skyboxBitmap = pd->graphics->loadBitmap("images/skybox", NULL);
 	for (int y = 0; y < SCREEN_HEIGHT / 2; y++) {
@@ -758,11 +764,19 @@ void drawRays(void)
 	pd->graphics->markUpdatedRows(0, SCREEN_HEIGHT - 1);
 }
 
-void drawWeapon(void) {
+void drawWeapon(float deltaTime) {
 	float lerpSpeed = 0.2f;
 	weaponDrawX = lerp(weaponDrawX, weaponTargetDrawX, lerpSpeed);
 	weaponDrawY = lerp(weaponDrawY, weaponTargetDrawY, lerpSpeed);
-	pd->graphics->drawBitmap(handBitmap, weaponDrawX, weaponDrawY, kBitmapUnflipped);
+	if (weaponCurCooldown > 0) {
+		weaponCurCooldown -= deltaTime;
+		if (weaponCurCooldown <= 0) {
+			weaponCurCooldown = 0;
+		}
+		pd->graphics->drawBitmap(handOpenBitmap, weaponDrawX, weaponDrawY, kBitmapUnflipped);
+	} else {
+		pd->graphics->drawBitmap(handBitmap, weaponDrawX, weaponDrawY, kBitmapUnflipped);
+	}
 }
 
 void handleInput(float deltaTime)
@@ -774,7 +788,14 @@ void handleInput(float deltaTime)
 	PDButtons pushed;
 	pd->system->getButtonState(&current, &pushed, NULL);
 
-	if ((pushed & kButtonB)) {
+	if (pushed & kButtonA) {
+		if (weaponCurCooldown <= 0) {
+			weaponCurCooldown = weaponCooldown;
+			// Fire projectile
+		}
+	}
+
+	if (pushed & kButtonB) {
 		movementToggled ^= 1;
 	}
 
@@ -941,6 +962,11 @@ void handleInput(float deltaTime)
 		weaponBobCounter = 0;
 		weaponTargetDrawY = weaponBasePositionY;
 	}
+
+	if (weaponCurCooldown > 0) {
+		weaponTargetDrawX = weaponBasePositionX + weaponActiveXOffset;
+		weaponTargetDrawY = weaponBasePositionY + weaponActiveYOffset;
+	}
 }
 
 int gameUpdate(void *userdata)
@@ -957,7 +983,7 @@ int gameUpdate(void *userdata)
 	drawMap();
 	drawPlayer();
 	drawRays();
-	drawWeapon();
+	drawWeapon(deltaTime);
 	pd->sprite->updateAndDrawSprites();
 
 	pd->system->drawFPS(0, 0);
