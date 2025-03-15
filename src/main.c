@@ -62,6 +62,10 @@ static inline uint32_t swap(uint32_t n)
 #endif
 }
 
+static inline float lerp(float start, float end, float t) {
+	return (1 - t) * start + t * end;
+}
+
 typedef struct SpritePair {
 	int order;
 	float dist;
@@ -183,6 +187,17 @@ float playerStrafeSpeed;
 float planeX, planeY;
 float dirX, dirY;
 
+float weaponBobCounter = 0;
+float weaponBobSpeed = 0.15f;
+int weaponBasePositionX = 126;
+int weaponBasePositionY = 79;
+int weaponXOffset = 5;
+int weaponYOffset = 3;
+float weaponTargetDrawX = 0;
+float weaponTargetDrawY = 0;
+float weaponDrawX = 0;
+float weaponDrawY = 0;
+
 enum SpriteType {
 	Enemy
 };
@@ -208,6 +223,8 @@ uint8_t ceilingTexture[256];
 uint8_t enemyTexture[1024];
 uint32_t skybox[SKYBOX_SIZE];
 
+LCDBitmap *handBitmap;
+
 void loadTexture(const char *texturePath, uint8_t *textureArray) {
 	LCDBitmap *textureBitmap = pd->graphics->loadBitmap(texturePath, NULL);
 	int width, height;
@@ -226,6 +243,8 @@ void loadTextures(void)
 	loadTexture("images/floorTexture", floorTexture);
 	loadTexture("images/floorTexture", ceilingTexture);
 	loadTexture("images/enemyTexture", enemyTexture);
+
+	handBitmap = pd->graphics->loadBitmap("images/hand", NULL);
 
 	LCDBitmap *skyboxBitmap = pd->graphics->loadBitmap("images/skybox", NULL);
 	for (int y = 0; y < SCREEN_HEIGHT / 2; y++) {
@@ -269,6 +288,11 @@ void gameInit(void)
 	planeY = -0.59f; // Related to fov somehow - not sure so I just tweaked it until it looked right
 	dirX = 1;
 	dirY = 0;
+
+	weaponTargetDrawX = weaponBasePositionX;
+	weaponTargetDrawY = weaponBasePositionY;
+	weaponDrawX = weaponTargetDrawX;
+	weaponDrawY = weaponTargetDrawY;
 }
 
 void drawMap(void)
@@ -734,6 +758,13 @@ void drawRays(void)
 	pd->graphics->markUpdatedRows(0, SCREEN_HEIGHT - 1);
 }
 
+void drawWeapon(void) {
+	float lerpSpeed = 0.2f;
+	weaponDrawX = lerp(weaponDrawX, weaponTargetDrawX, lerpSpeed);
+	weaponDrawY = lerp(weaponDrawY, weaponTargetDrawY, lerpSpeed);
+	pd->graphics->drawBitmap(handBitmap, weaponDrawX, weaponDrawY, kBitmapUnflipped);
+}
+
 void handleInput(float deltaTime)
 {
 	int cellSize = CELL_SIZE;
@@ -889,6 +920,27 @@ void handleInput(float deltaTime)
 	if (map[lookAheadYIndex * mapWidth + xIndex] == 0) {
 		playerY += playerYVelocity * deltaTime;
 	}
+
+	// Weapon drawing
+	if (current & kButtonLeft) {
+		weaponTargetDrawX = weaponBasePositionX - weaponXOffset;
+	} else if (current & kButtonRight) {
+		weaponTargetDrawX = weaponBasePositionX + weaponXOffset;
+	} else {
+		weaponTargetDrawX = weaponBasePositionX;
+	}
+
+	if ((current & kButtonUp) || (current & kButtonDown)) {
+		weaponBobCounter += weaponBobSpeed;
+		if (weaponBobCounter > 2 * PI) {
+			weaponBobCounter -= 2 * PI;
+		}
+
+		weaponTargetDrawY = weaponBasePositionY - weaponYOffset * sinf(weaponBobCounter);
+	} else {
+		weaponBobCounter = 0;
+		weaponTargetDrawY = weaponBasePositionY;
+	}
 }
 
 int gameUpdate(void *userdata)
@@ -905,6 +957,8 @@ int gameUpdate(void *userdata)
 	drawMap();
 	drawPlayer();
 	drawRays();
+	drawWeapon();
+	pd->sprite->updateAndDrawSprites();
 
 	pd->system->drawFPS(0, 0);
 
