@@ -738,15 +738,15 @@ void drawRays(void)
 
 			int halfSpriteWidth = (spriteWidth >> 1);
 			int halfSpriteHeight = (spriteHeight >> 1);
-			int screenXOffset = anchorTopLeft ? halfSpriteWidth : 0;
-			int screenYOffset = anchorTopLeft ? halfSpriteHeight : 0;
+			int screenXOffset = anchorTopLeft ? halfSpriteWidth / 2 : 0;
+			int screenYOffset = anchorTopLeft ? halfSpriteHeight / 2 : 0;
 			int spriteScreenX = (int)((float)(HALF_SCREEN_WIDTH) * (1 + transformX * invTransformY));
 
 			int drawStartY = -halfSpriteHeight + HALF_SCREEN_HEIGHT;
 			int drawEndY = halfSpriteHeight + HALF_SCREEN_HEIGHT;
 			if (anchorTopLeft) {
-				drawStartY += halfSpriteHeight;
-				drawEndY += halfSpriteHeight;
+				drawStartY += screenYOffset;
+				drawEndY += screenYOffset;
 			}
 			if (drawStartY < 0) { drawStartY = 0; }
 			if (drawEndY >= SCREEN_HEIGHT) { drawEndY = SCREEN_HEIGHT; }
@@ -755,8 +755,8 @@ void drawRays(void)
 			int drawStartX = -halfSpriteWidth + spriteScreenX;
 			int drawEndX = halfSpriteWidth + spriteScreenX;
 			if (anchorTopLeft) {
-				drawStartX += halfSpriteWidth;
-				drawEndX += halfSpriteWidth;
+				drawStartX += screenXOffset;
+				drawEndX += screenXOffset;
 			}
 			if (drawStartX < 0) { drawStartX = 0; }
 			if (drawEndX >= SCREEN_WIDTH) { drawEndX = SCREEN_WIDTH; }
