@@ -19,7 +19,7 @@
 #define MAP_WIDTH 20
 #define MAP_HEIGHT 20
 
-#define SPRITE_COUNT 5
+#define SPRITE_COUNT 10
 #define SPRITE_TEXTURE_SIZE 32
 
 #define FOG_LEVELS 15
@@ -203,28 +203,27 @@ float weaponDrawX = 0;
 float weaponDrawY = 0;
 
 enum SpriteType {
-	Enemy
+	ENEMY,
+	PROJECTILE
 };
 
 typedef struct Sprite {
 	float x;
 	float y;
-	uint8_t type;
+	float direction;
+	float speed;
+	uint16_t active;
+	uint16_t type;
 } Sprite;
 
-Sprite sprites[SPRITE_COUNT] = {
-	{8, 5, 0},
-	{8, 6, 0},
-	{8, 7, 0},
-	{8, 8, 0},
-	{8, 9, 0}
-};
+Sprite sprites[SPRITE_COUNT] = {0};
 
 #define SKYBOX_SIZE (SCREEN_HEIGHT / 2) * 13
 uint8_t wallTexture[256];
 uint8_t floorTexture[256];
 uint8_t ceilingTexture[256];
 uint8_t enemyTexture[1024];
+uint8_t projectileTexture[1024];
 uint32_t skybox[SKYBOX_SIZE];
 
 LCDBitmap *handBitmap;
@@ -248,6 +247,7 @@ void loadTextures(void)
 	loadTexture("images/floorTexture", floorTexture);
 	loadTexture("images/floorTexture", ceilingTexture);
 	loadTexture("images/enemyTexture", enemyTexture);
+	loadTexture("images/fireballTexture", projectileTexture);
 
 	handBitmap = pd->graphics->loadBitmap("images/hand", NULL);
 	handOpenBitmap = pd->graphics->loadBitmap("images/handOpen", NULL);
@@ -273,6 +273,11 @@ void loadTextures(void)
 void gameInit(void)
 {	
 	loadTextures();
+	sprites[0] = (struct Sprite){2 * CELL_SIZE, 2 * CELL_SIZE, 0, 0, 1, ENEMY};
+	sprites[1] = (struct Sprite){8 * CELL_SIZE, 6 * CELL_SIZE, 0, 0, 1, ENEMY};
+	sprites[2] = (struct Sprite){8 * CELL_SIZE, 7 * CELL_SIZE, 0, 0, 1, ENEMY};
+	sprites[3] = (struct Sprite){8 * CELL_SIZE, 8 * CELL_SIZE, 0, 0, 1, ENEMY};
+	sprites[4] = (struct Sprite){8 * CELL_SIZE, 9 * CELL_SIZE, 0, 0, 1, ENEMY};
 	playerX = 100;
 	playerY = 120;
 	playerRadius = 6;
@@ -684,7 +689,11 @@ void drawRays(void)
 	for (int i = 0; i < SPRITE_COUNT; i++) {
 		spriteOrder[i] = i;
 		Sprite curSprite = sprites[i];
-		spriteDistances[i] = distanceSquared(playerMapX, playerMapY, curSprite.x, curSprite.y);
+		float spriteDistance = 0;
+		if (curSprite.type != PROJECTILE) {
+			spriteDistance = distanceSquared(playerX, playerY, curSprite.x, curSprite.y);
+		}
+		spriteDistances[i] = spriteDistance;
 	}
 	sortSprites(spriteOrder, spriteDistances, SPRITE_COUNT);
 
@@ -696,8 +705,24 @@ void drawRays(void)
 	int fixedPointScreenHeight = SCREEN_HEIGHT << 7;
 	for (int i = 0; i < SPRITE_COUNT; i++) {
 		Sprite curSprite = sprites[spriteOrder[i]];
-		float spriteX = curSprite.x - playerMapX;
-		float spriteY = curSprite.y - playerMapY;
+		if (!curSprite.active) {
+			continue;
+		}
+		uint8_t *spriteTexture;
+		int anchorTopLeft = 0;
+		int isProjectile = 0;
+		if (curSprite.type == PROJECTILE) {
+			spriteTexture = projectileTexture;
+			anchorTopLeft = 1;
+			isProjectile = 1;
+		} else if (curSprite.type == ENEMY) {
+			spriteTexture = enemyTexture;
+		}
+		
+		float spriteMapX = curSprite.x / CELL_SIZE;
+		float spriteMapY = curSprite.y / CELL_SIZE;
+		float spriteX = spriteMapX - playerMapX;
+		float spriteY = spriteMapY - playerMapY;
 
 		float transformY = inverseDeterminant * (-planeY * spriteX + planeX * spriteY);
 		if (transformY > 0) {
@@ -708,32 +733,45 @@ void drawRays(void)
 				continue;
 			}
 	
-			int spriteScreenX = (int)((float)HALF_SCREEN_WIDTH * (1 + transformX * invTransformY));
-	
 			int spriteHeight = abs((int)((float)SCREEN_HEIGHT * invTransformY));
 			int spriteWidth = spriteHeight;
 
-			int drawStartY = -(spriteHeight >> 1) + HALF_SCREEN_HEIGHT;
+			int halfSpriteWidth = (spriteWidth >> 1);
+			int halfSpriteHeight = (spriteHeight >> 1);
+			int screenXOffset = anchorTopLeft ? halfSpriteWidth : 0;
+			int screenYOffset = anchorTopLeft ? halfSpriteHeight : 0;
+			int spriteScreenX = (int)((float)(HALF_SCREEN_WIDTH) * (1 + transformX * invTransformY));
+
+			int drawStartY = -halfSpriteHeight + HALF_SCREEN_HEIGHT;
+			int drawEndY = halfSpriteHeight + HALF_SCREEN_HEIGHT;
+			if (anchorTopLeft) {
+				drawStartY += halfSpriteHeight;
+				drawEndY += halfSpriteHeight;
+			}
 			if (drawStartY < 0) { drawStartY = 0; }
-			int drawEndY = (spriteHeight >> 1) + HALF_SCREEN_HEIGHT;
 			if (drawEndY >= SCREEN_HEIGHT) { drawEndY = SCREEN_HEIGHT; }
 			int fixedPointSpriteHeight = spriteHeight << 7;
 	
-			int drawStartX = -(spriteWidth >> 1) + spriteScreenX;
+			int drawStartX = -halfSpriteWidth + spriteScreenX;
+			int drawEndX = halfSpriteWidth + spriteScreenX;
+			if (anchorTopLeft) {
+				drawStartX += halfSpriteWidth;
+				drawEndX += halfSpriteWidth;
+			}
 			if (drawStartX < 0) { drawStartX = 0; }
-			int drawEndX = (spriteWidth >> 1) + spriteScreenX;
 			if (drawEndX >= SCREEN_WIDTH) { drawEndX = SCREEN_WIDTH; }
 			
 			int textureYCache[SCREEN_HEIGHT] = {[0 ... SCREEN_HEIGHT - 1] = -1};
 
 			for (int drawX = drawStartX; drawX < drawEndX; drawX++) {
-				if (spriteDistance < zBuffer[drawX]) {
+				if (isProjectile || spriteDistance < zBuffer[drawX]) {
 					int fogShadeBit = drawX % 8;
-					int textureX = (int)(((drawX - (-(spriteWidth >> 1) + spriteScreenX)) << 8) * SPRITE_TEXTURE_SIZE / spriteWidth) >> 8;
+					int textureX = (int)(((drawX - screenXOffset - (-(spriteWidth >> 1) + spriteScreenX)) << 8) * SPRITE_TEXTURE_SIZE / spriteWidth) >> 8;
 					for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
+
 						int textureYIndex = textureYCache[drawY];
 						if (textureYIndex == -1) {
-							int d = (drawY << 8) - fixedPointScreenHeight + fixedPointSpriteHeight; // 256 and 128 factors to avoid floats
+							int d = ((drawY - screenYOffset) << 8) - fixedPointScreenHeight + fixedPointSpriteHeight; // 256 and 128 factors to avoid floats
 							int textureY = ((d * SPRITE_TEXTURE_SIZE) / spriteHeight) >> 8;
 							textureYIndex = SPRITE_TEXTURE_SIZE * textureY;
 							textureYCache[drawY] = textureYIndex;
@@ -749,7 +787,7 @@ void drawRays(void)
 							int *fogPattern = fogPatterns[fogPatternIndex];
 							fogShade = fogPattern[fogRow];
 						}
-						uint8_t color = enemyTexture[textureYIndex + textureX];
+						uint8_t color = spriteTexture[textureYIndex + textureX];
 						if (color == 1 && !(inFog && ((fogShade >> fogShadeBit) & 1))) {
 							frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] |= (1 << (7 - (drawX & 7)));
 						} else if (color == 0) {
@@ -779,6 +817,50 @@ void drawWeapon(float deltaTime) {
 	}
 }
 
+void fireProjectile(void) {
+	float projectileSpeed = 5.0f * TARGET_FPS;
+	for (int i = 0; i < SPRITE_COUNT; i++) {
+		if (!sprites[i].active) {
+			sprites[i].x = playerX + cosf(playerAngle) * CELL_SIZE;
+			sprites[i].y = playerY + sinf(playerAngle) * CELL_SIZE;
+			sprites[i].direction = playerAngle;
+			sprites[i].speed = projectileSpeed;
+			sprites[i].type = PROJECTILE;
+			sprites[i].active = 1;
+			break;
+		}
+	}
+}
+
+void updateSprites(float deltaTime) {
+	for (int i = 0; i < SPRITE_COUNT; i++) {
+		Sprite curSprite = sprites[i];
+		if (!curSprite.active) {
+			continue;
+		}
+
+		if (curSprite.type != PROJECTILE) {
+			continue;
+		}
+
+		float xDirection = cosf(curSprite.direction);
+		float yDirection = sinf(curSprite.direction);
+		int spriteMapX = (int)((curSprite.x - xDirection * CELL_SIZE) / CELL_SIZE);
+		int spriteMapY = (int)((curSprite.y - yDirection * CELL_SIZE) / CELL_SIZE);
+		int spriteMapIndex = spriteMapY * MAP_WIDTH + spriteMapX;
+		if ((spriteMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[spriteMapIndex] != 0)) {
+			curSprite.active = 0;
+		}
+
+		float xVelocity = xDirection * curSprite.speed;
+		float yVelocity = yDirection * curSprite.speed;
+		curSprite.x += xVelocity * deltaTime;
+		curSprite.y += yVelocity * deltaTime;
+
+		sprites[i] = curSprite;
+	}
+}
+
 void handleInput(float deltaTime)
 {
 	int cellSize = CELL_SIZE;
@@ -791,7 +873,7 @@ void handleInput(float deltaTime)
 	if (pushed & kButtonA) {
 		if (weaponCurCooldown <= 0) {
 			weaponCurCooldown = weaponCooldown;
-			// Fire projectile
+			fireProjectile();
 		}
 	}
 
@@ -964,7 +1046,7 @@ void handleInput(float deltaTime)
 	}
 
 	if (weaponCurCooldown > 0) {
-		weaponTargetDrawX = weaponBasePositionX + weaponActiveXOffset;
+		weaponTargetDrawX = weaponBasePositionX;
 		weaponTargetDrawY = weaponBasePositionY + weaponActiveYOffset;
 	}
 }
@@ -984,6 +1066,7 @@ int gameUpdate(void *userdata)
 	drawPlayer();
 	drawRays();
 	drawWeapon(deltaTime);
+	updateSprites(deltaTime);
 	pd->sprite->updateAndDrawSprites();
 
 	pd->system->drawFPS(0, 0);
