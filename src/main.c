@@ -45,8 +45,8 @@ static inline float fastRsqrt(float x)
 	f32u32.f *= 1.5f - (x * 0.5f * f32u32.f * f32u32.f);
 	return f32u32.f;
 }
-// static inline float fastRcp(float x) { x = fastRsqrt(x); return x * x; }
-// static inline float fastDiv(float x, float y) { return x * fastRcp(y); }
+static inline float fastRcp(float x) { x = fastRsqrt(x); return x * x; }
+static inline float fastDiv(float x, float y) { return x * fastRcp(y); }
 static inline float fastSqrt(float x) { return x * fastRsqrt(x); }
 static inline float distanceSquared(float x1, float y1, float x2, float y2)
 {
@@ -420,7 +420,7 @@ void renderDrawables(float *zBuffer) {
 
 		float transformY = inverseDeterminant * (-planeY * drawableX + planeX * drawableY);
 		if (transformY > 0) {
-			float invTransformY = 1 / transformY;
+			float invTransformY = fastDiv(1, transformY);
 			float transformX = inverseDeterminant * (dirX * drawableY - dirY * drawableX);
 			float drawableDistance = transformY * CELL_SIZE;
 			if (drawableDistance > FOG_MAX_DIST) {
