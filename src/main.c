@@ -19,8 +19,12 @@
 #define MAP_WIDTH 20
 #define MAP_HEIGHT 20
 
-#define SPRITE_COUNT 10
-#define SPRITE_TEXTURE_SIZE 32
+#define MAX_DRAWABLE_COUNT 20
+#define DRAWABLE_TEXTURE_SIZE 32
+
+#define MAX_ENEMY_COUNT 10
+
+#define MAX_PROJECTILE_COUNT 10
 
 #define FOG_LEVELS 15
 #define FOG_STEP 6
@@ -66,27 +70,27 @@ static inline float lerp(float start, float end, float t) {
 	return (1 - t) * start + t * end;
 }
 
-typedef struct SpritePair {
+typedef struct DrawablePair {
 	int order;
 	float dist;
-} SpritePair;
+} DrawablePair;
 
-int spritePairComparison(const void *a, const void *b) {
-	return ((SpritePair *)b)->dist - ((SpritePair *)a)->dist;
+int drawablePairComparison(const void *a, const void *b) {
+	return ((DrawablePair *)b)->dist - ((DrawablePair *)a)->dist;
 }
 
-void sortSprites(int* order, float* dist, int count) {
-	SpritePair spritePairs[count];
+void sortDrawables(int* order, float* dist, int count) {
+	DrawablePair drawablePairs[count];
 	for (int i = 0; i < count; i++) {
-		spritePairs[i].order = order[i];
-		spritePairs[i].dist = dist[i];
+		drawablePairs[i].order = order[i];
+		drawablePairs[i].dist = dist[i];
 	}
 
-	qsort(spritePairs, count, sizeof(SpritePair), spritePairComparison);
+	qsort(drawablePairs, count, sizeof(DrawablePair), drawablePairComparison);
 
 	for (int i = 0; i < count; i++) {
-		order[i] = spritePairs[i].order;
-		dist[i] = spritePairs[i].dist;
+		order[i] = drawablePairs[i].order;
+		dist[i] = drawablePairs[i].dist;
 	}
 }
 
@@ -202,21 +206,40 @@ float weaponTargetDrawY = 0;
 float weaponDrawX = 0;
 float weaponDrawY = 0;
 
-enum SpriteType {
+int queuedDrawables = 0;
+
+enum DrawableType {
 	ENEMY,
 	PROJECTILE
 };
 
-typedef struct Sprite {
+typedef struct Drawable {
+	float x;
+	float y;
+	uint32_t type;
+} Drawable;
+
+Drawable drawables[MAX_DRAWABLE_COUNT] = {0};
+
+typedef struct Enemy {
 	float x;
 	float y;
 	float direction;
 	float speed;
-	uint16_t active;
-	uint16_t type;
-} Sprite;
+	uint32_t active;
+} Enemy;
 
-Sprite sprites[SPRITE_COUNT] = {0};
+Enemy enemies[MAX_ENEMY_COUNT] = {0};
+
+typedef struct Projectile {
+	float x;
+	float y;
+	float direction;
+	float speed;
+	uint32_t active;
+} Projectile;
+
+Projectile projectiles[MAX_PROJECTILE_COUNT] = {0};
 
 #define SKYBOX_SIZE (SCREEN_HEIGHT / 2) * 13
 uint8_t wallTexture[256];
@@ -272,12 +295,18 @@ void loadTextures(void)
 
 void gameInit(void)
 {	
+	// Textures
 	loadTextures();
-	sprites[0] = (struct Sprite){2 * CELL_SIZE, 2 * CELL_SIZE, 0, 0, 1, ENEMY};
-	sprites[1] = (struct Sprite){8 * CELL_SIZE, 6 * CELL_SIZE, 0, 0, 1, ENEMY};
-	sprites[2] = (struct Sprite){8 * CELL_SIZE, 7 * CELL_SIZE, 0, 0, 1, ENEMY};
-	sprites[3] = (struct Sprite){8 * CELL_SIZE, 8 * CELL_SIZE, 0, 0, 1, ENEMY};
-	sprites[4] = (struct Sprite){8 * CELL_SIZE, 9 * CELL_SIZE, 0, 0, 1, ENEMY};
+
+	// Drawables
+	queuedDrawables = 0;
+	enemies[0] = (struct Enemy){2 * CELL_SIZE, 2 * CELL_SIZE, 0, 0, 1};
+	enemies[1] = (struct Enemy){8 * CELL_SIZE, 6 * CELL_SIZE, 0, 0, 1};
+	enemies[2] = (struct Enemy){8 * CELL_SIZE, 7 * CELL_SIZE, 0, 0, 1};
+	enemies[3] = (struct Enemy){8 * CELL_SIZE, 8 * CELL_SIZE, 0, 0, 1};
+	enemies[4] = (struct Enemy){8 * CELL_SIZE, 9 * CELL_SIZE, 0, 0, 1};
+
+	// Player
 	playerX = 100;
 	playerY = 120;
 	playerRadius = 6;
@@ -300,6 +329,7 @@ void gameInit(void)
 	dirX = 1;
 	dirY = 0;
 
+	// Animation
 	weaponTargetDrawX = weaponBasePositionX;
 	weaponTargetDrawY = weaponBasePositionY;
 	weaponDrawX = weaponTargetDrawX;
@@ -341,6 +371,138 @@ void drawPlayer(void)
 	int angleIndicatorX = (int)(playerX + playerXVelocity / 4);
 	int angleIndicatorY = (int)(playerY + playerYVelocity / 4);
 	pd->graphics->drawLine((int)playerX, (int)playerY, angleIndicatorX, angleIndicatorY, 2, kColorWhite);
+}
+
+void renderDrawables(float *zBuffer) {
+	if (queuedDrawables <= 0) {
+		return;
+	}
+
+	uint8_t *frameBufferU8 = (uint8_t *)pd->graphics->getFrame();
+	int drawableOrder[queuedDrawables];
+	float drawableDistances[queuedDrawables];
+	for (int i = 0; i < queuedDrawables; i++) {
+		drawableOrder[i] = i;
+		Drawable curDrawable = drawables[i];
+		float drawableDistance = 0;
+		if (curDrawable.type != PROJECTILE) {
+			drawableDistance = distanceSquared(playerX, playerY, curDrawable.x, curDrawable.y);
+		}
+		drawableDistances[i] = drawableDistance;
+	}
+	sortDrawables(drawableOrder, drawableDistances, queuedDrawables);
+
+	//transform drawable with the inverse camera matrix
+	// [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+	// [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+	// [ planeY   dirY ]                                          [ -planeY  planeX ]
+	float inverseDeterminant = 1.0f / (planeX * dirY - dirX * planeY);
+	int fixedPointScreenHeight = SCREEN_HEIGHT << 7;
+	for (int i = 0; i < queuedDrawables; i++) {
+		Drawable curDrawable = drawables[drawableOrder[i]];
+		uint8_t *drawableTexture;
+		int anchorTopLeft = 0;
+		int isProjectile = 0;
+		if (curDrawable.type == PROJECTILE) {
+			drawableTexture = projectileTexture;
+			anchorTopLeft = 1;
+			isProjectile = 1;
+		} else if (curDrawable.type == ENEMY) {
+			drawableTexture = enemyTexture;
+		}
+		
+		float playerMapX = playerX / CELL_SIZE;
+		float playerMapY = playerY / CELL_SIZE;
+		float drawableMapX = curDrawable.x / CELL_SIZE;
+		float drawableMapY = curDrawable.y / CELL_SIZE;
+		float drawableX = drawableMapX - playerMapX;
+		float drawableY = drawableMapY - playerMapY;
+
+		float transformY = inverseDeterminant * (-planeY * drawableX + planeX * drawableY);
+		if (transformY > 0) {
+			float invTransformY = 1 / transformY;
+			float transformX = inverseDeterminant * (dirX * drawableY - dirY * drawableX);
+			float drawableDistance = transformY * CELL_SIZE;
+			if (drawableDistance > FOG_MAX_DIST) {
+				continue;
+			}
+	
+			int drawableHeight = abs((int)((float)SCREEN_HEIGHT * invTransformY));
+			int drawableWidth = drawableHeight;
+
+			int halfDrawableWidth = (drawableWidth >> 1);
+			int halfDrawableHeight = (drawableHeight >> 1);
+			int screenXOffset = anchorTopLeft ? halfDrawableWidth / 2 : 0;
+			int screenYOffset = anchorTopLeft ? halfDrawableHeight / 2 : 0;
+			int drawableScreenX = (int)((float)(HALF_SCREEN_WIDTH) * (1 + transformX * invTransformY));
+
+			int drawStartY = -halfDrawableHeight + HALF_SCREEN_HEIGHT;
+			int drawEndY = halfDrawableHeight + HALF_SCREEN_HEIGHT;
+			if (anchorTopLeft) {
+				drawStartY += screenYOffset;
+				drawEndY += screenYOffset;
+			}
+			if (drawStartY < 0) { drawStartY = 0; }
+			if (drawEndY >= SCREEN_HEIGHT) { drawEndY = SCREEN_HEIGHT; }
+			int fixedPointDrawableHeight = drawableHeight << 7;
+	
+			int drawStartX = -halfDrawableWidth + drawableScreenX;
+			int drawEndX = halfDrawableWidth + drawableScreenX;
+			if (anchorTopLeft) {
+				drawStartX += screenXOffset;
+				drawEndX += screenXOffset;
+			}
+			if (drawStartX < 0) { drawStartX = 0; }
+			if (drawEndX >= SCREEN_WIDTH) { drawEndX = SCREEN_WIDTH; }
+			
+			int textureYCache[SCREEN_HEIGHT] = {[0 ... SCREEN_HEIGHT - 1] = -1};
+
+			for (int drawX = drawStartX; drawX < drawEndX; drawX++) {
+				if (isProjectile || drawableDistance < zBuffer[drawX]) {
+					int fogShadeBit = drawX % 8;
+					int textureX = (int)(((drawX - screenXOffset - (-(drawableWidth >> 1) + drawableScreenX)) << 8) * DRAWABLE_TEXTURE_SIZE / drawableWidth) >> 8;
+					for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
+
+						int textureYIndex = textureYCache[drawY];
+						if (textureYIndex == -1) {
+							int d = ((drawY - screenYOffset) << 8) - fixedPointScreenHeight + fixedPointDrawableHeight; // 256 and 128 factors to avoid floats
+							int textureY = ((d * DRAWABLE_TEXTURE_SIZE) / drawableHeight) >> 8;
+							textureYIndex = DRAWABLE_TEXTURE_SIZE * textureY;
+							textureYCache[drawY] = textureYIndex;
+						}
+						int inFog = 0;
+						int fogRow = drawY % 8;
+						int fogShade = 0;
+						if (drawableDistance < FOG_MIN_DIST) {
+							inFog = 0;
+						} else {
+							inFog = 1;
+							int fogPatternIndex = (drawableDistance - FOG_MIN_DIST) / FOG_STEP;
+							int *fogPattern = fogPatterns[fogPatternIndex];
+							fogShade = fogPattern[fogRow];
+						}
+						uint8_t color = drawableTexture[textureYIndex + textureX];
+						if (color == 1 && !(inFog && ((fogShade >> fogShadeBit) & 1))) {
+							frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] |= (1 << (7 - (drawX & 7)));
+						} else if (color == 0) {
+							frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] &= ~(1 << (7 - (drawX & 7)));
+						}
+					}
+				}
+			}
+		}
+	}
+
+	queuedDrawables = 0;
+}
+
+void addDrawableToRenderQueue(float x, float y, int type) {
+	if (queuedDrawables >= MAX_DRAWABLE_COUNT) {
+		return;
+	}
+	Drawable curDrawable = (struct Drawable){x, y, type};
+	drawables[queuedDrawables] = curDrawable;
+	queuedDrawables += 1;
 }
 
 // Cacheline is 32 bytes (256 bits) - struct is 16 bytes, so can fit 2 into one cacheline
@@ -683,121 +845,7 @@ void drawRays(void)
 		}
 	}
 
-	uint8_t *frameBufferU8 = (uint8_t *)pd->graphics->getFrame();
-	int spriteOrder[SPRITE_COUNT];
-	float spriteDistances[SPRITE_COUNT];
-	for (int i = 0; i < SPRITE_COUNT; i++) {
-		spriteOrder[i] = i;
-		Sprite curSprite = sprites[i];
-		float spriteDistance = 0;
-		if (curSprite.type != PROJECTILE) {
-			spriteDistance = distanceSquared(playerX, playerY, curSprite.x, curSprite.y);
-		}
-		spriteDistances[i] = spriteDistance;
-	}
-	sortSprites(spriteOrder, spriteDistances, SPRITE_COUNT);
-
-	//transform sprite with the inverse camera matrix
-	// [ planeX   dirX ] -1                                       [ dirY      -dirX ]
-	// [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
-	// [ planeY   dirY ]                                          [ -planeY  planeX ]
-	float inverseDeterminant = 1.0f / (planeX * dirY - dirX * planeY);
-	int fixedPointScreenHeight = SCREEN_HEIGHT << 7;
-	for (int i = 0; i < SPRITE_COUNT; i++) {
-		Sprite curSprite = sprites[spriteOrder[i]];
-		if (!curSprite.active) {
-			continue;
-		}
-		uint8_t *spriteTexture;
-		int anchorTopLeft = 0;
-		int isProjectile = 0;
-		if (curSprite.type == PROJECTILE) {
-			spriteTexture = projectileTexture;
-			anchorTopLeft = 1;
-			isProjectile = 1;
-		} else if (curSprite.type == ENEMY) {
-			spriteTexture = enemyTexture;
-		}
-		
-		float spriteMapX = curSprite.x / CELL_SIZE;
-		float spriteMapY = curSprite.y / CELL_SIZE;
-		float spriteX = spriteMapX - playerMapX;
-		float spriteY = spriteMapY - playerMapY;
-
-		float transformY = inverseDeterminant * (-planeY * spriteX + planeX * spriteY);
-		if (transformY > 0) {
-			float invTransformY = 1 / transformY;
-			float transformX = inverseDeterminant * (dirX * spriteY - dirY * spriteX);
-			float spriteDistance = transformY * CELL_SIZE;
-			if (spriteDistance > FOG_MAX_DIST) {
-				continue;
-			}
-	
-			int spriteHeight = abs((int)((float)SCREEN_HEIGHT * invTransformY));
-			int spriteWidth = spriteHeight;
-
-			int halfSpriteWidth = (spriteWidth >> 1);
-			int halfSpriteHeight = (spriteHeight >> 1);
-			int screenXOffset = anchorTopLeft ? halfSpriteWidth / 2 : 0;
-			int screenYOffset = anchorTopLeft ? halfSpriteHeight / 2 : 0;
-			int spriteScreenX = (int)((float)(HALF_SCREEN_WIDTH) * (1 + transformX * invTransformY));
-
-			int drawStartY = -halfSpriteHeight + HALF_SCREEN_HEIGHT;
-			int drawEndY = halfSpriteHeight + HALF_SCREEN_HEIGHT;
-			if (anchorTopLeft) {
-				drawStartY += screenYOffset;
-				drawEndY += screenYOffset;
-			}
-			if (drawStartY < 0) { drawStartY = 0; }
-			if (drawEndY >= SCREEN_HEIGHT) { drawEndY = SCREEN_HEIGHT; }
-			int fixedPointSpriteHeight = spriteHeight << 7;
-	
-			int drawStartX = -halfSpriteWidth + spriteScreenX;
-			int drawEndX = halfSpriteWidth + spriteScreenX;
-			if (anchorTopLeft) {
-				drawStartX += screenXOffset;
-				drawEndX += screenXOffset;
-			}
-			if (drawStartX < 0) { drawStartX = 0; }
-			if (drawEndX >= SCREEN_WIDTH) { drawEndX = SCREEN_WIDTH; }
-			
-			int textureYCache[SCREEN_HEIGHT] = {[0 ... SCREEN_HEIGHT - 1] = -1};
-
-			for (int drawX = drawStartX; drawX < drawEndX; drawX++) {
-				if (isProjectile || spriteDistance < zBuffer[drawX]) {
-					int fogShadeBit = drawX % 8;
-					int textureX = (int)(((drawX - screenXOffset - (-(spriteWidth >> 1) + spriteScreenX)) << 8) * SPRITE_TEXTURE_SIZE / spriteWidth) >> 8;
-					for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
-
-						int textureYIndex = textureYCache[drawY];
-						if (textureYIndex == -1) {
-							int d = ((drawY - screenYOffset) << 8) - fixedPointScreenHeight + fixedPointSpriteHeight; // 256 and 128 factors to avoid floats
-							int textureY = ((d * SPRITE_TEXTURE_SIZE) / spriteHeight) >> 8;
-							textureYIndex = SPRITE_TEXTURE_SIZE * textureY;
-							textureYCache[drawY] = textureYIndex;
-						}
-						int inFog = 0;
-						int fogRow = drawY % 8;
-						int fogShade = 0;
-						if (spriteDistance < FOG_MIN_DIST) {
-							inFog = 0;
-						} else {
-							inFog = 1;
-							int fogPatternIndex = (spriteDistance - FOG_MIN_DIST) / FOG_STEP;
-							int *fogPattern = fogPatterns[fogPatternIndex];
-							fogShade = fogPattern[fogRow];
-						}
-						uint8_t color = spriteTexture[textureYIndex + textureX];
-						if (color == 1 && !(inFog && ((fogShade >> fogShadeBit) & 1))) {
-							frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] |= (1 << (7 - (drawX & 7)));
-						} else if (color == 0) {
-							frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] &= ~(1 << (7 - (drawX & 7)));
-						}
-					}
-				}
-			}
-		}
-	}
+	renderDrawables(zBuffer);
 
 	pd->graphics->markUpdatedRows(0, SCREEN_HEIGHT - 1);
 }
@@ -819,45 +867,53 @@ void drawWeapon(float deltaTime) {
 
 void fireProjectile(void) {
 	float projectileSpeed = 5.0f * TARGET_FPS;
-	for (int i = 0; i < SPRITE_COUNT; i++) {
-		if (!sprites[i].active) {
-			sprites[i].x = playerX + cosf(playerAngle) * CELL_SIZE;
-			sprites[i].y = playerY + sinf(playerAngle) * CELL_SIZE;
-			sprites[i].direction = playerAngle;
-			sprites[i].speed = projectileSpeed;
-			sprites[i].type = PROJECTILE;
-			sprites[i].active = 1;
+	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
+		if (!projectiles[i].active) {
+			projectiles[i].x = playerX + cosf(playerAngle) * CELL_SIZE;
+			projectiles[i].y = playerY + sinf(playerAngle) * CELL_SIZE;
+			projectiles[i].direction = playerAngle;
+			projectiles[i].speed = projectileSpeed;
+			projectiles[i].active = 1;
 			break;
 		}
 	}
 }
 
-void updateSprites(float deltaTime) {
-	for (int i = 0; i < SPRITE_COUNT; i++) {
-		Sprite curSprite = sprites[i];
-		if (!curSprite.active) {
+void updateProjectiles(float deltaTime) {
+	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
+		Projectile curProjectile = projectiles[i];
+		if (!curProjectile.active) {
 			continue;
 		}
 
-		if (curSprite.type != PROJECTILE) {
+		float xDirection = cosf(curProjectile.direction);
+		float yDirection = sinf(curProjectile.direction);
+		int drawableMapX = (int)((curProjectile.x - xDirection * CELL_SIZE) / CELL_SIZE);
+		int drawableMapY = (int)((curProjectile.y - yDirection * CELL_SIZE) / CELL_SIZE);
+		int drawableMapIndex = drawableMapY * MAP_WIDTH + drawableMapX;
+		if ((drawableMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[drawableMapIndex] != 0)) {
+			curProjectile.active = 0;
+		}
+
+		float xVelocity = xDirection * curProjectile.speed;
+		float yVelocity = yDirection * curProjectile.speed;
+		curProjectile.x += xVelocity * deltaTime;
+		curProjectile.y += yVelocity * deltaTime;
+
+		projectiles[i] = curProjectile;
+
+		addDrawableToRenderQueue(curProjectile.x, curProjectile.y, PROJECTILE);
+	}
+}
+
+void updateEnemies(float deltaTime) {
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		Enemy curEnemy = enemies[i];
+		if (!curEnemy.active) {
 			continue;
 		}
 
-		float xDirection = cosf(curSprite.direction);
-		float yDirection = sinf(curSprite.direction);
-		int spriteMapX = (int)((curSprite.x - xDirection * CELL_SIZE) / CELL_SIZE);
-		int spriteMapY = (int)((curSprite.y - yDirection * CELL_SIZE) / CELL_SIZE);
-		int spriteMapIndex = spriteMapY * MAP_WIDTH + spriteMapX;
-		if ((spriteMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[spriteMapIndex] != 0)) {
-			curSprite.active = 0;
-		}
-
-		float xVelocity = xDirection * curSprite.speed;
-		float yVelocity = yDirection * curSprite.speed;
-		curSprite.x += xVelocity * deltaTime;
-		curSprite.y += yVelocity * deltaTime;
-
-		sprites[i] = curSprite;
+		addDrawableToRenderQueue(curEnemy.x, curEnemy.y, ENEMY);
 	}
 }
 
@@ -1058,16 +1114,16 @@ int gameUpdate(void *userdata)
 
 	pd->display->setRefreshRate(0);
 
-	// pd->sprite->updateAndDrawSprites();
+	// pd->drawable->updateAndDrawDrawables();
 	// pd->graphics->clear(kColorBlack);
 
 	handleInput(deltaTime);
+	updateEnemies(deltaTime);
+	updateProjectiles(deltaTime);
 	drawMap();
 	drawPlayer();
 	drawRays();
 	drawWeapon(deltaTime);
-	updateSprites(deltaTime);
-	pd->sprite->updateAndDrawSprites();
 
 	pd->system->drawFPS(0, 0);
 
