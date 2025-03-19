@@ -34,12 +34,12 @@ void gameInit(void)
 	initPlayer();
 }
 
-int gameUpdate(void *userdata)
+int gameUpdate(lua_State* L)
 {
 	float deltaTime = pd->system->getElapsedTime();
 	pd->system->resetElapsedTime();
 
-	pd->display->setRefreshRate(0);
+	pd->display->setRefreshRate(50);
 
 	handleInput(deltaTime);
 	updateEnemies(deltaTime);
@@ -55,22 +55,15 @@ int gameUpdate(void *userdata)
 
 int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 {
-	if (event == kEventInit) {
+	if (event == kEventInitLua) {
 		pd = playdate;
 		pd->system->resetElapsedTime();
 		pd->display->setScale(400 / SCREEN_WIDTH);
 
 		gameInit();
-		pd->system->setUpdateCallback(gameUpdate, NULL);
+
+		pd->lua->addFunction(gameUpdate, "game.update", NULL);
 	}
-	// if (event == kEventInitLua) {
-	// 	pd = playdate;
-	// 	pd->system->resetElapsedTime();
-
-	// 	gameInit();
-
-	// 	pd->lua->addFunction(gameUpdate, "game.update", NULL);
-	// }
 
 	return 0;
 }
