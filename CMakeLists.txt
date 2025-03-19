@@ -30,11 +30,11 @@ set(PLAYDATE_GAME_DEVICE Game)
 
 project(${PLAYDATE_GAME_NAME} C ASM)
 
-file(GLOB SOURCES
+file(GLOB_RECURSE SOURCES
     "src/*.c"
 )
 
-file(GLOB HEADERS
+file(GLOB_RECURSE HEADERS
     "src/*.h"
 )
 
@@ -44,11 +44,25 @@ file(GLOB IMAGES
 
 if (TOOLCHAIN STREQUAL "armgcc")
     add_executable(${PLAYDATE_GAME_DEVICE} ${SOURCES})
+	target_include_directories(${PLAYDATE_GAME_DEVICE} PRIVATE 
+							   ${CMAKE_SOURCE_DIR}/src
+							   ${CMAKE_SOURCE_DIR}/game/enemies
+							   ${CMAKE_SOURCE_DIR}/game/map
+							   ${CMAKE_SOURCE_DIR}/game/player
+							   ${CMAKE_SOURCE_DIR}/game/rendering
+	)
 	target_compile_options(${PLAYDATE_GAME_DEVICE} PRIVATE 
 		-ffast-math
 	)
 else()
 	add_library(${PLAYDATE_GAME_NAME} SHARED ${SOURCES} ${HEADERS})
+	target_include_directories(${PLAYDATE_GAME_NAME} PRIVATE 
+							   ${CMAKE_SOURCE_DIR}/src
+							   ${CMAKE_SOURCE_DIR}/game/enemies
+							   ${CMAKE_SOURCE_DIR}/game/map
+							   ${CMAKE_SOURCE_DIR}/game/player
+							   ${CMAKE_SOURCE_DIR}/game/rendering
+	)
 	target_compile_options(${PLAYDATE_GAME_NAME} PRIVATE 
 		-Wall
 		-Werror
