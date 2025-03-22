@@ -2,6 +2,7 @@
 #include "pd_api.h"
 
 #include "globals.h"
+#include "helpers.h"
 #include "game/enemies/enemies.h"
 #include "game/rendering/drawables.h"
 #include "game/rendering/textures.h"
@@ -35,4 +36,19 @@ void updateEnemies(float deltaTime) {
 
 		addDrawableToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, enemyTexture);
 	}
+}
+
+int checkEnemyCollision(float x, float y, float collisionRange) {
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		Enemy curEnemy = enemies[i];
+		if (!curEnemy.active) {
+			continue;
+		}
+
+		float distSquared = distanceSquared(x, y, curEnemy.x, curEnemy.y);
+		if (distSquared < collisionRange) {
+			return 1;
+		}
+	}
+	return 0;
 }

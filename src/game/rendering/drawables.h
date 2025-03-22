@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pd_api.h"
+
 enum DrawableType {
     ENEMY,
     PROJECTILE

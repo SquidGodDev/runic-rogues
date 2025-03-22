@@ -7,6 +7,7 @@
 #include "game/player/player.h"
 #include "game/rendering/drawables.h"
 #include "game/rendering/textures.h"
+#include "game/enemies/enemies.h"
 
 #define MAX_PROJECTILE_COUNT 10
 
@@ -52,6 +53,14 @@ void updateProjectiles(float deltaTime) {
 		int drawableMapIndex = drawableMapY * MAP_WIDTH + drawableMapX;
 		if ((drawableMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[drawableMapIndex] != 0)) {
 			curProjectile.active = 0;
+		} else {
+			float collisionRange = 5;
+			int collided = checkEnemyCollision(curProjectile.x, curProjectile.y, collisionRange);
+			if (collided) {
+				curProjectile.active = 0;
+				projectiles[i] = curProjectile;
+				continue;
+			}
 		}
 
 		float xVelocity = xDirection * curProjectile.speed;
