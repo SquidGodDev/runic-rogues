@@ -36,7 +36,7 @@ void gameInit(void)
 
 int gameUpdate(lua_State* L)
 {
-	float deltaTime = pd->system->getElapsedTime();
+	float deltaTime = pd->system->getElapsedTime(); // In seconds
 	pd->system->resetElapsedTime();
 
 	pd->display->setRefreshRate(50);

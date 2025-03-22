@@ -30,8 +30,7 @@ void renderScene(void)
 
 	int maxFieldDepth = 8;
 	int rayCount = SCREEN_WIDTH;
-	float fov = 66 * (PI / 180.0f);
-	float rayInterval = fov / rayCount;
+	float rayInterval = FOV_RAD / rayCount;
 	float rayAngle = playerAngle - rayInterval * rayCount / 2;
 
 	for (int ray = 0; ray < rayCount; ray++) {

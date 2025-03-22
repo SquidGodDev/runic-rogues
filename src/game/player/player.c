@@ -82,7 +82,7 @@ void initPlayer(void) {
 	playerXVelocity = 0;
 	playerYVelocity = 0;
 	planeX = 0;
-	planeY = -0.59f; // Related to fov somehow - not sure so I just tweaked it until it looked right
+	planeY = -0.59f; // Supposed to be -tanf(FOV_RAD / 2), but adjusted since it was off for some reason
 	dirX = 1;
 	dirY = 0;
 

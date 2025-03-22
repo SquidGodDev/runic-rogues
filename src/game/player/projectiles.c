@@ -10,6 +10,11 @@
 #include "game/enemies/enemies.h"
 
 #define MAX_PROJECTILE_COUNT 10
+// Spawn the projectile slightly to the right to match hand
+#define FIRE_ANGLE_OFFSET PI / 8
+#define FIRE_POSITION_OFFSET CELL_SIZE / 2
+#define MAP_CHECK_OFFSET_X cosf(FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET / 4
+#define MAP_CHECK_OFFSET_Y sinf(FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET / 4
 
 typedef struct Projectile {
 	float x;
@@ -26,11 +31,11 @@ void initProjectiles(void) {
 }
 
 void fireProjectile(void) {
-	float projectileSpeed = 5.0f * TARGET_FPS;
+	float projectileSpeed = 7.0f * TARGET_FPS;
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		if (!projectiles[i].active) {
-			projectiles[i].x = playerX + cosf(playerAngle) * CELL_SIZE;
-			projectiles[i].y = playerY + sinf(playerAngle) * CELL_SIZE;
+			projectiles[i].x = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
+			projectiles[i].y = playerY + sinf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
 			projectiles[i].direction = playerAngle;
 			projectiles[i].speed = projectileSpeed;
 			projectiles[i].active = 1;
@@ -48,13 +53,13 @@ void updateProjectiles(float deltaTime) {
 
 		float xDirection = cosf(curProjectile.direction);
 		float yDirection = sinf(curProjectile.direction);
-		int drawableMapX = (int)((curProjectile.x - xDirection * CELL_SIZE) / CELL_SIZE);
-		int drawableMapY = (int)((curProjectile.y - yDirection * CELL_SIZE) / CELL_SIZE);
+		int drawableMapX = (int)((curProjectile.x + MAP_CHECK_OFFSET_X) / CELL_SIZE);
+		int drawableMapY = (int)((curProjectile.y + MAP_CHECK_OFFSET_Y) / CELL_SIZE);
 		int drawableMapIndex = drawableMapY * MAP_WIDTH + drawableMapX;
 		if ((drawableMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[drawableMapIndex] != 0)) {
 			curProjectile.active = 0;
 		} else {
-			float collisionRange = 5;
+			float collisionRange = 30;
 			int collided = checkEnemyCollision(curProjectile.x, curProjectile.y, collisionRange);
 			if (collided) {
 				curProjectile.active = 0;
@@ -70,6 +75,6 @@ void updateProjectiles(float deltaTime) {
 
 		projectiles[i] = curProjectile;
 
-		addDrawableToRenderQueue(curProjectile.x, curProjectile.y, PROJECTILE, projectileTexture);
+		addDrawableToRenderQueue(curProjectile.x, curProjectile.y, PROJECTILE, projectileTexture, 0);
 	}
 }

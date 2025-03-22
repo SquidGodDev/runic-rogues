@@ -17,6 +17,7 @@ typedef struct Drawable {
     float y;
     uint32_t type;
     uint8_t *texture;
+    uint8_t hitFlash;
 } Drawable;
 
 Drawable drawables[MAX_DRAWABLE_COUNT] = { 0 };
@@ -60,10 +61,7 @@ void renderDrawables(float *zBuffer) {
     for (int i = 0; i < queuedDrawables; i++) {
         drawableOrder[i] = i;
         Drawable curDrawable = drawables[i];
-        float drawableDistance = 0;
-        if (curDrawable.type != PROJECTILE) {
-            drawableDistance = distanceSquared(playerX, playerY, curDrawable.x, curDrawable.y);
-        }
+        float drawableDistance = distanceSquared(playerX, playerY, curDrawable.x, curDrawable.y);
         drawableDistances[i] = drawableDistance;
     }
     sortDrawables(drawableOrder, drawableDistances, queuedDrawables);
@@ -77,19 +75,14 @@ void renderDrawables(float *zBuffer) {
     for (int i = 0; i < queuedDrawables; i++) {
         Drawable curDrawable = drawables[drawableOrder[i]];
         uint8_t *drawableTexture = curDrawable.texture;
+        int hitFlash = curDrawable.hitFlash > 0;
         int anchorTopLeft = 0;
-        int isProjectile = 0;
         if (curDrawable.type == PROJECTILE) {
             anchorTopLeft = 1;
-            isProjectile = 1;
         }
 
-        float playerMapX = playerX / CELL_SIZE;
-        float playerMapY = playerY / CELL_SIZE;
-        float drawableMapX = curDrawable.x / CELL_SIZE;
-        float drawableMapY = curDrawable.y / CELL_SIZE;
-        float drawableX = drawableMapX - playerMapX;
-        float drawableY = drawableMapY - playerMapY;
+        float drawableX = (curDrawable.x - playerX) / CELL_SIZE;
+        float drawableY = (curDrawable.y - playerY) / CELL_SIZE;
 
         float transformY = inverseDeterminant * (-planeY * drawableX + planeX * drawableY);
         if (transformY > 0) {
@@ -108,7 +101,7 @@ void renderDrawables(float *zBuffer) {
 
             int halfDrawableWidth = (drawableWidth >> 1);
             int halfDrawableHeight = (drawableHeight >> 1);
-            int screenXOffset = anchorTopLeft ? halfDrawableWidth / 2 : 0;
+            int screenXOffset = 0;//anchorTopLeft ? halfDrawableWidth / 2 : 0;
             int screenYOffset = anchorTopLeft ? halfDrawableHeight / 2 : 0;
             int drawableScreenX = (int)((float)(HALF_SCREEN_WIDTH) * (1 + transformX * invTransformY));
 
@@ -134,7 +127,7 @@ void renderDrawables(float *zBuffer) {
             int textureYCache[SCREEN_HEIGHT] = { [0 ... SCREEN_HEIGHT - 1] = -1 };
 
             for (int drawX = drawStartX; drawX < drawEndX; drawX++) {
-                if (isProjectile || drawableDistance < zBuffer[drawX]) {
+                if (drawableDistance < zBuffer[drawX]) {
                     int fogShadeBit = drawX % 8;
                     int textureX = (int)(((drawX - screenXOffset - (-(drawableWidth >> 1) + drawableScreenX)) << 8) * DRAWABLE_TEXTURE_SIZE / drawableWidth) >> 8;
                     for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
@@ -150,7 +143,7 @@ void renderDrawables(float *zBuffer) {
                         int fogShade = drawableDistance < FOG_MIN_DIST ? 0 : fogPattern[fogRow];
                         int inFog = (fogShade >> fogShadeBit) & 1;
                         uint8_t color = drawableTexture[textureYIndex + textureX];
-                        if (color == 1 && !inFog) {
+                        if (!inFog && ((hitFlash && color < 2) || color == 1)) {
                             frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] |= (1 << (7 - (drawX & 7)));
                         } else if (color == 0) {
                             frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] &= ~(1 << (7 - (drawX & 7)));
@@ -164,11 +157,11 @@ void renderDrawables(float *zBuffer) {
     queuedDrawables = 0;
 }
 
-void addDrawableToRenderQueue(float x, float y, int type, uint8_t *texture) {
+void addDrawableToRenderQueue(float x, float y, int type, uint8_t *texture, int hitFlash) {
     if (queuedDrawables >= MAX_DRAWABLE_COUNT) {
         return;
     }
-    Drawable curDrawable = (struct Drawable){ x, y, type, texture };
+    Drawable curDrawable = (struct Drawable){ x, y, type, texture, hitFlash };
     drawables[queuedDrawables] = curDrawable;
     queuedDrawables += 1;
 }

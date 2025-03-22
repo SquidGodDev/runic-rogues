@@ -38,3 +38,13 @@ static inline uint32_t swap(uint32_t n)
 static inline float lerp(float start, float end, float t) {
 	return (1 - t) * start + t * end;
 }
+
+static inline float clampf(float d, float min, float max) {
+	const float t = d < min ? min : d;
+	return t > max ? max : t;
+}
+
+static inline int clamp(int d, int min, int max) {
+	const int t = d < min ? min : d;
+	return t > max ? max : t;
+}
