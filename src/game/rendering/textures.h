@@ -6,7 +6,7 @@
 extern uint8_t wallTexture[256];
 extern uint8_t floorTexture[256];
 extern uint8_t ceilingTexture[256];
-extern uint8_t enemyTexture[1024];
+extern uint8_t enemyTexture[6144];
 extern uint8_t projectileTexture[1024];
 
 extern LCDBitmap *handBitmap;

@@ -3,6 +3,7 @@
 
 #include "globals.h"
 #include "helpers.h"
+#include "game/enemies/enemies.h"
 #include "game/rendering/drawables.h"
 #include "game/player/player.h"
 #include "game/rendering/textures.h"
@@ -16,8 +17,8 @@ typedef struct Drawable {
     float x;
     float y;
     uint32_t type;
+    uint32_t index;
     uint8_t *texture;
-    uint8_t hitFlash;
 } Drawable;
 
 Drawable drawables[MAX_DRAWABLE_COUNT] = { 0 };
@@ -75,10 +76,15 @@ void renderDrawables(float *zBuffer) {
     for (int i = 0; i < queuedDrawables; i++) {
         Drawable curDrawable = drawables[drawableOrder[i]];
         uint8_t *drawableTexture = curDrawable.texture;
-        int hitFlash = curDrawable.hitFlash > 0;
         int anchorTopLeft = 0;
+        int hitFlash = 0;
+        int frameOffset = 0;
         if (curDrawable.type == PROJECTILE) {
             anchorTopLeft = 1;
+        } else if (curDrawable.type == ENEMY) {
+            int animationFrame = enemies[curDrawable.index].animationFrame;
+            frameOffset = animationFrame * DRAWABLE_TEXTURE_SIZE * DRAWABLE_TEXTURE_SIZE;
+            hitFlash = enemies[curDrawable.index].hitFlashTime > 0;
         }
 
         float drawableX = (curDrawable.x - playerX) / CELL_SIZE;
@@ -136,7 +142,7 @@ void renderDrawables(float *zBuffer) {
                         if (textureYIndex == -1) {
                             int d = ((drawY - screenYOffset) << 8) - fixedPointScreenHeight + fixedPointDrawableHeight; // 256 and 128 factors to avoid floats
                             int textureY = ((d * DRAWABLE_TEXTURE_SIZE) / drawableHeight) >> 8;
-                            textureYIndex = DRAWABLE_TEXTURE_SIZE * textureY;
+                            textureYIndex = DRAWABLE_TEXTURE_SIZE * textureY + frameOffset;
                             textureYCache[drawY] = textureYIndex;
                         }
                         int fogRow = drawY % 8;
@@ -157,11 +163,11 @@ void renderDrawables(float *zBuffer) {
     queuedDrawables = 0;
 }
 
-void addDrawableToRenderQueue(float x, float y, int type, uint8_t *texture, int hitFlash) {
+void addDrawableToRenderQueue(float x, float y, int type, int index, uint8_t *texture) {
     if (queuedDrawables >= MAX_DRAWABLE_COUNT) {
         return;
     }
-    Drawable curDrawable = (struct Drawable){ x, y, type, texture, hitFlash };
+    Drawable curDrawable = (struct Drawable){ x, y, type, index, texture };
     drawables[queuedDrawables] = curDrawable;
     queuedDrawables += 1;
 }

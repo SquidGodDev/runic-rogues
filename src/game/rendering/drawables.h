@@ -11,4 +11,4 @@ extern enum DRAWABLE_TYPE DrawableType;
 
 void initDrawables(void);
 void renderDrawables(float *zBuffer);
-void addDrawableToRenderQueue(float x, float y, int type, uint8_t *texture, int hitFlash);
+void addDrawableToRenderQueue(float x, float y, int type, int index, uint8_t *texture);

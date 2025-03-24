@@ -7,7 +7,7 @@
 uint8_t wallTexture[256];
 uint8_t floorTexture[256];
 uint8_t ceilingTexture[256];
-uint8_t enemyTexture[1024];
+uint8_t enemyTexture[6144];
 uint8_t projectileTexture[1024];
 
 LCDBitmap *handBitmap;
@@ -46,7 +46,7 @@ void initTextures(void)
 	loadTexture("images/brickTexture", wallTexture);
 	loadTexture("images/floorTexture", floorTexture);
 	loadTexture("images/floorTexture", ceilingTexture);
-	loadTexture("images/enemyTexture", enemyTexture);
+	loadTexture("images/bat", enemyTexture);
 	loadTexture("images/fireballTexture", projectileTexture);
 
 	handBitmap = pd->graphics->loadBitmap("images/hand", NULL);

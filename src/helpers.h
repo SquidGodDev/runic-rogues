@@ -39,12 +39,20 @@ static inline float lerp(float start, float end, float t) {
 	return (1 - t) * start + t * end;
 }
 
-static inline float clampf(float d, float min, float max) {
+static inline float clampFloat(float d, float min, float max) {
 	const float t = d < min ? min : d;
 	return t > max ? max : t;
 }
 
-static inline int clamp(int d, int min, int max) {
+static inline int clampInt(int d, int min, int max) {
 	const int t = d < min ? min : d;
 	return t > max ? max : t;
+}
+
+static inline float randFloat(float min, float max) {
+    return min + (float)rand() / RAND_MAX * (max - min);
+}
+
+static inline float randInt(int min, int max) {
+	return (rand() % (max - min + 1)) + min;
 }
