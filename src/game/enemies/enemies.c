@@ -44,6 +44,31 @@ int checkTargetCell(int index, int *targetMapX, int *targetMapY, int newX, int n
 int pickNewTargetCell(int index, int *targetMapX, int *targetMapY) {
 	int deltaX = clampInt((playerX / CELL_SIZE) - *targetMapX, -1, 1);
 	int deltaY = clampInt((playerY / CELL_SIZE) - *targetMapY, -1, 1);
+
+	int dodgeChance = randInt(0, 100);
+	if(deltaX == 0)
+	{
+		if(dodgeChance < 20)
+		{
+			deltaX = -1;
+		}
+		else if(dodgeChance < 40)
+		{
+			deltaX = 1;
+		}
+	}
+	else if(deltaY == 0)
+	{
+		if(dodgeChance < 20)
+		{
+			deltaY = -1;
+		}
+		else if(dodgeChance < 40)
+		{
+			deltaY = 1;
+		}
+	}
+
 	return checkTargetCell(index, targetMapX, targetMapY, *targetMapX + deltaX, *targetMapY + deltaY)
 		|| checkTargetCell(index, targetMapX, targetMapY, *targetMapX + deltaX, *targetMapY) 
 		|| checkTargetCell(index, targetMapX, targetMapY, *targetMapX, *targetMapY + deltaY) 
