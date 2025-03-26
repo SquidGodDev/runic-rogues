@@ -5,8 +5,8 @@
 typedef struct Enemy {
 	float x;
 	float y;
-	float direction;
-	float speed;
+	int targetMapX;
+	int targetMapY;
 	float hitFlashTime;
 	float animationTime;
 	uint16_t animationFrame;

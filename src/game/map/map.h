@@ -5,6 +5,8 @@
 extern int map[MAP_WIDTH * MAP_HEIGHT];
 
 void initMap(void);
+int isBlocked(int x, int y);
+int isClearLine(int x1, int y1, int x2, int y2);
 
 /* Lua program to create basic map
 ================================

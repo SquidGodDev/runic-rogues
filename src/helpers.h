@@ -3,6 +3,8 @@
 #include "pd_api.h"
 
 // === MATH HELPERS ===
+#define ABS(x) (((x) < 0) ? -(x) : (x))
+
 static inline float fastRsqrt(float x)
 {
 	union {
