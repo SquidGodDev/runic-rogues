@@ -15,6 +15,7 @@ int playerMaxHealth;
 int playerHealth;
 float playerHitInvincibility;
 float screenShakeTime;
+int enemiesKilled;
 
 void initPlayerUI(void) {
     playerMaxHealth = 8;
@@ -23,6 +24,11 @@ void initPlayerUI(void) {
     screenShakeTime = 0;
     pd->display->setOffset(0, 0);
     pd->graphics->setBackgroundColor(kColorBlack);
+    enemiesKilled = 0;
+}
+
+void enemyKilled(void) {
+    enemiesKilled += 1;
 }
 
 void damagePlayer(int amount) {
@@ -75,6 +81,12 @@ void drawPlayerUI(float deltaTime) {
             playerHitInvincibility = 0;
         }
     }
+
+    char scoreString[20];
+    sprintf(scoreString, "Score: %d", enemiesKilled);
+    int textWidth = pd->graphics->getTextWidth(gameFont, scoreString, strlen(scoreString), kASCIIEncoding, 0);
+    pd->graphics->drawText(scoreString, strlen(scoreString), kASCIIEncoding, 200 - textWidth - 4, 2);
+
     drawPlayerHearts();
     drawWeapon(deltaTime);
 }

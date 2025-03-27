@@ -16,6 +16,8 @@ extern LCDBitmap *fullHeartBitmap;
 extern LCDBitmap *halfHeartBitmap;
 extern LCDBitmap *emptyHeartBitmap;
 
+extern LCDFont *gameFont;
+
 extern int fogPatterns[FOG_LEVELS][8];
 
 void initTextures(void);

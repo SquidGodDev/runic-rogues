@@ -198,6 +198,7 @@ void damageEnemy(int index, int damage) {
 	enemies[index].health -= damage;
 	if (enemies[index].health <= 0) {
 		enemies[index].active = 0;
+		enemyKilled();
 		spawnEnemy();
 	}
 }

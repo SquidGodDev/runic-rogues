@@ -39,7 +39,8 @@ file(GLOB_RECURSE HEADERS
 )
 
 file(GLOB IMAGES
-	"Source/images/*"
+	"Source/images/*",
+	"Source/fonts/*"
 )
 
 if (TOOLCHAIN STREQUAL "armgcc")
