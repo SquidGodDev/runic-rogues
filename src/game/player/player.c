@@ -95,6 +95,7 @@ void initPlayer(void) {
 	weaponDrawX = weaponTargetDrawX;
 	weaponDrawY = weaponTargetDrawY;
 
+	pd->system->removeAllMenuItems();
 	const char *movementOptions[] = {"rotate", "strafe"};
 	toggleDefaultStrafeMenuItem = pd->system->addOptionsMenuItem("Default", movementOptions, 2, toggleDefaultStrafeCallback, NULL);
 	toggleMovementMenuItem = pd->system->addCheckmarkMenuItem("Toggle", 0, toggleMovementCallback, NULL);
