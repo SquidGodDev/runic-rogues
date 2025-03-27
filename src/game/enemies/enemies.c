@@ -109,22 +109,46 @@ Enemy moveEnemy(Enemy enemy, int enemyIndex) {
 	return enemy;
 }
 
+void spawnEnemy(void) {
+	int newEnemyIndex = -1;
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		if (!enemies[i].active) {
+			newEnemyIndex = i;
+			break;
+		}
+	}
+
+	if (newEnemyIndex == -1) {
+		return;
+	}
+
+	int randMapX = randInt(1, MAP_WIDTH - 2);
+	int randMapY = randInt(1, MAP_HEIGHT - 2);
+	int playerMapX = playerX / CELL_SIZE;
+	int playerMapY = playerY / CELL_SIZE;
+
+	while (map[randMapY * MAP_WIDTH + randMapX] != 0 || (randMapX == playerMapX && randMapY == playerMapY)) {
+		randMapX = randInt(1, MAP_WIDTH - 2);
+		randMapY = randInt(1, MAP_HEIGHT - 2);
+	}
+
+	enemies[newEnemyIndex] = (struct Enemy) {
+		randMapX * CELL_SIZE, // x
+		randMapY * CELL_SIZE, // y
+		randMapX, // targetMapX
+		randMapY, // targetMapY
+		HEALTH, // health
+		0, // attackTime
+		0, // hitFlashTime
+		randFloat(0, FRAME_TIME), // animationTime
+		randInt(0, FRAME_COUNT - 1), // animationFrame
+		1  // active
+	};
+}
+
 void initEnemies(void) {
 	for (int i = 0; i < 5; i++) {
-		int targetX = 15;
-		int targetY = 5 + i;
-		enemies[i] = (struct Enemy) {
-			targetX * CELL_SIZE, // x
-			targetY * CELL_SIZE, // y
-			targetX, // targetMapX
-			targetY, // targetMapY
-			HEALTH, // health
-			0, // attackTime
-			0, // hitFlashTime
-			randFloat(0, FRAME_TIME), // animationTime
-			randInt(0, FRAME_COUNT - 1), // animationFrame
-			1  // active
-		};
+		spawnEnemy();
 	}
 }
 
@@ -174,6 +198,7 @@ void damageEnemy(int index, int damage) {
 	enemies[index].health -= damage;
 	if (enemies[index].health <= 0) {
 		enemies[index].active = 0;
+		spawnEnemy();
 	}
 }
 
