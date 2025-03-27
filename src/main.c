@@ -18,7 +18,7 @@
 
 PlaydateAPI *pd = NULL;
 
-void gameInit(void)
+int initGame(lua_State* L)
 {	
 	// Textures
 	initTextures();
@@ -33,6 +33,8 @@ void gameInit(void)
 
 	// Player
 	initPlayer();
+
+	return 0;
 }
 
 int gameUpdate(lua_State* L)
@@ -61,9 +63,10 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 		pd->system->resetElapsedTime();
 		pd->display->setScale(400 / SCREEN_WIDTH);
 
-		gameInit();
+		initGame(NULL);
 
 		pd->lua->addFunction(gameUpdate, "game.update", NULL);
+		pd->lua->addFunction(initGame, "game.init", NULL);
 	}
 
 	return 0;

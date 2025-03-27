@@ -148,6 +148,10 @@ void spawnEnemy(void) {
 }
 
 void initEnemies(void) {
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		enemies[i].active = 0;
+	}
+
 	for (int i = 0; i < 5; i++) {
 		spawnEnemy();
 	}

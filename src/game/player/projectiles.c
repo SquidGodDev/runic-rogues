@@ -30,7 +30,9 @@ typedef struct Projectile {
 Projectile projectiles[MAX_PROJECTILE_COUNT] = {0};
 
 void initProjectiles(void) {
-    // Empty
+    for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
+		projectiles[i].active = 0;
+	}
 }
 
 void fireProjectile(void) {

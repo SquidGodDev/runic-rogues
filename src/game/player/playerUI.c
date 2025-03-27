@@ -39,8 +39,11 @@ void damagePlayer(int amount) {
     screenShakeTime = SCREEN_SHAKE_TIME;
     playerHitInvincibility = HIT_INVINCIBILITY_TIME;
     playerHealth -= amount;
-    if (playerHealth < 0) {
+    if (playerHealth <= 0) {
         playerHealth = 0;
+        pd->graphics->clear(kColorBlack);
+        pd->lua->pushInt(enemiesKilled);
+        pd->lua->callFunction("GameOver", 1, NULL);
     }
 }
 
