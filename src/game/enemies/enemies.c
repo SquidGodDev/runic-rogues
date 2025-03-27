@@ -14,10 +14,11 @@
 #define ATTACK_SPEED 1.0f // Seconds
 #define FRAME_TIME 0.12f // Seconds
 #define FRAME_COUNT 6
-#define ATTACK_DISTANCE 10
+#define ATTACK_DISTANCE 100
 #define ATTACK_DAMAGE 1
 #define MOVE_SPEED 0.2f
 #define HEALTH 4
+#define DODGE_CHANCE 20
 
 Enemy enemies[MAX_ENEMY_COUNT] = {0};
 
@@ -54,22 +55,22 @@ int pickNewTargetCell(int index, int *targetMapX, int *targetMapY) {
 	int dodgeChance = randInt(0, 100);
 	if(deltaX == 0)
 	{
-		if(dodgeChance < 20)
+		if(dodgeChance < DODGE_CHANCE / 2)
 		{
 			deltaX = -1;
 		}
-		else if(dodgeChance < 40)
+		else if(dodgeChance < DODGE_CHANCE)
 		{
 			deltaX = 1;
 		}
 	}
 	else if(deltaY == 0)
 	{
-		if(dodgeChance < 20)
+		if(dodgeChance < DODGE_CHANCE / 2)
 		{
 			deltaY = -1;
 		}
-		else if(dodgeChance < 40)
+		else if(dodgeChance < DODGE_CHANCE)
 		{
 			deltaY = 1;
 		}
