@@ -11,6 +11,7 @@
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
+#include "game/player/playerUI.h"
 #include "game/player/projectiles.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
@@ -45,9 +46,9 @@ int gameUpdate(lua_State* L)
 	updateEnemies(deltaTime);
 	updateProjectiles(deltaTime);
 	renderScene();
-	drawWeapon(deltaTime);
+	drawPlayerUI(deltaTime);
 
-	pd->system->drawFPS(0, 0);
+	pd->system->drawFPS(0, 108);
 
 	pd->lua->pushNil();
 	return 1;

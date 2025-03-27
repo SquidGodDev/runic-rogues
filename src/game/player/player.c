@@ -4,6 +4,7 @@
 #include "globals.h"
 #include "helpers.h"
 #include "game/player/player.h"
+#include "game/player/playerUI.h"
 #include "game/player/projectiles.h"
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
@@ -63,6 +64,7 @@ void toggleMovementCallback(void* userdata) {
 }
 
 void initPlayer(void) {
+	initPlayerUI();
     // Player
 	playerX = 100;
 	playerY = 120;

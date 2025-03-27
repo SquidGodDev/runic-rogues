@@ -12,6 +12,10 @@ extern uint8_t projectileTexture[1024];
 extern LCDBitmap *handBitmap;
 extern LCDBitmap *handOpenBitmap;
 
+extern LCDBitmap *fullHeartBitmap;
+extern LCDBitmap *halfHeartBitmap;
+extern LCDBitmap *emptyHeartBitmap;
+
 extern int fogPatterns[FOG_LEVELS][8];
 
 void initTextures(void);
