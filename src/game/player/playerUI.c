@@ -6,14 +6,24 @@
 #include "game/player/player.h"
 #include "game/rendering/textures.h"
 
-int playerMaxHealth = 8;
+#define HIT_INVINCIBILITY_TIME 0.5f // Seconds
+
+int playerMaxHealth;
 int playerHealth;
+float playerHitInvincibility;
 
 void initPlayerUI(void) {
+    playerMaxHealth = 8;
     playerHealth = playerMaxHealth;
+    playerHitInvincibility = 0;
 }
 
 void damagePlayer(int amount) {
+    if (playerHitInvincibility > 0) {
+        return;
+    }
+
+    playerHitInvincibility = HIT_INVINCIBILITY_TIME;
     playerHealth -= amount;
     if (playerHealth < 0) {
         playerHealth = 0;
@@ -39,6 +49,12 @@ void drawPlayerHearts(void) {
 }
 
 void drawPlayerUI(float deltaTime) {
+    if (playerHitInvincibility > 0) {
+        playerHitInvincibility -= deltaTime;
+        if (playerHitInvincibility < 0) {
+            playerHitInvincibility = 0;
+        }
+    }
     drawPlayerHearts();
     drawWeapon(deltaTime);
 }

@@ -6,12 +6,17 @@
 #include "game/map/map.h"
 #include "game/enemies/enemies.h"
 #include "game/player/player.h"
+#include "game/player/playerUI.h"
 #include "game/rendering/drawables.h"
 #include "game/rendering/textures.h"
 
 #define HIT_FLASH_TIME 0.1f // Seconds
+#define ATTACK_SPEED 1.0f // Seconds
 #define FRAME_TIME 0.12f // Seconds
 #define FRAME_COUNT 6
+#define ATTACK_DISTANCE 10
+#define ATTACK_DAMAGE 1
+#define MOVE_SPEED 0.2f
 
 Enemy enemies[MAX_ENEMY_COUNT] = {0};
 
@@ -76,8 +81,7 @@ int pickNewTargetCell(int index, int *targetMapX, int *targetMapY) {
 		|| checkTargetCell(index, targetMapX, targetMapY, *targetMapX + deltaX, *targetMapY - deltaY);
 }
 
-void moveEnemy(int enemyIndex) {
-	Enemy enemy = enemies[enemyIndex];
+Enemy moveEnemy(Enemy enemy, int enemyIndex) {
 	int enemyMapX = enemy.x / CELL_SIZE;
 	int enemyMapY = enemy.y / CELL_SIZE;
 	int targetMapX = enemy.targetMapX;
@@ -90,19 +94,18 @@ void moveEnemy(int enemyIndex) {
 	}
 
 	if (isBlocked(targetMapX, targetMapY)) {
-		return;
+		return enemy;
 	}
 
-	float moveSpeed = 0.2f;
 	int targetX = (targetMapX * CELL_SIZE) + CELL_SIZE / 2;
 	int targetY = (targetMapY * CELL_SIZE) + CELL_SIZE / 2;
-	float deltaX = clampFloat(targetX - enemy.x, -moveSpeed, moveSpeed);
-	float deltaY = clampFloat(targetY - enemy.y, -moveSpeed, moveSpeed);
+	float deltaX = clampFloat(targetX - enemy.x, -MOVE_SPEED, MOVE_SPEED);
+	float deltaY = clampFloat(targetY - enemy.y, -MOVE_SPEED, MOVE_SPEED);
 
 	enemy.y += deltaY;
 	enemy.x += deltaX;
 
-	enemies[enemyIndex] = enemy;
+	return enemy;
 }
 
 void initEnemies(void) {
@@ -114,6 +117,7 @@ void initEnemies(void) {
 			targetY * CELL_SIZE, // y
 			targetX, // targetMapX
 			targetY, // targetMapY
+			0, // attackTime
 			0, // hitFlashTime
 			randFloat(0, FRAME_TIME), // animationTime
 			randInt(0, FRAME_COUNT - 1), // animationFrame
@@ -128,9 +132,16 @@ void updateEnemies(float deltaTime) {
 			continue;
 		}
 
-		moveEnemy(i);
-
 		Enemy curEnemy = enemies[i];
+		if (curEnemy.attackTime > 0) {
+			curEnemy.attackTime -= deltaTime;
+			if (curEnemy.attackTime <= 0) {
+				curEnemy.attackTime = 0;
+			}
+		} else {
+			curEnemy = moveEnemy(curEnemy, i);
+		}
+		
 		curEnemy.animationTime -= deltaTime;
 		if (curEnemy.animationTime <= 0) {
 			curEnemy.animationTime += FRAME_TIME;
@@ -143,6 +154,11 @@ void updateEnemies(float deltaTime) {
 		curEnemy.hitFlashTime -= deltaTime;
 		if (curEnemy.hitFlashTime <= 0) {
 			curEnemy.hitFlashTime = 0;
+		}
+
+		if (distanceSquared(curEnemy.x, curEnemy.y, playerX, playerY) <= ATTACK_DISTANCE) {
+			curEnemy.attackTime = ATTACK_SPEED;
+			damagePlayer(ATTACK_DAMAGE);
 		}
 
 		enemies[i] = curEnemy;

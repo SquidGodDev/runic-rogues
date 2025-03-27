@@ -9,11 +9,12 @@
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
 
-// Extern variables
+// === Extern variables ===
 float playerX, playerY;
 float playerAngle;
 float planeX, planeY;
 float dirX, dirY;
+// ========================
 
 int playerRadius;
 float playerTurnSpeed;
