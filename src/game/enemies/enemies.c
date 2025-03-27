@@ -175,7 +175,7 @@ void updateEnemies(float deltaTime) {
 		
 		curEnemy.animationTime -= deltaTime;
 		if (curEnemy.animationTime <= 0) {
-			curEnemy.animationTime += FRAME_TIME;
+			curEnemy.animationTime = FRAME_TIME;
 			curEnemy.animationFrame += 1;
 			if (curEnemy.animationFrame >= FRAME_COUNT) {
 				curEnemy.animationFrame = 0;
