@@ -7,6 +7,7 @@ typedef struct Enemy {
 	float y;
 	int targetMapX;
 	int targetMapY;
+	int health;
 	float attackTime;
 	float hitFlashTime;
 	float animationTime;
@@ -18,4 +19,4 @@ extern Enemy enemies[MAX_ENEMY_COUNT];
 
 void initEnemies(void);
 void updateEnemies(float deltaTime);
-int checkEnemyCollision(float x, float y, float collisionRange);
+int checkEnemyCollision(float x, float y, float collisionRange, int damage);

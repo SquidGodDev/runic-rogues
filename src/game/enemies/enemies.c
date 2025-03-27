@@ -17,6 +17,7 @@
 #define ATTACK_DISTANCE 10
 #define ATTACK_DAMAGE 1
 #define MOVE_SPEED 0.2f
+#define HEALTH 4
 
 Enemy enemies[MAX_ENEMY_COUNT] = {0};
 
@@ -117,6 +118,7 @@ void initEnemies(void) {
 			targetY * CELL_SIZE, // y
 			targetX, // targetMapX
 			targetY, // targetMapY
+			HEALTH, // health
 			0, // attackTime
 			0, // hitFlashTime
 			randFloat(0, FRAME_TIME), // animationTime
@@ -167,7 +169,15 @@ void updateEnemies(float deltaTime) {
 	}
 }
 
-int checkEnemyCollision(float x, float y, float collisionRange) {
+void damageEnemy(int index, int damage) {
+	enemies[index].hitFlashTime = HIT_FLASH_TIME;
+	enemies[index].health -= damage;
+	if (enemies[index].health <= 0) {
+		enemies[index].active = 0;
+	}
+}
+
+int checkEnemyCollision(float x, float y, float collisionRange, int damage) {
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy curEnemy = enemies[i];
 		if (!curEnemy.active) {
@@ -176,7 +186,7 @@ int checkEnemyCollision(float x, float y, float collisionRange) {
 
 		float distSquared = distanceSquared(x, y, curEnemy.x, curEnemy.y);
 		if (distSquared < collisionRange) {
-			enemies[i].hitFlashTime = HIT_FLASH_TIME;
+			damageEnemy(i, damage);
 			return 1;
 		}
 	}

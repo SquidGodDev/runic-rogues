@@ -16,6 +16,9 @@
 #define MAP_CHECK_OFFSET_X cosf(FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET / 4
 #define MAP_CHECK_OFFSET_Y sinf(FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET / 4
 
+#define PROJECTILE_DAMAGE 1
+#define COLLISION_RANGE 30
+
 typedef struct Projectile {
 	float x;
 	float y;
@@ -59,8 +62,7 @@ void updateProjectiles(float deltaTime) {
 		if ((drawableMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[drawableMapIndex] != 0)) {
 			curProjectile.active = 0;
 		} else {
-			float collisionRange = 30;
-			int collided = checkEnemyCollision(curProjectile.x, curProjectile.y, collisionRange);
+			int collided = checkEnemyCollision(curProjectile.x, curProjectile.y, COLLISION_RANGE, PROJECTILE_DAMAGE);
 			if (collided) {
 				curProjectile.active = 0;
 				projectiles[i] = curProjectile;
