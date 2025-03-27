@@ -85,10 +85,11 @@ void drawPlayerUI(float deltaTime) {
         }
     }
 
-    char scoreString[20];
-    sprintf(scoreString, "Score: %d", enemiesKilled);
+    char *scoreString;
+    pd->system->formatString(&scoreString, "Score: %d", enemiesKilled);
     int textWidth = pd->graphics->getTextWidth(gameFont, scoreString, strlen(scoreString), kASCIIEncoding, 0);
     pd->graphics->drawText(scoreString, strlen(scoreString), kASCIIEncoding, 200 - textWidth - 4, 2);
+    free(scoreString);
 
     drawPlayerHearts();
     drawWeapon(deltaTime);
