@@ -9,6 +9,8 @@
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
 
+#define CRANK_SENSITIVITY 0.3f
+
 // === Extern variables ===
 float playerX, playerY;
 float playerAngle;
@@ -127,6 +129,7 @@ void handleInput(float deltaTime)
 	}
 	int rotationEnabled = (defaultStrafeSetting == bButtonPressed);
 	int strafeEnabled = (defaultStrafeSetting != bButtonPressed);
+	float crankChange = pd->system->getCrankChange();
 
 	if ((current & kButtonLeft) && rotationEnabled) {
 		if (playerTurnSpeed > -playerTurnInitialSpeed) {
@@ -154,14 +157,14 @@ void handleInput(float deltaTime)
 		}
 	}
 
-	playerAngle += playerTurnSpeed * deltaTime;
+	float adjustedTurnSpeed = (playerTurnSpeed + crankChange * CRANK_SENSITIVITY) * deltaTime;
+	playerAngle += adjustedTurnSpeed;
 	if (playerAngle < 0) {
 		playerAngle += 2 * PI;
 	} else if (playerAngle > 2 * PI) {
 		playerAngle -= 2 * PI;
 	}
 
-	float adjustedTurnSpeed = playerTurnSpeed * deltaTime;
 	float oldDirX = dirX;
 	dirX = dirX * cosf(adjustedTurnSpeed) - dirY * sinf(adjustedTurnSpeed);
 	dirY = oldDirX * sinf(adjustedTurnSpeed) + dirY * cosf(adjustedTurnSpeed);
