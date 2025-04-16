@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "helpers.h"
 #include "game/rendering/drawables.h"
+#include "game/rendering/particles.h"
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
@@ -30,6 +31,7 @@ int initGame(lua_State* L)
 	initDrawables();
 	initEnemies();
 	initProjectiles();
+	initParticles();
 
 	// Player
 	initPlayer();
@@ -42,11 +44,10 @@ int gameUpdate(lua_State* L)
 	float deltaTime = pd->system->getElapsedTime(); // In seconds
 	pd->system->resetElapsedTime();
 
-	pd->display->setRefreshRate(50);
-
 	handleInput(deltaTime);
 	updateEnemies(deltaTime);
 	updateProjectiles(deltaTime);
+	updateParticles(deltaTime);
 	renderScene();
 	drawPlayerUI(deltaTime);
 
@@ -62,6 +63,7 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 		pd = playdate;
 		pd->system->resetElapsedTime();
 		pd->display->setScale(400 / SCREEN_WIDTH);
+		pd->display->setRefreshRate(50);
 
 		initGame(NULL);
 

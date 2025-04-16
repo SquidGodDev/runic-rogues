@@ -4,7 +4,8 @@
 
 enum DrawableType {
     ENEMY,
-    PROJECTILE
+    PROJECTILE,
+    PARTICLE
 };
 
 extern enum DRAWABLE_TYPE DrawableType;

@@ -6,6 +6,7 @@
 #include "game/map/map.h"
 #include "game/player/player.h"
 #include "game/rendering/drawables.h"
+#include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
 #include "game/enemies/enemies.h"
 
@@ -18,6 +19,7 @@
 
 #define PROJECTILE_DAMAGE 1
 #define COLLISION_RANGE 30
+#define PARTICLE_OFFSET CELL_SIZE / 2
 
 typedef struct Projectile {
 	float x;
@@ -63,11 +65,13 @@ void updateProjectiles(float deltaTime) {
 		int drawableMapIndex = drawableMapY * MAP_WIDTH + drawableMapX;
 		if ((drawableMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[drawableMapIndex] != 0)) {
 			curProjectile.active = 0;
+			spawnParticle(curProjectile.x - PARTICLE_OFFSET * xDirection, curProjectile.y - PARTICLE_OFFSET * yDirection);
 		} else {
 			int collided = checkEnemyCollision(curProjectile.x, curProjectile.y, COLLISION_RANGE, PROJECTILE_DAMAGE);
 			if (collided) {
 				curProjectile.active = 0;
 				projectiles[i] = curProjectile;
+				spawnParticle(curProjectile.x - PARTICLE_OFFSET * xDirection, curProjectile.y - PARTICLE_OFFSET * yDirection);
 				continue;
 			}
 		}

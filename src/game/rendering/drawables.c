@@ -6,6 +6,7 @@
 #include "game/enemies/enemies.h"
 #include "game/rendering/drawables.h"
 #include "game/player/player.h"
+#include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
 
 #define MAX_DRAWABLE_COUNT 20
@@ -85,6 +86,9 @@ void renderDrawables(float *zBuffer) {
             int animationFrame = enemies[curDrawable.index].animationFrame;
             frameOffset = animationFrame * DRAWABLE_TEXTURE_SIZE * DRAWABLE_TEXTURE_SIZE;
             hitFlash = enemies[curDrawable.index].hitFlashTime > 0;
+        } else if (curDrawable.type == PARTICLE) {
+            int animationFrame = particles[curDrawable.index].animationFrame;
+            frameOffset = animationFrame * DRAWABLE_TEXTURE_SIZE * DRAWABLE_TEXTURE_SIZE;
         }
 
         float drawableX = (curDrawable.x - playerX) / CELL_SIZE;
