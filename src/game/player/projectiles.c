@@ -83,6 +83,6 @@ void updateProjectiles(float deltaTime) {
 
 		projectiles[i] = curProjectile;
 
-		addDrawableToRenderQueue(curProjectile.x, curProjectile.y, PROJECTILE, i, projectileTexture);
+		addDrawableToRenderQueue(curProjectile.x, curProjectile.y, PROJECTILE, i, projectileTexture, 0 /* animationFrame*/);
 	}
 }

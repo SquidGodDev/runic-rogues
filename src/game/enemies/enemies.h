@@ -2,6 +2,13 @@
 
 #define MAX_ENEMY_COUNT 10
 
+#define ENEMY_TYPE_COUNT 2
+typedef enum EnemyType
+{
+	Bat,
+	Bunny
+} EnemyType;
+
 typedef struct Enemy {
 	float x;
 	float y;
@@ -13,6 +20,7 @@ typedef struct Enemy {
 	float animationTime;
 	uint16_t animationFrame;
 	uint16_t active;
+	int type;
 } Enemy;
 
 extern Enemy enemies[MAX_ENEMY_COUNT];

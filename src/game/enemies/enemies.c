@@ -11,16 +11,48 @@
 #include "game/rendering/textures.h"
 
 #define HIT_FLASH_TIME 0.1f // Seconds
-#define ATTACK_SPEED 1.0f // Seconds
-#define FRAME_TIME 0.12f // Seconds
-#define FRAME_COUNT 6
-#define ATTACK_DISTANCE 100
-#define ATTACK_DAMAGE 1
-#define MOVE_SPEED 0.2f
-#define HEALTH 4
-#define DODGE_CHANCE 20
 
 Enemy enemies[MAX_ENEMY_COUNT] = {0};
+
+typedef struct EnemyData {
+	char* name;
+	int health;
+	int attackDistance;
+	int attackDamage;
+	float attackSpeed;
+	float moveSpeed;
+	int dodgeChance;
+	uint8_t* texture;
+	int frameCount;
+	float frameTime;
+} EnemyData;
+
+EnemyData enemyData[ENEMY_TYPE_COUNT] = {
+	{
+		.name = "Bat",
+		.health = 4,
+		.attackDistance = 100,
+		.attackDamage = 1,
+		.attackSpeed = 1.0f,
+		.moveSpeed = 0.2f,
+		.dodgeChance = 20,
+		.texture = batTexture,
+		.frameCount = 6,
+		.frameTime = 0.12f
+	},
+	{
+		.name = "Bunny",
+		.health = 2,
+		.attackDistance = 100,
+		.attackDamage = 1,
+		.attackSpeed = 1.0f,
+		.moveSpeed = 0.2f,
+		.dodgeChance = 20,
+		.texture = bunnyTexture,
+		.frameCount = 1,
+		.frameTime = 0.12f
+	}
+};
 
 int checkTargetCell(int index, int *targetMapX, int *targetMapY, int newX, int newY) {
 	if (isBlocked(newX, newY)) {
@@ -49,28 +81,29 @@ int checkTargetCell(int index, int *targetMapX, int *targetMapY, int newX, int n
 }
 
 int pickNewTargetCell(int index, int *targetMapX, int *targetMapY) {
+	int dodgeChance = enemyData[enemies[index].type].dodgeChance;
 	int deltaX = clampInt((playerX / CELL_SIZE) - *targetMapX, -1, 1);
 	int deltaY = clampInt((playerY / CELL_SIZE) - *targetMapY, -1, 1);
 
-	int dodgeChance = randInt(0, 100);
+	int dodgeValue = randInt(0, 100);
 	if(deltaX == 0)
 	{
-		if(dodgeChance < DODGE_CHANCE / 2)
+		if(dodgeValue < dodgeChance / 2)
 		{
 			deltaX = -1;
 		}
-		else if(dodgeChance < DODGE_CHANCE)
+		else if(dodgeValue < dodgeChance)
 		{
 			deltaX = 1;
 		}
 	}
 	else if(deltaY == 0)
 	{
-		if(dodgeChance < DODGE_CHANCE / 2)
+		if(dodgeValue < dodgeChance / 2)
 		{
 			deltaY = -1;
 		}
-		else if(dodgeChance < DODGE_CHANCE)
+		else if(dodgeValue < dodgeChance)
 		{
 			deltaY = 1;
 		}
@@ -84,6 +117,7 @@ int pickNewTargetCell(int index, int *targetMapX, int *targetMapY) {
 }
 
 Enemy moveEnemy(Enemy enemy, int enemyIndex) {
+	EnemyData curEnemyData = enemyData[enemy.type];
 	int enemyMapX = enemy.x / CELL_SIZE;
 	int enemyMapY = enemy.y / CELL_SIZE;
 	int targetMapX = enemy.targetMapX;
@@ -101,8 +135,9 @@ Enemy moveEnemy(Enemy enemy, int enemyIndex) {
 
 	int targetX = (targetMapX * CELL_SIZE) + CELL_SIZE / 2;
 	int targetY = (targetMapY * CELL_SIZE) + CELL_SIZE / 2;
-	float deltaX = clampFloat(targetX - enemy.x, -MOVE_SPEED, MOVE_SPEED);
-	float deltaY = clampFloat(targetY - enemy.y, -MOVE_SPEED, MOVE_SPEED);
+	float moveSpeed = curEnemyData.moveSpeed;
+	float deltaX = clampFloat(targetX - enemy.x, -moveSpeed, moveSpeed);
+	float deltaY = clampFloat(targetY - enemy.y, -moveSpeed, moveSpeed);
 
 	enemy.y += deltaY;
 	enemy.x += deltaX;
@@ -110,7 +145,7 @@ Enemy moveEnemy(Enemy enemy, int enemyIndex) {
 	return enemy;
 }
 
-void spawnEnemy(void) {
+void spawnEnemy(EnemyType enemyType) {
 	int newEnemyIndex = -1;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		if (!enemies[i].active) {
@@ -133,17 +168,20 @@ void spawnEnemy(void) {
 		randMapY = randInt(1, MAP_HEIGHT - 2);
 	}
 
+	EnemyData curEnemyData = enemyData[enemyType];
+
 	enemies[newEnemyIndex] = (struct Enemy) {
-		randMapX * CELL_SIZE, // x
-		randMapY * CELL_SIZE, // y
-		randMapX, // targetMapX
-		randMapY, // targetMapY
-		HEALTH, // health
-		0, // attackTime
-		0, // hitFlashTime
-		randFloat(0, FRAME_TIME), // animationTime
-		randInt(0, FRAME_COUNT - 1), // animationFrame
-		1  // active
+		.x = randMapX * CELL_SIZE,
+		.y = randMapY * CELL_SIZE,
+		.targetMapX = randMapX,
+		.targetMapY = randMapY,
+		.health = curEnemyData.health,
+		.attackTime = 0,
+		.hitFlashTime = 0,
+		.animationTime = randFloat(0, curEnemyData.frameTime),
+		.animationFrame = randInt(0, curEnemyData.frameCount - 1),
+		.active = 1,
+		.type = enemyType
 	};
 }
 
@@ -153,7 +191,7 @@ void initEnemies(void) {
 	}
 
 	for (int i = 0; i < 5; i++) {
-		spawnEnemy();
+		spawnEnemy(randInt(0, ENEMY_TYPE_COUNT - 1));
 	}
 }
 
@@ -164,6 +202,7 @@ void updateEnemies(float deltaTime) {
 		}
 
 		Enemy curEnemy = enemies[i];
+		EnemyData curEnemyData = enemyData[curEnemy.type];
 		if (curEnemy.attackTime > 0) {
 			curEnemy.attackTime -= deltaTime;
 			if (curEnemy.attackTime <= 0) {
@@ -175,9 +214,9 @@ void updateEnemies(float deltaTime) {
 		
 		curEnemy.animationTime -= deltaTime;
 		if (curEnemy.animationTime <= 0) {
-			curEnemy.animationTime = FRAME_TIME;
+			curEnemy.animationTime = curEnemyData.frameTime;
 			curEnemy.animationFrame += 1;
-			if (curEnemy.animationFrame >= FRAME_COUNT) {
+			if (curEnemy.animationFrame >= curEnemyData.frameCount) {
 				curEnemy.animationFrame = 0;
 			}
 		}
@@ -187,14 +226,14 @@ void updateEnemies(float deltaTime) {
 			curEnemy.hitFlashTime = 0;
 		}
 
-		if (distanceSquared(curEnemy.x, curEnemy.y, playerX, playerY) <= ATTACK_DISTANCE) {
-			curEnemy.attackTime = ATTACK_SPEED;
-			damagePlayer(ATTACK_DAMAGE);
+		if (distanceSquared(curEnemy.x, curEnemy.y, playerX, playerY) <= curEnemyData.attackDistance) {
+			curEnemy.attackTime = curEnemyData.attackSpeed;
+			damagePlayer(curEnemyData.attackDamage);
 		}
 
 		enemies[i] = curEnemy;
 
-		addDrawableToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, i, enemyTexture);
+		addDrawableToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, i, curEnemyData.texture, curEnemy.animationFrame);
 	}
 }
 
@@ -204,7 +243,7 @@ void damageEnemy(int index, int damage) {
 	if (enemies[index].health <= 0) {
 		enemies[index].active = 0;
 		enemyKilled();
-		spawnEnemy();
+		spawnEnemy(randInt(0, ENEMY_TYPE_COUNT - 1));
 	}
 }
 

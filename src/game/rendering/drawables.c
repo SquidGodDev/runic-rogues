@@ -20,6 +20,7 @@ typedef struct Drawable {
     uint32_t type;
     uint32_t index;
     uint8_t *texture;
+    int animationFrame;
 } Drawable;
 
 Drawable drawables[MAX_DRAWABLE_COUNT] = { 0 };
@@ -79,16 +80,11 @@ void renderDrawables(float *zBuffer) {
         uint8_t *drawableTexture = curDrawable.texture;
         int anchorTopLeft = 0;
         int hitFlash = 0;
-        int frameOffset = 0;
+        int frameOffset = curDrawable.animationFrame * DRAWABLE_TEXTURE_SIZE * DRAWABLE_TEXTURE_SIZE;
         if (curDrawable.type == PROJECTILE) {
             anchorTopLeft = 1;
         } else if (curDrawable.type == ENEMY) {
-            int animationFrame = enemies[curDrawable.index].animationFrame;
-            frameOffset = animationFrame * DRAWABLE_TEXTURE_SIZE * DRAWABLE_TEXTURE_SIZE;
             hitFlash = enemies[curDrawable.index].hitFlashTime > 0;
-        } else if (curDrawable.type == PARTICLE) {
-            int animationFrame = particles[curDrawable.index].animationFrame;
-            frameOffset = animationFrame * DRAWABLE_TEXTURE_SIZE * DRAWABLE_TEXTURE_SIZE;
         }
 
         float drawableX = (curDrawable.x - playerX) / CELL_SIZE;
@@ -167,11 +163,11 @@ void renderDrawables(float *zBuffer) {
     queuedDrawables = 0;
 }
 
-void addDrawableToRenderQueue(float x, float y, int type, int index, uint8_t *texture) {
+void addDrawableToRenderQueue(float x, float y, int type, int index, uint8_t *texture, int animationFrame) {
     if (queuedDrawables >= MAX_DRAWABLE_COUNT) {
         return;
     }
-    Drawable curDrawable = (struct Drawable){ x, y, type, index, texture };
+    Drawable curDrawable = (struct Drawable){ x, y, type, index, texture, animationFrame };
     drawables[queuedDrawables] = curDrawable;
     queuedDrawables += 1;
 }

@@ -61,6 +61,6 @@ void updateParticles(float deltaTime) {
 
 		particles[i] = curParticle;
 
-		addDrawableToRenderQueue(curParticle.x, curParticle.y, PARTICLE, i, projectileBreakTexture);
+		addDrawableToRenderQueue(curParticle.x, curParticle.y, PARTICLE, i, projectileBreakTexture, curParticle.animationFrame);
 	}
 }
