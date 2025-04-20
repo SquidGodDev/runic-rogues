@@ -2,11 +2,12 @@
 
 #define MAX_ENEMY_COUNT 10
 
-#define ENEMY_TYPE_COUNT 2
+#define ENEMY_TYPE_COUNT 3
 typedef enum EnemyType
 {
 	Bat,
-	Bunny
+	Slime,
+	Skeleton
 } EnemyType;
 
 typedef struct Enemy {

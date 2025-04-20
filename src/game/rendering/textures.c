@@ -11,7 +11,8 @@ uint8_t projectileTexture[1024];
 uint8_t projectileBreakTexture[22528];
 
 uint8_t batTexture[6144];
-uint8_t bunnyTexture[1024];
+uint8_t slimeTexture[1024];
+uint8_t skeletonTexture[6144];
 
 LCDBitmap *handBitmap;
 LCDBitmap *handOpenBitmap;
@@ -56,7 +57,8 @@ void initTextures(void)
 	loadTexture("images/floorTexture", floorTexture);
 	loadTexture("images/floorTexture", ceilingTexture);
 	loadTexture("images/enemies/bat", batTexture);
-	loadTexture("images/enemies/bunny", bunnyTexture);
+	loadTexture("images/enemies/slime", slimeTexture);
+	loadTexture("images/enemies/skeleton", skeletonTexture);
 	loadTexture("images/fireballTexture", projectileTexture);
 	loadTexture("images/projectileBreak", projectileBreakTexture);
 

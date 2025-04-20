@@ -41,15 +41,27 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.frameTime = 0.12f
 	},
 	{
-		.name = "Bunny",
-		.health = 2,
+		.name = "Slime",
+		.health = 3,
 		.attackDistance = 100,
 		.attackDamage = 1,
 		.attackSpeed = 1.0f,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
-		.texture = bunnyTexture,
+		.texture = slimeTexture,
 		.frameCount = 1,
+		.frameTime = 0.12f
+	},
+	{
+		.name = "Skeleton",
+		.health = 4,
+		.attackDistance = 100,
+		.attackDamage = 1,
+		.attackSpeed = 1.0f,
+		.moveSpeed = 0.2f,
+		.dodgeChance = 20,
+		.texture = skeletonTexture,
+		.frameCount = 6,
 		.frameTime = 0.12f
 	}
 };
