@@ -2,13 +2,20 @@
 
 #define MAX_ENEMY_COUNT 10
 
-#define ENEMY_TYPE_COUNT 3
 typedef enum EnemyType
 {
-	Bat,
-	Slime,
-	Skeleton
+	ENEMY_TYPE_BAT,
+	ENEMY_TYPE_SLIME,
+	ENEMY_TYPE_SKELETON,
+	ENEMY_TYPE_COUNT
+
 } EnemyType;
+
+typedef enum EnemyState
+{
+	ENEMY_STATE_IDLE,
+	ENEMY_STATE_ATTACK
+} EnemyState;
 
 typedef struct Enemy {
 	float x;
@@ -21,6 +28,7 @@ typedef struct Enemy {
 	float animationTime;
 	uint16_t animationFrame;
 	uint16_t active;
+	int state;
 	int type;
 } Enemy;
 

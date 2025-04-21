@@ -11,7 +11,7 @@ extern uint8_t projectileBreakTexture[22528];
 
 extern uint8_t batTexture[6144];
 extern uint8_t slimeTexture[1024];
-extern uint8_t skeletonTexture[6144];
+extern uint8_t skeletonTexture[14336];
 
 extern LCDBitmap *handBitmap;
 extern LCDBitmap *handOpenBitmap;

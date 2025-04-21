@@ -12,7 +12,7 @@ uint8_t projectileBreakTexture[22528];
 
 uint8_t batTexture[6144];
 uint8_t slimeTexture[1024];
-uint8_t skeletonTexture[6144];
+uint8_t skeletonTexture[14336];
 
 LCDBitmap *handBitmap;
 LCDBitmap *handOpenBitmap;

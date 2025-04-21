@@ -12,6 +12,13 @@
 
 #define HIT_FLASH_TIME 0.1f // Seconds
 
+typedef enum AttackPattern
+{
+	ATTACK_PATTERN_PROXIMITY,
+	ATTACK_PATTERN_MELEE,
+	ATTACK_PATTERN_PROJECTILE
+} AttackPattern;
+
 Enemy enemies[MAX_ENEMY_COUNT] = {0};
 
 typedef struct EnemyData {
@@ -23,12 +30,16 @@ typedef struct EnemyData {
 	float moveSpeed;
 	int dodgeChance;
 	uint8_t* texture;
-	int frameCount;
+	int idleFrameEnd;
+	int attackFrameStart;
+	int attackFrameEnd;
+	int attackActiveFrame;
 	float frameTime;
+	int attackPattern;
 } EnemyData;
 
 EnemyData enemyData[ENEMY_TYPE_COUNT] = {
-	{
+	[ENEMY_TYPE_BAT] = {
 		.name = "Bat",
 		.health = 4,
 		.attackDistance = 100,
@@ -37,10 +48,11 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
 		.texture = batTexture,
-		.frameCount = 6,
-		.frameTime = 0.12f
+		.idleFrameEnd = 6,
+		.frameTime = 0.12f,
+		.attackPattern = ATTACK_PATTERN_PROXIMITY
 	},
-	{
+	[ENEMY_TYPE_SLIME] = {
 		.name = "Slime",
 		.health = 3,
 		.attackDistance = 100,
@@ -49,20 +61,25 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
 		.texture = slimeTexture,
-		.frameCount = 1,
-		.frameTime = 0.12f
+		.idleFrameEnd = 1,
+		.frameTime = 0.12f,
+		.attackPattern = ATTACK_PATTERN_PROXIMITY
 	},
-	{
+	[ENEMY_TYPE_SKELETON] = {
 		.name = "Skeleton",
 		.health = 4,
-		.attackDistance = 100,
+		.attackDistance = 350,
 		.attackDamage = 1,
 		.attackSpeed = 1.0f,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
 		.texture = skeletonTexture,
-		.frameCount = 6,
-		.frameTime = 0.12f
+		.idleFrameEnd = 6,
+		.attackFrameStart = 7,
+		.attackFrameEnd = 14,
+		.attackActiveFrame = 12,
+		.frameTime = 0.12f,
+		.attackPattern = ATTACK_PATTERN_MELEE
 	}
 };
 
@@ -191,10 +208,15 @@ void spawnEnemy(EnemyType enemyType) {
 		.attackTime = 0,
 		.hitFlashTime = 0,
 		.animationTime = randFloat(0, curEnemyData.frameTime),
-		.animationFrame = randInt(0, curEnemyData.frameCount - 1),
+		.animationFrame = randInt(0, curEnemyData.idleFrameEnd - 1),
 		.active = 1,
+		.state = ENEMY_STATE_IDLE,
 		.type = enemyType
 	};
+}
+
+void spawnRandomEnemy(void) {
+	spawnEnemy(randInt(0, ENEMY_TYPE_COUNT - 1));
 }
 
 void initEnemies(void) {
@@ -203,8 +225,14 @@ void initEnemies(void) {
 	}
 
 	for (int i = 0; i < 5; i++) {
-		spawnEnemy(randInt(0, ENEMY_TYPE_COUNT - 1));
+		spawnRandomEnemy();
 	}
+}
+
+int playerInAttackDistance(int enemyIndex) {
+	Enemy curEnemy = enemies[enemyIndex];
+	EnemyData curEnemyData = enemyData[curEnemy.type];
+	return distanceSquared(curEnemy.x, curEnemy.y, playerX, playerY) <= curEnemyData.attackDistance;
 }
 
 void updateEnemies(float deltaTime) {
@@ -215,21 +243,20 @@ void updateEnemies(float deltaTime) {
 
 		Enemy curEnemy = enemies[i];
 		EnemyData curEnemyData = enemyData[curEnemy.type];
-		if (curEnemy.attackTime > 0) {
-			curEnemy.attackTime -= deltaTime;
-			if (curEnemy.attackTime <= 0) {
-				curEnemy.attackTime = 0;
-			}
-		} else {
-			curEnemy = moveEnemy(curEnemy, i);
-		}
-		
+
 		curEnemy.animationTime -= deltaTime;
 		if (curEnemy.animationTime <= 0) {
 			curEnemy.animationTime = curEnemyData.frameTime;
 			curEnemy.animationFrame += 1;
-			if (curEnemy.animationFrame >= curEnemyData.frameCount) {
-				curEnemy.animationFrame = 0;
+			if (curEnemy.state == ENEMY_STATE_IDLE) {
+				if (curEnemy.animationFrame >= curEnemyData.idleFrameEnd) {
+					curEnemy.animationFrame = 0;
+				}
+			} else if (curEnemy.state == ENEMY_STATE_ATTACK) {
+				if (curEnemy.animationFrame >= curEnemyData.attackFrameEnd) {
+					curEnemy.animationFrame = 0;
+					curEnemy.state = ENEMY_STATE_IDLE;
+				}
 			}
 		}
 
@@ -238,9 +265,25 @@ void updateEnemies(float deltaTime) {
 			curEnemy.hitFlashTime = 0;
 		}
 
-		if (distanceSquared(curEnemy.x, curEnemy.y, playerX, playerY) <= curEnemyData.attackDistance) {
-			curEnemy.attackTime = curEnemyData.attackSpeed;
-			damagePlayer(curEnemyData.attackDamage);
+		if (curEnemy.state == ENEMY_STATE_IDLE) {
+			if (playerInAttackDistance(i)) {
+				if (curEnemyData.attackPattern == ATTACK_PATTERN_PROXIMITY) {
+					damagePlayer(curEnemyData.attackDamage);
+				} else if (curEnemyData.attackPattern == ATTACK_PATTERN_MELEE) {
+					curEnemy.state = ENEMY_STATE_ATTACK;
+					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
+					curEnemy.animationTime = curEnemyData.frameTime;
+				}
+			}
+			curEnemy = moveEnemy(curEnemy, i);
+		} else if (curEnemy.state == ENEMY_STATE_ATTACK) {
+			if (curEnemy.animationFrame >= curEnemyData.attackActiveFrame) {
+				if (curEnemyData.attackPattern == ATTACK_PATTERN_MELEE) {
+					if (playerInAttackDistance(i)) {
+						damagePlayer(curEnemyData.attackDamage);
+					}
+				}
+			}
 		}
 
 		enemies[i] = curEnemy;
@@ -255,7 +298,7 @@ void damageEnemy(int index, int damage) {
 	if (enemies[index].health <= 0) {
 		enemies[index].active = 0;
 		enemyKilled();
-		spawnEnemy(randInt(0, ENEMY_TYPE_COUNT - 1));
+		spawnRandomEnemy();
 	}
 }
 
