@@ -42,7 +42,7 @@ void damagePlayer(int amount) {
     if (playerHealth <= 0) {
         playerHealth = 0;
         pd->graphics->clear(kColorBlack);
-        pd->lua->callFunction("GameOver", 1, NULL);
+        pd->lua->callFunction("GameOver", 0, NULL);
     }
 }
 
