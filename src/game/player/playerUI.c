@@ -42,7 +42,6 @@ void damagePlayer(int amount) {
     if (playerHealth <= 0) {
         playerHealth = 0;
         pd->graphics->clear(kColorBlack);
-        pd->lua->pushInt(enemiesKilled);
         pd->lua->callFunction("GameOver", 1, NULL);
     }
 }
@@ -84,12 +83,6 @@ void drawPlayerUI(float deltaTime) {
             playerHitInvincibility = 0;
         }
     }
-
-    char *scoreString;
-    pd->system->formatString(&scoreString, "Score: %d", enemiesKilled);
-    int textWidth = pd->graphics->getTextWidth(gameFont, scoreString, strlen(scoreString), kASCIIEncoding, 0);
-    pd->graphics->drawText(scoreString, strlen(scoreString), kASCIIEncoding, 200 - textWidth - 4, 2);
-    free(scoreString);
 
     drawPlayerHearts();
     drawWeapon(deltaTime);

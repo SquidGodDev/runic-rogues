@@ -65,6 +65,8 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 		pd->display->setScale(400 / SCREEN_WIDTH);
 		pd->display->setRefreshRate(50);
 
+		srand(pd->system->getSecondsSinceEpoch(NULL));
+
 		initGame(NULL);
 
 		pd->lua->addFunction(gameUpdate, "game.update", NULL);
