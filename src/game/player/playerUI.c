@@ -15,7 +15,6 @@ int playerMaxHealth;
 int playerHealth;
 float playerHitInvincibility;
 float screenShakeTime;
-int enemiesKilled;
 
 void initPlayerUI(void) {
     playerMaxHealth = 8;
@@ -24,11 +23,6 @@ void initPlayerUI(void) {
     screenShakeTime = 0;
     pd->display->setOffset(0, 0);
     pd->graphics->setBackgroundColor(kColorBlack);
-    enemiesKilled = 0;
-}
-
-void enemyKilled(void) {
-    enemiesKilled += 1;
 }
 
 void damagePlayer(int amount) {

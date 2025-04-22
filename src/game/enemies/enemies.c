@@ -58,11 +58,24 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDistance = 100,
 		.attackDamage = 1,
 		.attackSpeed = 1.0f,
-		.moveSpeed = 0.2f,
+		.moveSpeed = 0.1f,
 		.dodgeChance = 20,
 		.texture = slimeTexture,
-		.idleFrameEnd = 1,
-		.frameTime = 0.12f,
+		.idleFrameEnd = 6,
+		.frameTime = 0.14f,
+		.attackPattern = ATTACK_PATTERN_PROXIMITY
+	},
+	[ENEMY_TYPE_BABY_SLIME] = {
+		.name = "Baby Slime",
+		.health = 1,
+		.attackDistance = 100,
+		.attackDamage = 1,
+		.attackSpeed = 1.0f,
+		.moveSpeed = 0.2f,
+		.dodgeChance = 0,
+		.texture = babySlimeTexture,
+		.idleFrameEnd = 6,
+		.frameTime = 0.1f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
 	},
 	[ENEMY_TYPE_SKELETON] = {
@@ -174,7 +187,7 @@ Enemy moveEnemy(Enemy enemy, int enemyIndex) {
 	return enemy;
 }
 
-void spawnEnemy(EnemyType enemyType) {
+void spawnEnemy(EnemyType enemyType, int x, int y) {
 	int newEnemyIndex = -1;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		if (!enemies[i].active) {
@@ -187,23 +200,13 @@ void spawnEnemy(EnemyType enemyType) {
 		return;
 	}
 
-	int randMapX = randInt(1, MAP_WIDTH - 2);
-	int randMapY = randInt(1, MAP_HEIGHT - 2);
-	int playerMapX = playerX / CELL_SIZE;
-	int playerMapY = playerY / CELL_SIZE;
-
-	while (map[randMapY * MAP_WIDTH + randMapX] != 0 || (randMapX == playerMapX && randMapY == playerMapY)) {
-		randMapX = randInt(1, MAP_WIDTH - 2);
-		randMapY = randInt(1, MAP_HEIGHT - 2);
-	}
-
 	EnemyData curEnemyData = enemyData[enemyType];
 
 	enemies[newEnemyIndex] = (struct Enemy) {
-		.x = randMapX * CELL_SIZE,
-		.y = randMapY * CELL_SIZE,
-		.targetMapX = randMapX,
-		.targetMapY = randMapY,
+		.x = x,
+		.y = y,
+		.targetMapX = x / CELL_SIZE,
+		.targetMapY = y / CELL_SIZE,
 		.health = curEnemyData.health,
 		.attackTime = 0,
 		.hitFlashTime = 0,
@@ -216,7 +219,20 @@ void spawnEnemy(EnemyType enemyType) {
 }
 
 void spawnRandomEnemy(void) {
-	spawnEnemy(randInt(0, ENEMY_TYPE_COUNT - 1));
+	// EnemyType enemyType = randInt(0, ENEMY_TYPE_COUNT - 1);
+	EnemyType enemyType = ENEMY_TYPE_SLIME;
+
+	int randMapX = randInt(1, MAP_WIDTH - 2);
+	int randMapY = randInt(1, MAP_HEIGHT - 2);
+	int playerMapX = playerX / CELL_SIZE;
+	int playerMapY = playerY / CELL_SIZE;
+
+	while (map[randMapY * MAP_WIDTH + randMapX] != 0 || (randMapX == playerMapX && randMapY == playerMapY)) {
+		randMapX = randInt(1, MAP_WIDTH - 2);
+		randMapY = randInt(1, MAP_HEIGHT - 2);
+	}
+
+	spawnEnemy(enemyType, randMapX * CELL_SIZE, randMapY * CELL_SIZE);
 }
 
 void initEnemies(void) {
@@ -292,13 +308,29 @@ void updateEnemies(float deltaTime) {
 	}
 }
 
+void enemyDeathEffect(int index) {
+	Enemy curEnemy = enemies[index];
+	EnemyType enemyType = curEnemy.type;
+	if (enemyType == ENEMY_TYPE_SLIME) {
+		for (int i = 0; i < 4; i++) {
+			// int xOffset = randInt(-CELL_SIZE / 2, CELL_SIZE / 2);
+			// int yOffset = randInt(-CELL_SIZE / 2, CELL_SIZE / 2);
+			spawnEnemy(ENEMY_TYPE_BABY_SLIME, curEnemy.x, curEnemy.y);
+		}
+	}
+}
+
 void damageEnemy(int index, int damage) {
 	enemies[index].hitFlashTime = HIT_FLASH_TIME;
 	enemies[index].health -= damage;
 	if (enemies[index].health <= 0) {
+		enemyDeathEffect(index);
+
 		enemies[index].active = 0;
-		enemyKilled();
-		spawnRandomEnemy();
+		// Temp enemy respawn
+		if (enemies[index].type != ENEMY_TYPE_BABY_SLIME) {
+			spawnRandomEnemy();
+		}
 	}
 }
 

@@ -1,14 +1,14 @@
 #pragma once
 
-#define MAX_ENEMY_COUNT 10
+#define MAX_ENEMY_COUNT 25
 
 typedef enum EnemyType
 {
 	ENEMY_TYPE_BAT,
 	ENEMY_TYPE_SLIME,
+	ENEMY_TYPE_BABY_SLIME,
 	ENEMY_TYPE_SKELETON,
 	ENEMY_TYPE_COUNT
-
 } EnemyType;
 
 typedef enum EnemyState
