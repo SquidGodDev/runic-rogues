@@ -4,16 +4,17 @@
 #include "globals.h"
 #include "game/rendering/textures.h"
 
-uint8_t wallTexture[256];
-uint8_t floorTexture[256];
-uint8_t ceilingTexture[256];
-uint8_t projectileTexture[1024];
-uint8_t projectileBreakTexture[22528];
+uint8_t *wallTexture;
+uint8_t *floorTexture;
+uint8_t *ceilingTexture;
 
-uint8_t batTexture[6144];
-uint8_t slimeTexture[6144];
-uint8_t babySlimeTexture[6144];
-uint8_t skeletonTexture[14336];
+uint8_t *projectileTexture;
+uint8_t *projectileBreakTexture;
+
+uint8_t *batTexture;
+uint8_t *slimeTexture;
+uint8_t *babySlimeTexture;
+uint8_t *skeletonTexture;
 
 LCDBitmap *handBitmap;
 LCDBitmap *handOpenBitmap;
@@ -40,29 +41,31 @@ int fogPatterns[FOG_LEVELS][8] = {{0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x0
 								  {0xFF, 0xFF, 0xFF, 0xEE, 0xFF, 0xFF, 0xFF, 0xEE},
 								  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
 
-void loadTexture(const char *texturePath, uint8_t *textureArray) {
+uint8_t* loadTexture(const char *texturePath) {
 	LCDBitmap *textureBitmap = pd->graphics->loadBitmap(texturePath, NULL);
 	int width, height;
 	pd->graphics->getBitmapData(textureBitmap, &width, &height, NULL, NULL, NULL);
+	uint8_t *textureArray = pd->system->realloc(NULL, width * height * sizeof(uint8_t));
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
 			LCDColor drawColor = pd->graphics->getBitmapPixel(textureBitmap, x, y);
 			textureArray[y * width + x] = (uint8_t)drawColor;
 		}
 	}
+	return textureArray;
 }
 
 void initTextures(void)
 {
-	loadTexture("images/brickTexture", wallTexture);
-	loadTexture("images/floorTexture", floorTexture);
-	loadTexture("images/floorTexture", ceilingTexture);
-	loadTexture("images/enemies/bat", batTexture);
-	loadTexture("images/enemies/slime", slimeTexture);
-	loadTexture("images/enemies/smallSlime", babySlimeTexture);
-	loadTexture("images/enemies/skeleton", skeletonTexture);
-	loadTexture("images/fireballTexture", projectileTexture);
-	loadTexture("images/projectileBreak", projectileBreakTexture);
+	wallTexture = loadTexture("images/brickTexture");
+	floorTexture = loadTexture("images/floorTexture");
+	ceilingTexture = loadTexture("images/floorTexture");
+	batTexture = loadTexture("images/enemies/bat");
+	slimeTexture = loadTexture("images/enemies/slime");
+	babySlimeTexture = loadTexture("images/enemies/smallSlime");
+	skeletonTexture = loadTexture("images/enemies/skeleton");
+	projectileTexture = loadTexture("images/fireballTexture");
+	projectileBreakTexture = loadTexture("images/projectileBreak");
 
 	handBitmap = pd->graphics->loadBitmap("images/hand", NULL);
 	handOpenBitmap = pd->graphics->loadBitmap("images/handOpen", NULL);

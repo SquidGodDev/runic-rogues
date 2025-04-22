@@ -3,17 +3,17 @@
 #include "pd_api.h"
 #include "globals.h"
 
-extern uint8_t wallTexture[256];
-extern uint8_t floorTexture[256];
-extern uint8_t ceilingTexture[256];
+extern uint8_t *wallTexture;
+extern uint8_t *floorTexture;
+extern uint8_t *ceilingTexture;
 
-extern uint8_t projectileTexture[1024];
-extern uint8_t projectileBreakTexture[22528];
+extern uint8_t *projectileTexture;
+extern uint8_t *projectileBreakTexture;
 
-extern uint8_t batTexture[6144];
-extern uint8_t slimeTexture[6144];
-extern uint8_t babySlimeTexture[6144];
-extern uint8_t skeletonTexture[14336];
+extern uint8_t *batTexture;
+extern uint8_t *slimeTexture;
+extern uint8_t *babySlimeTexture;
+extern uint8_t *skeletonTexture;
 
 extern LCDBitmap *handBitmap;
 extern LCDBitmap *handOpenBitmap;

@@ -38,8 +38,9 @@ typedef struct EnemyData {
 	int attackPattern;
 } EnemyData;
 
-EnemyData enemyData[ENEMY_TYPE_COUNT] = {
-	[ENEMY_TYPE_BAT] = {
+EnemyData enemyData[ENEMY_TYPE_COUNT];
+void initEnemyData(void) {
+	enemyData[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
 		.health = 4,
 		.attackDistance = 100,
@@ -51,8 +52,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.idleFrameEnd = 6,
 		.frameTime = 0.12f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
-	},
-	[ENEMY_TYPE_SLIME] = {
+	};
+	enemyData[ENEMY_TYPE_SLIME] = (EnemyData){
 		.name = "Slime",
 		.health = 3,
 		.attackDistance = 100,
@@ -64,8 +65,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.idleFrameEnd = 6,
 		.frameTime = 0.14f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
-	},
-	[ENEMY_TYPE_BABY_SLIME] = {
+	};
+	enemyData[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
 		.name = "Baby Slime",
 		.health = 1,
 		.attackDistance = 100,
@@ -77,8 +78,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.idleFrameEnd = 6,
 		.frameTime = 0.1f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
-	},
-	[ENEMY_TYPE_SKELETON] = {
+	};
+	enemyData[ENEMY_TYPE_SKELETON] = (EnemyData){
 		.name = "Skeleton",
 		.health = 4,
 		.attackDistance = 350,
@@ -93,8 +94,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackActiveFrame = 12,
 		.frameTime = 0.12f,
 		.attackPattern = ATTACK_PATTERN_MELEE
-	}
-};
+	};
+}
 
 int checkTargetCell(int index, int *targetMapX, int *targetMapY, int newX, int newY) {
 	if (isBlocked(newX, newY)) {
@@ -236,6 +237,8 @@ void spawnRandomEnemy(void) {
 }
 
 void initEnemies(void) {
+	initEnemyData();
+
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		enemies[i].active = 0;
 	}
