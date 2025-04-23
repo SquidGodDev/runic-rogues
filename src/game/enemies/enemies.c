@@ -220,8 +220,14 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 }
 
 void spawnRandomEnemy(void) {
-	// EnemyType enemyType = randInt(0, ENEMY_TYPE_COUNT - 1);
-	EnemyType enemyType = ENEMY_TYPE_SLIME;
+	EnemyType spawnList[] = {
+		ENEMY_TYPE_BAT,
+		ENEMY_TYPE_SKELETON,
+		ENEMY_TYPE_SLIME
+	};
+	int spawnListLength = *(&spawnList + 1) - spawnList;
+	EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
+	// EnemyType enemyType = ENEMY_TYPE_SLIME;
 
 	int randMapX = randInt(1, MAP_WIDTH - 2);
 	int randMapY = randInt(1, MAP_HEIGHT - 2);
