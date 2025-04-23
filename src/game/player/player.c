@@ -105,6 +105,11 @@ void initPlayer(void) {
 
 void handleInput(float deltaTime)
 {
+	if (!pd->system->isCrankDocked() && !defaultStrafeSetting) {
+		pd->system->setMenuItemValue(toggleDefaultStrafeMenuItem, 1);
+		toggleDefaultStrafeCallback(NULL);
+	}
+
 	int cellSize = CELL_SIZE;
 	int mapWidth = MAP_WIDTH;
 
