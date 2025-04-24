@@ -7,7 +7,7 @@
 
 #include "globals.h"
 #include "helpers.h"
-#include "game/rendering/drawables.h"
+#include "game/rendering/entities.h"
 #include "game/rendering/particles.h"
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
@@ -27,8 +27,8 @@ int initGame(lua_State* L)
 	// Map
 	initMap();
 
-	// Drawables
-	initDrawables();
+	// Entities
+	initEntities();
 	initEnemies();
 	initProjectiles();
 	initParticles();

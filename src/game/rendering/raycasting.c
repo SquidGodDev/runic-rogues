@@ -3,7 +3,7 @@
 
 #include "globals.h"
 #include "helpers.h"
-#include "game/rendering/drawables.h"
+#include "game/rendering/entities.h"
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
@@ -344,7 +344,7 @@ void renderScene(void)
 		}
 	}
 
-	renderDrawables(zBuffer);
+	renderEntities(zBuffer);
 
 	pd->graphics->markUpdatedRows(0, SCREEN_HEIGHT - 1);
 }

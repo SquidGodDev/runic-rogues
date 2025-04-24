@@ -5,7 +5,7 @@
 #include "game/player/projectiles.h"
 #include "game/map/map.h"
 #include "game/player/player.h"
-#include "game/rendering/drawables.h"
+#include "game/rendering/entities.h"
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
 #include "game/enemies/enemies.h"
@@ -60,10 +60,10 @@ void updateProjectiles(float deltaTime) {
 
 		float xDirection = cosf(curProjectile.direction);
 		float yDirection = sinf(curProjectile.direction);
-		int drawableMapX = (int)((curProjectile.x + MAP_CHECK_OFFSET_X) / CELL_SIZE);
-		int drawableMapY = (int)((curProjectile.y + MAP_CHECK_OFFSET_Y) / CELL_SIZE);
-		int drawableMapIndex = drawableMapY * MAP_WIDTH + drawableMapX;
-		if ((drawableMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[drawableMapIndex] != 0)) {
+		int entityMapX = (int)((curProjectile.x + MAP_CHECK_OFFSET_X) / CELL_SIZE);
+		int entityMapY = (int)((curProjectile.y + MAP_CHECK_OFFSET_Y) / CELL_SIZE);
+		int entityMapIndex = entityMapY * MAP_WIDTH + entityMapX;
+		if ((entityMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[entityMapIndex] != 0)) {
 			curProjectile.active = 0;
 			spawnParticle(curProjectile.x - PARTICLE_OFFSET * xDirection, curProjectile.y - PARTICLE_OFFSET * yDirection);
 		} else {
@@ -83,6 +83,6 @@ void updateProjectiles(float deltaTime) {
 
 		projectiles[i] = curProjectile;
 
-		addDrawableToRenderQueue(curProjectile.x, curProjectile.y, PROJECTILE, i, projectileTexture, 0 /* animationFrame*/);
+		addEntityToRenderQueue(curProjectile.x, curProjectile.y, PROJECTILE, i, projectileTexture, 0 /* animationFrame*/);
 	}
 }

@@ -7,7 +7,7 @@
 #include "game/enemies/enemies.h"
 #include "game/player/player.h"
 #include "game/player/playerUI.h"
-#include "game/rendering/drawables.h"
+#include "game/rendering/entities.h"
 #include "game/rendering/textures.h"
 
 #define HIT_FLASH_TIME 0.1f // Seconds
@@ -313,7 +313,7 @@ void updateEnemies(float deltaTime) {
 
 		enemies[i] = curEnemy;
 
-		addDrawableToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, i, curEnemyData.texture, curEnemy.animationFrame);
+		addEntityToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, i, curEnemyData.texture, curEnemy.animationFrame);
 	}
 }
 

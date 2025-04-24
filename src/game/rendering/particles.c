@@ -2,7 +2,7 @@
 #include "pd_api.h"
 
 #include "globals.h"
-#include "game/rendering/drawables.h"
+#include "game/rendering/entities.h"
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
 
@@ -61,6 +61,6 @@ void updateParticles(float deltaTime) {
 
 		particles[i] = curParticle;
 
-		addDrawableToRenderQueue(curParticle.x, curParticle.y, PARTICLE, i, projectileBreakTexture, curParticle.animationFrame);
+		addEntityToRenderQueue(curParticle.x, curParticle.y, PARTICLE, i, projectileBreakTexture, curParticle.animationFrame);
 	}
 }
