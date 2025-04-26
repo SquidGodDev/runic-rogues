@@ -11,10 +11,12 @@ uint8_t *ceilingTexture;
 uint8_t *projectileTexture;
 uint8_t *projectileBreakTexture;
 
+uint8_t *enemyProjectileTexture;
 uint8_t *batTexture;
 uint8_t *slimeTexture;
 uint8_t *babySlimeTexture;
 uint8_t *skeletonTexture;
+uint8_t *impTexture;
 
 LCDBitmap *handBitmap;
 LCDBitmap *handOpenBitmap;
@@ -60,10 +62,14 @@ void initTextures(void)
 	wallTexture = loadTexture("images/brickTexture");
 	floorTexture = loadTexture("images/floorTexture");
 	ceilingTexture = loadTexture("images/floorTexture");
+
 	batTexture = loadTexture("images/enemies/bat");
 	slimeTexture = loadTexture("images/enemies/slime");
 	babySlimeTexture = loadTexture("images/enemies/smallSlime");
 	skeletonTexture = loadTexture("images/enemies/skeleton");
+	impTexture = loadTexture("images/enemies/imp");
+
+	enemyProjectileTexture = loadTexture("images/enemies/enemyProjectile");
 	projectileTexture = loadTexture("images/fireballTexture");
 	projectileBreakTexture = loadTexture("images/projectileBreak");
 

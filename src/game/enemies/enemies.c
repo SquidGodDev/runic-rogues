@@ -7,10 +7,12 @@
 #include "game/enemies/enemies.h"
 #include "game/player/player.h"
 #include "game/player/playerUI.h"
+#include "game/player/projectiles.h"
 #include "game/rendering/entities.h"
 #include "game/rendering/textures.h"
 
 #define HIT_FLASH_TIME 0.1f // Seconds
+#define PROJECTILE_OFFSET 3
 
 typedef enum AttackPattern
 {
@@ -26,9 +28,10 @@ typedef struct EnemyData {
 	int health;
 	int attackDistance;
 	int attackDamage;
-	float attackSpeed;
+	float attackCooldown;
 	float moveSpeed;
 	int dodgeChance;
+	float abilityData; // Flexible property for enemy-specific behaviors or traits
 	uint8_t* texture;
 	int idleFrameEnd;
 	int attackFrameStart;
@@ -45,7 +48,7 @@ void initEnemyData(void) {
 		.health = 4,
 		.attackDistance = 100,
 		.attackDamage = 1,
-		.attackSpeed = 1.0f,
+		.attackCooldown = 0,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
 		.texture = batTexture,
@@ -58,9 +61,10 @@ void initEnemyData(void) {
 		.health = 3,
 		.attackDistance = 100,
 		.attackDamage = 1,
-		.attackSpeed = 1.0f,
+		.attackCooldown = 0,
 		.moveSpeed = 0.1f,
 		.dodgeChance = 20,
+		.abilityData = 4, // Number of baby slimes to spawn
 		.texture = slimeTexture,
 		.idleFrameEnd = 6,
 		.frameTime = 0.14f,
@@ -71,7 +75,7 @@ void initEnemyData(void) {
 		.health = 1,
 		.attackDistance = 100,
 		.attackDamage = 1,
-		.attackSpeed = 1.0f,
+		.attackCooldown = 0,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 0,
 		.texture = babySlimeTexture,
@@ -84,7 +88,7 @@ void initEnemyData(void) {
 		.health = 4,
 		.attackDistance = 350,
 		.attackDamage = 1,
-		.attackSpeed = 1.0f,
+		.attackCooldown = 0,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
 		.texture = skeletonTexture,
@@ -94,6 +98,23 @@ void initEnemyData(void) {
 		.attackActiveFrame = 12,
 		.frameTime = 0.12f,
 		.attackPattern = ATTACK_PATTERN_MELEE
+	};
+	enemyData[ENEMY_TYPE_IMP] = (EnemyData){
+		.name = "Imp",
+		.health = 3,
+		.attackDistance = 2000,
+		.attackDamage = 1,
+		.attackCooldown = 8.0f,
+		.moveSpeed = 0.2f,
+		.dodgeChance = 20,
+		.abilityData = 1.5f * TARGET_FPS, // Projectile speed
+		.texture = impTexture,
+		.idleFrameEnd = 6,
+		.attackFrameStart = 7,
+		.attackFrameEnd = 14,
+		.attackActiveFrame = 11,
+		.frameTime = 0.14f,
+		.attackPattern = ATTACK_PATTERN_PROJECTILE
 	};
 }
 
@@ -209,7 +230,7 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 		.targetMapX = x / CELL_SIZE,
 		.targetMapY = y / CELL_SIZE,
 		.health = curEnemyData.health,
-		.attackTime = 0,
+		.attackCooldown = 0,
 		.hitFlashTime = 0,
 		.animationTime = randFloat(0, curEnemyData.frameTime),
 		.animationFrame = randInt(0, curEnemyData.idleFrameEnd - 1),
@@ -220,14 +241,15 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 }
 
 void spawnRandomEnemy(void) {
-	EnemyType spawnList[] = {
-		ENEMY_TYPE_BAT,
-		ENEMY_TYPE_SKELETON,
-		ENEMY_TYPE_SLIME
-	};
-	int spawnListLength = *(&spawnList + 1) - spawnList;
-	EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
-	// EnemyType enemyType = ENEMY_TYPE_SLIME;
+	// EnemyType spawnList[] = {
+	// 	ENEMY_TYPE_BAT,
+	// 	ENEMY_TYPE_SKELETON,
+	// 	ENEMY_TYPE_SLIME,
+	// 	ENEMY_TYPE_IMP
+	// };
+	// int spawnListLength = *(&spawnList + 1) - spawnList;
+	// EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
+	EnemyType enemyType = ENEMY_TYPE_IMP;
 
 	int randMapX = randInt(1, MAP_WIDTH - 2);
 	int randMapY = randInt(1, MAP_HEIGHT - 2);
@@ -277,7 +299,7 @@ void updateEnemies(float deltaTime) {
 				if (curEnemy.animationFrame >= curEnemyData.idleFrameEnd) {
 					curEnemy.animationFrame = 0;
 				}
-			} else if (curEnemy.state == ENEMY_STATE_ATTACK) {
+			} else if (curEnemy.state == ENEMY_STATE_ATTACK || curEnemy.state == ENEMY_STATE_ATTACK_END) {
 				if (curEnemy.animationFrame >= curEnemyData.attackFrameEnd) {
 					curEnemy.animationFrame = 0;
 					curEnemy.state = ENEMY_STATE_IDLE;
@@ -290,11 +312,21 @@ void updateEnemies(float deltaTime) {
 			curEnemy.hitFlashTime = 0;
 		}
 
+		curEnemy.attackCooldown -= deltaTime;
+		if (curEnemy.attackCooldown <= 0) {
+			curEnemy.attackCooldown = 0;
+		}
+
 		if (curEnemy.state == ENEMY_STATE_IDLE) {
-			if (playerInAttackDistance(i)) {
+			if (curEnemy.attackCooldown <= 0 && playerInAttackDistance(i)) {
+				curEnemy.attackCooldown = curEnemyData.attackCooldown;
 				if (curEnemyData.attackPattern == ATTACK_PATTERN_PROXIMITY) {
 					damagePlayer(curEnemyData.attackDamage);
 				} else if (curEnemyData.attackPattern == ATTACK_PATTERN_MELEE) {
+					curEnemy.state = ENEMY_STATE_ATTACK;
+					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
+					curEnemy.animationTime = curEnemyData.frameTime;
+				} else if (curEnemyData.attackPattern == ATTACK_PATTERN_PROJECTILE) {
 					curEnemy.state = ENEMY_STATE_ATTACK;
 					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
 					curEnemy.animationTime = curEnemyData.frameTime;
@@ -307,7 +339,17 @@ void updateEnemies(float deltaTime) {
 					if (playerInAttackDistance(i)) {
 						damagePlayer(curEnemyData.attackDamage);
 					}
+				} else if (curEnemyData.attackPattern == ATTACK_PATTERN_PROJECTILE) {
+					float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy.x, curEnemy.y));
+					float deltaX = (playerX - curEnemy.x) / distanceToPlayer;
+					float deltaY = (playerY - curEnemy.y) / distanceToPlayer;
+					float projectileSpeed = curEnemyData.abilityData;
+					float damage = curEnemyData.attackDamage;
+					float projectileX = curEnemy.x + deltaX * PROJECTILE_OFFSET;
+					float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
+					fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage, enemyProjectileTexture, 1 /*isEnemy*/);
 				}
+				curEnemy.state = ENEMY_STATE_ATTACK_END;
 			}
 		}
 

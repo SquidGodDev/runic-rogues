@@ -10,6 +10,9 @@
 #include "game/map/map.h"
 
 #define CRANK_SENSITIVITY 0.3f
+// Spawn the projectile slightly to the right to match hand
+#define FIRE_ANGLE_OFFSET PI / 8
+#define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
 // === Extern variables ===
 float playerX, playerY;
@@ -33,6 +36,8 @@ float playerDrag;
 float playerMaxSpeed;
 float playerStrafeSpeed;
 
+int projectileDamage = 1;
+float projectileSpeed = 7.0f * TARGET_FPS;
 float weaponCooldown = 0.3f; // Seconds
 float weaponCurCooldown = 0;
 float weaponBobCounter = 0;
@@ -120,7 +125,11 @@ void handleInput(float deltaTime)
 	if (pushed & kButtonA) {
 		if (weaponCurCooldown <= 0) {
 			weaponCurCooldown = weaponCooldown;
-			fireProjectile();
+			float projectileX = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
+			float projectileY = playerY + sinf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
+			float deltaX = cosf(playerAngle);
+			float deltaY = sinf(playerAngle);	
+			fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, projectileDamage, projectileTexture, 0 /*isEnemy*/);
 		}
 	}
 
