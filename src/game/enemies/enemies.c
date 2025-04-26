@@ -241,15 +241,15 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 }
 
 void spawnRandomEnemy(void) {
-	// EnemyType spawnList[] = {
-	// 	ENEMY_TYPE_BAT,
-	// 	ENEMY_TYPE_SKELETON,
-	// 	ENEMY_TYPE_SLIME,
-	// 	ENEMY_TYPE_IMP
-	// };
-	// int spawnListLength = *(&spawnList + 1) - spawnList;
-	// EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
-	EnemyType enemyType = ENEMY_TYPE_IMP;
+	EnemyType spawnList[] = {
+		ENEMY_TYPE_BAT,
+		ENEMY_TYPE_SKELETON,
+		ENEMY_TYPE_SLIME,
+		ENEMY_TYPE_IMP
+	};
+	int spawnListLength = *(&spawnList + 1) - spawnList;
+	EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
+	// EnemyType enemyType = ENEMY_TYPE_IMP;
 
 	int randMapX = randInt(1, MAP_WIDTH - 2);
 	int randMapY = randInt(1, MAP_HEIGHT - 2);
@@ -363,9 +363,8 @@ void enemyDeathEffect(int index) {
 	Enemy curEnemy = enemies[index];
 	EnemyType enemyType = curEnemy.type;
 	if (enemyType == ENEMY_TYPE_SLIME) {
-		for (int i = 0; i < 4; i++) {
-			// int xOffset = randInt(-CELL_SIZE / 2, CELL_SIZE / 2);
-			// int yOffset = randInt(-CELL_SIZE / 2, CELL_SIZE / 2);
+		int slimeSpawnCount = enemyData[enemyType].abilityData;
+		for (int i = 0; i < slimeSpawnCount; i++) {
 			spawnEnemy(ENEMY_TYPE_BABY_SLIME, curEnemy.x, curEnemy.y);
 		}
 	}
