@@ -193,13 +193,13 @@ void renderScene(void)
 
 		int textureX;
 		if (isShaded == 1) {
-			textureX = ((int)rayX >> 1) % textureSize;
+			textureX = ((int)rayX) % textureSize;
 			if (rayAngle < PI) {
 				textureX = textureSize - textureX - 1;
 			}
 			textureX += 16;
 		} else {
-			textureX = ((int)rayY >> 1) % textureSize;
+			textureX = ((int)rayY) % textureSize;
 			if (rayAngle > P2 && rayAngle < P3) {
 				textureX = textureSize - textureX - 1;
 			}
