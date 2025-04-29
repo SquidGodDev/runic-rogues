@@ -10,6 +10,8 @@
 #include "game/player/player.h"
 #include "game/systems/progressionManager.h"
 
+#define ENVIRONMENT_TEXTURE_SIZE 16
+
 uint8_t *wallTexture;
 uint8_t *ceilingTexture;
 uint8_t *floorTexture;
@@ -176,11 +178,10 @@ void renderScene(void)
 		rayDistance = rayDistance * cosf(offsetAngle);
 
 		// Get wall slice draw height
-		int textureSize = 16;
 		float lineHeight = (cellSize * SCREEN_HEIGHT) / rayDistance;
 		curLineData.lineHeight = (int)lineHeight;
 
-		float textureYStep = textureSize / lineHeight;
+		float textureYStep = ENVIRONMENT_TEXTURE_SIZE / lineHeight;
 		float textureYOffset = 0;
 		if (lineHeight > SCREEN_HEIGHT) {
 			textureYOffset = (lineHeight - SCREEN_HEIGHT) / 2.0f;
@@ -193,15 +194,15 @@ void renderScene(void)
 
 		int textureX;
 		if (isShaded == 1) {
-			textureX = ((int)rayX) % textureSize;
+			textureX = ((int)rayX) % ENVIRONMENT_TEXTURE_SIZE;
 			if (rayAngle < PI) {
-				textureX = textureSize - textureX - 1;
+				textureX = ENVIRONMENT_TEXTURE_SIZE - textureX - 1;
 			}
 			textureX += 16;
 		} else {
-			textureX = ((int)rayY) % textureSize;
+			textureX = ((int)rayY) % ENVIRONMENT_TEXTURE_SIZE;
 			if (rayAngle > P2 && rayAngle < P3) {
-				textureX = textureSize - textureX - 1;
+				textureX = ENVIRONMENT_TEXTURE_SIZE - textureX - 1;
 			}
 		}
 		curLineData.textureX = textureX;
@@ -275,6 +276,9 @@ void renderScene(void)
 				int lineOffset = curLineData.lineOffset;
 
 				float textureYModifier = curLineData.textureYModifier;
+				if (textureYModifier > ENVIRONMENT_TEXTURE_SIZE - 1) {
+					textureYModifier = ENVIRONMENT_TEXTURE_SIZE - 1;
+				}
 				float textureYStep = curLineData.textureYStep;
 				curLineData.textureYModifier = textureYModifier + textureYStep;
 				lineData[drawX] = curLineData;
@@ -321,6 +325,7 @@ void renderScene(void)
 					}
 					int textureX = curLineData.textureX;
 					if (textureX >= 16) {
+						// Shaded wall
 						textureX -= 16;
 						if ((drawX + drawY) % 2 == 0) {
 							curDrawInt &= ~(1 << (31 - (drawBit & 31)));
@@ -328,7 +333,7 @@ void renderScene(void)
 						}
 					}
 	
-					int textureY = (int)(textureYModifier);
+					int textureY = (int)(roundf(textureYModifier));
 					drawColor = wallTexture[textureX + (textureY << 4)];
 
 					int fogShade = 0;
