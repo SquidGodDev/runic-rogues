@@ -8,6 +8,11 @@
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
 #include "game/player/player.h"
+#include "game/systems/progressionManager.h"
+
+uint8_t *wallTexture;
+uint8_t *ceilingTexture;
+uint8_t *floorTexture;
 
 // Cacheline is 32 bytes (256 bits) - struct is 16 bytes, so can fit 2 into one cacheline
 typedef struct LineData {
@@ -17,6 +22,13 @@ typedef struct LineData {
 	float textureYStep; // 32 bits
 	float textureYModifier; // 32 bits
 } LineData;
+
+void initRaycasting(void) {
+	FloorData curFloorData = getCurrentFloorData();
+	wallTexture = curFloorData.wallTexture;
+	ceilingTexture = curFloorData.ceilingTexture;
+	floorTexture = curFloorData.floorTexture;
+}
 
 void renderScene(void)
 {

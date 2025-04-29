@@ -39,7 +39,7 @@ file(GLOB_RECURSE HEADERS
 )
 
 file(GLOB IMAGES
-	"Source/images/*",
+	"Source/images/*"
 	"Source/fonts/*"
 )
 
@@ -51,6 +51,7 @@ if (TOOLCHAIN STREQUAL "armgcc")
 							   ${CMAKE_SOURCE_DIR}/game/map
 							   ${CMAKE_SOURCE_DIR}/game/player
 							   ${CMAKE_SOURCE_DIR}/game/rendering
+							   ${CMAKE_SOURCE_DIR}/game/systems
 	)
 	target_compile_options(${PLAYDATE_GAME_DEVICE} PRIVATE 
 		-ffast-math
@@ -63,6 +64,7 @@ else()
 							   ${CMAKE_SOURCE_DIR}/game/map
 							   ${CMAKE_SOURCE_DIR}/game/player
 							   ${CMAKE_SOURCE_DIR}/game/rendering
+							   ${CMAKE_SOURCE_DIR}/game/systems
 	)
 	target_compile_options(${PLAYDATE_GAME_NAME} PRIVATE 
 		-Wall

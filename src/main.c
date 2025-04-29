@@ -16,6 +16,7 @@
 #include "game/player/projectiles.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
+#include "game/systems/progressionManager.h"
 
 PlaydateAPI *pd = NULL;
 
@@ -24,8 +25,12 @@ int initGame(lua_State* L)
 	// Textures
 	initTextures();
 
+	// Progression
+	initProgressionManager();
+
 	// Map
 	initMap();
+	initRaycasting();
 
 	// Entities
 	initEntities();

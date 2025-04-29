@@ -3,9 +3,15 @@
 #include "pd_api.h"
 #include "globals.h"
 
-extern uint8_t *wallTexture;
-extern uint8_t *floorTexture;
-extern uint8_t *ceilingTexture;
+extern uint8_t *echoingCavernsWall;
+extern uint8_t *echoingCavernsCeiling;
+extern uint8_t *echoingCavernsFloor;
+extern uint8_t *lostArchivesWall;
+extern uint8_t *lostArchivesCeiling;
+extern uint8_t *lostArchivesFloor;
+extern uint8_t *testWall;
+extern uint8_t *testCeiling;
+extern uint8_t *testFloor;
 
 extern uint8_t *projectileTexture;
 extern uint8_t *projectileBreakTexture;
