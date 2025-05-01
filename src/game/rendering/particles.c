@@ -2,7 +2,7 @@
 #include "pd_api.h"
 
 #include "globals.h"
-#include "game/rendering/entities.h"
+#include "game/entities/entities.h"
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
 

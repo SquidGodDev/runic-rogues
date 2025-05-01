@@ -4,7 +4,7 @@
 #include "globals.h"
 #include "helpers.h"
 #include "game/enemies/enemies.h"
-#include "game/rendering/entities.h"
+#include "game/entities/entities.h"
 #include "game/player/player.h"
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"

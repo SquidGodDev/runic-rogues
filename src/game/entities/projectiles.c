@@ -3,11 +3,11 @@
 
 #include "globals.h"
 #include "helpers.h"
-#include "game/player/projectiles.h"
+#include "game/entities/projectiles.h"
+#include "game/entities/entities.h"
 #include "game/map/map.h"
 #include "game/player/player.h"
 #include "game/player/playerUI.h"
-#include "game/rendering/entities.h"
 #include "game/rendering/particles.h"
 #include "game/enemies/enemies.h"
 

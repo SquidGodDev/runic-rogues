@@ -3,7 +3,7 @@
 
 #include "globals.h"
 #include "helpers.h"
-#include "game/rendering/entities.h"
+#include "game/entities/entities.h"
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
 #include "game/map/map.h"

@@ -5,7 +5,7 @@
 #include "helpers.h"
 #include "game/player/player.h"
 #include "game/player/playerUI.h"
-#include "game/player/projectiles.h"
+#include "game/entities/projectiles.h"
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
 
