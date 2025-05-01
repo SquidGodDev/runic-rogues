@@ -37,7 +37,7 @@ float playerMaxSpeed;
 float playerStrafeSpeed;
 
 int projectileDamage = 1;
-float projectileSpeed = 7.0f * TARGET_FPS;
+float projectileSpeed = 4.0f * TARGET_FPS;
 float weaponCooldown = 0.3f; // Seconds
 float weaponCurCooldown = 0;
 float weaponBobCounter = 0;
@@ -79,16 +79,16 @@ void initPlayer(void) {
 	playerRadius = 6;
 	playerAngle = 0;
 	playerTurnSpeed = 0;
-	playerTurnMaxSpeed = 0.06f * TARGET_FPS;
+	playerTurnMaxSpeed = 0.04f * TARGET_FPS;
 	playerTurnInitialSpeed = 0.01f * TARGET_FPS;
-	playerTurnAccel = 0.2f * TARGET_FPS;
-	playerTurnDrag = 0.4f * TARGET_FPS;
-	playerMaxSpeed = 1.4f * TARGET_FPS;
-	playerInitialSpeed = 0.7f * TARGET_FPS;
+	playerTurnAccel = 0.1f * TARGET_FPS;
+	playerTurnDrag = 0.25f * TARGET_FPS;
+	playerMaxSpeed = 0.8f * TARGET_FPS;
+	playerInitialSpeed = 0.4f * TARGET_FPS;
 	playerSpeed = 0;
 	playerStrafeSpeed = 0;
-	playerAccel = 6.0f * TARGET_FPS;
-	playerDrag = 6.0f * TARGET_FPS;
+	playerAccel = 3.5f * TARGET_FPS;
+	playerDrag = 3.5f * TARGET_FPS;
 	playerXVelocity = 0;
 	playerYVelocity = 0;
 	planeX = 0;

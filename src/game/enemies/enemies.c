@@ -107,7 +107,7 @@ void initEnemyData(void) {
 		.attackCooldown = 8.0f,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
-		.abilityData = 1.5f * TARGET_FPS, // Projectile speed
+		.abilityData = 1.0f * TARGET_FPS, // Projectile speed
 		.texture = impTexture,
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
