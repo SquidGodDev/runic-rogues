@@ -17,6 +17,7 @@ typedef enum EnemyState
 	ENEMY_STATE_IDLE,
 	ENEMY_STATE_ATTACK,
 	ENEMY_STATE_ATTACK_END,
+	ENEMY_STATE_DEAD
 } EnemyState;
 
 typedef struct Enemy {

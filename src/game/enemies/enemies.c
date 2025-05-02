@@ -33,10 +33,12 @@ typedef struct EnemyData {
 	int dodgeChance;
 	float abilityData; // Flexible property for enemy-specific behaviors or traits
 	uint8_t* texture;
-	int idleFrameEnd;
+	int idleFrameEnd; // Frames are 1-indexed to match Aseprite
 	int attackFrameStart;
 	int attackFrameEnd;
 	int attackActiveFrame;
+	int deathFrameStart;
+	int deathFrameEnd;
 	float frameTime;
 	int attackPattern;
 } EnemyData;
@@ -53,6 +55,8 @@ void initEnemyData(void) {
 		.dodgeChance = 20,
 		.texture = batTexture,
 		.idleFrameEnd = 6,
+		.deathFrameStart = 7,
+		.deathFrameEnd = 10,
 		.frameTime = 0.12f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
 	};
@@ -67,6 +71,8 @@ void initEnemyData(void) {
 		.abilityData = 4, // Number of baby slimes to spawn
 		.texture = slimeTexture,
 		.idleFrameEnd = 6,
+		.deathFrameStart = 7,
+		.deathFrameEnd = 10,
 		.frameTime = 0.14f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
 	};
@@ -80,6 +86,8 @@ void initEnemyData(void) {
 		.dodgeChance = 0,
 		.texture = babySlimeTexture,
 		.idleFrameEnd = 6,
+		.deathFrameStart = 7,
+		.deathFrameEnd = 10,
 		.frameTime = 0.1f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
 	};
@@ -96,6 +104,8 @@ void initEnemyData(void) {
 		.attackFrameStart = 7,
 		.attackFrameEnd = 14,
 		.attackActiveFrame = 12,
+		.deathFrameStart = 16,
+		.deathFrameEnd = 19,
 		.frameTime = 0.12f,
 		.attackPattern = ATTACK_PATTERN_MELEE
 	};
@@ -113,6 +123,8 @@ void initEnemyData(void) {
 		.attackFrameStart = 7,
 		.attackFrameEnd = 14,
 		.attackActiveFrame = 11,
+		.deathFrameStart = 15,
+		.deathFrameEnd = 18,
 		.frameTime = 0.14f,
 		.attackPattern = ATTACK_PATTERN_PROJECTILE
 	};
@@ -249,7 +261,7 @@ void spawnRandomEnemy(void) {
 	};
 	int spawnListLength = *(&spawnList + 1) - spawnList;
 	EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
-	// EnemyType enemyType = ENEMY_TYPE_IMP;
+	// EnemyType enemyType = ENEMY_TYPE_SKELETON;
 
 	int randMapX = randInt(1, MAP_WIDTH - 2);
 	int randMapY = randInt(1, MAP_HEIGHT - 2);
@@ -303,6 +315,11 @@ void updateEnemies(float deltaTime) {
 				if (curEnemy.animationFrame >= curEnemyData.attackFrameEnd) {
 					curEnemy.animationFrame = 0;
 					curEnemy.state = ENEMY_STATE_IDLE;
+				}
+			} else if (curEnemy.state == ENEMY_STATE_DEAD) {
+				if (curEnemy.animationFrame >= curEnemyData.deathFrameEnd) {
+					enemies[i].active = 0;
+					continue;
 				}
 			}
 		}
@@ -370,18 +387,31 @@ void enemyDeathEffect(int index) {
 	}
 }
 
-void damageEnemy(int index, int damage) {
-	enemies[index].hitFlashTime = HIT_FLASH_TIME;
-	enemies[index].health -= damage;
-	if (enemies[index].health <= 0) {
+int damageEnemy(int index, int damage) {
+	Enemy curEnemy = enemies[index];
+	if (curEnemy.state == ENEMY_STATE_DEAD) {
+		return 0;
+	}
+
+	EnemyData curEnemyData = enemyData[curEnemy.type];
+	curEnemy.hitFlashTime = HIT_FLASH_TIME;
+	curEnemy.health -= damage;
+	if (curEnemy.health <= 0) {
 		enemyDeathEffect(index);
 
-		enemies[index].active = 0;
+		curEnemy.state = ENEMY_STATE_DEAD;
+		curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
+		curEnemy.animationTime = curEnemyData.frameTime;
+		curEnemy.hitFlashTime = 0;
+
 		// Temp enemy respawn
 		if (enemies[index].type != ENEMY_TYPE_BABY_SLIME) {
 			spawnRandomEnemy();
 		}
 	}
+	
+	enemies[index] = curEnemy;
+	return 1;
 }
 
 int checkEnemyCollision(float x, float y, float collisionRange, int damage) {
@@ -393,8 +423,7 @@ int checkEnemyCollision(float x, float y, float collisionRange, int damage) {
 
 		float distSquared = distanceSquared(x, y, curEnemy.x, curEnemy.y);
 		if (distSquared < collisionRange) {
-			damageEnemy(i, damage);
-			return 1;
+			return damageEnemy(i, damage);
 		}
 	}
 	return 0;
