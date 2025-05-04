@@ -22,6 +22,7 @@ extern uint8_t *slimeTexture;
 extern uint8_t *babySlimeTexture;
 extern uint8_t *skeletonTexture;
 extern uint8_t *impTexture;
+extern uint8_t *flyingTomeTexture;
 
 extern LCDBitmap *handBitmap;
 extern LCDBitmap *handOpenBitmap;

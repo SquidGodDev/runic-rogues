@@ -18,7 +18,8 @@ typedef enum AttackPattern
 {
 	ATTACK_PATTERN_PROXIMITY,
 	ATTACK_PATTERN_MELEE,
-	ATTACK_PATTERN_PROJECTILE
+	ATTACK_PATTERN_PROJECTILE,
+	ATTACK_PATTERN_RUSH
 } AttackPattern;
 
 Enemy enemies[MAX_ENEMY_COUNT] = {0};
@@ -26,12 +27,14 @@ Enemy enemies[MAX_ENEMY_COUNT] = {0};
 typedef struct EnemyData {
 	char* name;
 	int health;
+	int attackDetectionRange;
 	int attackDistance;
 	int attackDamage;
 	float attackCooldown;
 	float moveSpeed;
 	int dodgeChance;
-	float abilityData; // Flexible property for enemy-specific behaviors or traits
+	float abilityDataPrimary; // Flexible property for enemy-specific behaviors or traits
+	float abilityDataSecondary;
 	uint8_t* texture;
 	int idleFrameEnd; // Frames are 1-indexed to match Aseprite
 	int attackFrameStart;
@@ -48,6 +51,7 @@ void initEnemyData(void) {
 	enemyData[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
 		.health = 4,
+		.attackDetectionRange = 100,
 		.attackDistance = 100,
 		.attackDamage = 1,
 		.attackCooldown = 0,
@@ -63,12 +67,13 @@ void initEnemyData(void) {
 	enemyData[ENEMY_TYPE_SLIME] = (EnemyData){
 		.name = "Slime",
 		.health = 3,
+		.attackDetectionRange = 100,
 		.attackDistance = 100,
 		.attackDamage = 1,
 		.attackCooldown = 0,
 		.moveSpeed = 0.1f,
 		.dodgeChance = 20,
-		.abilityData = 4, // Number of baby slimes to spawn
+		.abilityDataPrimary = 4, // Number of baby slimes to spawn
 		.texture = slimeTexture,
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
@@ -79,6 +84,7 @@ void initEnemyData(void) {
 	enemyData[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
 		.name = "Baby Slime",
 		.health = 1,
+		.attackDetectionRange = 100,
 		.attackDistance = 100,
 		.attackDamage = 1,
 		.attackCooldown = 0,
@@ -94,6 +100,7 @@ void initEnemyData(void) {
 	enemyData[ENEMY_TYPE_SKELETON] = (EnemyData){
 		.name = "Skeleton",
 		.health = 4,
+		.attackDetectionRange = 350,
 		.attackDistance = 350,
 		.attackDamage = 1,
 		.attackCooldown = 0,
@@ -112,12 +119,12 @@ void initEnemyData(void) {
 	enemyData[ENEMY_TYPE_IMP] = (EnemyData){
 		.name = "Imp",
 		.health = 3,
-		.attackDistance = 2000,
+		.attackDetectionRange = 2000,
 		.attackDamage = 1,
 		.attackCooldown = 8.0f,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
-		.abilityData = 1.0f * TARGET_FPS, // Projectile speed
+		.abilityDataPrimary = 1.0f * TARGET_FPS, // Projectile speed
 		.texture = impTexture,
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
@@ -127,6 +134,25 @@ void initEnemyData(void) {
 		.deathFrameEnd = 18,
 		.frameTime = 0.14f,
 		.attackPattern = ATTACK_PATTERN_PROJECTILE
+	};
+	enemyData[ENEMY_TYPE_FLYING_TOME] = (EnemyData){
+		.name = "Flying Tome",
+		.health = 3,
+		.attackDetectionRange = 2500,
+		.attackDistance = 100,
+		.attackDamage = 1,
+		.attackCooldown = 5.0f,
+		.moveSpeed = 0.2f,
+		.dodgeChance = 20,
+		.abilityDataPrimary = 0.7f, // Rush move speed
+		.texture = flyingTomeTexture,
+		.idleFrameEnd = 6,
+		.attackFrameStart = 7,
+		.attackFrameEnd = 11,
+		.deathFrameStart = 12,
+		.deathFrameEnd = 15,
+		.frameTime = 0.1f,
+		.attackPattern = ATTACK_PATTERN_RUSH
 	};
 }
 
@@ -192,26 +218,35 @@ int pickNewTargetCell(int index, int *targetMapX, int *targetMapY) {
 		|| checkTargetCell(index, targetMapX, targetMapY, *targetMapX + deltaX, *targetMapY - deltaY);
 }
 
-Enemy moveEnemy(Enemy enemy, int enemyIndex) {
-	EnemyData curEnemyData = enemyData[enemy.type];
+Enemy moveEnemy(Enemy enemy, int enemyIndex, float moveSpeed, float targetPlayerOverride) {
 	int enemyMapX = enemy.x / CELL_SIZE;
 	int enemyMapY = enemy.y / CELL_SIZE;
 	int targetMapX = enemy.targetMapX;
 	int targetMapY = enemy.targetMapY;
-	if(enemyMapX == targetMapX && enemyMapY == targetMapY)
-	{
-		pickNewTargetCell(enemyIndex, &targetMapX, &targetMapY);
-		enemy.targetMapX = targetMapX;
-		enemy.targetMapY = targetMapY;
+	int targetX;
+	int targetY;
+
+	if (targetPlayerOverride) {
+		targetX = playerX;
+		targetY = playerY;
+		enemy.targetMapX = (int)(targetX / CELL_SIZE);
+		enemy.targetMapY = (int)(targetY / CELL_SIZE);
+	} else {
+		if(enemyMapX == targetMapX && enemyMapY == targetMapY)
+		{
+			pickNewTargetCell(enemyIndex, &targetMapX, &targetMapY);
+			enemy.targetMapX = targetMapX;
+			enemy.targetMapY = targetMapY;
+		}
+	
+		if (isBlocked(targetMapX, targetMapY)) {
+			return enemy;
+		}
+
+		targetX = (targetMapX * CELL_SIZE) + CELL_SIZE / 2;
+		targetY = (targetMapY * CELL_SIZE) + CELL_SIZE / 2;
 	}
 
-	if (isBlocked(targetMapX, targetMapY)) {
-		return enemy;
-	}
-
-	int targetX = (targetMapX * CELL_SIZE) + CELL_SIZE / 2;
-	int targetY = (targetMapY * CELL_SIZE) + CELL_SIZE / 2;
-	float moveSpeed = curEnemyData.moveSpeed;
 	float deltaX = clampFloat(targetX - enemy.x, -moveSpeed, moveSpeed);
 	float deltaY = clampFloat(targetY - enemy.y, -moveSpeed, moveSpeed);
 
@@ -253,15 +288,16 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 }
 
 void spawnRandomEnemy(void) {
-	EnemyType spawnList[] = {
-		ENEMY_TYPE_BAT,
-		ENEMY_TYPE_SKELETON,
-		ENEMY_TYPE_SLIME,
-		ENEMY_TYPE_IMP
-	};
-	int spawnListLength = *(&spawnList + 1) - spawnList;
-	EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
-	// EnemyType enemyType = ENEMY_TYPE_SKELETON;
+	// EnemyType spawnList[] = {
+	// 	ENEMY_TYPE_BAT,
+	// 	ENEMY_TYPE_SKELETON,
+	// 	ENEMY_TYPE_SLIME,
+	// 	ENEMY_TYPE_IMP,
+	// 	ENEMY_TYPE_FLYING_TOME
+	// };
+	// int spawnListLength = *(&spawnList + 1) - spawnList;
+	// EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
+	EnemyType enemyType = ENEMY_TYPE_FLYING_TOME;
 
 	int randMapX = randInt(1, MAP_WIDTH - 2);
 	int randMapY = randInt(1, MAP_HEIGHT - 2);
@@ -286,6 +322,12 @@ void initEnemies(void) {
 	for (int i = 0; i < 5; i++) {
 		spawnRandomEnemy();
 	}
+}
+
+int playerInAttackDetectionRange(int enemyIndex) {
+	Enemy curEnemy = enemies[enemyIndex];
+	EnemyData curEnemyData = enemyData[curEnemy.type];
+	return distanceSquared(curEnemy.x, curEnemy.y, playerX, playerY) <= curEnemyData.attackDetectionRange;
 }
 
 int playerInAttackDistance(int enemyIndex) {
@@ -335,32 +377,40 @@ void updateEnemies(float deltaTime) {
 		}
 
 		if (curEnemy.state == ENEMY_STATE_IDLE) {
-			if (curEnemy.attackCooldown <= 0 && playerInAttackDistance(i)) {
-				curEnemy.attackCooldown = curEnemyData.attackCooldown;
-				if (curEnemyData.attackPattern == ATTACK_PATTERN_PROXIMITY) {
+			AttackPattern curAttackPattern = curEnemyData.attackPattern;
+			if (curAttackPattern == ATTACK_PATTERN_PROXIMITY || curAttackPattern == ATTACK_PATTERN_RUSH) {
+				if (playerInAttackDistance(i)) {
 					damagePlayer(curEnemyData.attackDamage);
-				} else if (curEnemyData.attackPattern == ATTACK_PATTERN_MELEE) {
-					curEnemy.state = ENEMY_STATE_ATTACK;
-					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
-					curEnemy.animationTime = curEnemyData.frameTime;
-				} else if (curEnemyData.attackPattern == ATTACK_PATTERN_PROJECTILE) {
-					curEnemy.state = ENEMY_STATE_ATTACK;
-					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
-					curEnemy.animationTime = curEnemyData.frameTime;
 				}
 			}
-			curEnemy = moveEnemy(curEnemy, i);
+
+			if (curEnemy.attackCooldown <= 0 && playerInAttackDetectionRange(i)) {
+				curEnemy.attackCooldown = curEnemyData.attackCooldown;
+				if (curAttackPattern == ATTACK_PATTERN_MELEE || curAttackPattern == ATTACK_PATTERN_PROJECTILE || curAttackPattern == ATTACK_PATTERN_RUSH) {
+					curEnemy.state = ENEMY_STATE_ATTACK;
+					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
+					curEnemy.animationTime = curEnemyData.frameTime;
+				} 
+			}
+
+			curEnemy = moveEnemy(curEnemy, i, curEnemyData.moveSpeed, 0 /*targetPlayerOverride*/);
 		} else if (curEnemy.state == ENEMY_STATE_ATTACK) {
-			if (curEnemy.animationFrame >= curEnemyData.attackActiveFrame) {
-				if (curEnemyData.attackPattern == ATTACK_PATTERN_MELEE) {
+			AttackPattern curAttackPattern = curEnemyData.attackPattern;
+			if (curAttackPattern == ATTACK_PATTERN_RUSH) {
+				curEnemy = moveEnemy(curEnemy, i, curEnemyData.abilityDataPrimary, 1 /*targetPlayerOverride*/);
+				if (playerInAttackDistance(i)) {
+					damagePlayer(curEnemyData.attackDamage);
+				}
+			} else if (curEnemy.animationFrame >= curEnemyData.attackActiveFrame) {
+				if (curAttackPattern == ATTACK_PATTERN_MELEE) {
 					if (playerInAttackDistance(i)) {
 						damagePlayer(curEnemyData.attackDamage);
 					}
-				} else if (curEnemyData.attackPattern == ATTACK_PATTERN_PROJECTILE) {
+				} else if (curAttackPattern == ATTACK_PATTERN_PROJECTILE) {
 					float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy.x, curEnemy.y));
 					float deltaX = (playerX - curEnemy.x) / distanceToPlayer;
 					float deltaY = (playerY - curEnemy.y) / distanceToPlayer;
-					float projectileSpeed = curEnemyData.abilityData;
+					float projectileSpeed = curEnemyData.abilityDataPrimary;
 					float damage = curEnemyData.attackDamage;
 					float projectileX = curEnemy.x + deltaX * PROJECTILE_OFFSET;
 					float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
@@ -380,7 +430,7 @@ void enemyDeathEffect(int index) {
 	Enemy curEnemy = enemies[index];
 	EnemyType enemyType = curEnemy.type;
 	if (enemyType == ENEMY_TYPE_SLIME) {
-		int slimeSpawnCount = enemyData[enemyType].abilityData;
+		int slimeSpawnCount = enemyData[enemyType].abilityDataPrimary;
 		for (int i = 0; i < slimeSpawnCount; i++) {
 			spawnEnemy(ENEMY_TYPE_BABY_SLIME, curEnemy.x, curEnemy.y);
 		}

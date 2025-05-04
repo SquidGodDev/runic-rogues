@@ -25,6 +25,7 @@ uint8_t *slimeTexture;
 uint8_t *babySlimeTexture;
 uint8_t *skeletonTexture;
 uint8_t *impTexture;
+uint8_t *flyingTomeTexture;
 
 LCDBitmap *handBitmap;
 LCDBitmap *handOpenBitmap;
@@ -86,6 +87,7 @@ void initTextures(void)
 	babySlimeTexture = loadTexture("images/enemies/smallSlime");
 	skeletonTexture = loadTexture("images/enemies/skeleton");
 	impTexture = loadTexture("images/enemies/imp");
+	flyingTomeTexture = loadTexture("images/enemies/flyingTome");
 
 	enemyProjectileTexture = loadTexture("images/enemies/enemyProjectile");
 	projectileTexture = loadTexture("images/fireballTexture");
