@@ -28,6 +28,7 @@ typedef struct Enemy {
 	int targetMapY;
 	int health;
 	float attackCooldown;
+	float abilityCooldown;
 	float hitFlashTime;
 	float animationTime;
 	uint16_t animationFrame;

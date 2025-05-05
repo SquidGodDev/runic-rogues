@@ -31,6 +31,7 @@ typedef struct EnemyData {
 	int attackDistance;
 	int attackDamage;
 	float attackCooldown;
+	float abilityCooldown;
 	float moveSpeed;
 	int dodgeChance;
 	float abilityDataPrimary; // Flexible property for enemy-specific behaviors or traits
@@ -55,6 +56,7 @@ void initEnemyData(void) {
 		.attackDistance = 100,
 		.attackDamage = 1,
 		.attackCooldown = 0,
+		.abilityCooldown = 0,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
 		.texture = batTexture,
@@ -71,6 +73,7 @@ void initEnemyData(void) {
 		.attackDistance = 100,
 		.attackDamage = 1,
 		.attackCooldown = 0,
+		.abilityCooldown = 0,
 		.moveSpeed = 0.1f,
 		.dodgeChance = 20,
 		.abilityDataPrimary = 4, // Number of baby slimes to spawn
@@ -88,6 +91,7 @@ void initEnemyData(void) {
 		.attackDistance = 100,
 		.attackDamage = 1,
 		.attackCooldown = 0,
+		.abilityCooldown = 0,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 0,
 		.texture = babySlimeTexture,
@@ -104,6 +108,7 @@ void initEnemyData(void) {
 		.attackDistance = 350,
 		.attackDamage = 1,
 		.attackCooldown = 0,
+		.abilityCooldown = 0,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
 		.texture = skeletonTexture,
@@ -122,6 +127,7 @@ void initEnemyData(void) {
 		.attackDetectionRange = 2000,
 		.attackDamage = 1,
 		.attackCooldown = 8.0f,
+		.abilityCooldown = 0,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
 		.abilityDataPrimary = 1.0f * TARGET_FPS, // Projectile speed
@@ -141,7 +147,8 @@ void initEnemyData(void) {
 		.attackDetectionRange = 2500,
 		.attackDistance = 100,
 		.attackDamage = 1,
-		.attackCooldown = 5.0f,
+		.attackCooldown = 0.8f,
+		.abilityCooldown = 5.0f,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
 		.abilityDataPrimary = 0.7f, // Rush move speed
@@ -278,6 +285,7 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 		.targetMapY = y / CELL_SIZE,
 		.health = curEnemyData.health,
 		.attackCooldown = 0,
+		.abilityCooldown = 0,
 		.hitFlashTime = 0,
 		.animationTime = randFloat(0, curEnemyData.frameTime),
 		.animationFrame = randInt(0, curEnemyData.idleFrameEnd - 1),
@@ -376,21 +384,33 @@ void updateEnemies(float deltaTime) {
 			curEnemy.attackCooldown = 0;
 		}
 
+		curEnemy.abilityCooldown -= deltaTime;
+		if (curEnemy.abilityCooldown <= 0) {
+			curEnemy.abilityCooldown = 0;
+		}
+
 		if (curEnemy.state == ENEMY_STATE_IDLE) {
 			AttackPattern curAttackPattern = curEnemyData.attackPattern;
-			if (curAttackPattern == ATTACK_PATTERN_PROXIMITY || curAttackPattern == ATTACK_PATTERN_RUSH) {
-				if (playerInAttackDistance(i)) {
-					damagePlayer(curEnemyData.attackDamage);
+			if (curEnemy.abilityCooldown <= 0) {
+				curEnemy.abilityCooldown = curEnemyData.abilityCooldown;
+				if (curAttackPattern == ATTACK_PATTERN_RUSH) {
+					curEnemy.state = ENEMY_STATE_ATTACK;
+					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
+					curEnemy.animationTime = curEnemyData.frameTime;
 				}
 			}
 
 			if (curEnemy.attackCooldown <= 0 && playerInAttackDetectionRange(i)) {
 				curEnemy.attackCooldown = curEnemyData.attackCooldown;
-				if (curAttackPattern == ATTACK_PATTERN_MELEE || curAttackPattern == ATTACK_PATTERN_PROJECTILE || curAttackPattern == ATTACK_PATTERN_RUSH) {
+				if (curAttackPattern == ATTACK_PATTERN_MELEE || curAttackPattern == ATTACK_PATTERN_PROJECTILE) {
 					curEnemy.state = ENEMY_STATE_ATTACK;
 					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
 					curEnemy.animationTime = curEnemyData.frameTime;
-				} 
+				} else if (curAttackPattern == ATTACK_PATTERN_PROXIMITY || curAttackPattern == ATTACK_PATTERN_RUSH) {
+					if (playerInAttackDistance(i)) {
+						damagePlayer(curEnemyData.attackDamage);
+					}
+				}
 			}
 
 			curEnemy = moveEnemy(curEnemy, i, curEnemyData.moveSpeed, 0 /*targetPlayerOverride*/);
