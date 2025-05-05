@@ -90,14 +90,14 @@ void initTextures(void)
 	flyingTomeTexture = loadTexture("images/enemies/flyingTome");
 
 	enemyProjectileTexture = loadTexture("images/enemies/enemyProjectile");
-	projectileTexture = loadTexture("images/fireballTexture");
+	projectileTexture = loadTexture("images/player/fireballTexture");
 	projectileBreakTexture = loadTexture("images/projectileBreak");
 
-	handBitmap = pd->graphics->loadBitmap("images/hand", NULL);
-	handOpenBitmap = pd->graphics->loadBitmap("images/handOpen", NULL);
-	fullHeartBitmap = pd->graphics->loadBitmap("images/fullHeart", NULL);
-	halfHeartBitmap = pd->graphics->loadBitmap("images/halfHeart", NULL);
-	emptyHeartBitmap = pd->graphics->loadBitmap("images/emptyHeart", NULL);
+	handBitmap = pd->graphics->loadBitmap("images/player/hand", NULL);
+	handOpenBitmap = pd->graphics->loadBitmap("images/player/handOpen", NULL);
+	fullHeartBitmap = pd->graphics->loadBitmap("images/player/fullHeart", NULL);
+	halfHeartBitmap = pd->graphics->loadBitmap("images/player/halfHeart", NULL);
+	emptyHeartBitmap = pd->graphics->loadBitmap("images/player/emptyHeart", NULL);
 
 	gameFont = pd->graphics->loadFont("fonts/m5x7-12-outlined", NULL);
 	pd->graphics->setFont(gameFont);
