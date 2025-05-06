@@ -174,10 +174,10 @@ void initEnemyData(void) {
 		.texture = livingArmorTexture,
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
-		.attackFrameEnd = 18,
+		.attackFrameEnd = 16,
 		.attackActiveFrame = 12,
-		.deathFrameStart = 19,
-		.deathFrameEnd = 22,
+		.deathFrameStart = 17,
+		.deathFrameEnd = 20,
 		.frameTime = 0.15f,
 		.attackPattern = ATTACK_PATTERN_MELEE
 	};
