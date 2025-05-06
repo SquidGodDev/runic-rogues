@@ -161,6 +161,26 @@ void initEnemyData(void) {
 		.frameTime = 0.1f,
 		.attackPattern = ATTACK_PATTERN_RUSH
 	};
+	enemyData[ENEMY_TYPE_LIVING_ARMOR] = (EnemyData){
+		.name = "Living Armor",
+		.health = 6,
+		.attackDetectionRange = 350,
+		.attackDistance = 350,
+		.attackDamage = 2,
+		.attackCooldown = 0,
+		.abilityCooldown = 0,
+		.moveSpeed = 0.1f,
+		.dodgeChance = 10,
+		.texture = livingArmorTexture,
+		.idleFrameEnd = 6,
+		.attackFrameStart = 7,
+		.attackFrameEnd = 18,
+		.attackActiveFrame = 12,
+		.deathFrameStart = 19,
+		.deathFrameEnd = 22,
+		.frameTime = 0.15f,
+		.attackPattern = ATTACK_PATTERN_MELEE
+	};
 }
 
 int checkTargetCell(int index, int *targetMapX, int *targetMapY, int newX, int newY) {
@@ -296,16 +316,17 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 }
 
 void spawnRandomEnemy(void) {
-	// EnemyType spawnList[] = {
-	// 	ENEMY_TYPE_BAT,
-	// 	ENEMY_TYPE_SKELETON,
-	// 	ENEMY_TYPE_SLIME,
-	// 	ENEMY_TYPE_IMP,
-	// 	ENEMY_TYPE_FLYING_TOME
-	// };
-	// int spawnListLength = *(&spawnList + 1) - spawnList;
-	// EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
-	EnemyType enemyType = ENEMY_TYPE_FLYING_TOME;
+	EnemyType spawnList[] = {
+		ENEMY_TYPE_BAT,
+		ENEMY_TYPE_SKELETON,
+		ENEMY_TYPE_SLIME,
+		ENEMY_TYPE_IMP,
+		ENEMY_TYPE_FLYING_TOME,
+		ENEMY_TYPE_LIVING_ARMOR
+	};
+	int spawnListLength = *(&spawnList + 1) - spawnList;
+	EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
+	// EnemyType enemyType = ENEMY_TYPE_LIVING_ARMOR;
 
 	int randMapX = randInt(1, MAP_WIDTH - 2);
 	int randMapY = randInt(1, MAP_HEIGHT - 2);
