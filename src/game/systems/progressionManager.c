@@ -4,7 +4,7 @@
 #include "game/systems/progressionManager.h"
 #include "game/rendering/textures.h"
 
-Floor currentFloor = FLOOR_ECHOING_CAVERNS;
+Floor currentFloor = FLOOR_LOST_ARCHIVES;
 FloorData floorData[FLOOR_COUNT];
 
 void initProgressionManager(void) {

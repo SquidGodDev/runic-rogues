@@ -317,9 +317,9 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 
 void spawnRandomEnemy(void) {
 	EnemyType spawnList[] = {
-		ENEMY_TYPE_BAT,
-		ENEMY_TYPE_SKELETON,
-		ENEMY_TYPE_SLIME,
+		// ENEMY_TYPE_BAT,
+		// ENEMY_TYPE_SKELETON,
+		// ENEMY_TYPE_SLIME,
 		ENEMY_TYPE_IMP,
 		ENEMY_TYPE_FLYING_TOME,
 		ENEMY_TYPE_LIVING_ARMOR
