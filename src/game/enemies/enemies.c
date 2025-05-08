@@ -6,7 +6,6 @@
 #include "game/map/map.h"
 #include "game/enemies/enemies.h"
 #include "game/player/player.h"
-#include "game/player/playerUI.h"
 #include "game/entities/entities.h"
 #include "game/entities/projectiles.h"
 #include "game/rendering/textures.h"

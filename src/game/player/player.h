@@ -6,6 +6,10 @@ extern float playerAngle;
 extern float planeX, planeY;
 extern float dirX, dirY;
 
+extern int playerMaxHealth;
+extern int playerHealth;
+
 void initPlayer(void);
-void handleInput(float deltaTime);
+void updatePlayer(float deltaTime);
+void damagePlayer(int amount);
 void drawWeapon(float deltaTime);

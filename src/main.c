@@ -13,7 +13,7 @@
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
-#include "game/player/playerUI.h"
+#include "game/UI/UI.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
 #include "game/systems/progressionManager.h"
@@ -32,6 +32,9 @@ int initGame(lua_State* L)
 	initMap();
 	initRaycasting();
 
+	// UI
+	initUI();
+
 	// Entities
 	initEntities();
 	initEnemies();
@@ -49,12 +52,12 @@ int gameUpdate(lua_State* L)
 	float deltaTime = pd->system->getElapsedTime(); // In seconds
 	pd->system->resetElapsedTime();
 
-	handleInput(deltaTime);
+	updatePlayer(deltaTime);
 	updateEnemies(deltaTime);
 	updateProjectiles(deltaTime);
 	updateParticles(deltaTime);
 	renderScene();
-	drawPlayerUI(deltaTime);
+	drawUI(deltaTime);
 
 	pd->system->drawFPS(0, 108);
 

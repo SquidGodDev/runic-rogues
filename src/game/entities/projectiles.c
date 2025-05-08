@@ -7,7 +7,6 @@
 #include "game/entities/entities.h"
 #include "game/map/map.h"
 #include "game/player/player.h"
-#include "game/player/playerUI.h"
 #include "game/rendering/particles.h"
 #include "game/enemies/enemies.h"
 

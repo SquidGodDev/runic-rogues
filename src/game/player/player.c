@@ -4,7 +4,7 @@
 #include "globals.h"
 #include "helpers.h"
 #include "game/player/player.h"
-#include "game/player/playerUI.h"
+#include "game/UI/UI.h"
 #include "game/entities/projectiles.h"
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
@@ -14,12 +14,18 @@
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
+#define HIT_INVINCIBILITY_TIME 0.5f // Seconds
+
 // === Extern variables ===
 float playerX, playerY;
 float playerAngle;
 float planeX, planeY;
 float dirX, dirY;
+int playerMaxHealth;
+int playerHealth;
 // ========================
+
+float playerHitInvincibility;
 
 int playerRadius;
 float playerTurnSpeed;
@@ -72,8 +78,10 @@ void toggleMovementCallback(void* userdata) {
 }
 
 void initPlayer(void) {
-	initPlayerUI();
     // Player
+	playerMaxHealth = 8;
+    playerHealth = playerMaxHealth;
+	playerHitInvincibility = 0;
 	playerX = 100;
 	playerY = 120;
 	playerRadius = 6;
@@ -306,6 +314,31 @@ void handleInput(float deltaTime)
 		weaponTargetDrawX = weaponBasePositionX;
 		weaponTargetDrawY = weaponBasePositionY + weaponActiveYOffset;
 	}
+}
+
+void updatePlayer(float deltaTime) {
+	if (playerHitInvincibility > 0) {
+        playerHitInvincibility -= deltaTime;
+        if (playerHitInvincibility < 0) {
+            playerHitInvincibility = 0;
+        }
+    }
+	handleInput(deltaTime);
+}
+
+void damagePlayer(int amount) {
+    if (playerHitInvincibility > 0) {
+        return;
+    }
+
+    screenShake();
+    playerHitInvincibility = HIT_INVINCIBILITY_TIME;
+    playerHealth -= amount;
+    if (playerHealth <= 0) {
+        playerHealth = 0;
+        pd->graphics->clear(kColorBlack);
+        pd->lua->callFunction("GameOver", 0, NULL);
+    }
 }
 
 void drawWeapon(float deltaTime) {

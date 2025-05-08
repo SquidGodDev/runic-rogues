@@ -3,41 +3,19 @@
 
 #include "globals.h"
 #include "helpers.h"
-#include "game/player/playerUI.h"
+#include "game/UI/UI.h"
 #include "game/player/player.h"
 #include "game/rendering/textures.h"
 
-#define HIT_INVINCIBILITY_TIME 0.5f // Seconds
 #define SCREEN_SHAKE_TIME 0.5f // Seconds
 #define SCREEN_SHAKE_MAGNITUDE 7
 
-int playerMaxHealth;
-int playerHealth;
-float playerHitInvincibility;
 float screenShakeTime;
 
-void initPlayerUI(void) {
-    playerMaxHealth = 8;
-    playerHealth = playerMaxHealth;
-    playerHitInvincibility = 0;
+void initUI(void) {
     screenShakeTime = 0;
     pd->display->setOffset(0, 0);
     pd->graphics->setBackgroundColor(kColorBlack);
-}
-
-void damagePlayer(int amount) {
-    if (playerHitInvincibility > 0) {
-        return;
-    }
-
-    screenShakeTime = SCREEN_SHAKE_TIME;
-    playerHitInvincibility = HIT_INVINCIBILITY_TIME;
-    playerHealth -= amount;
-    if (playerHealth <= 0) {
-        playerHealth = 0;
-        pd->graphics->clear(kColorBlack);
-        pd->lua->callFunction("GameOver", 0, NULL);
-    }
 }
 
 void drawPlayerHearts(void) {
@@ -58,7 +36,7 @@ void drawPlayerHearts(void) {
     }
 }
 
-void drawPlayerUI(float deltaTime) {
+void drawUI(float deltaTime) {
     if (screenShakeTime > 0) {
         screenShakeTime -= deltaTime;
         if (screenShakeTime <= 0) {
@@ -71,13 +49,11 @@ void drawPlayerUI(float deltaTime) {
             pd->display->setOffset(shakeX, shakeY);
         }
     }
-    if (playerHitInvincibility > 0) {
-        playerHitInvincibility -= deltaTime;
-        if (playerHitInvincibility < 0) {
-            playerHitInvincibility = 0;
-        }
-    }
 
     drawPlayerHearts();
     drawWeapon(deltaTime);
+}
+
+void screenShake(void) {
+    screenShakeTime = SCREEN_SHAKE_TIME;
 }
