@@ -35,6 +35,8 @@ LCDBitmap *fullHeartBitmap;
 LCDBitmap *halfHeartBitmap;
 LCDBitmap *emptyHeartBitmap;
 
+LCDBitmap *minimapWallBitmap;
+
 LCDFont *gameFont;
 
 int fogPatterns[FOG_LEVELS][8] = {{0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x00},
@@ -97,9 +99,12 @@ void initTextures(void)
 
 	handBitmap = pd->graphics->loadBitmap("images/player/hand", NULL);
 	handOpenBitmap = pd->graphics->loadBitmap("images/player/handOpen", NULL);
-	fullHeartBitmap = pd->graphics->loadBitmap("images/player/fullHeart", NULL);
-	halfHeartBitmap = pd->graphics->loadBitmap("images/player/halfHeart", NULL);
-	emptyHeartBitmap = pd->graphics->loadBitmap("images/player/emptyHeart", NULL);
+
+	fullHeartBitmap = pd->graphics->loadBitmap("images/UI/fullHeart", NULL);
+	halfHeartBitmap = pd->graphics->loadBitmap("images/UI/halfHeart", NULL);
+	emptyHeartBitmap = pd->graphics->loadBitmap("images/UI/emptyHeart", NULL);
+
+	minimapWallBitmap = pd->graphics->loadBitmap("images/UI/minimapWall", NULL);
 
 	gameFont = pd->graphics->loadFont("fonts/m5x7-12-outlined", NULL);
 	pd->graphics->setFont(gameFont);

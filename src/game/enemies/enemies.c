@@ -348,7 +348,7 @@ void initEnemies(void) {
 	}
 
 	for (int i = 0; i < 5; i++) {
-		spawnRandomEnemy();
+		// spawnRandomEnemy();
 	}
 }
 

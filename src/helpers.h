@@ -59,3 +59,7 @@ static inline float randFloat(float min, float max) {
 static inline int randInt(int min, int max) {
 	return (rand() % (max - min + 1)) + min;
 }
+
+static inline float radToDeg(float radAngle) {
+	return radAngle * (180 / PI);
+} 

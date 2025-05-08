@@ -222,7 +222,7 @@ void renderScene(void)
 	float playerMapX = playerX / CELL_SIZE;
 	float playerMapY = playerY / CELL_SIZE;
 
-	int fogOffset = ((int)(playerAngle * (180 / PI)) & ~1) % 8;
+	int fogOffset = ((int)(radToDeg(playerAngle)) & ~1) % 8;
 
 	int frameBuffer32BitIntsPerRow = ceilf((float)LCD_COLUMNS / 32);
 	int maxDrawInt = ceilf((float)SCREEN_WIDTH / 32);
