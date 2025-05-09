@@ -44,9 +44,10 @@ void drawMinimap(void) {
     int minimapSize = 13;
     int cellDrawSize = 4;
 
-    // == Base minimap layer (walls + border) ==
+    // == Base minimap layer (walls) ==
     int minimapPixelSize = minimapSize * cellDrawSize;
     LCDBitmap *minimapBitmap = pd->graphics->newBitmap(minimapPixelSize, minimapPixelSize, kColorBlack);
+
     pd->graphics->pushContext(minimapBitmap);
     int playerMapX = playerX / CELL_SIZE;
     int playerMapY = playerY / CELL_SIZE;
@@ -71,17 +72,22 @@ void drawMinimap(void) {
             }
         }
     }
+    pd->graphics->popContext();
 
-    // Draw border
-    pd->graphics->drawRect(0, 0, minimapPixelSize, minimapPixelSize, kColorWhite);
+    // Set circle mask
+    LCDBitmap *minimapMask = pd->graphics->newBitmap(minimapPixelSize, minimapPixelSize, kColorBlack);
+    pd->graphics->pushContext(minimapMask);
+    pd->graphics->fillEllipse(1, 1, minimapPixelSize - 2, minimapPixelSize - 2, 0, 0, kColorWhite);
+    pd->graphics->popContext();
+    pd->graphics->setBitmapMask(minimapBitmap, minimapMask);
 
     // Draw base layer
-    pd->graphics->popContext();
     pd->graphics->drawRotatedBitmap(minimapBitmap, MINIMAP_X, MINIMAP_Y, radToDeg(2*PI - playerAngle - P2), 0.5f, 0.5f, 1.0f, 1.0f);
     pd->graphics->freeBitmap(minimapBitmap);
+    pd->graphics->freeBitmap(minimapMask);
     // == End of base layer ==
 
-    // == Overlay layer (player + entities) ==
+    // == Overlay layer (player + entities + border) ==
     LCDBitmap *minimapOverlayBitmap = pd->graphics->newBitmap(minimapPixelSize, minimapPixelSize, kColorClear);
     pd->graphics->pushContext(minimapOverlayBitmap);
 
@@ -90,9 +96,12 @@ void drawMinimap(void) {
     int playerMinimapY = minimapSize / 2 * cellDrawSize - 1;
     pd->graphics->drawBitmap(minimapPlayerBitmap, playerMinimapX, playerMinimapY, kBitmapUnflipped);
 
+    // Draw border
+    pd->graphics->drawBitmap(minimapBorderBitmap, 0, 0, kBitmapUnflipped);
+
     // Draw overlay layer
     pd->graphics->popContext();
-    pd->graphics->drawRotatedBitmap(minimapPlayerBitmap, MINIMAP_X, MINIMAP_Y, 0, 0.5f, 0.5f, 1.0f, 1.0f);
+    pd->graphics->drawRotatedBitmap(minimapOverlayBitmap, MINIMAP_X, MINIMAP_Y, 0, 0.5f, 0.5f, 1.0f, 1.0f);
     pd->graphics->freeBitmap(minimapOverlayBitmap);
     // == End of overlay layer ==
 }

@@ -36,7 +36,7 @@ int isBlocked(int x, int y) {
     return map[y * MAP_WIDTH + x] != 0;
 }
 
-// From James Howard's Catacombs of the Damned under MIT license
+// From James Howard's Catacombs of the Damned: https://github.com/jhhoward/Arduboy3D
 int isClearLine(int x1, int y1, int x2, int y2) {
     int cellX1 = x1 / CELL_SIZE;
 	int cellX2 = x2 / CELL_SIZE;

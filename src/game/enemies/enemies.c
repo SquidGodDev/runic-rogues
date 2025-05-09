@@ -208,6 +208,7 @@ int checkTargetCell(int index, int *targetMapX, int *targetMapY, int newX, int n
 	return 1;
 }
 
+// Adapted from James Howard's Catacombs of the Damned: https://github.com/jhhoward/Arduboy3D
 int pickNewTargetCell(int index, int *targetMapX, int *targetMapY) {
 	int dodgeChance = enemyData[enemies[index].type].dodgeChance;
 	int deltaX = clampInt((playerX / CELL_SIZE) - *targetMapX, -1, 1);
