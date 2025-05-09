@@ -11,8 +11,8 @@
 #define SCREEN_SHAKE_TIME 0.5f // Seconds
 #define SCREEN_SHAKE_MAGNITUDE 7
 
-#define MINIMAP_X 165
-#define MINIMAP_Y 25
+#define MINIMAP_X 170
+#define MINIMAP_Y 30
 
 float screenShakeTime;
 
@@ -41,37 +41,60 @@ void drawPlayerHearts(void) {
 }
 
 void drawMinimap(void) {
-    int minimapSize = 9;
-    int cellDrawSize = 5;
+    int minimapSize = 13;
+    int cellDrawSize = 4;
 
+    // == Base minimap layer (walls + border) ==
     int minimapPixelSize = minimapSize * cellDrawSize;
     LCDBitmap *minimapBitmap = pd->graphics->newBitmap(minimapPixelSize, minimapPixelSize, kColorBlack);
-
     pd->graphics->pushContext(minimapBitmap);
     int playerMapX = playerX / CELL_SIZE;
     int playerMapY = playerY / CELL_SIZE;
-    for (int mapY = 0; mapY < minimapSize; mapY++) {
+    int playerOffsetX = roundf((playerX - playerMapX * CELL_SIZE) / cellDrawSize) + cellDrawSize / 2;
+    int playerOffsetY = roundf((playerY - playerMapY * CELL_SIZE) / cellDrawSize) + cellDrawSize / 2;
+    
+    // Draw walls
+    for (int mapY = 0; mapY < minimapSize + 1; mapY++) {
         int adjustedMapY = playerMapY - (minimapSize + 1) / 2 + mapY;
         if (adjustedMapY < 0 || adjustedMapY >= MAP_HEIGHT) {
             continue;
         }
-        for (int mapX = 0; mapX < minimapSize; mapX++) {
+        for (int mapX = 0; mapX < minimapSize + 1; mapX++) {
             int adjustedMapX = playerMapX - (minimapSize + 1) / 2 + mapX;
             if (adjustedMapX < 0 || adjustedMapX >= MAP_WIDTH) {
                 continue;
             }
-            int drawX = mapX * cellDrawSize;
-            int drawY = mapY * cellDrawSize;
+            int drawX = mapX * cellDrawSize - playerOffsetX;
+            int drawY = mapY * cellDrawSize - playerOffsetY;
             if (isBlocked(adjustedMapX, adjustedMapY)) {
                 pd->graphics->drawBitmap(minimapWallBitmap, drawX, drawY, kBitmapUnflipped);
             }
         }
     }
+
+    // Draw border
+    pd->graphics->drawRect(0, 0, minimapPixelSize, minimapPixelSize, kColorWhite);
+
+    // Draw base layer
     pd->graphics->popContext();
-
     pd->graphics->drawRotatedBitmap(minimapBitmap, MINIMAP_X, MINIMAP_Y, radToDeg(2*PI - playerAngle - P2), 0.5f, 0.5f, 1.0f, 1.0f);
-
     pd->graphics->freeBitmap(minimapBitmap);
+    // == End of base layer ==
+
+    // == Overlay layer (player + entities) ==
+    LCDBitmap *minimapOverlayBitmap = pd->graphics->newBitmap(minimapPixelSize, minimapPixelSize, kColorClear);
+    pd->graphics->pushContext(minimapOverlayBitmap);
+
+    // Draw player
+    int playerMinimapX = minimapSize / 2 * cellDrawSize - 1;
+    int playerMinimapY = minimapSize / 2 * cellDrawSize - 1;
+    pd->graphics->drawBitmap(minimapPlayerBitmap, playerMinimapX, playerMinimapY, kBitmapUnflipped);
+
+    // Draw overlay layer
+    pd->graphics->popContext();
+    pd->graphics->drawRotatedBitmap(minimapPlayerBitmap, MINIMAP_X, MINIMAP_Y, 0, 0.5f, 0.5f, 1.0f, 1.0f);
+    pd->graphics->freeBitmap(minimapOverlayBitmap);
+    // == End of overlay layer ==
 }
 
 void drawUI(float deltaTime) {

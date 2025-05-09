@@ -36,6 +36,7 @@ LCDBitmap *halfHeartBitmap;
 LCDBitmap *emptyHeartBitmap;
 
 LCDBitmap *minimapWallBitmap;
+LCDBitmap *minimapPlayerBitmap;
 
 LCDFont *gameFont;
 
@@ -105,6 +106,7 @@ void initTextures(void)
 	emptyHeartBitmap = pd->graphics->loadBitmap("images/UI/emptyHeart", NULL);
 
 	minimapWallBitmap = pd->graphics->loadBitmap("images/UI/minimapWall", NULL);
+	minimapPlayerBitmap = pd->graphics->loadBitmap("images/UI/minimapPlayer", NULL);
 
 	gameFont = pd->graphics->loadFont("fonts/m5x7-12-outlined", NULL);
 	pd->graphics->setFont(gameFont);
