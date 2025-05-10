@@ -22,6 +22,7 @@
 #define HALF_CELL_DRAW_SIZE CELL_DRAW_SIZE / 2
 #define ENTITY_DIST_SCALE_FACTOR CELL_DRAW_SIZE / CELL_SIZE
 #define MINIMAP_PIXEL_SIZE MINIMAP_SIZE * CELL_DRAW_SIZE
+#define MINIMAP_HALF_PIXEL_SIZE MINIMAP_PIXEL_SIZE / 2
 #define ENTITY_CHECK_DISTANCE powf((MINIMAP_SIZE / 2 + 1) * CELL_SIZE, 2.0f)
 #define MINIMAP_CENTER_X MINIMAP_SIZE / 2 * CELL_DRAW_SIZE - 1
 #define MINIMAP_CENTER_Y MINIMAP_SIZE / 2 * CELL_DRAW_SIZE - 1
@@ -160,7 +161,7 @@ void drawMinimap(void) {
 
     // Draw overlay layer
     pd->graphics->popContext();
-    pd->graphics->drawRotatedBitmap(minimapOverlayBitmap, MINIMAP_X, MINIMAP_Y, 0, 0.5f, 0.5f, 1.0f, 1.0f);
+    pd->graphics->drawBitmap(minimapOverlayBitmap, MINIMAP_X - MINIMAP_HALF_PIXEL_SIZE, MINIMAP_Y - MINIMAP_HALF_PIXEL_SIZE, kBitmapUnflipped);
     pd->graphics->freeBitmap(minimapOverlayBitmap);
     // == End of overlay layer ==
 }
