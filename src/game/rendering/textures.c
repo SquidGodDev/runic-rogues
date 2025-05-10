@@ -38,7 +38,8 @@ const char *bitmapPathStrings[] = {
 	"images/UI/minimapPlayer",
 	"images/UI/minimapBorder",
 	"images/UI/minimapEnemy",
-	"images/UI/minimapProjectile"	
+	"images/UI/minimapProjectile",
+	"images/UI/minimapMask",
 };
 
 LCDBitmap* BITMAPS[BITMAP_PATHS_COUNT];

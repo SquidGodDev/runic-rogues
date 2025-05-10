@@ -22,7 +22,7 @@
 #define HALF_CELL_DRAW_SIZE CELL_DRAW_SIZE / 2
 #define ENTITY_DIST_SCALE_FACTOR CELL_DRAW_SIZE / CELL_SIZE
 #define MINIMAP_PIXEL_SIZE MINIMAP_SIZE * CELL_DRAW_SIZE
-#define ENTITY_CHECK_DISTANCE powf((MINIMAP_SIZE / 2) * CELL_SIZE, 2.0f)
+#define ENTITY_CHECK_DISTANCE powf((MINIMAP_SIZE / 2 + 1) * CELL_SIZE, 2.0f)
 #define MINIMAP_CENTER_X MINIMAP_SIZE / 2 * CELL_DRAW_SIZE - 1
 #define MINIMAP_CENTER_Y MINIMAP_SIZE / 2 * CELL_DRAW_SIZE - 1
 
@@ -108,16 +108,16 @@ void drawMinimap(void) {
     pd->graphics->popContext();
 
     // Set circle mask
-    LCDBitmap *minimapMask = pd->graphics->newBitmap(MINIMAP_PIXEL_SIZE, MINIMAP_PIXEL_SIZE, kColorBlack);
-    pd->graphics->pushContext(minimapMask);
-    pd->graphics->fillEllipse(1, 1, MINIMAP_PIXEL_SIZE - 2, MINIMAP_PIXEL_SIZE - 2, 0, 0, kColorWhite);
+    LCDBitmap *baseLayerMask = pd->graphics->newBitmap(MINIMAP_PIXEL_SIZE, MINIMAP_PIXEL_SIZE, kColorWhite);
+    pd->graphics->pushContext(baseLayerMask);
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_MASK], 0, 0, kBitmapUnflipped);
     pd->graphics->popContext();
-    pd->graphics->setBitmapMask(minimapBitmap, minimapMask);
+    pd->graphics->setBitmapMask(minimapBitmap, baseLayerMask);
     
     // Draw base layer
     pd->graphics->drawRotatedBitmap(minimapBitmap, MINIMAP_X, MINIMAP_Y, radToDeg(rotatedPlayerAngle), 0.5f, 0.5f, 1.0f, 1.0f);
     pd->graphics->freeBitmap(minimapBitmap);
-    pd->graphics->freeBitmap(minimapMask);
+    pd->graphics->freeBitmap(baseLayerMask);
     // == End of base layer ==
 
     // == Overlay layer (player + entities) ==
@@ -148,6 +148,12 @@ void drawMinimap(void) {
 
         drawEntityToMinimap(curProjectile.x, curProjectile.y, PROJECTILE, playerAngleCos, playerAngleSin);
     }
+
+    // Set circle mask
+    LCDBitmap *overlayLayerMask = pd->graphics->getBitmapMask(minimapOverlayBitmap);
+    pd->graphics->pushContext(overlayLayerMask);
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_MASK], 0, 0, kBitmapUnflipped);
+    pd->graphics->popContext();
 
     // Draw border
     pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_BORDER], 0, 0, kBitmapUnflipped);
