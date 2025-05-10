@@ -28,18 +28,20 @@ uint8_t *impTexture;
 uint8_t *flyingTomeTexture;
 uint8_t *livingArmorTexture;
 
-LCDBitmap *handBitmap;
-LCDBitmap *handOpenBitmap;
+const char *bitmapPathStrings[] = {
+	"images/player/hand",
+	"images/player/handOpen",
+	"images/UI/fullHeart",
+	"images/UI/halfHeart",
+	"images/UI/emptyHeart",
+	"images/UI/minimapWall",
+	"images/UI/minimapPlayer",
+	"images/UI/minimapBorder",
+	"images/UI/minimapEnemy",
+	"images/UI/minimapProjectile"	
+};
 
-LCDBitmap *fullHeartBitmap;
-LCDBitmap *halfHeartBitmap;
-LCDBitmap *emptyHeartBitmap;
-
-LCDBitmap *minimapWallBitmap;
-LCDBitmap *minimapPlayerBitmap;
-LCDBitmap *minimapBorderBitmap;
-LCDBitmap *minimapEnemyBitmap;
-LCDBitmap *minimapProjectileBitmap;
+LCDBitmap* BITMAPS[BITMAP_PATHS_COUNT];
 
 LCDFont *gameFont;
 
@@ -101,18 +103,9 @@ void initTextures(void)
 	projectileTexture = loadTexture("images/player/fireballTexture");
 	projectileBreakTexture = loadTexture("images/projectileBreak");
 
-	handBitmap = pd->graphics->loadBitmap("images/player/hand", NULL);
-	handOpenBitmap = pd->graphics->loadBitmap("images/player/handOpen", NULL);
-
-	fullHeartBitmap = pd->graphics->loadBitmap("images/UI/fullHeart", NULL);
-	halfHeartBitmap = pd->graphics->loadBitmap("images/UI/halfHeart", NULL);
-	emptyHeartBitmap = pd->graphics->loadBitmap("images/UI/emptyHeart", NULL);
-
-	minimapWallBitmap = pd->graphics->loadBitmap("images/UI/minimapWall", NULL);
-	minimapPlayerBitmap = pd->graphics->loadBitmap("images/UI/minimapPlayer", NULL);
-	minimapBorderBitmap = pd->graphics->loadBitmap("images/UI/minimapBorder", NULL);
-	minimapEnemyBitmap = pd->graphics->loadBitmap("images/UI/minimapEnemy", NULL);
-	minimapProjectileBitmap = pd->graphics->loadBitmap("images/UI/minimapProjectile", NULL);
+	for (int i = 0; i < BITMAP_PATHS_COUNT; i++) {
+		BITMAPS[i] = pd->graphics->loadBitmap(bitmapPathStrings[i], NULL);
+	}
 
 	gameFont = pd->graphics->loadFont("fonts/m5x7-12-outlined", NULL);
 	pd->graphics->setFont(gameFont);

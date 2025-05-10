@@ -25,18 +25,20 @@ extern uint8_t *impTexture;
 extern uint8_t *flyingTomeTexture;
 extern uint8_t *livingArmorTexture;
 
-extern LCDBitmap *handBitmap;
-extern LCDBitmap *handOpenBitmap;
-
-extern LCDBitmap *fullHeartBitmap;
-extern LCDBitmap *halfHeartBitmap;
-extern LCDBitmap *emptyHeartBitmap;
-
-extern LCDBitmap *minimapWallBitmap;
-extern LCDBitmap *minimapPlayerBitmap;
-extern LCDBitmap *minimapBorderBitmap;
-extern LCDBitmap *minimapEnemyBitmap;
-extern LCDBitmap *minimapProjectileBitmap;
+typedef enum BitmapPaths {
+	BITMAP_HAND,
+	BITMAP_HAND_OPEN,
+	BITMAP_FULL_HEART,
+	BITMAP_HALF_HEART,
+	BITMAP_EMPTY_HEART,
+	BITMAP_MINIMAP_WALL,
+	BITMAP_MINIMAP_PLAYER,
+	BITMAP_MINIMAP_BORDER,
+	BITMAP_MINIMAP_ENEMY,
+	BITMAP_MINIMAP_PROJECTILE,
+	BITMAP_PATHS_COUNT
+} BitmapPaths;
+extern LCDBitmap* BITMAPS[];
 
 extern LCDFont *gameFont;
 

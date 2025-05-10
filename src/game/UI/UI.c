@@ -43,11 +43,11 @@ void drawPlayerHearts(void) {
         int drawX = 2 + i * 16;
 
         if (i < fullHeartCount) {
-            pd->graphics->drawBitmap(fullHeartBitmap, drawX, drawY, kBitmapUnflipped);
+            pd->graphics->drawBitmap(BITMAPS[BITMAP_FULL_HEART], drawX, drawY, kBitmapUnflipped);
         } else if (i == fullHeartCount && hasHalfHeart) {
-            pd->graphics->drawBitmap(halfHeartBitmap, drawX, drawY, kBitmapUnflipped);
+            pd->graphics->drawBitmap(BITMAPS[BITMAP_HALF_HEART], drawX, drawY, kBitmapUnflipped);
         } else {
-            pd->graphics->drawBitmap(emptyHeartBitmap, drawX, drawY, kBitmapUnflipped);
+            pd->graphics->drawBitmap(BITMAPS[BITMAP_EMPTY_HEART], drawX, drawY, kBitmapUnflipped);
         }
     }
 }
@@ -65,9 +65,9 @@ void drawEntityToMinimap(float entityX, float entityY, int type, float playerAng
         float entityMinimapY = MINIMAP_CENTER_Y + rotatedEntityY * ENTITY_DIST_SCALE_FACTOR;
 
         if (type == ENEMY) {
-            pd->graphics->drawBitmap(minimapEnemyBitmap, entityMinimapX, entityMinimapY, kBitmapUnflipped);
+            pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_ENEMY], entityMinimapX, entityMinimapY, kBitmapUnflipped);
         } else if (type == PROJECTILE) {
-            pd->graphics->drawBitmap(minimapProjectileBitmap, entityMinimapX, entityMinimapY, kBitmapUnflipped);
+            pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_PROJECTILE], entityMinimapX, entityMinimapY, kBitmapUnflipped);
         }
     }
 }
@@ -86,6 +86,7 @@ void drawMinimap(void) {
     int playerOffsetY = roundf((playerY - playerMapY * CELL_SIZE) / CELL_DRAW_SIZE) + CELL_DRAW_SIZE / 2;
     
     // Draw walls
+    LCDBitmap *minimapWallBitmap = BITMAPS[BITMAP_MINIMAP_WALL];
     for (int mapY = 0; mapY < MINIMAP_SIZE + 1; mapY++) {
         int adjustedMapY = playerMapY - (MINIMAP_SIZE + 1) / 2 + mapY;
         if (adjustedMapY < 0 || adjustedMapY >= MAP_HEIGHT) {
@@ -124,7 +125,7 @@ void drawMinimap(void) {
     pd->graphics->pushContext(minimapOverlayBitmap);
 
     // Draw player
-    pd->graphics->drawBitmap(minimapPlayerBitmap, MINIMAP_CENTER_X, MINIMAP_CENTER_Y, kBitmapUnflipped);
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_PLAYER], MINIMAP_CENTER_X, MINIMAP_CENTER_Y, kBitmapUnflipped);
 
     // Draw entities
     float playerAngleCos = cosf(rotatedPlayerAngle + PI);
@@ -149,7 +150,7 @@ void drawMinimap(void) {
     }
 
     // Draw border
-    pd->graphics->drawBitmap(minimapBorderBitmap, 0, 0, kBitmapUnflipped);
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_BORDER], 0, 0, kBitmapUnflipped);
 
     // Draw overlay layer
     pd->graphics->popContext();

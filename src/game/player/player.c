@@ -350,8 +350,8 @@ void drawWeapon(float deltaTime) {
 		if (weaponCurCooldown <= 0) {
 			weaponCurCooldown = 0;
 		}
-		pd->graphics->drawBitmap(handOpenBitmap, weaponDrawX, weaponDrawY, kBitmapUnflipped);
+		pd->graphics->drawBitmap(BITMAPS[BITMAP_HAND_OPEN], weaponDrawX, weaponDrawY, kBitmapUnflipped);
 	} else {
-		pd->graphics->drawBitmap(handBitmap, weaponDrawX, weaponDrawY, kBitmapUnflipped);
+		pd->graphics->drawBitmap(BITMAPS[BITMAP_HAND], weaponDrawX, weaponDrawY, kBitmapUnflipped);
 	}
 }
