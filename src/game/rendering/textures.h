@@ -35,6 +35,8 @@ extern LCDBitmap *emptyHeartBitmap;
 extern LCDBitmap *minimapWallBitmap;
 extern LCDBitmap *minimapPlayerBitmap;
 extern LCDBitmap *minimapBorderBitmap;
+extern LCDBitmap *minimapEnemyBitmap;
+extern LCDBitmap *minimapProjectileBitmap;
 
 extern LCDFont *gameFont;
 

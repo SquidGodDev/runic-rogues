@@ -10,8 +10,6 @@
 #include "game/rendering/particles.h"
 #include "game/enemies/enemies.h"
 
-#define MAX_PROJECTILE_COUNT 20
-
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 #define MAP_CHECK_OFFSET_X cosf(FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET / 4
@@ -20,18 +18,6 @@
 #define PLAYER_COLLISION_RANGE 30
 #define ENEMY_COLLISION_RANGE 15
 #define PARTICLE_OFFSET CELL_SIZE / 2
-
-typedef struct Projectile {
-	float x;
-	float y;
-	float deltaX;
-	float deltaY;
-	float speed;
-	uint8_t damage;
-	uint8_t *texture;
-	uint16_t isEnemy;
-	uint16_t active;
-} Projectile;
 
 Projectile projectiles[MAX_PROJECTILE_COUNT] = {0};
 

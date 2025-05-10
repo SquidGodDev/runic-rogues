@@ -13,6 +13,9 @@
 #define HIT_FLASH_TIME 0.1f // Seconds
 #define PROJECTILE_OFFSET 3
 
+// DEBUG
+#define SKIP_ENEMY_UPDATE 0
+
 typedef enum AttackPattern
 {
 	ATTACK_PATTERN_PROXIMITY,
@@ -349,7 +352,7 @@ void initEnemies(void) {
 	}
 
 	for (int i = 0; i < 5; i++) {
-		// spawnRandomEnemy();
+		spawnRandomEnemy();
 	}
 }
 
@@ -373,6 +376,11 @@ void updateEnemies(float deltaTime) {
 
 		Enemy curEnemy = enemies[i];
 		EnemyData curEnemyData = enemyData[curEnemy.type];
+
+		if (SKIP_ENEMY_UPDATE) {
+			addEntityToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, i, curEnemyData.texture, curEnemy.animationFrame);
+			continue;
+		}
 
 		curEnemy.animationTime -= deltaTime;
 		if (curEnemy.animationTime <= 0) {

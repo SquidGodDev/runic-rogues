@@ -7,12 +7,24 @@
 #include "game/player/player.h"
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
+#include "game/enemies/enemies.h"
+#include "game/entities/entities.h"
+#include "game/entities/projectiles.h"
 
 #define SCREEN_SHAKE_TIME 0.5f // Seconds
 #define SCREEN_SHAKE_MAGNITUDE 7
 
 #define MINIMAP_X 170
 #define MINIMAP_Y 30
+
+#define MINIMAP_SIZE 13 // Width/height in terms of cells
+#define CELL_DRAW_SIZE 4 // Pixel size of each cell
+#define HALF_CELL_DRAW_SIZE CELL_DRAW_SIZE / 2
+#define ENTITY_DIST_SCALE_FACTOR CELL_DRAW_SIZE / CELL_SIZE
+#define MINIMAP_PIXEL_SIZE MINIMAP_SIZE * CELL_DRAW_SIZE
+#define ENTITY_CHECK_DISTANCE powf((MINIMAP_SIZE / 2) * CELL_SIZE, 2.0f)
+#define MINIMAP_CENTER_X MINIMAP_SIZE / 2 * CELL_DRAW_SIZE - 1
+#define MINIMAP_CENTER_Y MINIMAP_SIZE / 2 * CELL_DRAW_SIZE - 1
 
 float screenShakeTime;
 
@@ -40,61 +52,101 @@ void drawPlayerHearts(void) {
     }
 }
 
+void drawEntityToMinimap(float entityX, float entityY, int type, float playerAngleCos, float playerAngleSin) {
+    float distSquaredToPlayer = distanceSquared(playerX, playerY, entityX, entityY);
+    if (distSquaredToPlayer <= ENTITY_CHECK_DISTANCE) {
+        float entityVectorX = (playerX - entityX);
+        float entityVectorY = (playerY - entityY);
+        // Multiply by rotation matrix to rotate
+        float rotatedEntityX = entityVectorX * playerAngleCos - entityVectorY * playerAngleSin;
+        float rotatedEntityY = entityVectorX * playerAngleSin + entityVectorY * playerAngleCos;
+
+        float entityMinimapX = MINIMAP_CENTER_X + rotatedEntityX * ENTITY_DIST_SCALE_FACTOR;
+        float entityMinimapY = MINIMAP_CENTER_Y + rotatedEntityY * ENTITY_DIST_SCALE_FACTOR;
+
+        if (type == ENEMY) {
+            pd->graphics->drawBitmap(minimapEnemyBitmap, entityMinimapX, entityMinimapY, kBitmapUnflipped);
+        } else if (type == PROJECTILE) {
+            pd->graphics->drawBitmap(minimapProjectileBitmap, entityMinimapX, entityMinimapY, kBitmapUnflipped);
+        }
+    }
+}
+
 void drawMinimap(void) {
-    int minimapSize = 13;
-    int cellDrawSize = 4;
+    // Angle that matches orientation of walls
+    float rotatedPlayerAngle = 2*PI - playerAngle - P2;
 
     // == Base minimap layer (walls) ==
-    int minimapPixelSize = minimapSize * cellDrawSize;
-    LCDBitmap *minimapBitmap = pd->graphics->newBitmap(minimapPixelSize, minimapPixelSize, kColorBlack);
+    LCDBitmap *minimapBitmap = pd->graphics->newBitmap(MINIMAP_PIXEL_SIZE, MINIMAP_PIXEL_SIZE, kColorBlack);
 
     pd->graphics->pushContext(minimapBitmap);
     int playerMapX = playerX / CELL_SIZE;
     int playerMapY = playerY / CELL_SIZE;
-    int playerOffsetX = roundf((playerX - playerMapX * CELL_SIZE) / cellDrawSize) + cellDrawSize / 2;
-    int playerOffsetY = roundf((playerY - playerMapY * CELL_SIZE) / cellDrawSize) + cellDrawSize / 2;
+    int playerOffsetX = roundf((playerX - playerMapX * CELL_SIZE) / CELL_DRAW_SIZE) + CELL_DRAW_SIZE / 2;
+    int playerOffsetY = roundf((playerY - playerMapY * CELL_SIZE) / CELL_DRAW_SIZE) + CELL_DRAW_SIZE / 2;
     
     // Draw walls
-    for (int mapY = 0; mapY < minimapSize + 1; mapY++) {
-        int adjustedMapY = playerMapY - (minimapSize + 1) / 2 + mapY;
+    for (int mapY = 0; mapY < MINIMAP_SIZE + 1; mapY++) {
+        int adjustedMapY = playerMapY - (MINIMAP_SIZE + 1) / 2 + mapY;
         if (adjustedMapY < 0 || adjustedMapY >= MAP_HEIGHT) {
             continue;
         }
-        for (int mapX = 0; mapX < minimapSize + 1; mapX++) {
-            int adjustedMapX = playerMapX - (minimapSize + 1) / 2 + mapX;
+        for (int mapX = 0; mapX < MINIMAP_SIZE + 1; mapX++) {
+            int adjustedMapX = playerMapX - (MINIMAP_SIZE + 1) / 2 + mapX;
             if (adjustedMapX < 0 || adjustedMapX >= MAP_WIDTH) {
                 continue;
             }
-            int drawX = mapX * cellDrawSize - playerOffsetX;
-            int drawY = mapY * cellDrawSize - playerOffsetY;
+            int drawX = mapX * CELL_DRAW_SIZE - playerOffsetX;
+            int drawY = mapY * CELL_DRAW_SIZE - playerOffsetY;
             if (isBlocked(adjustedMapX, adjustedMapY)) {
                 pd->graphics->drawBitmap(minimapWallBitmap, drawX, drawY, kBitmapUnflipped);
             }
         }
     }
+
     pd->graphics->popContext();
 
     // Set circle mask
-    LCDBitmap *minimapMask = pd->graphics->newBitmap(minimapPixelSize, minimapPixelSize, kColorBlack);
+    LCDBitmap *minimapMask = pd->graphics->newBitmap(MINIMAP_PIXEL_SIZE, MINIMAP_PIXEL_SIZE, kColorBlack);
     pd->graphics->pushContext(minimapMask);
-    pd->graphics->fillEllipse(1, 1, minimapPixelSize - 2, minimapPixelSize - 2, 0, 0, kColorWhite);
+    pd->graphics->fillEllipse(1, 1, MINIMAP_PIXEL_SIZE - 2, MINIMAP_PIXEL_SIZE - 2, 0, 0, kColorWhite);
     pd->graphics->popContext();
     pd->graphics->setBitmapMask(minimapBitmap, minimapMask);
-
+    
     // Draw base layer
-    pd->graphics->drawRotatedBitmap(minimapBitmap, MINIMAP_X, MINIMAP_Y, radToDeg(2*PI - playerAngle - P2), 0.5f, 0.5f, 1.0f, 1.0f);
+    pd->graphics->drawRotatedBitmap(minimapBitmap, MINIMAP_X, MINIMAP_Y, radToDeg(rotatedPlayerAngle), 0.5f, 0.5f, 1.0f, 1.0f);
     pd->graphics->freeBitmap(minimapBitmap);
     pd->graphics->freeBitmap(minimapMask);
     // == End of base layer ==
 
-    // == Overlay layer (player + entities + border) ==
-    LCDBitmap *minimapOverlayBitmap = pd->graphics->newBitmap(minimapPixelSize, minimapPixelSize, kColorClear);
+    // == Overlay layer (player + entities) ==
+    LCDBitmap *minimapOverlayBitmap = pd->graphics->newBitmap(MINIMAP_PIXEL_SIZE, MINIMAP_PIXEL_SIZE, kColorClear);
     pd->graphics->pushContext(minimapOverlayBitmap);
 
     // Draw player
-    int playerMinimapX = minimapSize / 2 * cellDrawSize - 1;
-    int playerMinimapY = minimapSize / 2 * cellDrawSize - 1;
-    pd->graphics->drawBitmap(minimapPlayerBitmap, playerMinimapX, playerMinimapY, kBitmapUnflipped);
+    pd->graphics->drawBitmap(minimapPlayerBitmap, MINIMAP_CENTER_X, MINIMAP_CENTER_Y, kBitmapUnflipped);
+
+    // Draw entities
+    float playerAngleCos = cosf(rotatedPlayerAngle + PI);
+    float playerAngleSin = sinf(rotatedPlayerAngle + PI);
+    // Draw enemies
+    for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+        Enemy curEnemy = enemies[i];
+        if (!curEnemy.active || curEnemy.state == ENEMY_STATE_DEAD) {
+            continue;
+        }
+
+        drawEntityToMinimap(curEnemy.x, curEnemy.y, ENEMY, playerAngleCos, playerAngleSin);
+    }
+    // Draw projectiles
+    for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
+        Projectile curProjectile = projectiles[i];
+        if (!curProjectile.active) {
+            continue;
+        }
+
+        drawEntityToMinimap(curProjectile.x, curProjectile.y, PROJECTILE, playerAngleCos, playerAngleSin);
+    }
 
     // Draw border
     pd->graphics->drawBitmap(minimapBorderBitmap, 0, 0, kBitmapUnflipped);

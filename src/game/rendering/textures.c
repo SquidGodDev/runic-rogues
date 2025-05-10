@@ -38,6 +38,8 @@ LCDBitmap *emptyHeartBitmap;
 LCDBitmap *minimapWallBitmap;
 LCDBitmap *minimapPlayerBitmap;
 LCDBitmap *minimapBorderBitmap;
+LCDBitmap *minimapEnemyBitmap;
+LCDBitmap *minimapProjectileBitmap;
 
 LCDFont *gameFont;
 
@@ -109,6 +111,8 @@ void initTextures(void)
 	minimapWallBitmap = pd->graphics->loadBitmap("images/UI/minimapWall", NULL);
 	minimapPlayerBitmap = pd->graphics->loadBitmap("images/UI/minimapPlayer", NULL);
 	minimapBorderBitmap = pd->graphics->loadBitmap("images/UI/minimapBorder", NULL);
+	minimapEnemyBitmap = pd->graphics->loadBitmap("images/UI/minimapEnemy", NULL);
+	minimapProjectileBitmap = pd->graphics->loadBitmap("images/UI/minimapProjectile", NULL);
 
 	gameFont = pd->graphics->loadFont("fonts/m5x7-12-outlined", NULL);
 	pd->graphics->setFont(gameFont);
