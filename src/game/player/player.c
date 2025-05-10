@@ -137,7 +137,7 @@ void handleInput(float deltaTime)
 			float projectileY = playerY + sinf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
 			float deltaX = cosf(playerAngle);
 			float deltaY = sinf(playerAngle);	
-			fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, projectileDamage, projectileTexture, 0 /*isEnemy*/);
+			fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, projectileDamage, TEXTURES[TEXTURE_PROJECTILE], 0 /*isEnemy*/);
 		}
 	}
 

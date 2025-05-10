@@ -3,27 +3,29 @@
 #include "pd_api.h"
 #include "globals.h"
 
-extern uint8_t *echoingCavernsWall;
-extern uint8_t *echoingCavernsCeiling;
-extern uint8_t *echoingCavernsFloor;
-extern uint8_t *lostArchivesWall;
-extern uint8_t *lostArchivesCeiling;
-extern uint8_t *lostArchivesFloor;
-extern uint8_t *testWall;
-extern uint8_t *testCeiling;
-extern uint8_t *testFloor;
-
-extern uint8_t *projectileTexture;
-extern uint8_t *projectileBreakTexture;
-
-extern uint8_t *enemyProjectileTexture;
-extern uint8_t *batTexture;
-extern uint8_t *slimeTexture;
-extern uint8_t *babySlimeTexture;
-extern uint8_t *skeletonTexture;
-extern uint8_t *impTexture;
-extern uint8_t *flyingTomeTexture;
-extern uint8_t *livingArmorTexture;
+typedef enum TexturePaths {
+	TEXTURE_ECHOING_CAVERNS_WALL,
+	TEXTURE_ECHOING_CAVERNS_CEILING,
+	TEXTURE_ECHOING_CAVERNS_FLOOR,
+	TEXTURE_LOST_ARCHIVES_WALL,
+	TEXTURE_LOST_ARCHIVES_CEILING,
+	TEXTURE_LOST_ARCHIVES_FLOOR,
+	TEXTURE_TEST_WALL,
+	TEXTURE_TEST_CEILING,
+	TEXTURE_TEST_FLOOR,
+	TEXTURE_PROJECTILE,
+	TEXTURE_PROJECTILE_BREAK,
+	TEXTURE_ENEMY_PROJECTILE,
+	TEXTURE_BAT,
+	TEXTURE_SLIME,
+	TEXTURE_BABY_SLIME,
+	TEXTURE_SKELETON,
+	TEXTURE_IMP,
+	TEXTURE_FLYING_TIME,
+	TEXTURE_LIVING_ARMOR,
+	TEXTURE_COUNT
+} TexturePaths;
+extern uint8_t* TEXTURES[];
 
 typedef enum BitmapPaths {
 	BITMAP_HAND,

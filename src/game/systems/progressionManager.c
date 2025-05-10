@@ -9,19 +9,19 @@ FloorData floorData[FLOOR_COUNT];
 
 void initProgressionManager(void) {
     floorData[FLOOR_ECHOING_CAVERNS] = (FloorData){
-        .wallTexture = echoingCavernsWall,
-        .ceilingTexture = echoingCavernsCeiling,
-        .floorTexture = echoingCavernsFloor
+        .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
+        .ceilingTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_CEILING],
+        .floorTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_FLOOR]
     };
     floorData[FLOOR_LOST_ARCHIVES] = (FloorData){
-        .wallTexture = lostArchivesWall,
-        .ceilingTexture = lostArchivesCeiling,
-        .floorTexture = lostArchivesFloor
+        .wallTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_WALL],
+        .ceilingTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_CEILING],
+        .floorTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_FLOOR]
     };
     floorData[FLOOR_TEST] = (FloorData){
-        .wallTexture = testWall,
-        .ceilingTexture = testCeiling,
-        .floorTexture = testFloor
+        .wallTexture = TEXTURES[TEXTURE_TEST_WALL],
+        .ceilingTexture = TEXTURES[TEXTURE_TEST_CEILING],
+        .floorTexture = TEXTURES[TEXTURE_TEST_FLOOR]
     };
 }
 

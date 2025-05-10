@@ -61,6 +61,6 @@ void updateParticles(float deltaTime) {
 
 		particles[i] = curParticle;
 
-		addEntityToRenderQueue(curParticle.x, curParticle.y, PARTICLE, i, projectileBreakTexture, curParticle.animationFrame);
+		addEntityToRenderQueue(curParticle.x, curParticle.y, PARTICLE, i, TEXTURES[TEXTURE_PROJECTILE_BREAK], curParticle.animationFrame);
 	}
 }

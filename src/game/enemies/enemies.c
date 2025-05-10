@@ -61,7 +61,7 @@ void initEnemyData(void) {
 		.abilityCooldown = 0,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
-		.texture = batTexture,
+		.texture = TEXTURES[TEXTURE_BAT],
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
@@ -79,7 +79,7 @@ void initEnemyData(void) {
 		.moveSpeed = 0.1f,
 		.dodgeChance = 20,
 		.abilityDataPrimary = 4, // Number of baby slimes to spawn
-		.texture = slimeTexture,
+		.texture = TEXTURES[TEXTURE_SLIME],
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
@@ -96,7 +96,7 @@ void initEnemyData(void) {
 		.abilityCooldown = 0,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 0,
-		.texture = babySlimeTexture,
+		.texture = TEXTURES[TEXTURE_BABY_SLIME],
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
@@ -113,7 +113,7 @@ void initEnemyData(void) {
 		.abilityCooldown = 0,
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
-		.texture = skeletonTexture,
+		.texture = TEXTURES[TEXTURE_SKELETON],
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
 		.attackFrameEnd = 14,
@@ -133,7 +133,7 @@ void initEnemyData(void) {
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
 		.abilityDataPrimary = 1.0f * TARGET_FPS, // Projectile speed
-		.texture = impTexture,
+		.texture = TEXTURES[TEXTURE_IMP],
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
 		.attackFrameEnd = 14,
@@ -154,7 +154,7 @@ void initEnemyData(void) {
 		.moveSpeed = 0.2f,
 		.dodgeChance = 20,
 		.abilityDataPrimary = 0.7f, // Rush move speed
-		.texture = flyingTomeTexture,
+		.texture = TEXTURES[TEXTURE_FLYING_TIME],
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
 		.attackFrameEnd = 11,
@@ -173,7 +173,7 @@ void initEnemyData(void) {
 		.abilityCooldown = 0,
 		.moveSpeed = 0.1f,
 		.dodgeChance = 10,
-		.texture = livingArmorTexture,
+		.texture = TEXTURES[TEXTURE_LIVING_ARMOR],
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
 		.attackFrameEnd = 16,
@@ -456,7 +456,7 @@ void updateEnemies(float deltaTime) {
 					float damage = curEnemyData.attackDamage;
 					float projectileX = curEnemy.x + deltaX * PROJECTILE_OFFSET;
 					float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
-					fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage, enemyProjectileTexture, 1 /*isEnemy*/);
+					fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/);
 				}
 				curEnemy.state = ENEMY_STATE_ATTACK_END;
 			}
