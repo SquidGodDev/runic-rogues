@@ -212,32 +212,34 @@ int checkTargetCell(int index, int *targetMapX, int *targetMapY, int newX, int n
 }
 
 // Adapted from James Howard's Catacombs of the Damned: https://github.com/jhhoward/Arduboy3D
-int pickNewTargetCell(int index, int *targetMapX, int *targetMapY) {
+int pickNewTargetCell(int index, int *targetMapX, int *targetMapY, int targetPlayerOverride) {
 	int dodgeChance = enemyData[enemies[index].type].dodgeChance;
 	int deltaX = clampInt((playerX / CELL_SIZE) - *targetMapX, -1, 1);
 	int deltaY = clampInt((playerY / CELL_SIZE) - *targetMapY, -1, 1);
 
-	int dodgeValue = randInt(0, 100);
-	if(deltaX == 0)
-	{
-		if(dodgeValue < dodgeChance / 2)
+	if (!targetPlayerOverride) {
+		int dodgeValue = randInt(0, 100);
+		if(deltaX == 0)
 		{
-			deltaX = -1;
+			if(dodgeValue < dodgeChance / 2)
+			{
+				deltaX = -1;
+			}
+			else if(dodgeValue < dodgeChance)
+			{
+				deltaX = 1;
+			}
 		}
-		else if(dodgeValue < dodgeChance)
+		else if(deltaY == 0)
 		{
-			deltaX = 1;
-		}
-	}
-	else if(deltaY == 0)
-	{
-		if(dodgeValue < dodgeChance / 2)
-		{
-			deltaY = -1;
-		}
-		else if(dodgeValue < dodgeChance)
-		{
-			deltaY = 1;
+			if(dodgeValue < dodgeChance / 2)
+			{
+				deltaY = -1;
+			}
+			else if(dodgeValue < dodgeChance)
+			{
+				deltaY = 1;
+			}
 		}
 	}
 
@@ -248,34 +250,25 @@ int pickNewTargetCell(int index, int *targetMapX, int *targetMapY) {
 		|| checkTargetCell(index, targetMapX, targetMapY, *targetMapX + deltaX, *targetMapY - deltaY);
 }
 
-Enemy moveEnemy(Enemy enemy, int enemyIndex, float moveSpeed, float targetPlayerOverride) {
+Enemy moveEnemy(Enemy enemy, int enemyIndex, float moveSpeed, int targetPlayerOverride) {
 	int enemyMapX = enemy.x / CELL_SIZE;
 	int enemyMapY = enemy.y / CELL_SIZE;
 	int targetMapX = enemy.targetMapX;
 	int targetMapY = enemy.targetMapY;
-	int targetX;
-	int targetY;
 
-	if (targetPlayerOverride) {
-		targetX = playerX;
-		targetY = playerY;
-		enemy.targetMapX = (int)(targetX / CELL_SIZE);
-		enemy.targetMapY = (int)(targetY / CELL_SIZE);
-	} else {
-		if(enemyMapX == targetMapX && enemyMapY == targetMapY)
-		{
-			pickNewTargetCell(enemyIndex, &targetMapX, &targetMapY);
-			enemy.targetMapX = targetMapX;
-			enemy.targetMapY = targetMapY;
-		}
-	
-		if (isBlocked(targetMapX, targetMapY)) {
-			return enemy;
-		}
-
-		targetX = (targetMapX * CELL_SIZE) + CELL_SIZE / 2;
-		targetY = (targetMapY * CELL_SIZE) + CELL_SIZE / 2;
+	if(targetPlayerOverride || (enemyMapX == targetMapX && enemyMapY == targetMapY))
+	{
+		pickNewTargetCell(enemyIndex, &targetMapX, &targetMapY, targetPlayerOverride);
+		enemy.targetMapX = targetMapX;
+		enemy.targetMapY = targetMapY;
 	}
+
+	if (isBlocked(targetMapX, targetMapY)) {
+		return enemy;
+	}
+
+	int targetX = (targetMapX * CELL_SIZE) + CELL_SIZE / 2;
+	int targetY = (targetMapY * CELL_SIZE) + CELL_SIZE / 2;
 
 	float deltaX = clampFloat(targetX - enemy.x, -moveSpeed, moveSpeed);
 	float deltaY = clampFloat(targetY - enemy.y, -moveSpeed, moveSpeed);
@@ -329,7 +322,7 @@ void spawnRandomEnemy(void) {
 	};
 	int spawnListLength = *(&spawnList + 1) - spawnList;
 	EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
-	// EnemyType enemyType = ENEMY_TYPE_LIVING_ARMOR;
+	// EnemyType enemyType = ENEMY_TYPE_FLYING_TOME;
 
 	int randMapX = randInt(1, MAP_WIDTH - 2);
 	int randMapY = randInt(1, MAP_HEIGHT - 2);
@@ -421,8 +414,8 @@ void updateEnemies(float deltaTime) {
 		if (curEnemy.state == ENEMY_STATE_IDLE) {
 			AttackPattern curAttackPattern = curEnemyData.attackPattern;
 			if (curEnemy.abilityCooldown <= 0) {
-				curEnemy.abilityCooldown = curEnemyData.abilityCooldown;
-				if (curAttackPattern == ATTACK_PATTERN_RUSH) {
+				if (curAttackPattern == ATTACK_PATTERN_RUSH && isClearLine(curEnemy.x, curEnemy.y, playerX, playerY)) {
+					curEnemy.abilityCooldown = curEnemyData.abilityCooldown;
 					curEnemy.state = ENEMY_STATE_ATTACK;
 					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
 					curEnemy.animationTime = curEnemyData.frameTime;
