@@ -29,7 +29,8 @@ int initGame(lua_State* L)
 	initProgressionManager();
 
 	// Map
-	initMap();
+	int playerSpawnX, playerSpawnY;
+	initMap(&playerSpawnX, &playerSpawnY);
 	initRaycasting();
 
 	// UI
@@ -42,7 +43,7 @@ int initGame(lua_State* L)
 	initParticles();
 
 	// Player
-	initPlayer();
+	initPlayer(playerSpawnX, playerSpawnY);
 
 	return 0;
 }

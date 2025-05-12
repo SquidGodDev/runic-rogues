@@ -9,7 +9,7 @@ extern float dirX, dirY;
 extern int playerMaxHealth;
 extern int playerHealth;
 
-void initPlayer(void);
+void initPlayer(int spawnX, int spawnY);
 void updatePlayer(float deltaTime);
 void damagePlayer(int amount);
 void drawWeapon(float deltaTime);

@@ -4,7 +4,7 @@
 
 extern int map[MAP_WIDTH * MAP_HEIGHT];
 
-void initMap(void);
+void initMap(int *spawnX, int *spawnY);
 int isBlocked(int x, int y);
 int isClearLine(int x1, int y1, int x2, int y2);
 

@@ -77,13 +77,13 @@ void toggleMovementCallback(void* userdata) {
 	movementToggled = 0;
 }
 
-void initPlayer(void) {
+void initPlayer(int spawnX, int spawnY) {
     // Player
 	playerMaxHealth = 8;
     playerHealth = playerMaxHealth;
 	playerHitInvincibility = 0;
-	playerX = 100;
-	playerY = 120;
+	playerX = spawnX;
+	playerY = spawnY;
 	playerRadius = 6;
 	playerAngle = 0;
 	playerTurnSpeed = 0;

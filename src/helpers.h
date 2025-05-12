@@ -55,7 +55,7 @@ static inline float randFloat(float min, float max) {
     return min + (float)rand() / RAND_MAX * (max - min);
 }
 
-// Non-inclusive
+// Inclusive
 static inline int randInt(int min, int max) {
 	return (rand() % (max - min + 1)) + min;
 }
