@@ -20,4 +20,4 @@
 #define FOG_MIN_DIST 60
 #define FOG_MAX_DIST (FOG_MIN_DIST + FOG_STEP * FOG_LEVELS)
 
-extern PlaydateAPI *pd; 
+extern PlaydateAPI *pd;

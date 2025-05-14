@@ -100,7 +100,7 @@ void initPlayer(int spawnX, int spawnY) {
 	playerXVelocity = 0;
 	playerYVelocity = 0;
 	planeX = 0;
-	planeY = -0.59f; // Supposed to be -tanf(FOV_RAD / 2), but adjusted since it was off for some reason
+	planeY = -0.59f; // I think it's supposed to be -tanf(FOV_RAD / 2) ~= -0.65, but adjusted since it was off for some reason
 	dirX = 1;
 	dirY = 0;
 
