@@ -263,9 +263,7 @@ void renderScene(void)
 				if (textureYModifier > ENVIRONMENT_TEXTURE_SIZE - 1) {
 					textureYModifier = ENVIRONMENT_TEXTURE_SIZE - 1;
 				}
-				float textureYStep = curLineData.textureYStep;
-				curLineData.textureYModifier = textureYModifier + textureYStep;
-				lineData[drawX] = curLineData;
+				lineData[drawX].textureYModifier += curLineData.textureYStep;
 
 				if (drawY < lineOffset) {
 					int floorDrawColor = 0;
