@@ -11,18 +11,22 @@
 #include "game/systems/progressionManager.h"
 
 #define ENVIRONMENT_TEXTURE_SIZE 16
+#define CEILING_RENDER_CONSTANT 67 // Lower scales larger, higher scales smaller
+#define FRAME_BUFFER_INTS_PER_ROW 13 // ceil(LCD_COLUMNS / 32)
 
 uint8_t *wallTexture;
 uint8_t *ceilingTexture;
 uint8_t *floorTexture;
 
-// Cacheline is 32 bytes (256 bits) - struct is 16 bytes, so can fit 2 into one cacheline
+// Cacheline is 32 bytes (256 bits)
 typedef struct LineData {
 	uint16_t lineHeight;
 	uint16_t textureX;
 	uint32_t lineOffset;
 	float textureYStep; // 32 bits
 	float textureYModifier; // 32 bits
+	float ceilingXModifier;
+	float ceilingYModifier;
 } LineData;
 
 void initRaycasting(void) {
@@ -175,7 +179,11 @@ void renderScene(void)
 		} else if (offsetAngle > 2 * PI) {
 			offsetAngle -= 2 * PI;
 		}
-		rayDistance = rayDistance * cosf(offsetAngle);
+		float fixedOffsetAngle = cosf(offsetAngle);
+		rayDistance = rayDistance * fixedOffsetAngle;
+
+		curLineData.ceilingXModifier = cosf(rayAngle) * CEILING_RENDER_CONSTANT * CELL_SIZE / fixedOffsetAngle;
+		curLineData.ceilingYModifier = sinf(rayAngle) * CEILING_RENDER_CONSTANT * CELL_SIZE / fixedOffsetAngle;
 
 		// Get wall slice draw height
 		float lineHeight = (cellSize * SCREEN_HEIGHT) / rayDistance;
@@ -212,28 +220,15 @@ void renderScene(void)
 		rayAngle += rayInterval;
 	}
 
-	// Draw to screen
-	float rayDirX0 = dirX + planeX;
-	float rayDirY0 = dirY + planeY;
-	float rayDirX1 = dirX - planeX;
-	float rayDirY1 = dirY - planeY;
-	float ceilingStepXModifier = (rayDirX1 - rayDirX0) / SCREEN_WIDTH;
-	float ceilingStepYModifier = (rayDirY1 - rayDirY0) / SCREEN_WIDTH;
-	float playerMapX = playerX / CELL_SIZE;
-	float playerMapY = playerY / CELL_SIZE;
-
 	int fogOffset = ((int)(radToDeg(playerAngle)) & ~1) % 8;
 
-	int frameBuffer32BitIntsPerRow = ceilf((float)LCD_COLUMNS / 32);
 	int maxDrawInt = ceilf((float)SCREEN_WIDTH / 32);
 	int bitRemainder = SCREEN_WIDTH % 32;
 	uint32_t *frameBuffer = (uint32_t *)pd->graphics->getFrame();
 	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++) {
-		// Current y position compared to the center of the screen (the horizon)
-		int p = HALF_SCREEN_HEIGHT - drawY;
 		// Horizontal distance from the camera to the floor for the current row.
 		// 0.5 is the z position exactly in the middle between floor and ceiling.
-		float rowDistance = (float)HALF_SCREEN_HEIGHT / p;
+		float rowDistance = (float)HALF_SCREEN_HEIGHT / (HALF_SCREEN_HEIGHT - drawY);
 
 		int inFog = 0;
 		float ceilingDistance = rowDistance * CELL_SIZE;
@@ -249,21 +244,9 @@ void renderScene(void)
 			fogShade = fogPattern[fogRow];
 		}
 
-		// calculate the real world step vector we have to add for each x (parallel to camera plane)
-		// adding step by step avoids multiplications with a weight in the inner loop
-		float ceilingStepX = rowDistance * ceilingStepXModifier;
-		float ceilingStepY = rowDistance * ceilingStepYModifier;
-		
-		// real world coordinates of the leftmost column. This will be updated as we step to the right.
-		float ceilingX = playerMapX + rowDistance * rayDirX0 - ceilingStepX;
-		float ceilingY = playerMapY + rowDistance * rayDirY0 - ceilingStepY;
-
 		for (int drawInt32 = 0; drawInt32 < maxDrawInt; drawInt32++) {
-			int frameBufferIndex = drawY * frameBuffer32BitIntsPerRow + drawInt32;
+			int frameBufferIndex = drawY * FRAME_BUFFER_INTS_PER_ROW + drawInt32;
 			uint32_t curDrawInt = frameBuffer[frameBufferIndex];
-			// if (drawY < SCREEN_HEIGHT / 2) {
-			// 	curDrawInt = skybox[frameBufferIndex];
-			// }
 			int drawBitMax = drawInt32 == (maxDrawInt - 1) ? bitRemainder : 32;
 			int drawIntOffset = drawInt32 * 32;
 			for (int drawBit = 0; drawBit < drawBitMax; drawBit++) {
@@ -283,21 +266,18 @@ void renderScene(void)
 				curLineData.textureYModifier = textureYModifier + textureYStep;
 				lineData[drawX] = curLineData;
 
-				ceilingX += ceilingStepX;
-				ceilingY += ceilingStepY;
 				if (drawY < lineOffset) {
 					int floorDrawColor = 0;
 					if (skipCeilingFloor || (inFog & ((fogShade >> fogShadeBit) & 1))) {
 						drawColor = 0;
 						floorDrawColor = 0;
 					} else {
-						// the cell coord is simply got from the integer parts of floorX and floorY
-						int cellX = (int)(ceilingX);
-						int cellY = (int)(ceilingY);
-				
-						// get the texture coordinate from the fractional part
-						int textureX = (int)(CELL_SIZE * (ceilingX - cellX)) & (CELL_SIZE - 1);
-						int textureY = (int)(CELL_SIZE * (ceilingY - cellY)) & (CELL_SIZE - 1);
+						float dy = drawY - HALF_SCREEN_HEIGHT;
+						float textureCoordX = playerX - curLineData.ceilingXModifier / dy;
+						float textureCoordY = playerY - curLineData.ceilingYModifier / dy;
+
+						int textureX = (int)(textureCoordX) & (CELL_SIZE - 1);
+						int textureY = (int)(textureCoordY) & (CELL_SIZE - 1);
 	
 						// Draw ceiling
 						int textureIndex = textureX + (textureY << 4);
@@ -307,7 +287,7 @@ void renderScene(void)
 						floorDrawColor = floorTexture[textureIndex];
 					}
 
-					int floorFrameBufferIndex = (SCREEN_HEIGHT - drawY - 1) * frameBuffer32BitIntsPerRow + drawInt32;
+					int floorFrameBufferIndex = (SCREEN_HEIGHT - drawY - 1) * FRAME_BUFFER_INTS_PER_ROW + drawInt32;
 					uint32_t floorFrameBufferInt = frameBuffer[floorFrameBufferIndex];
 					if (floorDrawColor == 1) {
 						floorFrameBufferInt |= 1 << (31 - (drawBit & 31));
@@ -316,6 +296,7 @@ void renderScene(void)
 					}
 					frameBuffer[floorFrameBufferIndex] = floorFrameBufferInt;
 				} else if (drawY > lineHeight + lineOffset + 1) {
+					// Floor - we already drew this when we drew the ceiling
 					continue;
 				} else {
 					float wallDistance = zBuffer[drawX];
