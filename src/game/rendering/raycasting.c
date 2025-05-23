@@ -314,7 +314,7 @@ void renderScene(void)
 						}
 					}
 	
-					int textureY = (int)(roundf(textureYModifier));
+					int textureY = (int)(textureYModifier + 0.5f);
 					drawColor = wallTexture[textureX + (textureY << 4)];
 
 					int fogShade = 0;
