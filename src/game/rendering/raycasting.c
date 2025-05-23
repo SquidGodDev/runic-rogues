@@ -160,18 +160,6 @@ void renderScene(void)
 			isShaded = 1;
 		}
 
-		if (verticalDistance > (maxDistance - 1) && horizontalDistance > (maxDistance - 1)) {
-			curLineData.lineHeight = 0;
-			curLineData.lineOffset = HALF_SCREEN_HEIGHT;
-			lineData[ray] = curLineData;
-			zBuffer[ray] = rayDistance;
-
-			rayAngle += rayInterval;
-			continue;
-		}
-
-		// === Draw 3D Walls ===
-
 		// Fix fisheye
 		float offsetAngle = playerAngle - rayAngle;
 		if (offsetAngle < 0) {
@@ -184,6 +172,18 @@ void renderScene(void)
 
 		curLineData.ceilingXModifier = cosf(rayAngle) * CEILING_RENDER_CONSTANT * CELL_SIZE / fixedOffsetAngle;
 		curLineData.ceilingYModifier = sinf(rayAngle) * CEILING_RENDER_CONSTANT * CELL_SIZE / fixedOffsetAngle;
+
+		if (verticalDistance > (maxDistance - 1) && horizontalDistance > (maxDistance - 1)) {
+			curLineData.lineHeight = 0;
+			curLineData.lineOffset = HALF_SCREEN_HEIGHT;
+			lineData[ray] = curLineData;
+			zBuffer[ray] = rayDistance;
+
+			rayAngle += rayInterval;
+			continue;
+		}
+
+		// === Draw 3D Walls ===
 
 		// Get wall slice draw height
 		float lineHeight = (cellSize * SCREEN_HEIGHT) / rayDistance;
@@ -229,6 +229,7 @@ void renderScene(void)
 		// Horizontal distance from the camera to the floor for the current row.
 		// 0.5 is the z position exactly in the middle between floor and ceiling.
 		float rowDistance = (float)HALF_SCREEN_HEIGHT / (HALF_SCREEN_HEIGHT - drawY);
+		float invDy = 1.0f / (drawY - HALF_SCREEN_HEIGHT);
 
 		int inFog = 0;
 		float ceilingDistance = rowDistance * CELL_SIZE;
@@ -272,9 +273,8 @@ void renderScene(void)
 						drawColor = 0;
 						floorDrawColor = 0;
 					} else {
-						float dy = drawY - HALF_SCREEN_HEIGHT;
-						float textureCoordX = playerX - curLineData.ceilingXModifier / dy;
-						float textureCoordY = playerY - curLineData.ceilingYModifier / dy;
+						float textureCoordX = playerX - curLineData.ceilingXModifier * invDy;
+						float textureCoordY = playerY - curLineData.ceilingYModifier * invDy;
 
 						int textureX = (int)(textureCoordX) & (CELL_SIZE - 1);
 						int textureY = (int)(textureCoordY) & (CELL_SIZE - 1);
