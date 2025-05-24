@@ -40,8 +40,7 @@ void renderScene(void)
 {
 	int cellSize = CELL_SIZE;
 	int cellSizeBit = 4;
-	int mapWidth = MAP_WIDTH;
-	int mapHeight = MAP_HEIGHT;
+	int mapSize = MAP_WIDTH * MAP_HEIGHT;
 
 	LineData lineData[SCREEN_WIDTH];
 	float zBuffer[SCREEN_WIDTH];
@@ -92,8 +91,8 @@ void renderScene(void)
 		while (depthOfField < maxFieldDepth) {
 			int mapX = (int)rayX >> cellSizeBit;
 			int mapY = (int)rayY >> cellSizeBit;
-			int mapIndex = mapY * mapWidth + mapX;
-			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1) {
+			int mapIndex = (mapY << MAP_WIDTH_BIT) + mapX;
+			if (mapIndex >= 0 && mapIndex < mapSize && map[mapIndex] == 1) {
 				depthOfField = maxFieldDepth; // Hit wall
 				horizontalDistance = distanceSquared(playerX, playerY, rayX, rayY);
 				horizontalRayX = rayX;
@@ -133,8 +132,8 @@ void renderScene(void)
 		while (depthOfField < maxFieldDepth) {
 			int mapX = (int)rayX >> cellSizeBit;
 			int mapY = (int)rayY >> cellSizeBit;
-			int mapIndex = mapY * mapWidth + mapX;
-			if (mapIndex >= 0 && mapIndex < mapWidth * mapHeight && map[mapIndex] == 1) {
+			int mapIndex = (mapY << MAP_WIDTH_BIT) + mapX;
+			if (mapIndex >= 0 && mapIndex < mapSize && map[mapIndex] == 1) {
 				depthOfField = maxFieldDepth; // Hit wall
 				verticalDistance = distanceSquared(playerX, playerY, rayX, rayY);
 				verticalRayX = rayX;
@@ -253,7 +252,7 @@ void renderScene(void)
 			for (int drawBit = 0; drawBit < drawBitMax; drawBit++) {
 				uint8_t drawColor;
 				int drawX = drawIntOffset + drawBit;
-				int fogShadeBit = (drawX + fogOffset) % 8;
+				int fogShadeBit = (drawX + fogOffset) & 7; // mod 8
 
 				LineData curLineData = lineData[drawX];
 				int lineHeight = curLineData.lineHeight;
@@ -306,7 +305,7 @@ void renderScene(void)
 					if (textureX >= 16) {
 						// Shaded wall
 						textureX -= 16;
-						if ((drawX + drawY) % 2 == 0) {
+						if (((drawX + drawY) & 1) == 0) {
 							curDrawInt &= ~(1 << (31 - (drawBit & 31)));
 							continue;
 						}

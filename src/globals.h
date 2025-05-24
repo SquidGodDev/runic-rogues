@@ -12,8 +12,10 @@
 #define SCREEN_HEIGHT 120
 #define HALF_SCREEN_HEIGHT SCREEN_HEIGHT / 2
 #define CELL_SIZE 16
-#define MAP_WIDTH 30
-#define MAP_HEIGHT 30
+#define MAP_WIDTH 32
+#define MAP_WIDTH_BIT 5
+#define MAP_HEIGHT 32
+#define MAP_HEIGHT_BIT 5
 
 #define FOG_LEVELS 15
 #define FOG_STEP 6
