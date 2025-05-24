@@ -225,13 +225,13 @@ void renderScene(void)
 	int bitRemainder = SCREEN_WIDTH % 32;
 	uint32_t *frameBuffer = (uint32_t *)pd->graphics->getFrame();
 	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++) {
+		// Horizontal distance from the camera to the floor for the current row.
+		// 0.5 is the z position exactly in the middle between floor and ceiling.
+		float rowDistance = (float)HALF_SCREEN_HEIGHT / (HALF_SCREEN_HEIGHT - drawY);
 		float invDy = 1.0f / (drawY - HALF_SCREEN_HEIGHT);
 
 		int inFog = 0;
-		int ceilingDistance = FOG_MAX_DIST + 1;
-		if (drawY != HALF_SCREEN_HEIGHT) {
-			ceilingDistance = (HALF_SCREEN_HEIGHT * CELL_SIZE) / (HALF_SCREEN_HEIGHT - drawY);
-		}
+		float ceilingDistance = rowDistance * CELL_SIZE;
 		int skipCeilingFloor = ceilingDistance > FOG_MAX_DIST;
 		int fogRow = drawY % 8;
 		int fogShade = 0;
