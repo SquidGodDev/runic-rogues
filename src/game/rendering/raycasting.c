@@ -271,11 +271,11 @@ void renderScene(void)
 						float textureCoordX = playerX - curLineData.ceilingXModifier * invDy;
 						float textureCoordY = playerY - curLineData.ceilingYModifier * invDy;
 
-						int textureX = (int)(textureCoordX) & (CELL_SIZE - 1);
-						int textureY = (int)(textureCoordY) & (CELL_SIZE - 1);
+						uint32_t textureX = (uint32_t)(textureCoordX) & (CELL_SIZE - 1);
+						uint32_t textureY = (uint32_t)(textureCoordY) & (CELL_SIZE - 1);
 	
 						// Draw ceiling
-						int textureIndex = textureX + (textureY << 4);
+						uint32_t textureIndex = textureX + (textureY << 4);
 						drawColor = ceilingTexture[textureIndex];
 	
 						// Draw floor

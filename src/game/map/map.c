@@ -48,14 +48,14 @@ void printMap(void) {
 void printTree(Node* node, int depth) {
     if (!node) return;
 
-    for (int i = 0; i < depth; i++) printf("  "); // Indentation
-    printf("Region: (%d,%d) %dx%d", node->region.x, node->region.y, node->region.width, node->region.height);
+    for (int i = 0; i < depth; i++) pd->system->logToConsole("  "); // Indentation
+    pd->system->logToConsole("Region: (%d,%d) %dx%d", node->region.x, node->region.y, node->region.width, node->region.height);
 
     if (!node->left && !node->right) {
-        printf(" | Room: (%d,%d) %dx%d", node->room.x, node->room.y, node->room.width, node->room.height);
+        pd->system->logToConsole(" | Room: (%d,%d) %dx%d", node->room.x, node->room.y, node->room.width, node->room.height);
     }
 
-    printf("\n");
+    pd->system->logToConsole("\n");
 
     printTree(node->left, depth + 1);
     printTree(node->right, depth + 1);
