@@ -11,7 +11,7 @@
 #include "game/systems/progressionManager.h"
 
 #define ENVIRONMENT_TEXTURE_SIZE 16
-#define CEILING_RENDER_CONSTANT 67 // Lower scales larger, higher scales smaller
+#define CEILING_RENDER_CONSTANT 65 * SCREEN_WIDTH / 200 // Lower scales larger, higher scales smaller
 #define FRAME_BUFFER_INTS_PER_ROW 13 // ceil(LCD_COLUMNS / 32)
 
 uint8_t *wallTexture;
