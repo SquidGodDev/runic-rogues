@@ -53,7 +53,7 @@ void initEntities(void) {
     queuedEntities = 0;
 }
 
-void renderEntities(float *zBuffer) {
+void renderEntities(int *zBuffer) {
     if (queuedEntities <= 0) {
         return;
     }
@@ -100,7 +100,7 @@ void renderEntities(float *zBuffer) {
             }
 
             int fogPatternIndex = (entityDistance - FOG_MIN_DIST) / FOG_STEP;
-            int *fogPattern = fogPatterns[fogPatternIndex];
+            uint8_t *fogPattern = fogPatterns[fogPatternIndex];
 
             int entityHeight = abs((int)((float)SCREEN_HEIGHT * invTransformY));
             int entityWidth = entityHeight;

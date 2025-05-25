@@ -43,7 +43,7 @@ void renderScene(void)
 	int mapSize = MAP_WIDTH * MAP_HEIGHT;
 
 	LineData lineData[SCREEN_WIDTH];
-	float zBuffer[SCREEN_WIDTH];
+	int zBuffer[SCREEN_WIDTH];
 
 	int maxFieldDepth = 8;
 	int rayCount = SCREEN_WIDTH;
@@ -240,13 +240,15 @@ void renderScene(void)
 		} else if (ceilingDistance <= FOG_MAX_DIST) {
 			inFog = 1;
 			int fogPatternIndex = (ceilingDistance - FOG_MIN_DIST) / FOG_STEP;
-			int *fogPattern = fogPatterns[fogPatternIndex];
+			uint8_t *fogPattern = fogPatterns[fogPatternIndex];
 			fogShade = fogPattern[fogRow];
 		}
 
 		for (int drawInt32 = 0; drawInt32 < maxDrawInt; drawInt32++) {
 			int frameBufferIndex = drawY * FRAME_BUFFER_INTS_PER_ROW + drawInt32;
 			uint32_t curDrawInt = frameBuffer[frameBufferIndex];
+			int floorFrameBufferIndex = (SCREEN_HEIGHT - drawY - 1) * FRAME_BUFFER_INTS_PER_ROW + drawInt32;
+			uint32_t curFloorDrawInt = 0;
 			int drawBitMax = drawInt32 == (maxDrawInt - 1) ? bitRemainder : 32;
 			int drawIntOffset = drawInt32 << 5; // multiply by 32
 			for (int drawBit = 0; drawBit < drawBitMax; drawBit++) {
@@ -259,16 +261,12 @@ void renderScene(void)
 				int lineOffset = curLineData.lineOffset;
 
 				float textureYModifier = curLineData.textureYModifier;
-				if (textureYModifier > ENVIRONMENT_TEXTURE_SIZE - 1) {
-					textureYModifier = ENVIRONMENT_TEXTURE_SIZE - 1;
-				}
+				textureYModifier = textureYModifier > ENVIRONMENT_TEXTURE_SIZE - 1 ? ENVIRONMENT_TEXTURE_SIZE - 1 : textureYModifier;
 				lineData[drawX].textureYModifier += curLineData.textureYStep;
 
 				if (drawY < lineOffset) {
-					int floorDrawColor = 0;
 					if (skipCeilingFloor || (inFog & ((fogShade >> fogShadeBit) & 1))) {
 						drawColor = 0;
-						floorDrawColor = 0;
 					} else {
 						float textureCoordX = playerX - curLineData.ceilingXModifier * invDy;
 						float textureCoordY = playerY - curLineData.ceilingYModifier * invDy;
@@ -281,27 +279,18 @@ void renderScene(void)
 						drawColor = ceilingTexture[textureIndex];
 	
 						// Draw floor
-						floorDrawColor = floorTexture[textureIndex];
+						curFloorDrawInt |= floorTexture[textureIndex] << (31 - (drawBit & 31));
 					}
-
-					int floorFrameBufferIndex = (SCREEN_HEIGHT - drawY - 1) * FRAME_BUFFER_INTS_PER_ROW + drawInt32;
-					uint32_t floorFrameBufferInt = frameBuffer[floorFrameBufferIndex];
-					if (floorDrawColor == 1) {
-						floorFrameBufferInt |= 1 << (31 - (drawBit & 31));
-					} else {
-						floorFrameBufferInt &= ~(1 << (31 - (drawBit & 31)));
-					}
-					frameBuffer[floorFrameBufferIndex] = floorFrameBufferInt;
 				} else if (drawY > lineHeight + lineOffset + 1) {
 					// Floor - we already drew this when we drew the ceiling
 					continue;
 				} else {
-					float wallDistance = zBuffer[drawX];
+					int wallDistance = zBuffer[drawX];
 					if (wallDistance > FOG_MAX_DIST) {
 						curDrawInt &= ~(1 << (31 - (drawBit & 31)));
 						continue;
 					}
-					int textureX = curLineData.textureX;
+					uint32_t textureX = curLineData.textureX;
 					if (textureX >= 16) {
 						// Shaded wall
 						textureX -= 16;
@@ -311,31 +300,23 @@ void renderScene(void)
 						}
 					}
 	
-					int textureY = (int)(textureYModifier + 0.5f);
+					uint32_t textureY = (int)(textureYModifier + 0.5f);
 					drawColor = wallTexture[textureX + (textureY << 4)];
 
-					int fogShade = 0;
-					if (wallDistance < FOG_MIN_DIST) {
-						fogShade = 0;
-					} else if (wallDistance >= FOG_MIN_DIST) {
-						int fogPatternIndex = ((int)wallDistance - FOG_MIN_DIST) / FOG_STEP;
-						int *fogPattern = fogPatterns[fogPatternIndex];
-						fogShade = fogPattern[fogRow];
-					}
-
+					uint32_t fogShade = wallDistance < FOG_MIN_DIST ? 0 : fogPatterns[((int)wallDistance - FOG_MIN_DIST) / FOG_STEP][fogRow];
 					if ((fogShade >> fogShadeBit) & 1) {
 						drawColor = 0;
 					}
 				}
 
-				if (drawColor == 1) {
-					curDrawInt |= 1 << (31 - (drawBit & 31));
-				} else {
-					curDrawInt &= ~(1 << (31 - (drawBit & 31)));
-				}
+				uint32_t bitMask = 1 << (31 - (drawBit & 31));
+				curDrawInt = (curDrawInt & ~bitMask) | (-((int)drawColor & 1) & bitMask);
 			}
 			curDrawInt = swap(curDrawInt);
 			frameBuffer[frameBufferIndex] = curDrawInt;
+			if (drawY < HALF_SCREEN_HEIGHT) {
+				frameBuffer[floorFrameBufferIndex] = curFloorDrawInt;
+			}
 		}
 	}
 

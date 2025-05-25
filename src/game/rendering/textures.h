@@ -45,6 +45,6 @@ extern LCDBitmap* BITMAPS[];
 
 extern LCDFont *gameFont;
 
-extern int fogPatterns[FOG_LEVELS][8];
+extern uint8_t fogPatterns[FOG_LEVELS][8];
 
 void initTextures(void);

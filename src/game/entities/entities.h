@@ -11,5 +11,5 @@ enum EntityType {
 extern enum ENTITY_TYPE EntityType;
 
 void initEntities(void);
-void renderEntities(float *zBuffer);
+void renderEntities(int *zBuffer);
 void addEntityToRenderQueue(float x, float y, int type, int index, uint8_t *texture, int animationFrame);
