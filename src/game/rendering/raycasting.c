@@ -10,6 +10,7 @@
 #include "game/player/player.h"
 #include "game/systems/progressionManager.h"
 
+#define MAX_FIELD_DEPTH 12
 #define ENVIRONMENT_TEXTURE_SIZE 16
 #define CEILING_RENDER_CONSTANT 65 * SCREEN_WIDTH / 200 // Lower scales larger, higher scales smaller
 #define FRAME_BUFFER_INTS_PER_ROW 13 // ceil(LCD_COLUMNS / 32)
@@ -45,7 +46,6 @@ void renderScene(void)
 	LineData lineData[SCREEN_WIDTH];
 	int zBuffer[SCREEN_WIDTH];
 
-	int maxFieldDepth = 8;
 	int rayCount = SCREEN_WIDTH;
 	float rayInterval = FOV_RAD / rayCount;
 	float rayAngle = playerAngle - rayInterval * rayCount / 2;
@@ -71,7 +71,7 @@ void renderScene(void)
 
 		if (rayAngle == 0 || rayAngle == PI) {
 			// Looking straight left or right
-			depthOfField = maxFieldDepth;
+			depthOfField = MAX_FIELD_DEPTH;
 			rayX = playerX;
 			rayY = playerY;
 		} else if (rayAngle > PI) {
@@ -88,12 +88,12 @@ void renderScene(void)
 			xOffset = -yOffset * rayPerpendicularSlope;
 		}
 
-		while (depthOfField < maxFieldDepth) {
+		while (depthOfField < MAX_FIELD_DEPTH) {
 			int mapX = (int)rayX >> cellSizeBit;
 			int mapY = (int)rayY >> cellSizeBit;
 			int mapIndex = (mapY << MAP_WIDTH_BIT) + mapX;
 			if (mapIndex >= 0 && mapIndex < mapSize && map[mapIndex] == 1) {
-				depthOfField = maxFieldDepth; // Hit wall
+				depthOfField = MAX_FIELD_DEPTH; // Hit wall
 				horizontalDistance = distanceSquared(playerX, playerY, rayX, rayY);
 				horizontalRayX = rayX;
 				horizontalRayY = rayY;
@@ -112,7 +112,7 @@ void renderScene(void)
 
 		if (rayAngle == P2 || rayAngle == P3) {
 			// Looking straight up or down
-			depthOfField = maxFieldDepth;
+			depthOfField = MAX_FIELD_DEPTH;
 			rayX = playerX;
 			rayY = playerY;
 		} else if (rayAngle > P2 && rayAngle < P3) {
@@ -129,12 +129,12 @@ void renderScene(void)
 			yOffset = -xOffset * rayNegSlope;
 		}
 
-		while (depthOfField < maxFieldDepth) {
+		while (depthOfField < MAX_FIELD_DEPTH) {
 			int mapX = (int)rayX >> cellSizeBit;
 			int mapY = (int)rayY >> cellSizeBit;
 			int mapIndex = (mapY << MAP_WIDTH_BIT) + mapX;
 			if (mapIndex >= 0 && mapIndex < mapSize && map[mapIndex] == 1) {
-				depthOfField = maxFieldDepth; // Hit wall
+				depthOfField = MAX_FIELD_DEPTH; // Hit wall
 				verticalDistance = distanceSquared(playerX, playerY, rayX, rayY);
 				verticalRayX = rayX;
 				verticalRayY = rayY;

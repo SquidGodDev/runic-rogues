@@ -17,9 +17,9 @@
 #define MAP_HEIGHT 32
 #define MAP_HEIGHT_BIT 5
 
-#define FOG_LEVELS 15
+#define FOG_LEVELS 16
 #define FOG_STEP 6
 #define FOG_MIN_DIST 60
-#define FOG_MAX_DIST (FOG_MIN_DIST + FOG_STEP * FOG_LEVELS)
+#define FOG_MAX_DIST (FOG_MIN_DIST + FOG_STEP * (FOG_LEVELS - 1))
 
 extern PlaydateAPI *pd;
