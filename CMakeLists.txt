@@ -56,6 +56,8 @@ if (TOOLCHAIN STREQUAL "armgcc")
 	)
 	target_compile_options(${PLAYDATE_GAME_DEVICE} PRIVATE 
 		-ffast-math
+		-falign-functions=32
+		-falign-loops=32
 	)
 else()
 	add_library(${PLAYDATE_GAME_NAME} SHARED ${SOURCES} ${HEADERS})
