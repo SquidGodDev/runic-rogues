@@ -91,9 +91,10 @@ void renderScene(void)
 		while (depthOfField < MAX_FIELD_DEPTH) {
 			int mapX = (int)rayX >> cellSizeBit;
 			int mapY = (int)rayY >> cellSizeBit;
-			int mapIndex = (mapY << MAP_WIDTH_BIT) + mapX;
-			if (mapIndex >= 0 && mapIndex < mapSize && map[mapIndex] == 1) {
-				depthOfField = MAX_FIELD_DEPTH; // Hit wall
+			int mapIndex = (mapY * MAP_WIDTH) + mapX;
+			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] == 1) {
+				// Hit wall
+				depthOfField = MAX_FIELD_DEPTH;
 				horizontalDistance = distanceSquared(playerX, playerY, rayX, rayY);
 				horizontalRayX = rayX;
 				horizontalRayY = rayY;
@@ -132,8 +133,8 @@ void renderScene(void)
 		while (depthOfField < MAX_FIELD_DEPTH) {
 			int mapX = (int)rayX >> cellSizeBit;
 			int mapY = (int)rayY >> cellSizeBit;
-			int mapIndex = (mapY << MAP_WIDTH_BIT) + mapX;
-			if (mapIndex >= 0 && mapIndex < mapSize && map[mapIndex] == 1) {
+			int mapIndex = (mapY * MAP_WIDTH) + mapX;
+			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] == 1) {
 				depthOfField = MAX_FIELD_DEPTH; // Hit wall
 				verticalDistance = distanceSquared(playerX, playerY, rayX, rayY);
 				verticalRayX = rayX;

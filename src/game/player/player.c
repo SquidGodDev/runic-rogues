@@ -6,6 +6,7 @@
 #include "game/player/player.h"
 #include "game/UI/UI.h"
 #include "game/entities/projectiles.h"
+#include "game/entities/interactables.h"
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
 
@@ -316,6 +317,21 @@ void handleInput(float deltaTime)
 	}
 }
 
+void handleInteractables(void) {
+	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
+		if (!INTERACTABLES[i].active) {
+			continue;
+		}
+
+		Interactable curInteractable = INTERACTABLES[i];
+		if (distanceSquared(playerX, playerY, curInteractable.x, curInteractable.y) <= INTERACT_DISTANCE) {
+			if (curInteractable.type == INTERACTABLE_TYPE_EXIT) {
+				pd->system->logToConsole("Interacted!");
+			}
+		}
+	}
+}
+
 void updatePlayer(float deltaTime) {
 	if (playerHitInvincibility > 0) {
         playerHitInvincibility -= deltaTime;
@@ -324,6 +340,7 @@ void updatePlayer(float deltaTime) {
         }
     }
 	handleInput(deltaTime);
+	handleInteractables();
 }
 
 void damagePlayer(int amount) {

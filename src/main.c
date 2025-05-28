@@ -9,6 +9,7 @@
 #include "helpers.h"
 #include "game/entities/entities.h"
 #include "game/entities/projectiles.h"
+#include "game/entities/interactables.h"
 #include "game/rendering/particles.h"
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
@@ -28,19 +29,22 @@ int initGame(lua_State* L)
 	// Progression
 	initProgressionManager();
 
+	// Entities
+	initEntities();
+	initInteractables();
+	initEnemies();
+	initProjectiles();
+	initParticles();
+
 	// Map
 	int playerSpawnX, playerSpawnY;
 	initMap(&playerSpawnX, &playerSpawnY);
 	initRaycasting();
 
+	spawnEnemies();
+
 	// UI
 	initUI();
-
-	// Entities
-	initEntities();
-	initEnemies();
-	initProjectiles();
-	initParticles();
 
 	// Player
 	initPlayer(playerSpawnX, playerSpawnY);
@@ -57,6 +61,7 @@ int gameUpdate(lua_State* L)
 	updateEnemies(deltaTime);
 	updateProjectiles(deltaTime);
 	updateParticles(deltaTime);
+	updateInteractables(deltaTime);
 	renderScene();
 	drawUI(deltaTime);
 

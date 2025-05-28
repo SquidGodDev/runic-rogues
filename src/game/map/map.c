@@ -3,6 +3,7 @@
 
 #include "globals.h"
 #include "helpers.h"
+#include "game/entities/interactables.h"
 
 #define PLAYDATE_SDK 1
 
@@ -49,13 +50,25 @@ void printTree(Node* node, int depth) {
     if (!node) return;
 
     for (int i = 0; i < depth; i++) pd->system->logToConsole("  "); // Indentation
-    pd->system->logToConsole("Region: (%d,%d) %dx%d", node->region.x, node->region.y, node->region.width, node->region.height);
+    #if PLAYDATE_SDK 
+        pd->system->logToConsole("Region: (%d,%d) %dx%d", node->region.x, node->region.y, node->region.width, node->region.height);
+    #else
+        printf("Region: (%d,%d) %dx%d", node->region.x, node->region.y, node->region.width, node->region.height);
+    #endif
 
     if (!node->left && !node->right) {
-        pd->system->logToConsole(" | Room: (%d,%d) %dx%d", node->room.x, node->room.y, node->room.width, node->room.height);
+        #if PLAYDATE_SDK
+            pd->system->logToConsole(" | Room: (%d,%d) %dx%d", node->room.x, node->room.y, node->room.width, node->room.height);
+        #else
+            printf(" | Room: (%d,%d) %dx%d", node->room.x, node->room.y, node->room.width, node->room.height);
+        #endif
     }
 
-    pd->system->logToConsole("\n");
+    #if PLAYDATE_SDK
+        pd->system->logToConsole("\n");
+    #else
+        printf("\n");
+    #endif
 
     printTree(node->left, depth + 1);
     printTree(node->right, depth + 1);
@@ -176,13 +189,38 @@ void freeTree(Node* node) {
     #endif
 }
 
-void generateDungeon(void) {
+void generateMazeDungeon(void) {
     fillMap(WALL);
     Rect rootRegion = {1, 1, MAP_WIDTH - 2, MAP_HEIGHT - 2};
     Node *dungeonRoot = bspSplit(rootRegion, 0 /* depth */);
-    printMap();
     // printTree(dungeonRoot, 0);
     freeTree(dungeonRoot);
+}
+
+void encloseMapInWalls(void) {
+    for (int x = 0; x < MAP_WIDTH; x++) {
+        setCell(x, 0, WALL); // Top row
+        setCell(x, MAP_HEIGHT - 1, WALL); // Bottom row
+    }
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        setCell(0, y, WALL); // Left column
+        setCell(MAP_WIDTH - 1, y, WALL); // Right column
+    }
+}
+
+void generateSquareDungeon(void) {
+    fillMap(FLOOR);
+    encloseMapInWalls();
+    playerSpawnMapX = MAP_WIDTH / 2;
+    playerSpawnMapY = MAP_HEIGHT / 2;
+    addInteractable(2, 2, INTERACTABLE_TYPE_EXIT);
+}
+
+void generateDungeon(void) {
+    // generateMazeDungeon();
+    generateSquareDungeon();
+
+    printMap();
 }
 
 void initMap(int *playerSpawnX, int *playerSpawnY) {

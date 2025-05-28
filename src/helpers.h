@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pd_api.h"
+#include "globals.h"
 
 // === MATH HELPERS ===
 #define ABS(x) (((x) < 0) ? -(x) : (x))
