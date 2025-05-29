@@ -41,6 +41,9 @@ const char *bitmapPathStrings[] = {
 	"images/UI/minimapEnemy",
 	"images/UI/minimapProjectile",
 	"images/UI/minimapMask",
+	"images/UI/prompts/AButton",
+	"images/UI/prompts/exitPrompt",
+	"images/UI/prompts/exitPrompt_JP",
 };
 
 LCDFont *gameFont;

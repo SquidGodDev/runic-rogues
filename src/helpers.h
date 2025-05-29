@@ -63,4 +63,7 @@ static inline int randInt(int min, int max) {
 
 static inline float radToDeg(float radAngle) {
 	return radAngle * (180 / PI);
-} 
+}
+
+// === DRAWING HELPERS ===
+void drawCenteredBitmap(LCDBitmap *bitmap, int x, int y);

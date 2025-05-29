@@ -18,14 +18,21 @@
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
 #include "game/systems/progressionManager.h"
+#include "game/settings/settings.h"
 
 PlaydateAPI *pd = NULL;
 
-int initGame(lua_State* L)
-{	
+void initSystems(void)
+{
 	// Textures
 	initTextures();
 
+	// Settings
+	initSettings();
+}
+
+int initGame(lua_State* L)
+{	
 	// Progression
 	initProgressionManager();
 
@@ -81,6 +88,7 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 
 		srand(pd->system->getSecondsSinceEpoch(NULL));
 
+		initSystems();
 		initGame(NULL);
 
 		pd->lua->addFunction(gameUpdate, "game.update", NULL);

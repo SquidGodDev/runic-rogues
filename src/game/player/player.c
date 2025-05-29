@@ -24,6 +24,8 @@ float planeX, planeY;
 float dirX, dirY;
 int playerMaxHealth;
 int playerHealth;
+
+int interactableIndex;
 // ========================
 
 float playerHitInvincibility;
@@ -53,12 +55,12 @@ int weaponBasePositionX = 126;
 int weaponBasePositionY = 75;
 int weaponXOffset = 5;
 int weaponYOffset = 3;
-int weaponActiveXOffset = -4;
+int weaponActiveXOffset = 0;
 int weaponActiveYOffset = -7;
-float weaponTargetDrawX = 0;
-float weaponTargetDrawY = 0;
-float weaponDrawX = 0;
-float weaponDrawY = 0;
+float weaponTargetDrawX;
+float weaponTargetDrawY;
+float weaponDrawX;
+float weaponDrawY;
 
 int defaultStrafeSetting = 0;
 int toggleMovementSetting = 0;
@@ -111,6 +113,9 @@ void initPlayer(int spawnX, int spawnY) {
 	weaponDrawX = weaponTargetDrawX;
 	weaponDrawY = weaponTargetDrawY;
 
+	// State
+	interactableIndex = -1;
+
 	pd->system->removeAllMenuItems();
 	const char *movementOptions[] = {"rotate", "strafe"};
 	toggleDefaultStrafeMenuItem = pd->system->addOptionsMenuItem("Default", movementOptions, 2, toggleDefaultStrafeCallback, NULL);
@@ -132,7 +137,9 @@ void handleInput(float deltaTime)
 	pd->system->getButtonState(&current, &pushed, NULL);
 
 	if (pushed & kButtonA) {
-		if (weaponCurCooldown <= 0) {
+		if (interactableIndex != -1) {
+			interact(interactableIndex);
+		} else if (weaponCurCooldown <= 0) {
 			weaponCurCooldown = weaponCooldown;
 			float projectileX = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
 			float projectileY = playerY + sinf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
@@ -312,12 +319,13 @@ void handleInput(float deltaTime)
 	}
 
 	if (weaponCurCooldown > 0) {
-		weaponTargetDrawX = weaponBasePositionX;
+		weaponTargetDrawX = weaponBasePositionX + weaponActiveXOffset;
 		weaponTargetDrawY = weaponBasePositionY + weaponActiveYOffset;
 	}
 }
 
 void handleInteractables(void) {
+	interactableIndex = -1;
 	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
 		if (!INTERACTABLES[i].active) {
 			continue;
@@ -325,9 +333,8 @@ void handleInteractables(void) {
 
 		Interactable curInteractable = INTERACTABLES[i];
 		if (distanceSquared(playerX, playerY, curInteractable.x, curInteractable.y) <= INTERACT_DISTANCE) {
-			if (curInteractable.type == INTERACTABLE_TYPE_EXIT) {
-				pd->system->logToConsole("Interacted!");
-			}
+			interactableIndex = i;
+			break;
 		}
 	}
 }

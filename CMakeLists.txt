@@ -52,6 +52,7 @@ if (TOOLCHAIN STREQUAL "armgcc")
 							   ${CMAKE_SOURCE_DIR}/game/map
 							   ${CMAKE_SOURCE_DIR}/game/player
 							   ${CMAKE_SOURCE_DIR}/game/rendering
+							   ${CMAKE_SOURCE_DIR}/game/settings
 							   ${CMAKE_SOURCE_DIR}/game/systems
 	)
 	target_compile_options(${PLAYDATE_GAME_DEVICE} PRIVATE 
@@ -68,6 +69,7 @@ else()
 							   ${CMAKE_SOURCE_DIR}/game/map
 							   ${CMAKE_SOURCE_DIR}/game/player
 							   ${CMAKE_SOURCE_DIR}/game/rendering
+							   ${CMAKE_SOURCE_DIR}/game/settings
 							   ${CMAKE_SOURCE_DIR}/game/systems
 	)
 	target_compile_options(${PLAYDATE_GAME_NAME} PRIVATE 

@@ -10,9 +10,16 @@
 #include "game/enemies/enemies.h"
 #include "game/entities/entities.h"
 #include "game/entities/projectiles.h"
+#include "game/entities/interactables.h"
+#include "game/settings/settings.h"
 
 #define SCREEN_SHAKE_TIME 0.5f // Seconds
 #define SCREEN_SHAKE_MAGNITUDE 7
+
+#define INTERACTABLE_PROMPT_LABEL_X 100
+#define INTERACTABLE_PROMPT_LABEL_Y 60
+#define INTERACTABLE_BUTTON_PROMPT_X 100
+#define INTERACTABLE_BUTTON_PROMPT_Y 80
 
 #define MINIMAP_X 170
 #define MINIMAP_Y 30
@@ -166,6 +173,30 @@ void drawMinimap(void) {
     // == End of overlay layer ==
 }
 
+void drawInteractablePrompt(void) {
+    if (interactableIndex < 0 || interactableIndex >= MAX_INTERACTABLE_COUNT) {
+        return;
+    }
+
+    Interactable curInteractable = INTERACTABLES[interactableIndex];
+    if (!curInteractable.active) {
+        return;
+    }
+
+    switch (curInteractable.type) {
+        case INTERACTABLE_TYPE_EXIT:
+            if (SETTINGS.language == LANGUAGE_JP) {
+                drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_EXIT_JP], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
+            } else {
+                drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_EXIT], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
+            }
+            drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_A_BUTTON], INTERACTABLE_BUTTON_PROMPT_X, INTERACTABLE_BUTTON_PROMPT_Y);
+            break;
+        default:
+            break;
+    }
+}
+
 void drawUI(float deltaTime) {
     if (screenShakeTime > 0) {
         screenShakeTime -= deltaTime;
@@ -183,6 +214,7 @@ void drawUI(float deltaTime) {
     drawPlayerHearts();
     drawMinimap();
     drawWeapon(deltaTime);
+    drawInteractablePrompt();
 }
 
 void screenShake(void) {

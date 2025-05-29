@@ -32,6 +32,25 @@ void initInteractables(void) {
 	}
 }
 
+void interact(int interactableIndex) {
+	if (interactableIndex < 0 || interactableIndex >= MAX_INTERACTABLE_COUNT) {
+		return;
+	}
+
+	Interactable curInteractable = INTERACTABLES[interactableIndex];
+	if (!curInteractable.active) {
+		return;
+	}
+
+	switch (curInteractable.type) {
+		case INTERACTABLE_TYPE_EXIT:
+			// Exit the current level
+			break;
+		default:
+			break;
+	}
+}
+
 void addInteractable(int mapX, int mapY, InteractableType type) {
     int newInteractableIndex = -1;
 	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {

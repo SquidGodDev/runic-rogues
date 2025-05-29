@@ -24,5 +24,6 @@ typedef struct Interactable {
 extern Interactable INTERACTABLES[MAX_INTERACTABLE_COUNT];
 
 void initInteractables(void);
+void interact(int interactableIndex);
 void addInteractable(int mapX, int mapY, InteractableType type);
 void updateInteractables(float deltaTime);

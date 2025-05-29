@@ -9,6 +9,8 @@ extern float dirX, dirY;
 extern int playerMaxHealth;
 extern int playerHealth;
 
+extern int interactableIndex;
+
 void initPlayer(int spawnX, int spawnY);
 void updatePlayer(float deltaTime);
 void damagePlayer(int amount);
