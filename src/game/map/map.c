@@ -17,7 +17,7 @@
 #define FLOOR 0
 
 int map[MAP_WIDTH * MAP_HEIGHT];
-int playerSpawnMapX, playerSpawnMapY;
+static int playerSpawnMapX, playerSpawnMapY;
 
 typedef struct Rect {
     int x, y, width, height;

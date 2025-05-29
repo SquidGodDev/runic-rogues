@@ -28,43 +28,43 @@ int playerHealth;
 int interactableIndex;
 // ========================
 
-float playerHitInvincibility;
+static float playerHitInvincibility;
 
-int playerRadius;
-float playerTurnSpeed;
-float playerTurnAccel;
-float playerTurnDrag;
-float playerTurnMaxSpeed;
-float playerTurnInitialSpeed;
+static int playerRadius;
+static float playerTurnSpeed;
+static float playerTurnAccel;
+static float playerTurnDrag;
+static float playerTurnMaxSpeed;
+static float playerTurnInitialSpeed;
 
-float playerXVelocity, playerYVelocity;
-float playerSpeed;
-float playerInitialSpeed;
-float playerAccel;
-float playerDrag;
-float playerMaxSpeed;
-float playerStrafeSpeed;
+static float playerXVelocity, playerYVelocity;
+static float playerSpeed;
+static float playerInitialSpeed;
+static float playerAccel;
+static float playerDrag;
+static float playerMaxSpeed;
+static float playerStrafeSpeed;
 
-int projectileDamage = 1;
-float projectileSpeed = 4.0f * TARGET_FPS;
-float weaponCooldown = 0.3f; // Seconds
-float weaponCurCooldown = 0;
-float weaponBobCounter = 0;
-float weaponBobSpeed = 0.15f;
-int weaponBasePositionX = 126;
-int weaponBasePositionY = 75;
-int weaponXOffset = 5;
-int weaponYOffset = 3;
-int weaponActiveXOffset = 0;
-int weaponActiveYOffset = -7;
-float weaponTargetDrawX;
-float weaponTargetDrawY;
-float weaponDrawX;
-float weaponDrawY;
+static int projectileDamage = 1;
+static float projectileSpeed = 4.0f * TARGET_FPS;
+static float weaponCooldown = 0.3f; // Seconds
+static float weaponCurCooldown = 0;
+static float weaponBobCounter = 0;
+static float weaponBobSpeed = 0.15f;
+static int weaponBasePositionX = 126;
+static int weaponBasePositionY = 75;
+static int weaponXOffset = 5;
+static int weaponYOffset = 3;
+static int weaponActiveXOffset = 0;
+static int weaponActiveYOffset = -7;
+static float weaponTargetDrawX;
+static float weaponTargetDrawY;
+static float weaponDrawX;
+static float weaponDrawY;
 
-int defaultStrafeSetting = 0;
-int toggleMovementSetting = 0;
-int movementToggled = 0;
+static int defaultStrafeSetting = 0;
+static int toggleMovementSetting = 0;
+static int movementToggled = 0;
 
 PDMenuItem* toggleDefaultStrafeMenuItem;
 PDMenuItem* toggleMovementMenuItem;

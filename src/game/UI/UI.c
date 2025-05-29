@@ -34,7 +34,7 @@
 #define MINIMAP_CENTER_X MINIMAP_SIZE / 2 * CELL_DRAW_SIZE - 1
 #define MINIMAP_CENTER_Y MINIMAP_SIZE / 2 * CELL_DRAW_SIZE - 1
 
-float screenShakeTime;
+static float screenShakeTime;
 
 void initUI(void) {
     screenShakeTime = 0;
