@@ -15,9 +15,9 @@
 #define CEILING_RENDER_CONSTANT 65 * SCREEN_WIDTH / 200 // Lower scales larger, higher scales smaller
 #define FRAME_BUFFER_INTS_PER_ROW 13 // ceil(LCD_COLUMNS / 32)
 
-uint8_t *wallTexture;
-uint8_t *ceilingTexture;
-uint8_t *floorTexture;
+static uint8_t *wallTexture;
+static uint8_t *ceilingTexture;
+static uint8_t *floorTexture;
 
 // Cacheline is 32 bytes (256 bits)
 typedef struct LineData {
