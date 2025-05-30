@@ -44,7 +44,8 @@ void interact(int interactableIndex) {
 
 	switch (curInteractable.type) {
 		case INTERACTABLE_TYPE_EXIT:
-			// Exit the current level
+			pd->system->logToConsole("Next Level C");
+			pd->lua->callFunction("NextLevel", 0, NULL);
 			break;
 		default:
 			break;

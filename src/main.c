@@ -31,7 +31,7 @@ void initSystems(void)
 	initSettings();
 }
 
-int initGame(lua_State* L)
+int initGameScene(lua_State* L)
 {	
 	// Progression
 	initProgressionManager();
@@ -59,7 +59,7 @@ int initGame(lua_State* L)
 	return 0;
 }
 
-int gameUpdate(lua_State* L)
+int updateGameScene(lua_State* L)
 {
 	float deltaTime = pd->system->getElapsedTime(); // In seconds
 	pd->system->resetElapsedTime();
@@ -89,10 +89,10 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 		srand(pd->system->getSecondsSinceEpoch(NULL));
 
 		initSystems();
-		initGame(NULL);
+		initGameScene(NULL);
 
-		pd->lua->addFunction(gameUpdate, "game.update", NULL);
-		pd->lua->addFunction(initGame, "game.init", NULL);
+		pd->lua->addFunction(updateGameScene, "GameScene.update", NULL);
+		pd->lua->addFunction(initGameScene, "GameScene.init", NULL);
 	}
 
 	return 0;
