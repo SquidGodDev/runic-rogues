@@ -7,7 +7,7 @@ local SCREEN_HEIGHT <const> = 120
 local TRANSITION_CENTER_X <const> = 100
 local TRANSITION_CENTER_Y <const> = 60
 local TRANSITION_TIME <const> = 500 -- milliseconds
-local TRANSITION_CIRCLE_BORDER <const> = 2 -- pixels
+local TRANSITION_CIRCLE_BORDER <const> = 3 -- pixels
 local MIN_RADIUS <const> = 0
 local MID_RADIUS <const> = 40
 local MAX_RADIUS <const> = 250
@@ -64,12 +64,11 @@ end
 
 local function createTransitionImage(value)
     transitionImage = gfx.image.new(SCREEN_WIDTH, SCREEN_HEIGHT, gfx.kColorBlack)
-    if value >= TRANSITION_CIRCLE_BORDER then
-        gfx.pushContext(transitionImage)
-            gfx.setColor(gfx.kColorWhite)
-            gfx.fillCircleAtPoint(TRANSITION_CENTER_X, TRANSITION_CENTER_Y, value + TRANSITION_CIRCLE_BORDER)
-        gfx.popContext()
-    end
+    local borderWidth = value > TRANSITION_CIRCLE_BORDER and TRANSITION_CIRCLE_BORDER or value
+    gfx.pushContext(transitionImage)
+        gfx.setColor(gfx.kColorWhite)
+        gfx.fillCircleAtPoint(TRANSITION_CENTER_X, TRANSITION_CENTER_Y, value + borderWidth)
+    gfx.popContext()
 
     local transitionMask = gfx.image.new(SCREEN_WIDTH, SCREEN_HEIGHT, gfx.kColorWhite)
     gfx.pushContext(transitionMask)
