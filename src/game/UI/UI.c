@@ -13,8 +13,8 @@
 #include "game/entities/interactables.h"
 #include "game/settings/settings.h"
 
-#define SCREEN_SHAKE_TIME 0.5f // Seconds
-#define SCREEN_SHAKE_MAGNITUDE 7
+#define MAX_SCREEN_SHAKE_TIME 0.8f // Seconds
+#define MAX_SCREEN_SHAKE_MAGNITUDE 10
 
 #define INTERACTABLE_PROMPT_LABEL_X 100
 #define INTERACTABLE_PROMPT_LABEL_Y 60
@@ -35,9 +35,11 @@
 #define MINIMAP_CENTER_Y MINIMAP_SIZE / 2 * CELL_DRAW_SIZE - 1
 
 static float screenShakeTime;
+static int shakeMagnitude;
 
 void initUI(void) {
     screenShakeTime = 0;
+    shakeMagnitude = 0;
     pd->display->setOffset(0, 0);
     pd->graphics->setBackgroundColor(kColorBlack);
 }
@@ -204,9 +206,9 @@ void drawUI(float deltaTime) {
             screenShakeTime = 0;
             pd->display->setOffset(0, 0);
         } else {
-            int shakeMagnitude = screenShakeTime * SCREEN_SHAKE_MAGNITUDE;
-            int shakeX = randInt(-shakeMagnitude, shakeMagnitude);
-            int shakeY = randInt(-shakeMagnitude, shakeMagnitude);
+            int curShakeMagnitude = screenShakeTime * shakeMagnitude;
+            int shakeX = randInt(-curShakeMagnitude, curShakeMagnitude);
+            int shakeY = randInt(-curShakeMagnitude, curShakeMagnitude);
             pd->display->setOffset(shakeX, shakeY);
         }
     }
@@ -217,6 +219,19 @@ void drawUI(float deltaTime) {
     drawInteractablePrompt();
 }
 
-void screenShake(void) {
-    screenShakeTime = SCREEN_SHAKE_TIME;
+void screenShake(ScreenShakeStrength strength) {
+    switch (strength) {
+        case SCREEN_SHAKE_LIGHT:
+            screenShakeTime = MAX_SCREEN_SHAKE_TIME * 0.5f;
+            shakeMagnitude = MAX_SCREEN_SHAKE_MAGNITUDE * 0.5f;
+            break;
+        case SCREEN_SHAKE_MEDIUM:
+            screenShakeTime = MAX_SCREEN_SHAKE_TIME * 0.75f;
+            shakeMagnitude = MAX_SCREEN_SHAKE_MAGNITUDE * 0.75f;
+            break;
+        case SCREEN_SHAKE_STRONG:
+            screenShakeTime = MAX_SCREEN_SHAKE_TIME;
+            shakeMagnitude = MAX_SCREEN_SHAKE_MAGNITUDE;
+            break;
+    }
 }

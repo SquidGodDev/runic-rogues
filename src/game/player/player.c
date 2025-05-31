@@ -80,13 +80,13 @@ void toggleMovementCallback(void* userdata) {
 	movementToggled = 0;
 }
 
-void initPlayer(int spawnX, int spawnY) {
+void initPlayer(void) {
     // Player
 	playerMaxHealth = 8;
     playerHealth = playerMaxHealth;
 	playerHitInvincibility = 0;
-	playerX = spawnX;
-	playerY = spawnY;
+	playerX = PLAYER_SPAWN_MAP_X * CELL_SIZE + CELL_SIZE / 2;
+	playerY = PLAYER_SPAWN_MAP_Y * CELL_SIZE + CELL_SIZE / 2;
 	playerRadius = 6;
 	playerAngle = 0;
 	playerTurnSpeed = 0;
@@ -355,7 +355,7 @@ void damagePlayer(int amount) {
         return;
     }
 
-    screenShake();
+    screenShake(SCREEN_SHAKE_MEDIUM);
     playerHitInvincibility = HIT_INVINCIBILITY_TIME;
     playerHealth -= amount;
     if (playerHealth <= 0) {

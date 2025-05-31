@@ -9,12 +9,22 @@
 #include "game/entities/entities.h"
 #include "game/entities/projectiles.h"
 #include "game/rendering/textures.h"
+#include "game/systems/progressionManager.h"
 
 #define HIT_FLASH_TIME 0.1f // Seconds
 #define PROJECTILE_OFFSET 3
 
+#define ENEMY_SPAWN_BORDER_SIZE 2 // Border size for enemy spawn area
+#define ENEMY_SPAWN_MIN_Y ENEMY_SPAWN_BORDER_SIZE
+#define ENEMY_SPAWN_MAX_Y (MAP_HEIGHT - ENEMY_SPAWN_BORDER_SIZE)
+#define ENEMY_SPAWN_MIN_X (MAP_WIDTH / 2) // Give space for player to spawn
+#define ENEMY_SPAWN_MAX_X (MAP_WIDTH - ENEMY_SPAWN_BORDER_SIZE)
+
 // DEBUG
 #define SKIP_ENEMY_UPDATE 0
+
+static int enemiesDefeated;
+static int enemiesSpawned;
 
 typedef enum AttackPattern
 {
@@ -312,29 +322,18 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 }
 
 void spawnRandomEnemy(void) {
-	EnemyType spawnList[] = {
-		// ENEMY_TYPE_BAT,
-		// ENEMY_TYPE_SKELETON,
-		// ENEMY_TYPE_SLIME,
-		ENEMY_TYPE_IMP,
-		ENEMY_TYPE_FLYING_TOME,
-		ENEMY_TYPE_LIVING_ARMOR
-	};
-	int spawnListLength = *(&spawnList + 1) - spawnList;
-	EnemyType enemyType = spawnList[randInt(0, spawnListLength - 1)];
-	// EnemyType enemyType = ENEMY_TYPE_FLYING_TOME;
+	EnemyType *spawnList = getFloorSpawnList();
+	EnemyType enemyType = spawnList[randInt(0, ENEMY_TYPES_PER_FLOOR - 1)];
 
-	int randMapX = randInt(1, MAP_WIDTH - 2);
-	int randMapY = randInt(1, MAP_HEIGHT - 2);
-	int playerMapX = playerX / CELL_SIZE;
-	int playerMapY = playerY / CELL_SIZE;
+	int randMapX = randInt(ENEMY_SPAWN_MIN_X, ENEMY_SPAWN_MAX_X);
+	int randMapY = randInt(ENEMY_SPAWN_MIN_Y, ENEMY_SPAWN_MAX_Y);
 
-	while (map[randMapY * MAP_WIDTH + randMapX] != 0 || (randMapX == playerMapX && randMapY == playerMapY)) {
-		randMapX = randInt(1, MAP_WIDTH - 2);
-		randMapY = randInt(1, MAP_HEIGHT - 2);
+	while (map[randMapY * MAP_WIDTH + randMapX] != 0) {
+		randMapX = randInt(ENEMY_SPAWN_MIN_X, ENEMY_SPAWN_MAX_X);
+		randMapY = randInt(ENEMY_SPAWN_MIN_Y, ENEMY_SPAWN_MAX_Y);
 	}
 
-	spawnEnemy(enemyType, randMapX * CELL_SIZE, randMapY * CELL_SIZE);
+	spawnEnemy(enemyType, randMapX * CELL_SIZE + CELL_SIZE / 2, randMapY * CELL_SIZE + CELL_SIZE / 2);
 }
 
 void initEnemies(void) {
@@ -346,8 +345,10 @@ void initEnemies(void) {
 }
 
 void spawnEnemies(void) {
-	for (int i = 0; i < 5; i++) {
-		// spawnRandomEnemy();
+	enemiesSpawned = getCurrentRoom() + 2;
+	enemiesDefeated = 0;
+	for (int i = 0; i < enemiesSpawned; i++) {
+		spawnRandomEnemy();
 	}
 }
 
@@ -492,16 +493,15 @@ int damageEnemy(int index, int damage) {
 	curEnemy.health -= damage;
 	if (curEnemy.health <= 0) {
 		enemyDeathEffect(index);
+		enemiesDefeated++;
+		if (enemiesDefeated >= enemiesSpawned) {
+			roomCompleted();
+		}
 
 		curEnemy.state = ENEMY_STATE_DEAD;
 		curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
 		curEnemy.animationTime = curEnemyData.frameTime;
 		curEnemy.hitFlashTime = 0;
-
-		// Temp enemy respawn
-		if (enemies[index].type != ENEMY_TYPE_BABY_SLIME) {
-			spawnRandomEnemy();
-		}
 	}
 	
 	enemies[index] = curEnemy;

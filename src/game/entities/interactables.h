@@ -3,7 +3,7 @@
 #include "pd_api.h"
 
 #define MAX_INTERACTABLE_COUNT 15
-#define INTERACT_DISTANCE 300
+#define INTERACT_DISTANCE 500
 
 typedef enum InteractableType
 {

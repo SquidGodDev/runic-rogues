@@ -6,6 +6,7 @@
 #include "game/entities/interactables.h"
 #include "game/rendering/textures.h"
 #include "game/entities/entities.h"
+#include "game/systems/progressionManager.h"
 
 typedef struct InteractableData {
 	uint8_t* texture;
@@ -44,8 +45,7 @@ void interact(int interactableIndex) {
 
 	switch (curInteractable.type) {
 		case INTERACTABLE_TYPE_EXIT:
-			pd->system->logToConsole("Next Level C");
-			pd->lua->callFunction("NextLevel", 0, NULL);
+			nextRoom();
 			break;
 		default:
 			break;

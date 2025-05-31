@@ -2,9 +2,13 @@
 
 #include "globals.h"
 
+#define PLAYER_SPAWN_MAP_X 2
+#define PLAYER_SPAWN_MAP_Y MAP_HEIGHT / 2
+#define PORTAL_SPAWN_MAP_X MAP_WIDTH * 3 / 4
+#define PORTAL_SPAWN_MAP_Y MAP_HEIGHT / 2
 extern int map[MAP_WIDTH * MAP_HEIGHT];
 
-void initMap(int *spawnX, int *spawnY);
+void initMap(void);
 int isBlocked(int x, int y);
 int isClearLine(int x1, int y1, int x2, int y2);
 

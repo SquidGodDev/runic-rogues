@@ -44,8 +44,7 @@ int initGameScene(lua_State* L)
 	initParticles();
 
 	// Map
-	int playerSpawnX, playerSpawnY;
-	initMap(&playerSpawnX, &playerSpawnY);
+	initMap();
 	initRaycasting();
 
 	spawnEnemies();
@@ -54,7 +53,7 @@ int initGameScene(lua_State* L)
 	initUI();
 
 	// Player
-	initPlayer(playerSpawnX, playerSpawnY);
+	initPlayer();
 
 	return 0;
 }

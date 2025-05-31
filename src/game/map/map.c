@@ -17,7 +17,6 @@
 #define FLOOR 0
 
 int map[MAP_WIDTH * MAP_HEIGHT];
-static int playerSpawnMapX, playerSpawnMapY;
 
 typedef struct Rect {
     int x, y, width, height;
@@ -146,8 +145,8 @@ Node* bspSplit(Rect region, int depth) {
     if (largeRoom || depth >= MAX_DEPTH || region.width <= MIN_ROOM_SIZE || region.height <= MIN_ROOM_SIZE) {
         node->room = defineRoom(region);
         carveRoom(node->room);
-        playerSpawnMapX = node->room.x + node->room.width / 2; 
-        playerSpawnMapY = node->room.y + node->room.height / 2; 
+        // playerSpawnMapX = node->room.x + node->room.width / 2;
+        // playerSpawnMapY = node->room.y + node->room.height / 2;
         return node;
     }
     
@@ -211,9 +210,6 @@ void encloseMapInWalls(void) {
 void generateSquareDungeon(void) {
     fillMap(FLOOR);
     encloseMapInWalls();
-    playerSpawnMapX = MAP_WIDTH / 2;
-    playerSpawnMapY = MAP_HEIGHT / 2;
-    addInteractable(2, 2, INTERACTABLE_TYPE_EXIT);
 }
 
 void generateDungeon(void) {
@@ -223,10 +219,8 @@ void generateDungeon(void) {
     printMap();
 }
 
-void initMap(int *playerSpawnX, int *playerSpawnY) {
+void initMap(void) {
     generateDungeon();
-    *playerSpawnX = playerSpawnMapX * CELL_SIZE;
-    *playerSpawnY = playerSpawnMapY * CELL_SIZE;
 }
 
 int isBlocked(int x, int y) {
@@ -234,6 +228,29 @@ int isBlocked(int x, int y) {
 }
 
 // From James Howard's Catacombs of the Damned: https://github.com/jhhoward/Arduboy3D
+/*
+MIT License
+
+Copyright (c) 2019 James Howard
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 int isClearLine(int x1, int y1, int x2, int y2) {
     int cellX1 = x1 / CELL_SIZE;
 	int cellX2 = x2 / CELL_SIZE;

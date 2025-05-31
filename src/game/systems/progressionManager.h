@@ -1,6 +1,10 @@
 #pragma once
 
 #include "pd_api.h"
+#include "game/enemies/enemies.h"
+
+#define MAX_ROOM_COUNT 10
+#define ENEMY_TYPES_PER_FLOOR 3
 
 typedef enum Floor
 {
@@ -18,3 +22,7 @@ typedef struct FloorData {
 
 void initProgressionManager(void);
 FloorData getCurrentFloorData(void);
+int getCurrentRoom(void);
+void roomCompleted(void);
+void nextRoom(void);
+EnemyType *getFloorSpawnList(void);
