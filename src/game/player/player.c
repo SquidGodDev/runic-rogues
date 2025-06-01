@@ -9,6 +9,7 @@
 #include "game/entities/interactables.h"
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
+#include "game/systems/progressionManager.h"
 
 #define CRANK_SENSITIVITY 0.3f
 // Spawn the projectile slightly to the right to match hand
@@ -81,9 +82,8 @@ void toggleMovementCallback(void* userdata) {
 }
 
 void initPlayer(void) {
-    // Player
+    // Player starting values
 	playerMaxHealth = 8;
-    playerHealth = playerMaxHealth;
 	playerHitInvincibility = 0;
 	playerX = PLAYER_SPAWN_MAP_X * CELL_SIZE + CELL_SIZE / 2;
 	playerY = PLAYER_SPAWN_MAP_Y * CELL_SIZE + CELL_SIZE / 2;
@@ -106,6 +106,10 @@ void initPlayer(void) {
 	planeY = -0.59f; // I think it's supposed to be -tanf(FOV_RAD / 2) ~= -0.65, but adjusted since it was off for some reason
 	dirX = 1;
 	dirY = 0;
+
+	if ((getCurrentRoom() == 0 && getCurrentArea() == 0) || playerHealth <= 0) {
+		playerHealth = playerMaxHealth;
+	}
 
 	// Animation
 	weaponTargetDrawX = weaponBasePositionX;

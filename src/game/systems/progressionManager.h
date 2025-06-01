@@ -22,6 +22,7 @@ typedef struct AreaData {
 
 void initProgressionManager(void);
 AreaData getCurrentAreaData(void);
+Area getCurrentArea(void);
 int getCurrentRoom(void);
 void roomCompleted(void);
 void nextRoom(void);

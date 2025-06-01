@@ -39,6 +39,10 @@ AreaData getCurrentAreaData(void) {
     return areaData[currentArea];
 }
 
+Area getCurrentArea(void) {
+    return currentArea;
+}
+
 int getCurrentRoom(void) {
     return currentRoom;
 }
