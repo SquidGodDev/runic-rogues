@@ -62,7 +62,7 @@ void drawPlayerHearts(void) {
     }
 }
 
-void drawEntityToMinimap(float entityX, float entityY, int type, float playerAngleCos, float playerAngleSin) {
+void drawEntityToMinimap(float entityX, float entityY, LCDBitmap *bitmap, float playerAngleCos, float playerAngleSin) {
     float distSquaredToPlayer = distanceSquared(playerX, playerY, entityX, entityY);
     if (distSquaredToPlayer <= ENTITY_CHECK_DISTANCE) {
         float entityVectorX = (playerX - entityX);
@@ -74,11 +74,7 @@ void drawEntityToMinimap(float entityX, float entityY, int type, float playerAng
         float entityMinimapX = MINIMAP_CENTER_X + rotatedEntityX * ENTITY_DIST_SCALE_FACTOR;
         float entityMinimapY = MINIMAP_CENTER_Y + rotatedEntityY * ENTITY_DIST_SCALE_FACTOR;
 
-        if (type == ENEMY) {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_ENEMY], entityMinimapX, entityMinimapY, kBitmapUnflipped);
-        } else if (type == PROJECTILE) {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_PROJECTILE], entityMinimapX, entityMinimapY, kBitmapUnflipped);
-        }
+        pd->graphics->drawBitmap(bitmap, entityMinimapX, entityMinimapY, kBitmapUnflipped);
     }
 }
 
@@ -134,9 +130,6 @@ void drawMinimap(void) {
     LCDBitmap *minimapOverlayBitmap = pd->graphics->newBitmap(MINIMAP_PIXEL_SIZE, MINIMAP_PIXEL_SIZE, kColorClear);
     pd->graphics->pushContext(minimapOverlayBitmap);
 
-    // Draw player
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_PLAYER], MINIMAP_CENTER_X, MINIMAP_CENTER_Y, kBitmapUnflipped);
-
     // Draw entities
     float playerAngleCos = cosf(rotatedPlayerAngle + PI);
     float playerAngleSin = sinf(rotatedPlayerAngle + PI);
@@ -147,7 +140,18 @@ void drawMinimap(void) {
             continue;
         }
 
-        drawEntityToMinimap(curEnemy.x, curEnemy.y, ENEMY, playerAngleCos, playerAngleSin);
+        drawEntityToMinimap(curEnemy.x, curEnemy.y, BITMAPS[BITMAP_MINIMAP_ENEMY], playerAngleCos, playerAngleSin);
+    }
+    // Draw interactables
+    for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
+        Interactable curInteractable = INTERACTABLES[i];
+        if (!curInteractable.active) {
+            continue;
+        }
+
+        if (curInteractable.type == INTERACTABLE_TYPE_EXIT) {
+            drawEntityToMinimap(curInteractable.x, curInteractable.y, BITMAPS[BITMAP_MINIMAP_EXIT], playerAngleCos, playerAngleSin);
+        }
     }
     // Draw projectiles
     for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
@@ -156,8 +160,11 @@ void drawMinimap(void) {
             continue;
         }
 
-        drawEntityToMinimap(curProjectile.x, curProjectile.y, PROJECTILE, playerAngleCos, playerAngleSin);
+        drawEntityToMinimap(curProjectile.x, curProjectile.y, BITMAPS[BITMAP_MINIMAP_PROJECTILE], playerAngleCos, playerAngleSin);
     }
+
+    // Draw player
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_PLAYER], MINIMAP_CENTER_X, MINIMAP_CENTER_Y, kBitmapUnflipped);
 
     // Set circle mask
     LCDBitmap *overlayLayerMask = pd->graphics->getBitmapMask(minimapOverlayBitmap);
