@@ -8,6 +8,7 @@
 #include "game/UI/UI.h"
 
 static int currentRoom = 0;
+static int transitioning = 0;
 
 static Area currentArea = AREA_LOST_ARCHIVES;
 static AreaData areaData[AREA_COUNT];
@@ -18,6 +19,8 @@ static EnemyType enemySpawnList[AREA_COUNT][ENEMY_TYPES_PER_AREA] = {
 };
 
 void initProgressionManager(void) {
+    transitioning = 0;
+
     areaData[AREA_ECHOING_CAVERNS] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_CEILING],
@@ -53,16 +56,21 @@ void roomCompleted(void) {
 }
 
 void nextRoom(void) {
+    transitioning = 1;
     currentRoom++;
     if (currentRoom >= MAX_ROOM_COUNT) {
         currentRoom = 0;
         currentArea++;
         if (currentArea >= AREA_COUNT) {
             // TODO: Transition to game win scene
-            currentArea = AREA_ECHOING_CAVERNS; // Temporary: oop back to the first area
+            currentArea = AREA_ECHOING_CAVERNS; // Temporary: loop back to the first area
         }
     }
     pd->lua->callFunction("NextLevel", 0, NULL);
+}
+
+int isTransitioning(void) {
+    return transitioning;
 }
 
 EnemyType *getAreaSpawnList(void) {

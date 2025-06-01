@@ -140,6 +140,12 @@ void handleInput(float deltaTime)
 	PDButtons pushed;
 	pd->system->getButtonState(&current, &pushed, NULL);
 
+	if (isTransitioning()) {
+		// Disable input during transitions
+		current = 0;
+		pushed = 0;
+	}
+
 	if (pushed & kButtonA) {
 		if (interactableIndex != -1) {
 			interact(interactableIndex);

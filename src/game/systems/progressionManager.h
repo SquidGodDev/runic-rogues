@@ -26,4 +26,5 @@ Area getCurrentArea(void);
 int getCurrentRoom(void);
 void roomCompleted(void);
 void nextRoom(void);
+int isTransitioning(void);
 EnemyType *getAreaSpawnList(void);
