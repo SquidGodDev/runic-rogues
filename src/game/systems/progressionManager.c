@@ -9,34 +9,34 @@
 
 static int currentRoom = 0;
 
-static Floor currentFloor = FLOOR_LOST_ARCHIVES;
-static FloorData floorData[FLOOR_COUNT];
-static EnemyType enemySpawnList[FLOOR_COUNT][ENEMY_TYPES_PER_FLOOR] = {
-    [FLOOR_ECHOING_CAVERNS] = {ENEMY_TYPE_SLIME, ENEMY_TYPE_SKELETON, ENEMY_TYPE_BAT},
-    [FLOOR_LOST_ARCHIVES] = {ENEMY_TYPE_IMP, ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_LIVING_ARMOR},
-    [FLOOR_TEST] = {ENEMY_TYPE_IMP}
+static Area currentArea = AREA_LOST_ARCHIVES;
+static AreaData areaData[AREA_COUNT];
+static EnemyType enemySpawnList[AREA_COUNT][ENEMY_TYPES_PER_AREA] = {
+    [AREA_ECHOING_CAVERNS] = {ENEMY_TYPE_SLIME, ENEMY_TYPE_SKELETON, ENEMY_TYPE_BAT},
+    [AREA_LOST_ARCHIVES] = {ENEMY_TYPE_IMP, ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_LIVING_ARMOR},
+    [AREA_TEST] = {ENEMY_TYPE_IMP}
 };
 
 void initProgressionManager(void) {
-    floorData[FLOOR_ECHOING_CAVERNS] = (FloorData){
+    areaData[AREA_ECHOING_CAVERNS] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_CEILING],
         .floorTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_FLOOR]
     };
-    floorData[FLOOR_LOST_ARCHIVES] = (FloorData){
+    areaData[AREA_LOST_ARCHIVES] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_CEILING],
         .floorTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_FLOOR]
     };
-    floorData[FLOOR_TEST] = (FloorData){
+    areaData[AREA_TEST] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_TEST_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_TEST_CEILING],
         .floorTexture = TEXTURES[TEXTURE_TEST_FLOOR]
     };
 }
 
-FloorData getCurrentFloorData(void) {
-    return floorData[currentFloor];
+AreaData getCurrentAreaData(void) {
+    return areaData[currentArea];
 }
 
 int getCurrentRoom(void) {
@@ -52,15 +52,15 @@ void nextRoom(void) {
     currentRoom++;
     if (currentRoom >= MAX_ROOM_COUNT) {
         currentRoom = 0;
-        currentFloor++;
-        if (currentFloor >= FLOOR_COUNT) {
+        currentArea++;
+        if (currentArea >= AREA_COUNT) {
             // TODO: Transition to game win scene
-            currentFloor = FLOOR_ECHOING_CAVERNS; // Loop back to the first floor
+            currentArea = AREA_ECHOING_CAVERNS; // Temporary: oop back to the first area
         }
     }
     pd->lua->callFunction("NextLevel", 0, NULL);
 }
 
-EnemyType *getFloorSpawnList(void) {
-    return enemySpawnList[currentFloor];
+EnemyType *getAreaSpawnList(void) {
+    return enemySpawnList[currentArea];
 }

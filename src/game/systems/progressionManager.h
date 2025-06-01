@@ -4,25 +4,25 @@
 #include "game/enemies/enemies.h"
 
 #define MAX_ROOM_COUNT 10
-#define ENEMY_TYPES_PER_FLOOR 3
+#define ENEMY_TYPES_PER_AREA 3
 
-typedef enum Floor
+typedef enum Area
 {
-    FLOOR_ECHOING_CAVERNS,
-    FLOOR_LOST_ARCHIVES,
-    FLOOR_TEST,
-    FLOOR_COUNT
-} Floor;
+    AREA_ECHOING_CAVERNS,
+    AREA_LOST_ARCHIVES,
+    AREA_TEST,
+    AREA_COUNT
+} Area;
 
-typedef struct FloorData {
+typedef struct AreaData {
     uint8_t *wallTexture;
     uint8_t *ceilingTexture;
     uint8_t *floorTexture;
-} FloorData;
+} AreaData;
 
 void initProgressionManager(void);
-FloorData getCurrentFloorData(void);
+AreaData getCurrentAreaData(void);
 int getCurrentRoom(void);
 void roomCompleted(void);
 void nextRoom(void);
-EnemyType *getFloorSpawnList(void);
+EnemyType *getAreaSpawnList(void);

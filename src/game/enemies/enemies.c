@@ -322,8 +322,8 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 }
 
 void spawnRandomEnemy(void) {
-	EnemyType *spawnList = getFloorSpawnList();
-	EnemyType enemyType = spawnList[randInt(0, ENEMY_TYPES_PER_FLOOR - 1)];
+	EnemyType *spawnList = getAreaSpawnList();
+	EnemyType enemyType = spawnList[randInt(0, ENEMY_TYPES_PER_AREA - 1)];
 
 	int randMapX = randInt(ENEMY_SPAWN_MIN_X, ENEMY_SPAWN_MAX_X);
 	int randMapY = randInt(ENEMY_SPAWN_MIN_Y, ENEMY_SPAWN_MAX_Y);

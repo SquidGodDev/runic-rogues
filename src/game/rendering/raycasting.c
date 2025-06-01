@@ -31,10 +31,10 @@ typedef struct LineData {
 } LineData;
 
 void initRaycasting(void) {
-	FloorData curFloorData = getCurrentFloorData();
-	wallTexture = curFloorData.wallTexture;
-	ceilingTexture = curFloorData.ceilingTexture;
-	floorTexture = curFloorData.floorTexture;
+	AreaData curAreaData = getCurrentAreaData();
+	wallTexture = curAreaData.wallTexture;
+	ceilingTexture = curAreaData.ceilingTexture;
+	floorTexture = curAreaData.floorTexture;
 }
 
 void renderScene(void)
