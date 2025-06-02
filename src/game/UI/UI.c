@@ -190,6 +190,7 @@ void drawMinimap(void) {
     pd->graphics->popContext();
     pd->graphics->drawBitmap(minimapOverlayBitmap, MINIMAP_X - MINIMAP_HALF_PIXEL_SIZE, MINIMAP_Y - MINIMAP_HALF_PIXEL_SIZE, kBitmapUnflipped);
     pd->graphics->freeBitmap(minimapOverlayBitmap);
+    pd->graphics->freeBitmap(overlayLayerMask);
     // == End of overlay layer ==
 }
 
