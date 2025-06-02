@@ -21,6 +21,11 @@
 #define INTERACTABLE_BUTTON_PROMPT_X 100
 #define INTERACTABLE_BUTTON_PROMPT_Y 80
 
+#define EXIT_ARROW_X 100
+#define EXIT_ARROW_Y 30
+#define EXIT_ARROW_ROTATION_COUNT 64
+#define EXIT_ARROW_ROTATION_DEGREE_STEP (2 * PI / EXIT_ARROW_ROTATION_COUNT)
+
 #define MINIMAP_X 170
 #define MINIMAP_Y 30
 
@@ -37,7 +42,13 @@
 static float screenShakeTime;
 static int shakeMagnitude;
 
+static int showExitArrow;
+static int exitWorldX;
+static int exitWorldY;
+
 void initUI(void) {
+    showExitArrow = 0;
+
     screenShakeTime = 0;
     shakeMagnitude = 0;
     pd->display->setOffset(0, 0);
@@ -206,6 +217,26 @@ void drawInteractablePrompt(void) {
     }
 }
 
+void displayExitArrow(int worldX, int worldY) {
+    showExitArrow = 1;
+    exitWorldX = worldX;
+    exitWorldY = worldY;
+}
+
+void drawExitArrow(void) {
+    if (!showExitArrow) {
+        return;
+    }
+
+    float angleToExit = atan2f(exitWorldY - playerY, exitWorldX - playerX) - playerAngle;
+    int rotationTableIndex = (int)(angleToExit / EXIT_ARROW_ROTATION_DEGREE_STEP) % EXIT_ARROW_ROTATION_COUNT;
+    if (rotationTableIndex < 0) {
+        rotationTableIndex += EXIT_ARROW_ROTATION_COUNT;
+    }
+
+    drawCenteredBitmap(pd->graphics->getTableBitmap(BITMAP_TABLES[BITMAP_TABLE_EXIT_ARROW], rotationTableIndex), EXIT_ARROW_X, EXIT_ARROW_Y);
+}
+
 void drawUI(float deltaTime) {
     if (screenShakeTime > 0) {
         screenShakeTime -= deltaTime;
@@ -224,6 +255,7 @@ void drawUI(float deltaTime) {
     drawMinimap();
     drawWeapon(deltaTime);
     drawInteractablePrompt();
+    drawExitArrow();
 }
 
 void screenShake(ScreenShakeStrength strength) {

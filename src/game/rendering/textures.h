@@ -48,6 +48,12 @@ typedef enum BitmapPaths {
 } BitmapPaths;
 extern LCDBitmap* BITMAPS[];
 
+typedef enum BitmapTablePaths {
+	BITMAP_TABLE_EXIT_ARROW,
+	BITMAP_TABLE_PATHS_COUNT,
+} BitmapTablePaths;
+extern LCDBitmapTable* BITMAP_TABLES[];
+
 extern LCDFont *gameFont;
 
 extern uint8_t fogPatterns[FOG_LEVELS][8];

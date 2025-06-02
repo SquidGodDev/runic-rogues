@@ -47,6 +47,11 @@ const char *bitmapPathStrings[] = {
 	"images/UI/prompts/exitPrompt_JP",
 };
 
+LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];
+const char *bitmapTablePathStrings[] = {
+	"images/UI/prompts/exitArrow",
+};
+
 LCDFont *gameFont;
 
 uint8_t fogPatterns[FOG_LEVELS][8] = {{0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x00},
@@ -120,6 +125,14 @@ void initTextures(void)
 			pd->system->error(outErr);
 		}
 		BITMAPS[i] = pd->graphics->loadBitmap(bitmapPathStrings[i], NULL);
+	}
+
+	for (int i = 0; i < BITMAP_TABLE_PATHS_COUNT; i++) {
+		const char *outErr = NULL;
+		BITMAP_TABLES[i] = pd->graphics->loadBitmapTable(bitmapTablePathStrings[i], &outErr);
+		if (!BITMAP_TABLES[i]) {
+			pd->system->error(outErr);
+		}
 	}
 
 	gameFont = pd->graphics->loadFont("fonts/m5x7-12-outlined", NULL);

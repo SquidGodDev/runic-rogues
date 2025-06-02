@@ -52,7 +52,7 @@ int getCurrentRoom(void) {
 
 void roomCompleted(void) {
     addInteractable(PORTAL_SPAWN_MAP_X, PORTAL_SPAWN_MAP_Y, INTERACTABLE_TYPE_EXIT);
-    // TODO: Show arrow pointing to exit interactable
+    displayExitArrow(PORTAL_SPAWN_MAP_X * CELL_SIZE + CELL_SIZE / 2, PORTAL_SPAWN_MAP_Y * CELL_SIZE + CELL_SIZE / 2);
 }
 
 void nextRoom(void) {
