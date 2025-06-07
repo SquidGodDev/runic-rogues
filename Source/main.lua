@@ -1,13 +1,16 @@
 import "CoreLibs/graphics"
 import "CoreLibs/timer"
+import "CoreLibs/animator"
 
+import "scripts/globals/helpers"
 import "scripts/systems/sceneManager"
+import "scripts/roomSelect/roomSelectScene"
 
 local pd = playdate
 local gfx = pd.graphics
 
-SceneManager.loadNewScene(GameScene, {})
+SceneManager.loadNewScene(RoomSelectScene, {})
 
 function NextLevel()
-	SceneManager.switchScene(GameScene)
+	SceneManager.switchScene(RoomSelectScene)
 end
