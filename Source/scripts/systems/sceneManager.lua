@@ -22,7 +22,7 @@ SceneManager.transitioning = false
 local function setSceneUpdate(scene)
     local sceneUpdate = scene.update
     pd.update = function()
-        sceneUpdate()
+        sceneUpdate(scene)
         timerUpdate()
         if transitionImage then
             transitionImage:drawIgnoringOffset(0, 0)
@@ -42,7 +42,7 @@ end
 
 function SceneManager.loadNewScene(scene, args)
     cleanupScene()
-    scene.init(table.unpack(args))
+    scene.init(scene, table.unpack(args))
     setSceneUpdate(scene)
 end
 

@@ -7,6 +7,12 @@ local shopIcon <const> = gfx.image.new("images/roomSelect/mapIcons/shopIcon")
 local campfireIcon <const> = gfx.image.new("images/roomSelect/mapIcons/campfireIcon")
 local bossIcon <const> = gfx.image.new("images/roomSelect/mapIcons/bossIcon")
 
+local enemyTile <const> = gfx.image.new("images/roomSelect/tiles/enemyTile")
+local eliteTile <const> = gfx.image.new("images/roomSelect/tiles/eliteTile")
+local shopTile <const> = gfx.image.new("images/roomSelect/tiles/shopTile")
+local campfireTile <const> = gfx.image.new("images/roomSelect/tiles/campfireTile")
+local bossTile <const> = gfx.image.new("images/roomSelect/tiles/bossTile")
+
 local ROOM_TYPE <const> = {
     ENEMY = 0,
     ELITE = 1,
@@ -21,6 +27,14 @@ local roomTypeMapIcons = {
     [ROOM_TYPE.SHOP] = shopIcon,
     [ROOM_TYPE.CAMPFIRE] = campfireIcon,
     [ROOM_TYPE.BOSS] = bossIcon
+}
+
+local roomTypeTiles = {
+    [ROOM_TYPE.ENEMY] = enemyTile,
+    [ROOM_TYPE.ELITE] = eliteTile,
+    [ROOM_TYPE.SHOP] = shopTile,
+    [ROOM_TYPE.CAMPFIRE] = campfireTile,
+    [ROOM_TYPE.BOSS] = bossTile
 }
 
 local MAP_BASE_X <const> = 5
@@ -39,21 +53,11 @@ local MAP_ICON_CURSOR_LERP_SPEED <const> = 0.12
 local MAX_BACKGROUND_OFFSET <const> = 16
 
 RoomSelectScene = {}
-local offsetFrame
-local backgroundOffset
-local roomSelectBackgroundSprite
-
-local prospectivePath1
-local prospectivePath2
-local selectedPath
 
 local cursorTopImage = gfx.image.new("images/roomSelect/mapIcons/mapCursorTop")
 local cursorTopSprite = gfx.sprite.new(cursorTopImage)
 local cursorBottomImage = gfx.image.new("images/roomSelect/mapIcons/mapCursorBottom")
 local cursorBottomSprite = gfx.sprite.new(cursorBottomImage)
-local cursorTopTargetY
-local cursorBottomTargetY
-local cursorTargetX
 
 local areaRooms = {
     ROOM_TYPE.ENEMY,
@@ -83,14 +87,15 @@ local visitedRooms = {
 
 local currentRoom = 2
 
-function RoomSelectScene.init()
-    offsetFrame = 0
-    backgroundOffset = 0
+function RoomSelectScene:init()
+    self.offsetFrame = 0
+    self.backgroundOffset = 0
     local roomSelectBackground = gfx.image.new("images/roomSelect/roomSelectBackground")
-    roomSelectBackgroundSprite = gfx.sprite.new(roomSelectBackground)
+    local roomSelectBackgroundSprite = gfx.sprite.new(roomSelectBackground)
     roomSelectBackgroundSprite:setCenter(0, 0)
     roomSelectBackgroundSprite:moveTo(0, 0)
     roomSelectBackgroundSprite:add()
+    self.roomSelectBackgroundSprite = roomSelectBackgroundSprite
 
     local gradient = gfx.image.new("images/roomSelect/gradient")
     local gradientSprite = gfx.sprite.new(gradient)
@@ -104,20 +109,22 @@ function RoomSelectScene.init()
     pathSprite:moveTo(MAP_BASE_X, MAP_BASE_Y)
     pathSprite:add()
 
-    selectedPath = 1
+    self.selectedPath = 1
     local prospectivePath1Image = pathImage:copy()
-    prospectivePath1 = gfx.sprite.new(prospectivePath1Image)
+    local prospectivePath1 = gfx.sprite.new(prospectivePath1Image)
     prospectivePath1:setCenter(0, 0)
     prospectivePath1:moveTo(MAP_BASE_X, MAP_BASE_Y)
     prospectivePath1:add()
     prospectivePath1:setVisible(false)
+    self.prospectivePath1 = prospectivePath1
 
     local prospectivePath2Image = pathImage:copy()
-    prospectivePath2 = gfx.sprite.new(prospectivePath2Image)
+    local prospectivePath2 = gfx.sprite.new(prospectivePath2Image)
     prospectivePath2:setCenter(0, 0)
     prospectivePath2:moveTo(MAP_BASE_X, MAP_BASE_Y)
     prospectivePath2:add()
     prospectivePath2:setVisible(false)
+    self.prospectivePath2 = prospectivePath2
 
     local mapImage = gfx.image.new(MAP_BORDER_WIDTH, MAP_BORDER_HEIGHT)
     gfx.pushContext(mapImage)
@@ -186,9 +193,9 @@ function RoomSelectScene.init()
         currentDelay += isFirstRoom and delayAmount or 0
     end
 
-    cursorTargetX = nil
-    cursorTopTargetY = nil
-    cursorBottomTargetY = nil
+    self.cursorTargetX = nil
+    self.cursorTopTargetY = nil
+    self.cursorBottomTargetY = nil
     local cursorMoveDelay = 500
     if not isFirstRoom then
         local previousCursorX = MAP_BASE_X + MAP_ICON_BASE_X + (currentRoom - 2) * MAP_ICON_X_SPACING
@@ -203,15 +210,15 @@ function RoomSelectScene.init()
         cursorTopSprite:add()
         cursorBottomSprite:add()
         pd.timer.performAfterDelay(cursorMoveDelay, function()
-            cursorTargetX = MAP_BASE_X + MAP_ICON_BASE_X + (currentRoom - 1) * MAP_ICON_X_SPACING
-            cursorTopTargetY = MAP_ICON_CURSOR_TOP_BASE_TARGET_Y
-            cursorBottomTargetY = MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y
+            self.cursorTargetX = MAP_BASE_X + MAP_ICON_BASE_X + (currentRoom - 1) * MAP_ICON_X_SPACING
+            self.cursorTopTargetY = MAP_ICON_CURSOR_TOP_BASE_TARGET_Y
+            self.cursorBottomTargetY = MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y
             if type(areaRooms[currentRoom]) == "table" then
-                cursorTopTargetY = MAP_ICON_CURSOR_TOP_BASE_TARGET_Y - MAP_ICON_Y_SPACING
-                cursorBottomTargetY = MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y + MAP_ICON_Y_SPACING
+                self.cursorTopTargetY = MAP_ICON_CURSOR_TOP_BASE_TARGET_Y - MAP_ICON_Y_SPACING
+                self.cursorBottomTargetY = MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y + MAP_ICON_Y_SPACING
             else
-                cursorTopTargetY = MAP_ICON_CURSOR_TOP_BASE_TARGET_Y
-                cursorBottomTargetY = MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y
+                self.cursorTopTargetY = MAP_ICON_CURSOR_TOP_BASE_TARGET_Y
+                self.cursorBottomTargetY = MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y
             end
         end)
     end
@@ -268,55 +275,55 @@ function RoomSelectScene.init()
     gfx.popContext()
 end
 
-function RoomSelectScene.update()
+function RoomSelectScene:update()
     gfx.sprite.update()
     pd.timer.updateTimers()
 
-    offsetFrame = (offsetFrame + 1) % 2
-    if offsetFrame == 1 then
-        backgroundOffset = (backgroundOffset + 1) % MAX_BACKGROUND_OFFSET
+    self.offsetFrame = (self.offsetFrame + 1) % 2
+    if self.offsetFrame == 1 then
+        self.backgroundOffset = (self.backgroundOffset + 1) % MAX_BACKGROUND_OFFSET
     end
-    roomSelectBackgroundSprite:moveTo(-MAX_BACKGROUND_OFFSET + backgroundOffset, -backgroundOffset)
+    self.roomSelectBackgroundSprite:moveTo(-MAX_BACKGROUND_OFFSET + self.backgroundOffset, -self.backgroundOffset)
 
-    if cursorTargetX then
+    if self.cursorTargetX then
         local currentX = cursorTopSprite.x
         local currentTopY = cursorTopSprite.y
         local currentBottomY = cursorBottomSprite.y
 
         local lerpBuffer = 0.8
-        if (math.abs(currentX - cursorTargetX) > lerpBuffer) then
-            cursorTopSprite:moveTo(math.lerp(currentX, cursorTargetX, MAP_ICON_CURSOR_LERP_SPEED), currentTopY)
-            cursorBottomSprite:moveTo(math.lerp(currentX, cursorTargetX, MAP_ICON_CURSOR_LERP_SPEED), currentBottomY)
+        if (math.abs(currentX - self.cursorTargetX) > lerpBuffer) then
+            cursorTopSprite:moveTo(math.lerp(currentX, self.cursorTargetX, MAP_ICON_CURSOR_LERP_SPEED), currentTopY)
+            cursorBottomSprite:moveTo(math.lerp(currentX, self.cursorTargetX, MAP_ICON_CURSOR_LERP_SPEED), currentBottomY)
         else
-            cursorTopSprite:moveTo(cursorTargetX, currentTopY)
-            cursorBottomSprite:moveTo(cursorTargetX, currentBottomY)
+            cursorTopSprite:moveTo(self.cursorTargetX, currentTopY)
+            cursorBottomSprite:moveTo(self.cursorTargetX, currentBottomY)
         end
 
-        if (math.abs(currentTopY - cursorTopTargetY) > lerpBuffer) then
-            cursorTopSprite:moveTo(cursorTopSprite.x, math.lerp(currentTopY, cursorTopTargetY, MAP_ICON_CURSOR_LERP_SPEED))
-            cursorBottomSprite:moveTo(cursorBottomSprite.x, math.lerp(currentBottomY, cursorBottomTargetY, MAP_ICON_CURSOR_LERP_SPEED))
+        if (math.abs(currentTopY - self.cursorTopTargetY) > lerpBuffer) then
+            cursorTopSprite:moveTo(cursorTopSprite.x, math.lerp(currentTopY, self.cursorTopTargetY, MAP_ICON_CURSOR_LERP_SPEED))
+            cursorBottomSprite:moveTo(cursorBottomSprite.x, math.lerp(currentBottomY, self.cursorBottomTargetY, MAP_ICON_CURSOR_LERP_SPEED))
         else
-            cursorTopSprite:moveTo(cursorTopSprite.x, cursorTopTargetY)
-            cursorBottomSprite:moveTo(cursorBottomSprite.x, cursorBottomTargetY)
+            cursorTopSprite:moveTo(cursorTopSprite.x, self.cursorTopTargetY)
+            cursorBottomSprite:moveTo(cursorBottomSprite.x, self.cursorBottomTargetY)
         end
     end
 
-    if prospectivePath1:isVisible() or prospectivePath2:isVisible() then
+    if self.prospectivePath1:isVisible() or self.prospectivePath2:isVisible() then
         if pd.buttonJustPressed(pd.kButtonLeft) or pd.buttonJustPressed(pd.kButtonUp) then
-            selectedPath = 1
-            prospectivePath1:setVisible(true)
-            prospectivePath2:setVisible(false)
+            self.selectedPath = 1
+            self.prospectivePath1:setVisible(true)
+            self.prospectivePath2:setVisible(false)
         elseif pd.buttonJustPressed(pd.kButtonRight) or pd.buttonJustPressed(pd.kButtonDown) then
             if type(areaRooms[currentRoom]) == "table" then
-                selectedPath = 2
-                prospectivePath1:setVisible(false)
-                prospectivePath2:setVisible(true)
+                self.selectedPath = 2
+                self.prospectivePath1:setVisible(false)
+                self.prospectivePath2:setVisible(true)
             end
         end
     end
 
     if pd.buttonJustPressed(pd.kButtonA) then
-        visitedRooms[currentRoom] = selectedPath
+        visitedRooms[currentRoom] = self.selectedPath
         currentRoom += 1
         SceneManager.switchScene(RoomSelectScene)
     end
