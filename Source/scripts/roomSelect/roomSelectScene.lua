@@ -37,9 +37,15 @@ local MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y <const> = MAP_BASE_Y + MAP_ICON_BASE_
 local MAP_ICON_CURSOR_LERP_SPEED <const> = 0.12
 
 local MAX_BACKGROUND_OFFSET <const> = 16
+
+RoomSelectScene = {}
 local offsetFrame
 local backgroundOffset
 local roomSelectBackgroundSprite
+
+local prospectivePath1
+local prospectivePath2
+local selectedPath
 
 local cursorTopImage = gfx.image.new("images/roomSelect/mapIcons/mapCursorTop")
 local cursorTopSprite = gfx.sprite.new(cursorTopImage)
@@ -49,9 +55,33 @@ local cursorTopTargetY
 local cursorBottomTargetY
 local cursorTargetX
 
-local currentRoom = 8
+local areaRooms = {
+    ROOM_TYPE.ENEMY,
+    {ROOM_TYPE.CAMPFIRE, ROOM_TYPE.ENEMY},
+    {ROOM_TYPE.SHOP, ROOM_TYPE.ENEMY},
+    ROOM_TYPE.ENEMY,
+    ROOM_TYPE.ENEMY,
+    {ROOM_TYPE.ELITE, ROOM_TYPE.ENEMY},
+    ROOM_TYPE.ENEMY,
+    ROOM_TYPE.ENEMY,
+    ROOM_TYPE.CAMPFIRE,
+    ROOM_TYPE.BOSS
+}
 
-RoomSelectScene = {}
+local visitedRooms = {
+    nil,
+    1,
+    2,
+    nil,
+    nil,
+    1,
+    nil,
+    nil,
+    nil,
+    nil
+}
+
+local currentRoom = 2
 
 function RoomSelectScene.init()
     offsetFrame = 0
@@ -74,6 +104,21 @@ function RoomSelectScene.init()
     pathSprite:moveTo(MAP_BASE_X, MAP_BASE_Y)
     pathSprite:add()
 
+    selectedPath = 1
+    local prospectivePath1Image = pathImage:copy()
+    prospectivePath1 = gfx.sprite.new(prospectivePath1Image)
+    prospectivePath1:setCenter(0, 0)
+    prospectivePath1:moveTo(MAP_BASE_X, MAP_BASE_Y)
+    prospectivePath1:add()
+    prospectivePath1:setVisible(false)
+
+    local prospectivePath2Image = pathImage:copy()
+    prospectivePath2 = gfx.sprite.new(prospectivePath2Image)
+    prospectivePath2:setCenter(0, 0)
+    prospectivePath2:moveTo(MAP_BASE_X, MAP_BASE_Y)
+    prospectivePath2:add()
+    prospectivePath2:setVisible(false)
+
     local mapImage = gfx.image.new(MAP_BORDER_WIDTH, MAP_BORDER_HEIGHT)
     gfx.pushContext(mapImage)
         gfx.setColor(gfx.kColorWhite)
@@ -84,32 +129,6 @@ function RoomSelectScene.init()
     mapSprite:setCenter(0, 0)
     mapSprite:moveTo(MAP_BASE_X, MAP_BASE_Y)
     mapSprite:add()
-
-    local areaRooms = {
-        ROOM_TYPE.ENEMY,
-        {ROOM_TYPE.CAMPFIRE, ROOM_TYPE.ENEMY},
-        {ROOM_TYPE.SHOP, ROOM_TYPE.ENEMY},
-        ROOM_TYPE.ENEMY,
-        ROOM_TYPE.ENEMY,
-        {ROOM_TYPE.ELITE, ROOM_TYPE.ENEMY},
-        ROOM_TYPE.ENEMY,
-        ROOM_TYPE.ENEMY,
-        ROOM_TYPE.CAMPFIRE,
-        ROOM_TYPE.BOSS
-    }
-
-    local visitedRooms = {
-        nil,
-        1,
-        2,
-        nil,
-        nil,
-        1,
-        nil,
-        nil,
-        nil,
-        nil
-    }
 
     local isFirstRoom = currentRoom == 1
 
@@ -156,6 +175,7 @@ function RoomSelectScene.init()
                     cursorBottomSprite:moveTo(cursorX, MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y)
                     cursorTopSprite:add()
                     cursorBottomSprite:add()
+                    prospectivePath1:setVisible(true)
                 end
             end
         end)
@@ -179,6 +199,7 @@ function RoomSelectScene.init()
             cursorTopSprite:moveTo(previousCursorX, MAP_ICON_CURSOR_TOP_BASE_TARGET_Y)
             cursorBottomSprite:moveTo(previousCursorX, MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y)
         end
+        prospectivePath1:setVisible(true)
         cursorTopSprite:add()
         cursorBottomSprite:add()
         pd.timer.performAfterDelay(cursorMoveDelay, function()
@@ -196,19 +217,24 @@ function RoomSelectScene.init()
     end
 
     -- Draw lines between visited rooms
-    local lineXOffset = 7
-    local lineYOffset = 5
+    local lineXOffset = 0
+    local lineYOffset = 0
     gfx.pushContext(pathImage)
         gfx.setColor(gfx.kColorWhite)
         -- gfx.setPattern({0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA})
         gfx.setLineCapStyle(gfx.kLineCapStyleRound)
-        gfx.setLineWidth(2)
-        for i = 1, currentRoom - 2 do
+        gfx.setLineWidth(3)
+        for i = 1, currentRoom - 1 do
+            local prospectivePath = i == currentRoom - 1
             local startIsDouble = type(areaRooms[i]) == "table"
             local endIsDouble = type(areaRooms[i + 1]) == "table"
             local startX = MAP_ICON_BASE_X + (i - 1) * MAP_ICON_X_SPACING + lineXOffset
             local endX = MAP_ICON_BASE_X + i * MAP_ICON_X_SPACING - lineXOffset
             local startY = MAP_ICON_BASE_Y
+            local endY = MAP_ICON_BASE_Y
+            local prospective1EndY = endY
+            local prospective2EndY = endY
+
             if startIsDouble then
                 if visitedRooms[i] == 1 then
                     startY -= MAP_ICON_Y_SPACING - lineYOffset
@@ -216,15 +242,28 @@ function RoomSelectScene.init()
                     startY += MAP_ICON_Y_SPACING - lineYOffset
                 end
             end
-            local endY = MAP_ICON_BASE_Y
+
             if endIsDouble then
+                prospective1EndY -= MAP_ICON_Y_SPACING - lineYOffset
+                prospective2EndY += MAP_ICON_Y_SPACING - lineYOffset
                 if visitedRooms[i + 1] == 1 then
-                    endY -= MAP_ICON_Y_SPACING - lineYOffset
+                    endY = prospective1EndY
                 else
-                    endY += MAP_ICON_Y_SPACING - lineYOffset
+                    endY = prospective2EndY
                 end
             end
-            gfx.drawLine(startX, startY, endX, endY)
+
+            if prospectivePath then
+                gfx.setPattern({0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA})
+                gfx.pushContext(prospectivePath1Image)
+                    gfx.drawLine(startX, startY, endX, prospective1EndY)
+                gfx.popContext()
+                gfx.pushContext(prospectivePath2Image)
+                    gfx.drawLine(startX, startY, endX, prospective2EndY)
+                gfx.popContext()
+            else
+                gfx.drawLine(startX, startY, endX, endY)
+            end
         end
     gfx.popContext()
 end
@@ -262,7 +301,22 @@ function RoomSelectScene.update()
         end
     end
 
+    if prospectivePath1:isVisible() or prospectivePath2:isVisible() then
+        if pd.buttonJustPressed(pd.kButtonLeft) or pd.buttonJustPressed(pd.kButtonUp) then
+            selectedPath = 1
+            prospectivePath1:setVisible(true)
+            prospectivePath2:setVisible(false)
+        elseif pd.buttonJustPressed(pd.kButtonRight) or pd.buttonJustPressed(pd.kButtonDown) then
+            if type(areaRooms[currentRoom]) == "table" then
+                selectedPath = 2
+                prospectivePath1:setVisible(false)
+                prospectivePath2:setVisible(true)
+            end
+        end
+    end
+
     if pd.buttonJustPressed(pd.kButtonA) then
+        visitedRooms[currentRoom] = selectedPath
         currentRoom += 1
         SceneManager.switchScene(RoomSelectScene)
     end
