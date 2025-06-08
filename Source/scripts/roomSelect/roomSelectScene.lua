@@ -50,6 +50,13 @@ local MAP_ICON_CURSOR_TOP_BASE_TARGET_Y <const> = MAP_BASE_Y + MAP_ICON_BASE_Y -
 local MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y <const> = MAP_BASE_Y + MAP_ICON_BASE_Y + MAP_ICON_CURSOR_OFFSET
 local MAP_ICON_CURSOR_LERP_SPEED <const> = 0.12
 
+local TILE_OFFSCREEN_Y <const> = 150
+local TILE_IDLE_TARGET_Y <const> = 94
+local TILE_SELECTED_TARGET_Y <const> = TILE_IDLE_TARGET_Y - 5
+local TILE_GAP <const> = 40
+local TILE_LERP_SPEED <const> = 0.1
+local TILE_CURSOR_LERP_SPEED <const> = 0.2
+
 local MAX_BACKGROUND_OFFSET <const> = 16
 
 RoomSelectScene = {}
@@ -85,7 +92,7 @@ local visitedRooms = {
     nil
 }
 
-local currentRoom = 2
+local currentRoom = 1
 
 function RoomSelectScene:init()
     self.offsetFrame = 0
@@ -182,6 +189,9 @@ function RoomSelectScene:init()
                     cursorBottomSprite:moveTo(cursorX, MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y)
                     cursorTopSprite:add()
                     cursorBottomSprite:add()
+                    self.cursorTargetX = cursorX
+                    self.cursorTopTargetY = cursorTopSprite.y
+                    self.cursorBottomTargetY = cursorBottomSprite.y
                     prospectivePath1:setVisible(true)
                 end
             end
@@ -228,7 +238,6 @@ function RoomSelectScene:init()
     local lineYOffset = 0
     gfx.pushContext(pathImage)
         gfx.setColor(gfx.kColorWhite)
-        -- gfx.setPattern({0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA})
         gfx.setLineCapStyle(gfx.kLineCapStyleRound)
         gfx.setLineWidth(3)
         for i = 1, currentRoom - 1 do
@@ -273,6 +282,25 @@ function RoomSelectScene:init()
             end
         end
     gfx.popContext()
+
+    if type(areaRooms[currentRoom]) == "table" then
+        self.tile1 = gfx.sprite.new(roomTypeTiles[areaRooms[currentRoom][1]])
+        self.tile1:moveTo(100 - TILE_GAP, TILE_OFFSCREEN_Y)
+        self.tile1:add()
+        self.tile2 = gfx.sprite.new(roomTypeTiles[areaRooms[currentRoom][2]])
+        self.tile2:moveTo(100 + TILE_GAP, TILE_OFFSCREEN_Y)
+        self.tile2:add()
+    else
+        self.tile1 = gfx.sprite.new(roomTypeTiles[areaRooms[currentRoom]])
+        self.tile1:moveTo(100, TILE_OFFSCREEN_Y)
+        self.tile1:add()
+        self.tile2 = nil
+    end
+
+    local tileCursor = gfx.sprite.new(gfx.image.new("images/roomSelect/tiles/tileCursor"))
+    tileCursor:moveTo(self.tile1:getPosition())
+    tileCursor:add()
+    self.tileCursor = tileCursor
 end
 
 function RoomSelectScene:update()
@@ -286,6 +314,12 @@ function RoomSelectScene:update()
     self.roomSelectBackgroundSprite:moveTo(-MAX_BACKGROUND_OFFSET + self.backgroundOffset, -self.backgroundOffset)
 
     if self.cursorTargetX then
+        if pd.buttonJustPressed(pd.kButtonA) and not SceneManager.isTransitioning() then
+            visitedRooms[currentRoom] = self.selectedPath
+            currentRoom += 1
+            SceneManager.switchScene(RoomSelectScene)
+        end
+
         local currentX = cursorTopSprite.x
         local currentTopY = cursorTopSprite.y
         local currentBottomY = cursorBottomSprite.y
@@ -306,25 +340,41 @@ function RoomSelectScene:update()
             cursorTopSprite:moveTo(cursorTopSprite.x, self.cursorTopTargetY)
             cursorBottomSprite:moveTo(cursorBottomSprite.x, self.cursorBottomTargetY)
         end
+
+        if self.tile1 then
+            local targetY = self.selectedPath == 1 and TILE_SELECTED_TARGET_Y or TILE_IDLE_TARGET_Y
+            self.tile1:moveTo(self.tile1.x, math.lerp(self.tile1.y, targetY, TILE_LERP_SPEED))
+
+            if self.selectedPath == 1 then
+                local cursorX = math.lerp(self.tileCursor.x, self.tile1.x, TILE_CURSOR_LERP_SPEED)
+                local cursorY = math.lerp(self.tileCursor.y, self.tile1.y, TILE_CURSOR_LERP_SPEED)
+                self.tileCursor:moveTo(cursorX, cursorY)
+            end
+        end
+
+        if self.tile2 then
+            local targetY = self.selectedPath == 2 and TILE_SELECTED_TARGET_Y or TILE_IDLE_TARGET_Y
+            self.tile2:moveTo(self.tile2.x, math.lerp(self.tile2.y, targetY, TILE_LERP_SPEED))
+
+            if self.selectedPath == 2 then
+                local cursorX = math.lerp(self.tileCursor.x, self.tile2.x, TILE_CURSOR_LERP_SPEED)
+                local cursorY = math.lerp(self.tileCursor.y, self.tile2.y, TILE_CURSOR_LERP_SPEED)
+                self.tileCursor:moveTo(cursorX, cursorY)
+            end
+        end
     end
 
-    if self.prospectivePath1:isVisible() or self.prospectivePath2:isVisible() then
-        if pd.buttonJustPressed(pd.kButtonLeft) or pd.buttonJustPressed(pd.kButtonUp) then
+    if not SceneManager.isTransitioning() and (self.prospectivePath1:isVisible() or self.prospectivePath2:isVisible()) then
+        if self.selectedPath ~= 1 and pd.buttonJustPressed(pd.kButtonLeft) or pd.buttonJustPressed(pd.kButtonUp) then
             self.selectedPath = 1
             self.prospectivePath1:setVisible(true)
             self.prospectivePath2:setVisible(false)
-        elseif pd.buttonJustPressed(pd.kButtonRight) or pd.buttonJustPressed(pd.kButtonDown) then
+        elseif self.selectedPath ~= 2 and pd.buttonJustPressed(pd.kButtonRight) or pd.buttonJustPressed(pd.kButtonDown) then
             if type(areaRooms[currentRoom]) == "table" then
                 self.selectedPath = 2
                 self.prospectivePath1:setVisible(false)
                 self.prospectivePath2:setVisible(true)
             end
         end
-    end
-
-    if pd.buttonJustPressed(pd.kButtonA) then
-        visitedRooms[currentRoom] = self.selectedPath
-        currentRoom += 1
-        SceneManager.switchScene(RoomSelectScene)
     end
 end
