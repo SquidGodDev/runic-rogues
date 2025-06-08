@@ -193,6 +193,8 @@ function RoomSelectScene:init()
                     self.cursorTopTargetY = cursorTopSprite.y
                     self.cursorBottomTargetY = cursorBottomSprite.y
                     prospectivePath1:setVisible(true)
+
+                    ScreenShake(500, 5)
                 end
             end
         end)
