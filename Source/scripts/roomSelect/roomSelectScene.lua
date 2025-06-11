@@ -61,6 +61,9 @@ local MAX_BACKGROUND_OFFSET <const> = 16
 
 RoomSelectScene = {}
 
+local cursorNavigateSynth = pd.sound.synth.new(pd.sound.kWaveTriangle)
+cursorNavigateSynth:setADSR(0.0, 0.1, 0.0, 0.0, 1.0)
+
 local cursorTopImage = gfx.image.new("images/roomSelect/mapIcons/mapCursorTop")
 local cursorTopSprite = gfx.sprite.new(cursorTopImage)
 local cursorBottomImage = gfx.image.new("images/roomSelect/mapIcons/mapCursorBottom")
@@ -149,22 +152,16 @@ function RoomSelectScene:init()
     local delayTime = 450
     local additionalDelay = 500
     local currentDelay = isFirstRoom and delayTime or 0
-    local synth = pd.sound.synth.new(pd.sound.kWaveSawtooth)
-    synth:setADSR(0, 0.1, 0, 0.4, 0.6)
     local noteOffset = 0
-
-    local bossSynth = pd.sound.synth.new(pd.sound.kWaveNoise)
-    bossSynth:setADSR(0, 1.0, 0.0, 0.0, 1.0)
-    local notePlayTime = 1.0
 
     local playNote = function(isBoss)
         if not isFirstRoom then
             return
         end
         if isBoss then
-            bossSynth:playMIDINote(30, 100, 2.0)
+            AudioManager.playSFX(SFX.BossRoomPopulate)
         else
-            synth:playMIDINote(40 + noteOffset, 100, notePlayTime)
+            AudioManager.playSFX(SFX.RoomPopulate, 40 + noteOffset)
             noteOffset += 0.5
         end
     end
@@ -317,6 +314,7 @@ function RoomSelectScene:update()
 
     if self.cursorTargetX then
         if pd.buttonJustPressed(pd.kButtonA) and not SceneManager.isTransitioning() then
+            AudioManager.playSFX(SFX.CursorConfirm)
             visitedRooms[currentRoom] = self.selectedPath
             currentRoom += 1
             SceneManager.switchScene(RoomSelectScene)
@@ -368,11 +366,13 @@ function RoomSelectScene:update()
 
     if not SceneManager.isTransitioning() and (self.prospectivePath1:isVisible() or self.prospectivePath2:isVisible()) then
         if self.selectedPath ~= 1 and pd.buttonJustPressed(pd.kButtonLeft) or pd.buttonJustPressed(pd.kButtonUp) then
+            AudioManager.playSFX(SFX.CursorNavigate)
             self.selectedPath = 1
             self.prospectivePath1:setVisible(true)
             self.prospectivePath2:setVisible(false)
         elseif self.selectedPath ~= 2 and pd.buttonJustPressed(pd.kButtonRight) or pd.buttonJustPressed(pd.kButtonDown) then
             if type(areaRooms[currentRoom]) == "table" then
+                AudioManager.playSFX(SFX.CursorNavigate)
                 self.selectedPath = 2
                 self.prospectivePath1:setVisible(false)
                 self.prospectivePath2:setVisible(true)

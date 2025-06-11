@@ -4,10 +4,10 @@ import "CoreLibs/animator"
 
 import "scripts/globals/helpers"
 import "scripts/systems/sceneManager"
+import "scripts/systems/AudioManager"
 import "scripts/roomSelect/roomSelectScene"
 
-local pd = playdate
-local gfx = pd.graphics
+AudioManager.init()
 
 SceneManager.loadNewScene(RoomSelectScene, {})
 
