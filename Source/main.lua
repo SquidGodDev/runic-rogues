@@ -1,4 +1,5 @@
 import "CoreLibs/graphics"
+import "CoreLibs/object"
 import "CoreLibs/timer"
 import "CoreLibs/animator"
 

@@ -95,7 +95,7 @@ local visitedRooms = {
     nil
 }
 
-local currentRoom = 1
+local currentRoom = 2
 
 function RoomSelectScene:init()
     self.offsetFrame = 0
@@ -219,6 +219,7 @@ function RoomSelectScene:init()
         cursorTopSprite:add()
         cursorBottomSprite:add()
         pd.timer.performAfterDelay(cursorMoveDelay, function()
+            AudioManager.playSFX(SFX.CursorSlide)
             self.cursorTargetX = MAP_BASE_X + MAP_ICON_BASE_X + (currentRoom - 1) * MAP_ICON_X_SPACING
             self.cursorTopTargetY = MAP_ICON_CURSOR_TOP_BASE_TARGET_Y
             self.cursorBottomTargetY = MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y

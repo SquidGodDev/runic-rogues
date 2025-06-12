@@ -6,41 +6,86 @@ local DEFAULT_PLAY_DURATION <const> = 3.0
 SFX = {
     CursorNavigate = 1,
     CursorConfirm = 2,
-    RoomPopulate = 3,
-    BossRoomPopulate = 4,
+    CursorSlide = 3,
+    RoomPopulate = 4,
+    BossRoomPopulate = 5,
 }
 
 local synths = {}
-local defaultNotes = {
-    [SFX.CursorNavigate] = 51,
-    [SFX.CursorConfirm] = 56,
-    [SFX.RoomPopulate] = 60,
-    [SFX.BossRoomPopulate] = 30,
-}
+local defaultNote = {}
+local volume = {}
 
 AudioManager = {}
 
-local function createSynth(sfx, waveform, attack, delay, sustain, release, curvature)
-    local synth = sound.synth.new(waveform)
-    synth:setADSR(attack, delay, sustain, release, curvature)
+local function createSynth(sfx, data)
+    local synth = sound.synth.new(data.waveform)
+    synth:setADSR(data.attack, data.decay, data.sustain, data.release, data.curvature)
     synths[sfx] = synth
+    defaultNote[sfx] = data.defaultNote
+    volume[sfx] = data.volume
     return synth
 end
 
 function AudioManager.init()
-    -- Attack, Decay, Sustain, Release, Curvature
-    createSynth(SFX.CursorNavigate, sound.kWaveTriangle, 0.0, 0.1, 0.0, 0.0, 1.0)
+    createSynth(SFX.CursorNavigate, {
+        defaultNote = 27,
+        volume = 1.0,
+        waveform = sound.kWaveSquare,
+        attack = 0.0,
+        decay = 0.3,
+        sustain = 0.0,
+        release = 0.0,
+        curvature = 1.0
+    })
 
-    createSynth(SFX.CursorConfirm, sound.kWaveNoise, 0.0, 1.0, 0.0, 0.0, 1.0)
+    createSynth(SFX.CursorConfirm, {
+        defaultNote = 56,
+        volume = 1.0,
+        waveform = sound.kWaveNoise,
+        attack = 0.0,
+        decay = 1.0,
+        sustain = 0.0,
+        release = 0.0,
+        curvature = 1.0
+    })
 
-    createSynth(SFX.RoomPopulate, sound.kWaveSawtooth, 0, 0.1, 0, 0.4, 0.6)
+    createSynth(SFX.CursorSlide, {
+        defaultNote = 52,
+        volume = 1.0,
+        waveform = sound.kWaveNoise,
+        attack = 0.2,
+        decay = 1.2,
+        sustain = 0.0,
+        release = 0.0,
+        curvature = 1.0
+    })
 
-    createSynth(SFX.BossRoomPopulate, sound.kWaveNoise, 0.0, 1.0, 0.0, 0.0, 1.0)
+    createSynth(SFX.RoomPopulate, {
+        defaultNote = 60,
+        volume = 1.0,
+        waveform = sound.kWaveSawtooth,
+        attack = 0.0,
+        decay = 0.1,
+        sustain = 0.0,
+        release = 0.4,
+        curvature = 0.6
+    })
+
+    createSynth(SFX.BossRoomPopulate, {
+        defaultNote = 30,
+        volume = 1.0,
+        waveform = sound.kWaveNoise,
+        attack = 0.0,
+        decay = 1.0,
+        sustain = 0.0,
+        release = 0.0,
+        curvature = 1.0
+    })
 end
 
 function AudioManager.playSFX(sfx, midiNote)
     if not midiNote then
-        midiNote = defaultNotes[sfx]
+        midiNote = defaultNote[sfx]
     end
-    synths[sfx]:playMIDINote(midiNote, 1.0, DEFAULT_PLAY_DURATION)
+    synths[sfx]:playMIDINote(midiNote, volume[sfx], DEFAULT_PLAY_DURATION)
 end
