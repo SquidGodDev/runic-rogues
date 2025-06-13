@@ -33,6 +33,8 @@ void initSystems(void)
 
 int initGameScene(lua_State* L)
 {	
+	pd->system->resetElapsedTime();
+
 	// Args 0/1 are the state and an unused scene object
 	int playerMaxHealth = pd->lua->getArgInt(2);
 	int playerHealth = pd->lua->getArgInt(3);
