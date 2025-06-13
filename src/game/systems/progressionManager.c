@@ -3,6 +3,7 @@
 
 #include "game/systems/progressionManager.h"
 #include "game/rendering/textures.h"
+#include "game/player/player.h"
 #include "game/entities/interactables.h"
 #include "game/map/map.h"
 #include "game/UI/UI.h"
@@ -18,7 +19,9 @@ static EnemyType enemySpawnList[AREA_COUNT][ENEMY_TYPES_PER_AREA] = {
     [AREA_TEST] = {ENEMY_TYPE_IMP}
 };
 
-void initProgressionManager(void) {
+void initProgressionManager(int area, int room) {
+    currentArea = area;
+    currentRoom = room;
     transitioning = 0;
 
     areaData[AREA_ECHOING_CAVERNS] = (AreaData){
@@ -66,7 +69,8 @@ void nextRoom(void) {
             currentArea = AREA_ECHOING_CAVERNS; // Temporary: loop back to the first area
         }
     }
-    pd->lua->callFunction("NextLevel", 0, NULL);
+    pd->lua->pushInt(playerHealth);
+    pd->lua->callFunction("NextLevel", 1, NULL);
 }
 
 int isTransitioning(void) {

@@ -493,7 +493,9 @@ int damageEnemy(int index, int damage) {
 	curEnemy.health -= damage;
 	if (curEnemy.health <= 0) {
 		enemyDeathEffect(index);
-		enemiesDefeated++;
+		if (curEnemy.type != ENEMY_TYPE_BABY_SLIME) {
+			enemiesDefeated++;
+		}
 		if (enemiesDefeated >= enemiesSpawned) {
 			roomCompleted();
 		}

@@ -13,7 +13,7 @@ local shopTile <const> = gfx.image.new("images/roomSelect/tiles/shopTile")
 local campfireTile <const> = gfx.image.new("images/roomSelect/tiles/campfireTile")
 local bossTile <const> = gfx.image.new("images/roomSelect/tiles/bossTile")
 
-local ROOM_TYPE <const> = {
+ROOM_TYPE = {
     ENEMY = 0,
     ELITE = 1,
     SHOP = 2,
@@ -69,35 +69,9 @@ local cursorTopSprite = gfx.sprite.new(cursorTopImage)
 local cursorBottomImage = gfx.image.new("images/roomSelect/mapIcons/mapCursorBottom")
 local cursorBottomSprite = gfx.sprite.new(cursorBottomImage)
 
-local areaRooms = {
-    ROOM_TYPE.ENEMY,
-    {ROOM_TYPE.CAMPFIRE, ROOM_TYPE.ENEMY},
-    {ROOM_TYPE.SHOP, ROOM_TYPE.ENEMY},
-    ROOM_TYPE.ENEMY,
-    ROOM_TYPE.ENEMY,
-    {ROOM_TYPE.ELITE, ROOM_TYPE.ENEMY},
-    ROOM_TYPE.ENEMY,
-    ROOM_TYPE.ENEMY,
-    ROOM_TYPE.CAMPFIRE,
-    ROOM_TYPE.BOSS
-}
-
-local visitedRooms = {
-    nil,
-    1,
-    2,
-    nil,
-    nil,
-    1,
-    nil,
-    nil,
-    nil,
-    nil
-}
-
-local currentRoom = 2
-
 function RoomSelectScene:init()
+    gfx.setBackgroundColor(gfx.kColorBlack)
+
     self.offsetFrame = 0
     self.backgroundOffset = 0
     local roomSelectBackground = gfx.image.new("images/roomSelect/roomSelectBackground")
@@ -147,7 +121,7 @@ function RoomSelectScene:init()
     mapSprite:moveTo(MAP_BASE_X, MAP_BASE_Y)
     mapSprite:add()
 
-    local isFirstRoom = currentRoom == 1
+    local isFirstRoom = GAME_DATA.currentRoom == 1
 
     local delayTime = 450
     local additionalDelay = 500
@@ -166,7 +140,7 @@ function RoomSelectScene:init()
         end
     end
 
-    for i, roomType in ipairs(areaRooms) do
+    for i, roomType in ipairs(GAME_DATA.areaRooms) do
         pd.timer.performAfterDelay(currentDelay, function()
             local iconX = MAP_ICON_BASE_X + (i - 1) * MAP_ICON_X_SPACING
             if type(roomType) == "table" then
@@ -181,7 +155,7 @@ function RoomSelectScene:init()
                     roomTypeMapIcons[roomType]:drawAnchored(iconX, MAP_ICON_BASE_Y, 0.5, 0.5, gfx.kImageUnflipped)
                 gfx.popContext()
                 if isFirstRoom and roomType == ROOM_TYPE.BOSS then
-                    local cursorX = MAP_BASE_X + MAP_ICON_BASE_X + (currentRoom - 1) * MAP_ICON_X_SPACING
+                    local cursorX = MAP_BASE_X + MAP_ICON_BASE_X + (GAME_DATA.currentRoom - 1) * MAP_ICON_X_SPACING
                     cursorTopSprite:moveTo(cursorX, MAP_ICON_CURSOR_TOP_BASE_TARGET_Y)
                     cursorBottomSprite:moveTo(cursorX, MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y)
                     cursorTopSprite:add()
@@ -196,7 +170,7 @@ function RoomSelectScene:init()
             end
         end)
         local delayAmount = delayTime
-        if i == #areaRooms - 1 then
+        if i == #GAME_DATA.areaRooms - 1 then
             delayAmount += additionalDelay
         end
         currentDelay += isFirstRoom and delayAmount or 0
@@ -207,8 +181,8 @@ function RoomSelectScene:init()
     self.cursorBottomTargetY = nil
     local cursorMoveDelay = 500
     if not isFirstRoom then
-        local previousCursorX = MAP_BASE_X + MAP_ICON_BASE_X + (currentRoom - 2) * MAP_ICON_X_SPACING
-        if type(areaRooms[currentRoom - 1]) == "table" then
+        local previousCursorX = MAP_BASE_X + MAP_ICON_BASE_X + (GAME_DATA.currentRoom - 2) * MAP_ICON_X_SPACING
+        if type(GAME_DATA.areaRooms[GAME_DATA.currentRoom - 1]) == "table" then
             cursorTopSprite:moveTo(previousCursorX, MAP_ICON_CURSOR_TOP_BASE_TARGET_Y - MAP_ICON_Y_SPACING)
             cursorBottomSprite:moveTo(previousCursorX, MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y + MAP_ICON_Y_SPACING)
         else
@@ -220,10 +194,10 @@ function RoomSelectScene:init()
         cursorBottomSprite:add()
         pd.timer.performAfterDelay(cursorMoveDelay, function()
             AudioManager.playSFX(SFX.CursorSlide)
-            self.cursorTargetX = MAP_BASE_X + MAP_ICON_BASE_X + (currentRoom - 1) * MAP_ICON_X_SPACING
+            self.cursorTargetX = MAP_BASE_X + MAP_ICON_BASE_X + (GAME_DATA.currentRoom - 1) * MAP_ICON_X_SPACING
             self.cursorTopTargetY = MAP_ICON_CURSOR_TOP_BASE_TARGET_Y
             self.cursorBottomTargetY = MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y
-            if type(areaRooms[currentRoom]) == "table" then
+            if type(GAME_DATA.areaRooms[GAME_DATA.currentRoom]) == "table" then
                 self.cursorTopTargetY = MAP_ICON_CURSOR_TOP_BASE_TARGET_Y - MAP_ICON_Y_SPACING
                 self.cursorBottomTargetY = MAP_ICON_CURSOR_BOTTOM_BASE_TARGET_Y + MAP_ICON_Y_SPACING
             else
@@ -240,10 +214,10 @@ function RoomSelectScene:init()
         gfx.setColor(gfx.kColorWhite)
         gfx.setLineCapStyle(gfx.kLineCapStyleRound)
         gfx.setLineWidth(3)
-        for i = 1, currentRoom - 1 do
-            local prospectivePath = i == currentRoom - 1
-            local startIsDouble = type(areaRooms[i]) == "table"
-            local endIsDouble = type(areaRooms[i + 1]) == "table"
+        for i = 1, GAME_DATA.currentRoom - 1 do
+            local prospectivePath = i == GAME_DATA.currentRoom - 1
+            local startIsDouble = type(GAME_DATA.areaRooms[i]) == "table"
+            local endIsDouble = type(GAME_DATA.areaRooms[i + 1]) == "table"
             local startX = MAP_ICON_BASE_X + (i - 1) * MAP_ICON_X_SPACING + lineXOffset
             local endX = MAP_ICON_BASE_X + i * MAP_ICON_X_SPACING - lineXOffset
             local startY = MAP_ICON_BASE_Y
@@ -252,7 +226,7 @@ function RoomSelectScene:init()
             local prospective2EndY = endY
 
             if startIsDouble then
-                if visitedRooms[i] == 1 then
+                if GAME_DATA.visitedRooms[i] == 1 then
                     startY -= MAP_ICON_Y_SPACING - lineYOffset
                 else
                     startY += MAP_ICON_Y_SPACING - lineYOffset
@@ -262,7 +236,7 @@ function RoomSelectScene:init()
             if endIsDouble then
                 prospective1EndY -= MAP_ICON_Y_SPACING - lineYOffset
                 prospective2EndY += MAP_ICON_Y_SPACING - lineYOffset
-                if visitedRooms[i + 1] == 1 then
+                if GAME_DATA.visitedRooms[i + 1] == 1 then
                     endY = prospective1EndY
                 else
                     endY = prospective2EndY
@@ -283,15 +257,15 @@ function RoomSelectScene:init()
         end
     gfx.popContext()
 
-    if type(areaRooms[currentRoom]) == "table" then
-        self.tile1 = gfx.sprite.new(roomTypeTiles[areaRooms[currentRoom][1]])
+    if type(GAME_DATA.areaRooms[GAME_DATA.currentRoom]) == "table" then
+        self.tile1 = gfx.sprite.new(roomTypeTiles[GAME_DATA.areaRooms[GAME_DATA.currentRoom][1]])
         self.tile1:moveTo(100 - TILE_GAP, TILE_OFFSCREEN_Y)
         self.tile1:add()
-        self.tile2 = gfx.sprite.new(roomTypeTiles[areaRooms[currentRoom][2]])
+        self.tile2 = gfx.sprite.new(roomTypeTiles[GAME_DATA.areaRooms[GAME_DATA.currentRoom][2]])
         self.tile2:moveTo(100 + TILE_GAP, TILE_OFFSCREEN_Y)
         self.tile2:add()
     else
-        self.tile1 = gfx.sprite.new(roomTypeTiles[areaRooms[currentRoom]])
+        self.tile1 = gfx.sprite.new(roomTypeTiles[GAME_DATA.areaRooms[GAME_DATA.currentRoom]])
         self.tile1:moveTo(100, TILE_OFFSCREEN_Y)
         self.tile1:add()
         self.tile2 = nil
@@ -316,9 +290,9 @@ function RoomSelectScene:update()
     if self.cursorTargetX then
         if pd.buttonJustPressed(pd.kButtonA) and not SceneManager.isTransitioning() then
             AudioManager.playSFX(SFX.CursorConfirm)
-            visitedRooms[currentRoom] = self.selectedPath
-            currentRoom += 1
-            SceneManager.switchScene(RoomSelectScene)
+            GAME_DATA.visitedRooms[GAME_DATA.currentRoom] = self.selectedPath
+            GAME_DATA.currentRoom += 1
+            SceneManager.switchScene(GameScene, GAME_DATA.playerMaxHealth, GAME_DATA.playerHealth, GAME_DATA.currentArea, GAME_DATA.currentRoom)
         end
 
         local currentX = cursorTopSprite.x
@@ -372,7 +346,7 @@ function RoomSelectScene:update()
             self.prospectivePath1:setVisible(true)
             self.prospectivePath2:setVisible(false)
         elseif self.selectedPath ~= 2 and pd.buttonJustPressed(pd.kButtonRight) or pd.buttonJustPressed(pd.kButtonDown) then
-            if type(areaRooms[currentRoom]) == "table" then
+            if type(GAME_DATA.areaRooms[GAME_DATA.currentRoom]) == "table" then
                 AudioManager.playSFX(SFX.CursorNavigate)
                 self.selectedPath = 2
                 self.prospectivePath1:setVisible(false)

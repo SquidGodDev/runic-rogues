@@ -11,7 +11,7 @@ extern int playerHealth;
 
 extern int interactableIndex;
 
-void initPlayer(void);
+void initPlayer(int maxHealth, int health);
 void updatePlayer(float deltaTime);
 void damagePlayer(int amount);
 void drawWeapon(float deltaTime);

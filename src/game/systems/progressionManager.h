@@ -20,7 +20,7 @@ typedef struct AreaData {
     uint8_t *floorTexture;
 } AreaData;
 
-void initProgressionManager(void);
+void initProgressionManager(int area, int room);
 AreaData getCurrentAreaData(void);
 Area getCurrentArea(void);
 int getCurrentRoom(void);

@@ -33,8 +33,14 @@ void initSystems(void)
 
 int initGameScene(lua_State* L)
 {	
+	// Args 0/1 are the state and an unused scene object
+	int playerMaxHealth = pd->lua->getArgInt(2);
+	int playerHealth = pd->lua->getArgInt(3);
+	int currentArea = pd->lua->getArgInt(4) - 1;
+	int currentRoom = pd->lua->getArgInt(5) - 1;
+
 	// Progression
-	initProgressionManager();
+	initProgressionManager(currentArea, currentRoom);
 
 	// Entities
 	initEntities();
@@ -53,7 +59,7 @@ int initGameScene(lua_State* L)
 	initUI();
 
 	// Player
-	initPlayer();
+	initPlayer(playerMaxHealth, playerHealth);
 
 	return 0;
 }
@@ -88,8 +94,6 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 		srand(pd->system->getSecondsSinceEpoch(NULL));
 
 		initSystems();
-		initGameScene(NULL);
-
 		pd->lua->addFunction(updateGameScene, "GameScene.update", NULL);
 		pd->lua->addFunction(initGameScene, "GameScene.init", NULL);
 	}
