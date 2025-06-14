@@ -9,6 +9,8 @@ SFX = {
     CursorSlide = 3,
     RoomPopulate = 4,
     BossRoomPopulate = 5,
+    TransitionStart = 6,
+    TransitionEnd = 7
 }
 
 local synths = {}
@@ -43,7 +45,7 @@ function AudioManager.init()
         volume = 1.0,
         waveform = sound.kWaveNoise,
         attack = 0.0,
-        decay = 1.0,
+        decay = 0.2,
         sustain = 0.0,
         release = 0.0,
         curvature = 1.0
@@ -77,6 +79,28 @@ function AudioManager.init()
         waveform = sound.kWaveNoise,
         attack = 0.0,
         decay = 1.0,
+        sustain = 0.0,
+        release = 0.0,
+        curvature = 1.0
+    })
+
+    createSynth(SFX.TransitionStart, {
+        defaultNote = 67,
+        volume = 1.0,
+        waveform = sound.kWaveNoise,
+        attack = 0.15,
+        decay = 0.6,
+        sustain = 0.0,
+        release = 0.0,
+        curvature = 1.0
+    })
+
+    createSynth(SFX.TransitionEnd, {
+        defaultNote = 77,
+        volume = 1.0,
+        waveform = sound.kWaveNoise,
+        attack = 0.2,
+        decay = 0.8,
         sustain = 0.0,
         release = 0.0,
         curvature = 1.0

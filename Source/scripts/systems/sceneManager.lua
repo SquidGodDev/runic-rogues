@@ -88,10 +88,12 @@ local function createTransitionTimer(startPos, endPos, easingFunction)
 end
 
 function SceneManager.startTransition(scene, args)
+    AudioManager.playSFX(SFX.TransitionStart)
     local transitionTimer = createTransitionTimer(MAX_RADIUS, MID_RADIUS, pd.easingFunctions.outCubic)
     transitionTimer.timerEndedCallback = function()
         transitionTimer = createTransitionTimer(MID_RADIUS, MIN_RADIUS, pd.easingFunctions.outCubic)
         transitionTimer.timerEndedCallback = function()
+            AudioManager.playSFX(SFX.TransitionEnd)
             SceneManager.loadNewScene(scene, args)
             SceneManager.transitioning = false
 

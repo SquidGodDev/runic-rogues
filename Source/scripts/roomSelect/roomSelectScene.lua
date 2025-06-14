@@ -289,7 +289,6 @@ function RoomSelectScene:update()
 
     if self.cursorTargetX then
         if pd.buttonJustPressed(pd.kButtonA) and not SceneManager.isTransitioning() then
-            AudioManager.playSFX(SFX.CursorConfirm)
             GAME_DATA.visitedRooms[GAME_DATA.currentRoom] = self.selectedPath
             GAME_DATA.currentRoom += 1
             SceneManager.switchScene(GameScene, GAME_DATA.playerMaxHealth, GAME_DATA.playerHealth, GAME_DATA.currentArea, GAME_DATA.currentRoom)
