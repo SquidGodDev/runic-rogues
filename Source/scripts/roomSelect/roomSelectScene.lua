@@ -13,6 +13,9 @@ local shopTile <const> = gfx.image.new("images/roomSelect/tiles/shopTile")
 local campfireTile <const> = gfx.image.new("images/roomSelect/tiles/campfireTile")
 local bossTile <const> = gfx.image.new("images/roomSelect/tiles/bossTile")
 
+local echoingCavernsTitleEN <const> = gfx.image.new("images/roomSelect/titles/echoingCavernsTitle_EN")
+local theLostArchivesTitleEN <const> = gfx.image.new("images/roomSelect/titles/theLostArchivesTitle_EN")
+
 ROOM_TYPE = {
     ENEMY = 0,
     ELITE = 1,
@@ -36,6 +39,9 @@ local roomTypeTiles = {
     [ROOM_TYPE.CAMPFIRE] = campfireTile,
     [ROOM_TYPE.BOSS] = bossTile
 }
+
+local TITLE_X <const> = 100
+local TITLE_Y <const> = 8
 
 local MAP_BASE_X <const> = 5
 local MAP_BASE_Y <const> = 19
@@ -86,6 +92,16 @@ function RoomSelectScene:init()
     gradientSprite:setCenter(0, 0)
     gradientSprite:moveTo(0, 0)
     gradientSprite:add()
+
+    local titleImage
+    if GAME_DATA.currentArea == 1 then
+        titleImage = echoingCavernsTitleEN
+    elseif GAME_DATA.currentArea == 2 then
+        titleImage = theLostArchivesTitleEN
+    end
+    local titleSprite = gfx.sprite.new(titleImage)
+    titleSprite:moveTo(TITLE_X, TITLE_Y)
+    titleSprite:add()
 
     local pathImage = gfx.image.new(MAP_BORDER_WIDTH, MAP_BORDER_HEIGHT)
     local pathSprite = gfx.sprite.new(pathImage)
@@ -290,7 +306,6 @@ function RoomSelectScene:update()
     if self.cursorTargetX then
         if pd.buttonJustPressed(pd.kButtonA) and not SceneManager.isTransitioning() then
             GAME_DATA.visitedRooms[GAME_DATA.currentRoom] = self.selectedPath
-            GAME_DATA.currentRoom += 1
             SceneManager.switchScene(GameScene, GAME_DATA.playerMaxHealth, GAME_DATA.playerHealth, GAME_DATA.currentArea, GAME_DATA.currentRoom)
         end
 
