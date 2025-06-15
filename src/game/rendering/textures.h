@@ -24,6 +24,7 @@ typedef enum TexturePaths {
 	TEXTURE_FLYING_TIME,
 	TEXTURE_LIVING_ARMOR,
 	TEXTURE_PORTAL,
+	TEXTURE_CAMPFIRE,
 	TEXTURE_COUNT
 } TexturePaths;
 extern uint8_t* TEXTURES[];

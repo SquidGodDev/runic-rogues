@@ -344,11 +344,13 @@ void initEnemies(void) {
 	}
 }
 
-void spawnEnemies(void) {
-	enemiesSpawned = getCurrentRoom() + 2;
-	enemiesDefeated = 0;
-	for (int i = 0; i < enemiesSpawned; i++) {
-		spawnRandomEnemy();
+void spawnEnemies(RoomType roomType) {
+	if (roomType == ROOM_TYPE_ENEMY || roomType == ROOM_TYPE_ELITE) {
+		enemiesSpawned = getCurrentRoom() + 2;
+		enemiesDefeated = 0;
+		for (int i = 0; i < enemiesSpawned; i++) {
+			spawnRandomEnemy();
+		}
 	}
 }
 

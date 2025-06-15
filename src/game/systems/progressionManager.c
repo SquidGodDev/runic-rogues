@@ -54,9 +54,7 @@ int getCurrentRoom(void) {
 }
 
 void roomCompleted(void) {
-    Point exitMapPosition = getExitMapPosition();
-    addInteractable(exitMapPosition.x, exitMapPosition.y, INTERACTABLE_TYPE_EXIT);
-    displayExitArrow(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);
+    spawnExit();
 }
 
 void nextRoom(void) {

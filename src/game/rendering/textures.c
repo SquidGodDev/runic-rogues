@@ -26,6 +26,7 @@ const char *texturePathStrings[] = {
 	"images/enemies/flyingTome",
 	"images/enemies/livingArmor",
 	"images/interactables/portal",
+	"images/interactables/campfire",
 };
 
 LCDBitmap* BITMAPS[BITMAP_PATHS_COUNT];

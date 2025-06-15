@@ -1,7 +1,6 @@
 #define TARGET_EXTENSION 1
 #include "pd_api.h"
 
-#include "globals.h"
 #include "helpers.h"
 #include "game/entities/interactables.h"
 #include "game/systems/progressionManager.h"
@@ -35,16 +34,16 @@ RoomLayout roomLayouts[ROOM_TYPE_COUNT] = {
         .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
     },
     [ROOM_TYPE_SHOP] = (RoomLayout){
-        .mapWidth = MAP_WIDTH / 2,
-        .mapHeight = MAP_HEIGHT / 2,
-        .playerSpawnMapPosition = (Point){.x = 2, MAP_HEIGHT / 4},
-        .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 8, .y = MAP_HEIGHT / 8}
+        .mapWidth = 10,
+        .mapHeight = 10,
+        .playerSpawnMapPosition = (Point){.x = 2, 5},
+        .exitMapPosition = (Point){.x = 7, .y = 5}
     },
     [ROOM_TYPE_CAMPFIRE] = (RoomLayout){
-        .mapWidth = MAP_WIDTH / 2,
-        .mapHeight = MAP_HEIGHT / 2,
-        .playerSpawnMapPosition = (Point){.x = 2, MAP_HEIGHT / 4},
-        .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 8, .y = MAP_HEIGHT / 8}
+        .mapWidth = 10,
+        .mapHeight = 10,
+        .playerSpawnMapPosition = (Point){.x = 2, 5},
+        .exitMapPosition = (Point){.x = 7, .y = 5}
     },
     [ROOM_TYPE_BOSS] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
@@ -108,19 +107,29 @@ void encloseMapInWalls(int width, int height) {
     }
 }
 
-void generateSquareDungeon(void) {
-    fillMap(FLOOR);
-    int width = roomLayouts[curRoomType].mapWidth;
-    int height = roomLayouts[curRoomType].mapHeight;
-    encloseMapInWalls(width, height);
-}
-
 Point getPlayerSpawnMapPosition(void) {
     return roomLayouts[curRoomType].playerSpawnMapPosition;
 }
 
 Point getExitMapPosition(void) {
     return roomLayouts[curRoomType].exitMapPosition;
+}
+
+void spawnExit(void) {
+    Point exitMapPosition = getExitMapPosition();
+    addInteractable(exitMapPosition.x, exitMapPosition.y, INTERACTABLE_TYPE_EXIT);
+    displayExitArrow(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);
+}
+
+void generateSquareDungeon(void) {
+    fillMap(FLOOR);
+    int width = roomLayouts[curRoomType].mapWidth;
+    int height = roomLayouts[curRoomType].mapHeight;
+    encloseMapInWalls(width, height);
+
+    if (curRoomType == ROOM_TYPE_CAMPFIRE || curRoomType == ROOM_TYPE_SHOP) {
+        spawnExit();
+    }
 }
 
 void initMap(RoomType roomType) {

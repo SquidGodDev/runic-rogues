@@ -21,8 +21,17 @@
 #define FOG_MAX_DIST (FOG_MIN_DIST + FOG_STEP * (FOG_LEVELS - 1))
 
 typedef struct Point {
-	float x;
-	float y;
+	int x;
+	int y;
 } Point;
+
+typedef enum RoomType {
+    ROOM_TYPE_ENEMY,
+    ROOM_TYPE_ELITE,
+    ROOM_TYPE_SHOP,
+    ROOM_TYPE_CAMPFIRE,
+    ROOM_TYPE_BOSS,
+    ROOM_TYPE_COUNT
+} RoomType;
 
 extern PlaydateAPI *pd;

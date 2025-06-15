@@ -41,6 +41,6 @@ typedef struct Enemy {
 extern Enemy enemies[MAX_ENEMY_COUNT];
 
 void initEnemies(void);
-void spawnEnemies(void);
+void spawnEnemies(RoomType roomType);
 void updateEnemies(float deltaTime);
 int checkEnemyCollision(float x, float y, float collisionRange, int damage);
