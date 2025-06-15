@@ -1,14 +1,14 @@
 #pragma once
 
 #include "globals.h"
+#include "game/systems/progressionManager.h"
 
-#define PLAYER_SPAWN_MAP_X 2
-#define PLAYER_SPAWN_MAP_Y MAP_HEIGHT / 2
-#define PORTAL_SPAWN_MAP_X MAP_WIDTH * 3 / 4
-#define PORTAL_SPAWN_MAP_Y MAP_HEIGHT / 2
 extern int map[MAP_WIDTH * MAP_HEIGHT];
 
-void initMap(void);
+
+Point getPlayerSpawnMapPosition(void);
+Point getExitMapPosition(void);
+void initMap(RoomType roomType);
 int isBlocked(int x, int y);
 int isClearLine(int x1, int y1, int x2, int y2);
 

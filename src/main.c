@@ -40,6 +40,7 @@ int initGameScene(lua_State* L)
 	int playerHealth = pd->lua->getArgInt(3);
 	int currentArea = pd->lua->getArgInt(4) - 1;
 	int currentRoom = pd->lua->getArgInt(5) - 1;
+	RoomType roomType = pd->lua->getArgInt(6);
 
 	// Progression
 	initProgressionManager(currentArea, currentRoom);
@@ -52,7 +53,7 @@ int initGameScene(lua_State* L)
 	initParticles();
 
 	// Map
-	initMap();
+	initMap(roomType);
 	initRaycasting();
 
 	spawnEnemies();

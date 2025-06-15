@@ -293,6 +293,15 @@ function RoomSelectScene:init()
     self.tileCursor = tileCursor
 end
 
+function RoomSelectScene:getSelectedRoomType()
+    local roomType = GAME_DATA.areaRooms[GAME_DATA.currentRoom]
+    if type(roomType) == "table" then
+        return roomType[self.selectedPath]
+    else
+        return roomType
+    end
+end
+
 function RoomSelectScene:update()
     gfx.sprite.update()
     pd.timer.updateTimers()
@@ -306,7 +315,7 @@ function RoomSelectScene:update()
     if self.cursorTargetX then
         if pd.buttonJustPressed(pd.kButtonA) and not SceneManager.isTransitioning() then
             GAME_DATA.visitedRooms[GAME_DATA.currentRoom] = self.selectedPath
-            SceneManager.switchScene(GameScene, GAME_DATA.playerMaxHealth, GAME_DATA.playerHealth, GAME_DATA.currentArea, GAME_DATA.currentRoom)
+            SceneManager.switchScene(GameScene, GAME_DATA.playerMaxHealth, GAME_DATA.playerHealth, GAME_DATA.currentArea, GAME_DATA.currentRoom, self:getSelectedRoomType())
         end
 
         local currentX = cursorTopSprite.x

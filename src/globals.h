@@ -20,4 +20,9 @@
 #define FOG_MIN_DIST 60
 #define FOG_MAX_DIST (FOG_MIN_DIST + FOG_STEP * (FOG_LEVELS - 1))
 
+typedef struct Point {
+	float x;
+	float y;
+} Point;
+
 extern PlaydateAPI *pd;

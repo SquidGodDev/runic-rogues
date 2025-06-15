@@ -86,8 +86,10 @@ void initPlayer(int maxHealth, int health) {
 	playerMaxHealth = maxHealth;
 	playerHealth = health;
 	playerHitInvincibility = 0;
-	playerX = PLAYER_SPAWN_MAP_X * CELL_SIZE + CELL_SIZE / 2;
-	playerY = PLAYER_SPAWN_MAP_Y * CELL_SIZE + CELL_SIZE / 2;
+
+	Point playerSpawnMapPosition = getPlayerSpawnMapPosition();
+	playerX = playerSpawnMapPosition.x * CELL_SIZE + CELL_SIZE / 2;
+	playerY = playerSpawnMapPosition.y * CELL_SIZE + CELL_SIZE / 2;
 	playerRadius = 6;
 	playerAngle = 0;
 	playerTurnSpeed = 0;

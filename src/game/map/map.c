@@ -4,8 +4,12 @@
 #include "globals.h"
 #include "helpers.h"
 #include "game/entities/interactables.h"
+#include "game/systems/progressionManager.h"
 
 #define PLAYDATE_SDK 1
+
+#define WALL 1
+#define FLOOR 0
 
 #define MIN_ROOM_SIZE 5
 #define MAX_DEPTH 5
@@ -13,8 +17,51 @@
 #define MIN_SPLIT_PERCENT 0.3f
 #define MAX_SPLIT_PERCENT 0.7f
 #define MIN_LARGE_ROOM_DEPTH 3
-#define WALL 1
-#define FLOOR 0
+
+typedef struct RoomLayout {
+    int mapWidth;
+    int mapHeight;
+    Point playerSpawnMapPosition;
+    Point exitMapPosition;
+} RoomLayout;
+
+#define CAMPFIRE_ROOM_WIDTH MAP_WIDTH / 2
+#define CAMPFIRE_ROOM_HEIGHT MAP_HEIGHT / 2
+
+RoomLayout roomLayouts[ROOM_TYPE_COUNT] = {
+    [ROOM_TYPE_ENEMY] = (RoomLayout){
+        .mapWidth = MAP_WIDTH,
+        .mapHeight = MAP_HEIGHT,
+        .playerSpawnMapPosition = (Point){.x = 2, MAP_HEIGHT / 2},
+        .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
+    },
+    [ROOM_TYPE_ELITE] = (RoomLayout){
+        .mapWidth = MAP_WIDTH,
+        .mapHeight = MAP_HEIGHT,
+        .playerSpawnMapPosition = (Point){.x = 2, MAP_HEIGHT / 2},
+        .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
+    },
+    [ROOM_TYPE_SHOP] = (RoomLayout){
+        .mapWidth = MAP_WIDTH / 2,
+        .mapHeight = MAP_HEIGHT / 2,
+        .playerSpawnMapPosition = (Point){.x = 2, MAP_HEIGHT / 4},
+        .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 8, .y = MAP_HEIGHT / 8}
+    },
+    [ROOM_TYPE_CAMPFIRE] = (RoomLayout){
+        .mapWidth = MAP_WIDTH / 2,
+        .mapHeight = MAP_HEIGHT / 2,
+        .playerSpawnMapPosition = (Point){.x = 2, MAP_HEIGHT / 4},
+        .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 8, .y = MAP_HEIGHT / 8}
+    },
+    [ROOM_TYPE_BOSS] = (RoomLayout){
+        .mapWidth = MAP_WIDTH,
+        .mapHeight = MAP_HEIGHT,
+        .playerSpawnMapPosition = (Point){.x = 2, MAP_HEIGHT / 2},
+        .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
+    }
+};
+
+static RoomType curRoomType;
 
 int map[MAP_WIDTH * MAP_HEIGHT];
 
@@ -196,31 +243,39 @@ void generateMazeDungeon(void) {
     freeTree(dungeonRoot);
 }
 
-void encloseMapInWalls(void) {
-    for (int x = 0; x < MAP_WIDTH; x++) {
+void encloseMapInWalls(int width, int height) {
+    for (int x = 0; x < width; x++) {
         setCell(x, 0, WALL); // Top row
-        setCell(x, MAP_HEIGHT - 1, WALL); // Bottom row
+        setCell(x, height - 1, WALL); // Bottom row
     }
-    for (int y = 0; y < MAP_HEIGHT; y++) {
+    for (int y = 0; y < height; y++) {
         setCell(0, y, WALL); // Left column
-        setCell(MAP_WIDTH - 1, y, WALL); // Right column
+        setCell(width - 1, y, WALL); // Right column
     }
 }
 
 void generateSquareDungeon(void) {
     fillMap(FLOOR);
-    encloseMapInWalls();
+    int width = roomLayouts[curRoomType].mapWidth;
+    int height = roomLayouts[curRoomType].mapHeight;
+    encloseMapInWalls(width, height);
 }
 
-void generateDungeon(void) {
+Point getPlayerSpawnMapPosition(void) {
+    return roomLayouts[curRoomType].playerSpawnMapPosition;
+}
+
+Point getExitMapPosition(void) {
+    return roomLayouts[curRoomType].exitMapPosition;
+}
+
+void initMap(RoomType roomType) {
+    curRoomType = roomType;
+
     // generateMazeDungeon();
     generateSquareDungeon();
 
     printMap();
-}
-
-void initMap(void) {
-    generateDungeon();
 }
 
 int isBlocked(int x, int y) {

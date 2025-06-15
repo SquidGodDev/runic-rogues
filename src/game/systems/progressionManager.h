@@ -20,6 +20,16 @@ typedef struct AreaData {
     uint8_t *floorTexture;
 } AreaData;
 
+typedef enum RoomType
+{
+    ROOM_TYPE_ENEMY,
+    ROOM_TYPE_ELITE,
+    ROOM_TYPE_SHOP,
+    ROOM_TYPE_CAMPFIRE,
+    ROOM_TYPE_BOSS,
+    ROOM_TYPE_COUNT
+} RoomType;
+
 void initProgressionManager(int area, int room);
 AreaData getCurrentAreaData(void);
 Area getCurrentArea(void);
