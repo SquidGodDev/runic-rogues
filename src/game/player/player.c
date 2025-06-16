@@ -359,6 +359,13 @@ void updatePlayer(float deltaTime) {
 	handleInteractables();
 }
 
+void healPlayer(int amount) {
+	playerHealth += amount;
+	if (playerHealth >= playerMaxHealth) {
+		playerHealth = playerMaxHealth;
+	}
+}
+
 void damagePlayer(int amount) {
     if (playerHitInvincibility > 0) {
         return;

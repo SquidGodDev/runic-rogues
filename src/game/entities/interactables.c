@@ -3,10 +3,13 @@
 
 #include "globals.h"
 #include "helpers.h"
+#include "game/player/player.h"
 #include "game/entities/interactables.h"
 #include "game/rendering/textures.h"
 #include "game/entities/entities.h"
 #include "game/systems/progressionManager.h"
+
+#define CAMPFIRE_HEAL_AMOUNT 2
 
 typedef struct InteractableData {
 	uint8_t* texture;
@@ -22,6 +25,16 @@ void initInteractablesData(void) {
 		.texture = TEXTURES[TEXTURE_PORTAL],
         .frameTime = 0.1f,
 		.idleEndFrame = 12
+    };
+	interactableData[INTERACTABLE_TYPE_CAMPFIRE] = (InteractableData){
+		.texture = TEXTURES[TEXTURE_CAMPFIRE],
+        .frameTime = 0.1f,
+		.idleEndFrame = 1
+    };
+	interactableData[INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE] = (InteractableData){
+		.texture = TEXTURES[TEXTURE_EXTINGUISHED_CAMPFIRE],
+        .frameTime = 0.1f,
+		.idleEndFrame = 1
     };
 }
 
@@ -47,6 +60,12 @@ void interact(int interactableIndex) {
 		case INTERACTABLE_TYPE_EXIT:
 			nextRoom();
 			break;
+		case INTERACTABLE_TYPE_CAMPFIRE:
+			healPlayer(CAMPFIRE_HEAL_AMOUNT);
+			INTERACTABLES[interactableIndex].active = 0;
+			int campfireMapX = (INTERACTABLES[interactableIndex].x - CELL_SIZE / 2) / CELL_SIZE;
+			int campfireMapY = (INTERACTABLES[interactableIndex].y - CELL_SIZE / 2) / CELL_SIZE;
+			addInteractable(campfireMapX, campfireMapY, INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE);
 		default:
 			break;
 	}

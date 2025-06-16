@@ -127,7 +127,10 @@ void generateSquareDungeon(void) {
     int height = roomLayouts[curRoomType].mapHeight;
     encloseMapInWalls(width, height);
 
-    if (curRoomType == ROOM_TYPE_CAMPFIRE || curRoomType == ROOM_TYPE_SHOP) {
+    if (curRoomType == ROOM_TYPE_CAMPFIRE) {
+        addInteractable(width / 2, height / 2, INTERACTABLE_TYPE_CAMPFIRE);
+        spawnExit();
+    } else if (curRoomType == ROOM_TYPE_SHOP) {
         spawnExit();
     }
 }
