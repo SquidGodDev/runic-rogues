@@ -59,15 +59,6 @@ void roomCompleted(void) {
 
 void nextRoom(void) {
     transitioning = 1;
-    currentRoom++;
-    if (currentRoom >= MAX_ROOM_COUNT) {
-        currentRoom = 0;
-        currentArea++;
-        if (currentArea >= AREA_COUNT) {
-            // TODO: Transition to game win scene
-            currentArea = AREA_ECHOING_CAVERNS; // Temporary: loop back to the first area
-        }
-    }
     pd->lua->pushInt(playerHealth);
     pd->lua->callFunction("NextLevel", 1, NULL);
 }
