@@ -23,9 +23,6 @@
 // DEBUG
 #define SKIP_ENEMY_UPDATE 0
 
-static int enemiesDefeated;
-static int enemiesSpawned;
-
 typedef enum AttackPattern
 {
 	ATTACK_PATTERN_PROXIMITY,
@@ -346,8 +343,7 @@ void initEnemies(void) {
 
 void spawnEnemies(RoomType roomType) {
 	if (roomType == ROOM_TYPE_ENEMY || roomType == ROOM_TYPE_ELITE) {
-		enemiesSpawned = getCurrentRoom() + 2;
-		enemiesDefeated = 0;
+		int enemiesSpawned = getCurrentRoom() + 2;
 		for (int i = 0; i < enemiesSpawned; i++) {
 			spawnRandomEnemy();
 		}
@@ -495,17 +491,27 @@ int damageEnemy(int index, int damage) {
 	curEnemy.health -= damage;
 	if (curEnemy.health <= 0) {
 		enemyDeathEffect(index);
-		if (curEnemy.type != ENEMY_TYPE_BABY_SLIME) {
-			enemiesDefeated++;
-		}
-		if (enemiesDefeated >= enemiesSpawned) {
-			roomCompleted();
-		}
 
 		curEnemy.state = ENEMY_STATE_DEAD;
 		curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
 		curEnemy.animationTime = curEnemyData.frameTime;
 		curEnemy.hitFlashTime = 0;
+
+		int allEnemiesDead = 1;
+		for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+			if (i == index) {
+				continue;
+			}
+
+			if (enemies[i].active && enemies[i].state != ENEMY_STATE_DEAD) {
+				allEnemiesDead = 0;
+				break;
+			}
+		}
+
+		if (allEnemiesDead) {
+			roomCompleted();
+		}
 	}
 	
 	enemies[index] = curEnemy;
