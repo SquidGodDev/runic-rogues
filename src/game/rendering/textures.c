@@ -47,6 +47,8 @@ const char *bitmapPathStrings[] = {
 	"images/UI/prompts/AButton",
 	"images/UI/prompts/exitPrompt",
 	"images/UI/prompts/exitPrompt_JP",
+	"images/UI/prompts/restPrompt",
+	"images/UI/prompts/restPrompt_JP",
 };
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];
