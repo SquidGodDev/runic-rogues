@@ -24,31 +24,31 @@ RoomLayout roomLayouts[ROOM_TYPE_COUNT] = {
     [ROOM_TYPE_ENEMY] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = (Point){.x = 2, MAP_HEIGHT / 2},
+        .playerSpawnMapPosition = (Point){.x = 2, .y = MAP_HEIGHT / 2},
         .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
     },
     [ROOM_TYPE_ELITE] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = (Point){.x = 2, MAP_HEIGHT / 2},
+        .playerSpawnMapPosition = (Point){.x = 2, .y = MAP_HEIGHT / 2},
         .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
     },
     [ROOM_TYPE_SHOP] = (RoomLayout){
         .mapWidth = 10,
         .mapHeight = 10,
-        .playerSpawnMapPosition = (Point){.x = 2, 5},
+        .playerSpawnMapPosition = (Point){.x = 2, .y = 5},
         .exitMapPosition = (Point){.x = 7, .y = 5}
     },
     [ROOM_TYPE_CAMPFIRE] = (RoomLayout){
-        .mapWidth = 10,
-        .mapHeight = 10,
-        .playerSpawnMapPosition = (Point){.x = 2, 5},
-        .exitMapPosition = (Point){.x = 7, .y = 5}
+        .mapWidth = 14,
+        .mapHeight = 5,
+        .playerSpawnMapPosition = (Point){.x = 1, .y = 2},
+        .exitMapPosition = (Point){.x = 10, .y = 2}
     },
     [ROOM_TYPE_BOSS] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = (Point){.x = 2, MAP_HEIGHT / 2},
+        .playerSpawnMapPosition = (Point){.x = 2, .y = MAP_HEIGHT / 2},
         .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
     }
 };
@@ -128,7 +128,7 @@ void generateSquareDungeon(void) {
     encloseMapInWalls(width, height);
 
     if (curRoomType == ROOM_TYPE_CAMPFIRE) {
-        addInteractable(width / 2, height / 2, INTERACTABLE_TYPE_CAMPFIRE);
+        addInteractable(width / 3, height / 2, INTERACTABLE_TYPE_CAMPFIRE);
         spawnExit();
     } else if (curRoomType == ROOM_TYPE_SHOP) {
         spawnExit();

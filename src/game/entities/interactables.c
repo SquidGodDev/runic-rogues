@@ -28,8 +28,8 @@ void initInteractablesData(void) {
     };
 	interactableData[INTERACTABLE_TYPE_CAMPFIRE] = (InteractableData){
 		.texture = TEXTURES[TEXTURE_CAMPFIRE],
-        .frameTime = 0.1f,
-		.idleEndFrame = 1
+        .frameTime = 0.15f,
+		.idleEndFrame = 5
     };
 	interactableData[INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE] = (InteractableData){
 		.texture = TEXTURES[TEXTURE_EXTINGUISHED_CAMPFIRE],
