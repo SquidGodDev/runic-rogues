@@ -82,8 +82,8 @@ void drawEntityToMinimap(float entityX, float entityY, LCDBitmap *bitmap, float 
         float rotatedEntityX = entityVectorX * playerAngleCos - entityVectorY * playerAngleSin;
         float rotatedEntityY = entityVectorX * playerAngleSin + entityVectorY * playerAngleCos;
 
-        float entityMinimapX = MINIMAP_CENTER_X + rotatedEntityX * ENTITY_DIST_SCALE_FACTOR;
-        float entityMinimapY = MINIMAP_CENTER_Y + rotatedEntityY * ENTITY_DIST_SCALE_FACTOR;
+        float entityMinimapX = MINIMAP_CENTER_X + rotatedEntityX * ENTITY_DIST_SCALE_FACTOR + 1;
+        float entityMinimapY = MINIMAP_CENTER_Y + rotatedEntityY * ENTITY_DIST_SCALE_FACTOR + 1;
 
         pd->graphics->drawBitmap(bitmap, entityMinimapX, entityMinimapY, kBitmapUnflipped);
     }
