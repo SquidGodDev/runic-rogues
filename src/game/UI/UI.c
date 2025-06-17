@@ -76,14 +76,14 @@ void drawPlayerHearts(void) {
 void drawEntityToMinimap(float entityX, float entityY, LCDBitmap *bitmap, float playerAngleCos, float playerAngleSin) {
     float distSquaredToPlayer = distanceSquared(playerX, playerY, entityX, entityY);
     if (distSquaredToPlayer <= ENTITY_CHECK_DISTANCE) {
-        float entityVectorX = (playerX - entityX);
-        float entityVectorY = (playerY - entityY);
+        float entityVectorX = (playerX - entityX - 0.5f);
+        float entityVectorY = (playerY - entityY - 0.5f);
         // Multiply by rotation matrix to rotate
         float rotatedEntityX = entityVectorX * playerAngleCos - entityVectorY * playerAngleSin;
         float rotatedEntityY = entityVectorX * playerAngleSin + entityVectorY * playerAngleCos;
 
-        float entityMinimapX = MINIMAP_CENTER_X + rotatedEntityX * ENTITY_DIST_SCALE_FACTOR + 1;
-        float entityMinimapY = MINIMAP_CENTER_Y + rotatedEntityY * ENTITY_DIST_SCALE_FACTOR + 1;
+        float entityMinimapX = MINIMAP_CENTER_X + rotatedEntityX * ENTITY_DIST_SCALE_FACTOR;
+        float entityMinimapY = MINIMAP_CENTER_Y + rotatedEntityY * ENTITY_DIST_SCALE_FACTOR;
 
         pd->graphics->drawBitmap(bitmap, entityMinimapX, entityMinimapY, kBitmapUnflipped);
     }
@@ -162,6 +162,8 @@ void drawMinimap(void) {
 
         if (curInteractable.type == INTERACTABLE_TYPE_EXIT) {
             drawEntityToMinimap(curInteractable.x, curInteractable.y, BITMAPS[BITMAP_MINIMAP_EXIT], playerAngleCos, playerAngleSin);
+        } else if (curInteractable.type == INTERACTABLE_TYPE_CAMPFIRE || curInteractable.type == INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE) {
+            drawEntityToMinimap(curInteractable.x, curInteractable.y, BITMAPS[BITMAP_MINIMAP_CAMPFIRE], playerAngleCos, playerAngleSin);
         }
     }
     // Draw projectiles

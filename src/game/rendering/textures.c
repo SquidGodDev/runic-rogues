@@ -39,6 +39,7 @@ const char *bitmapPathStrings[] = {
 	"images/UI/emptyHeart",
 	"images/UI/minimap/minimapWall",
 	"images/UI/minimap/minimapExit",
+	"images/UI/minimap/minimapCampfire",
 	"images/UI/minimap/minimapPlayer",
 	"images/UI/minimap/minimapBorder",
 	"images/UI/minimap/minimapEnemy",

@@ -6,5 +6,5 @@
 Settings SETTINGS;
 
 void initSettings(void) {
-    SETTINGS.language = LANGUAGE_JP;
+    SETTINGS.language = LANGUAGE_EN;
 }
