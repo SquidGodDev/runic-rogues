@@ -16,14 +16,14 @@ end
 function GameManager:getAreaRooms()
     return {
         ROOM_TYPE.ENEMY,
+        ROOM_TYPE.ENEMY,
+        ROOM_TYPE.ENEMY,
         {ROOM_TYPE.CAMPFIRE, ROOM_TYPE.ENEMY},
-        {ROOM_TYPE.SHOP, ROOM_TYPE.ENEMY},
+        {ROOM_TYPE.ENEMY, ROOM_TYPE.ELITE},
         ROOM_TYPE.ENEMY,
         ROOM_TYPE.ENEMY,
-        {ROOM_TYPE.ELITE, ROOM_TYPE.ENEMY},
         ROOM_TYPE.ENEMY,
-        ROOM_TYPE.ENEMY,
-        ROOM_TYPE.CAMPFIRE,
+        {ROOM_TYPE.CAMPFIRE, ROOM_TYPE.ENEMY},
         ROOM_TYPE.BOSS
     }
 end

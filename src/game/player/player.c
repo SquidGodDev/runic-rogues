@@ -29,6 +29,7 @@ int playerHealth;
 int interactableIndex;
 // ========================
 
+static int playerDead;
 static float playerHitInvincibility;
 
 static int playerRadius;
@@ -85,6 +86,7 @@ void initPlayer(int maxHealth, int health) {
     // Player starting values
 	playerMaxHealth = maxHealth;
 	playerHealth = health;
+	playerDead = 0;
 	playerHitInvincibility = 0;
 
 	Point playerSpawnMapPosition = getPlayerSpawnMapPosition();
@@ -139,8 +141,8 @@ void handleInput(float deltaTime)
 	PDButtons pushed;
 	pd->system->getButtonState(&current, &pushed, NULL);
 
-	if (isTransitioning()) {
-		// Disable input during transitions
+	if (isTransitioning() || playerDead) {
+		// Disable inputs
 		current = 0;
 		pushed = 0;
 	}
@@ -367,7 +369,7 @@ void healPlayer(int amount) {
 }
 
 void damagePlayer(int amount) {
-    if (playerHitInvincibility > 0) {
+    if (playerHitInvincibility > 0 || playerDead) {
         return;
     }
 
@@ -376,6 +378,7 @@ void damagePlayer(int amount) {
     playerHealth -= amount;
     if (playerHealth <= 0) {
         playerHealth = 0;
+		playerDead = 1;
         pd->graphics->clear(kColorBlack);
         pd->lua->callFunction("GameOver", 0, NULL);
     }
