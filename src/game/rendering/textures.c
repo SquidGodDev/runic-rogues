@@ -6,6 +6,10 @@
 
 uint8_t* TEXTURES[TEXTURE_COUNT];
 const char *texturePathStrings[] = {
+	"images/UI/minimap/minimapCampfire",
+	"images/UI/minimap/minimapEnemy",
+	"images/UI/minimap/minimapExit",
+	"images/UI/minimap/minimapProjectile",
 	"images/environment/echoingCaverns/echoingCavernsWall",
 	"images/environment/echoingCaverns/echoingCavernsCeiling",
 	"images/environment/echoingCaverns/echoingCavernsFloor",
@@ -38,12 +42,7 @@ const char *bitmapPathStrings[] = {
 	"images/UI/halfHeart",
 	"images/UI/emptyHeart",
 	"images/UI/minimap/minimapWall",
-	"images/UI/minimap/minimapExit",
-	"images/UI/minimap/minimapCampfire",
-	"images/UI/minimap/minimapPlayer",
 	"images/UI/minimap/minimapBorder",
-	"images/UI/minimap/minimapEnemy",
-	"images/UI/minimap/minimapProjectile",
 	"images/UI/minimap/minimapMask",
 	"images/UI/prompts/AButton",
 	"images/UI/prompts/exitPrompt",

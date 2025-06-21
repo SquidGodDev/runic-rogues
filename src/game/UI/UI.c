@@ -13,6 +13,8 @@
 #include "game/entities/interactables.h"
 #include "game/settings/settings.h"
 
+#define drawPixel(frameBuffer, x, y) (frameBuffer[y * LCD_ROWSIZE + (x >> 3)] |= (1 << (7 - (x & 7))))
+
 #define MAX_SCREEN_SHAKE_TIME 0.8f // Seconds
 #define MAX_SCREEN_SHAKE_MAGNITUDE 10
 
@@ -35,9 +37,9 @@
 #define ENTITY_DIST_SCALE_FACTOR CELL_DRAW_SIZE / CELL_SIZE
 #define MINIMAP_PIXEL_SIZE MINIMAP_SIZE * CELL_DRAW_SIZE
 #define MINIMAP_HALF_PIXEL_SIZE MINIMAP_PIXEL_SIZE / 2
-#define ENTITY_CHECK_DISTANCE powf((MINIMAP_SIZE / 2 + 1) * CELL_SIZE, 2.0f)
-#define MINIMAP_CENTER_X MINIMAP_SIZE / 2 * CELL_DRAW_SIZE - 1
-#define MINIMAP_CENTER_Y MINIMAP_SIZE / 2 * CELL_DRAW_SIZE - 1
+#define ENTITY_CHECK_DISTANCE powf((MINIMAP_SIZE / 2 - 1) * CELL_SIZE, 2.0f)
+
+#define ICON_SIZE 6
 
 static float screenShakeTime;
 static int shakeMagnitude;
@@ -73,7 +75,8 @@ void drawPlayerHearts(void) {
     }
 }
 
-void drawEntityToMinimap(float entityX, float entityY, LCDBitmap *bitmap, float playerAngleCos, float playerAngleSin) {
+void drawEntityToMinimap(float entityX, float entityY, uint8_t *texture, float playerAngleCos, float playerAngleSin) {
+    uint8_t* frameBuffer = pd->graphics->getFrame();
     float distSquaredToPlayer = distanceSquared(playerX, playerY, entityX, entityY);
     if (distSquaredToPlayer <= ENTITY_CHECK_DISTANCE) {
         float entityVectorX = (playerX - entityX - 0.5f);
@@ -82,10 +85,16 @@ void drawEntityToMinimap(float entityX, float entityY, LCDBitmap *bitmap, float 
         float rotatedEntityX = entityVectorX * playerAngleCos - entityVectorY * playerAngleSin;
         float rotatedEntityY = entityVectorX * playerAngleSin + entityVectorY * playerAngleCos;
 
-        float entityMinimapX = MINIMAP_CENTER_X + rotatedEntityX * ENTITY_DIST_SCALE_FACTOR;
-        float entityMinimapY = MINIMAP_CENTER_Y + rotatedEntityY * ENTITY_DIST_SCALE_FACTOR;
+        int entityMinimapX = MINIMAP_X + rotatedEntityX * ENTITY_DIST_SCALE_FACTOR - ICON_SIZE / 2;
+        int entityMinimapY = MINIMAP_Y + rotatedEntityY * ENTITY_DIST_SCALE_FACTOR - ICON_SIZE / 2;
 
-        pd->graphics->drawBitmap(bitmap, entityMinimapX, entityMinimapY, kBitmapUnflipped);
+        for (uint8_t y = 0; y < ICON_SIZE; y++) {
+            for (uint8_t x = 0; x < ICON_SIZE; x++) {
+                if (texture[y * ICON_SIZE + x] == kColorWhite) {
+                    drawPixel(frameBuffer, (entityMinimapX + x), (entityMinimapY + y));
+                }
+            }
+        }
     }
 }
 
@@ -93,55 +102,56 @@ void drawMinimap(void) {
     // Angle that matches orientation of walls
     float rotatedPlayerAngle = 2*PI - playerAngle - P2;
 
-    // == Base minimap layer (walls) ==
-    LCDBitmap *minimapBitmap = pd->graphics->newBitmap(MINIMAP_PIXEL_SIZE, MINIMAP_PIXEL_SIZE, kColorBlack);
+    // Draw background
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_BORDER], MINIMAP_X - MINIMAP_HALF_PIXEL_SIZE, MINIMAP_Y - MINIMAP_HALF_PIXEL_SIZE, kBitmapUnflipped);
 
-    pd->graphics->pushContext(minimapBitmap);
-    int playerMapX = playerX / CELL_SIZE;
-    int playerMapY = playerY / CELL_SIZE;
-    int playerOffsetX = roundf((playerX - playerMapX * CELL_SIZE) / CELL_DRAW_SIZE) + CELL_DRAW_SIZE / 2;
-    int playerOffsetY = roundf((playerY - playerMapY * CELL_SIZE) / CELL_DRAW_SIZE) + CELL_DRAW_SIZE / 2;
-    
-    // Draw walls
-    LCDBitmap *minimapWallBitmap = BITMAPS[BITMAP_MINIMAP_WALL];
-    for (int mapY = 0; mapY < MINIMAP_SIZE + 1; mapY++) {
-        int adjustedMapY = playerMapY - (MINIMAP_SIZE + 1) / 2 + mapY;
-        if (adjustedMapY < 0 || adjustedMapY >= MAP_HEIGHT) {
-            continue;
-        }
-        for (int mapX = 0; mapX < MINIMAP_SIZE + 1; mapX++) {
-            int adjustedMapX = playerMapX - (MINIMAP_SIZE + 1) / 2 + mapX;
-            if (adjustedMapX < 0 || adjustedMapX >= MAP_WIDTH) {
+    if (SETTINGS.drawMinimapWalls) {
+        // == Wall layer ==
+        LCDBitmap *minimapBitmap = pd->graphics->newBitmap(MINIMAP_PIXEL_SIZE, MINIMAP_PIXEL_SIZE, kColorClear);
+
+        pd->graphics->pushContext(minimapBitmap);
+        int playerMapX = playerX / CELL_SIZE;
+        int playerMapY = playerY / CELL_SIZE;
+        int playerOffsetX = roundf((playerX - playerMapX * CELL_SIZE) / CELL_DRAW_SIZE) + CELL_DRAW_SIZE / 2;
+        int playerOffsetY = roundf((playerY - playerMapY * CELL_SIZE) / CELL_DRAW_SIZE) + CELL_DRAW_SIZE / 2;
+
+        // Draw walls
+        LCDBitmap *minimapWallBitmap = BITMAPS[BITMAP_MINIMAP_WALL];
+        for (int mapY = 0; mapY < MINIMAP_SIZE + 1; mapY++) {
+            int adjustedMapY = playerMapY - (MINIMAP_SIZE + 1) / 2 + mapY;
+            if (adjustedMapY < 0 || adjustedMapY >= MAP_HEIGHT) {
                 continue;
             }
-            int drawX = mapX * CELL_DRAW_SIZE - playerOffsetX;
-            int drawY = mapY * CELL_DRAW_SIZE - playerOffsetY;
-            if (isBlocked(adjustedMapX, adjustedMapY)) {
-                pd->graphics->drawBitmap(minimapWallBitmap, drawX, drawY, kBitmapUnflipped);
+            for (int mapX = 0; mapX < MINIMAP_SIZE + 1; mapX++) {
+                int adjustedMapX = playerMapX - (MINIMAP_SIZE + 1) / 2 + mapX;
+                if (adjustedMapX < 0 || adjustedMapX >= MAP_WIDTH) {
+                    continue;
+                }
+                int drawX = mapX * CELL_DRAW_SIZE - playerOffsetX;
+                int drawY = mapY * CELL_DRAW_SIZE - playerOffsetY;
+                if (isBlocked(adjustedMapX, adjustedMapY)) {
+                    pd->graphics->drawBitmap(minimapWallBitmap, drawX, drawY, kBitmapUnflipped);
+                }
             }
         }
+
+        pd->graphics->popContext();
+
+        // Set circle mask
+        LCDBitmap *baseLayerMask = pd->graphics->getBitmapMask(minimapBitmap);
+        pd->graphics->pushContext(baseLayerMask);
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_MASK], 0, 0, kBitmapUnflipped);
+        pd->graphics->popContext();
+        pd->graphics->setBitmapMask(minimapBitmap, baseLayerMask);
+
+        // Draw wall layer
+        pd->graphics->drawRotatedBitmap(minimapBitmap, MINIMAP_X, MINIMAP_Y, radToDeg(rotatedPlayerAngle), 0.5f, 0.5f, 1.0f, 1.0f);
+        pd->graphics->freeBitmap(minimapBitmap);
+        pd->graphics->freeBitmap(baseLayerMask);
+        // == End of wall layer ==
     }
 
-    pd->graphics->popContext();
-
-    // Set circle mask
-    LCDBitmap *baseLayerMask = pd->graphics->newBitmap(MINIMAP_PIXEL_SIZE, MINIMAP_PIXEL_SIZE, kColorWhite);
-    pd->graphics->pushContext(baseLayerMask);
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_MASK], 0, 0, kBitmapUnflipped);
-    pd->graphics->popContext();
-    pd->graphics->setBitmapMask(minimapBitmap, baseLayerMask);
-    
-    // Draw base layer
-    pd->graphics->drawRotatedBitmap(minimapBitmap, MINIMAP_X, MINIMAP_Y, radToDeg(rotatedPlayerAngle), 0.5f, 0.5f, 1.0f, 1.0f);
-    pd->graphics->freeBitmap(minimapBitmap);
-    pd->graphics->freeBitmap(baseLayerMask);
-    // == End of base layer ==
-
-    // == Overlay layer (player + entities) ==
-    LCDBitmap *minimapOverlayBitmap = pd->graphics->newBitmap(MINIMAP_PIXEL_SIZE, MINIMAP_PIXEL_SIZE, kColorClear);
-    pd->graphics->pushContext(minimapOverlayBitmap);
-
-    // Draw entities
+    // == Entity layer ==
     float playerAngleCos = cosf(rotatedPlayerAngle + PI);
     float playerAngleSin = sinf(rotatedPlayerAngle + PI);
     // Draw enemies
@@ -151,8 +161,9 @@ void drawMinimap(void) {
             continue;
         }
 
-        drawEntityToMinimap(curEnemy.x, curEnemy.y, BITMAPS[BITMAP_MINIMAP_ENEMY], playerAngleCos, playerAngleSin);
+        drawEntityToMinimap(curEnemy.x, curEnemy.y, TEXTURES[TEXTURE_MINIMAP_ENEMY], playerAngleCos, playerAngleSin);
     }
+    
     // Draw interactables
     for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
         Interactable curInteractable = INTERACTABLES[i];
@@ -161,9 +172,9 @@ void drawMinimap(void) {
         }
 
         if (curInteractable.type == INTERACTABLE_TYPE_EXIT) {
-            drawEntityToMinimap(curInteractable.x, curInteractable.y, BITMAPS[BITMAP_MINIMAP_EXIT], playerAngleCos, playerAngleSin);
+            drawEntityToMinimap(curInteractable.x, curInteractable.y, TEXTURES[TEXTURE_MINIMAP_EXIT], playerAngleCos, playerAngleSin);
         } else if (curInteractable.type == INTERACTABLE_TYPE_CAMPFIRE || curInteractable.type == INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE) {
-            drawEntityToMinimap(curInteractable.x, curInteractable.y, BITMAPS[BITMAP_MINIMAP_CAMPFIRE], playerAngleCos, playerAngleSin);
+            drawEntityToMinimap(curInteractable.x, curInteractable.y, TEXTURES[TEXTURE_MINIMAP_CAMPFIRE], playerAngleCos, playerAngleSin);
         }
     }
     // Draw projectiles
@@ -173,27 +184,9 @@ void drawMinimap(void) {
             continue;
         }
 
-        drawEntityToMinimap(curProjectile.x, curProjectile.y, BITMAPS[BITMAP_MINIMAP_PROJECTILE], playerAngleCos, playerAngleSin);
+        drawEntityToMinimap(curProjectile.x, curProjectile.y, TEXTURES[TEXTURE_MINIMAP_PROJECTILE], playerAngleCos, playerAngleSin);
     }
-
-    // Draw player
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_PLAYER], MINIMAP_CENTER_X, MINIMAP_CENTER_Y, kBitmapUnflipped);
-
-    // Set circle mask
-    LCDBitmap *overlayLayerMask = pd->graphics->getBitmapMask(minimapOverlayBitmap);
-    pd->graphics->pushContext(overlayLayerMask);
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_MASK], 0, 0, kBitmapUnflipped);
-    pd->graphics->popContext();
-
-    // Draw border
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_MINIMAP_BORDER], 0, 0, kBitmapUnflipped);
-
-    // Draw overlay layer
-    pd->graphics->popContext();
-    pd->graphics->drawBitmap(minimapOverlayBitmap, MINIMAP_X - MINIMAP_HALF_PIXEL_SIZE, MINIMAP_Y - MINIMAP_HALF_PIXEL_SIZE, kBitmapUnflipped);
-    pd->graphics->freeBitmap(minimapOverlayBitmap);
-    pd->graphics->freeBitmap(overlayLayerMask);
-    // == End of overlay layer ==
+    // == End of entity layer ==
 }
 
 void drawInteractablePrompt(void) {
