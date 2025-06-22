@@ -12,6 +12,7 @@
 #include "game/entities/projectiles.h"
 #include "game/entities/interactables.h"
 #include "game/settings/settings.h"
+#include "game/systems/upgradeManager.h"
 
 #define drawPixel(frameBuffer, x, y) (frameBuffer[y * LCD_ROWSIZE + (x >> 3)] |= (1 << (7 - (x & 7))))
 
@@ -60,7 +61,7 @@ void initUI(void) {
 void drawPlayerHearts(void) {
     int fullHeartCount = playerHealth / 2;
     int hasHalfHeart = playerHealth % 2;
-    int heartCount = (playerMaxHealth + 1) / 2;
+    int heartCount = (PLAYER_STATS.maxHealth + 1) / 2;
     int drawY = 2;
     for (int i = 0; i < heartCount; i++) {
         int drawX = 2 + i * 16;

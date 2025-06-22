@@ -10,6 +10,7 @@
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/upgradeManager.h"
 
 #define CRANK_SENSITIVITY 0.3f
 // Spawn the projectile slightly to the right to match hand
@@ -23,7 +24,6 @@ float playerX, playerY;
 float playerAngle;
 float planeX, planeY;
 float dirX, dirY;
-int playerMaxHealth;
 int playerHealth;
 
 int interactableIndex;
@@ -44,12 +44,8 @@ static float playerSpeed;
 static float playerInitialSpeed;
 static float playerAccel;
 static float playerDrag;
-static float playerMaxSpeed;
 static float playerStrafeSpeed;
 
-static int projectileDamage = 1;
-static float projectileSpeed = 4.0f * TARGET_FPS;
-static float weaponCooldown = 0.3f; // Seconds
 static float weaponCurCooldown = 0;
 static float weaponBobCounter = 0;
 static float weaponBobSpeed = 0.15f;
@@ -82,10 +78,11 @@ void toggleMovementCallback(void* userdata) {
 	movementToggled = 0;
 }
 
-void initPlayer(int maxHealth, int health) {
+void initPlayer(int currentArea, int currentRoom) {
     // Player starting values
-	playerMaxHealth = maxHealth;
-	playerHealth = health;
+	if (currentArea == 0 && currentRoom == 0) {
+		playerHealth = PLAYER_STATS.maxHealth;
+	}
 	playerDead = 0;
 	playerHitInvincibility = 0;
 
@@ -99,7 +96,6 @@ void initPlayer(int maxHealth, int health) {
 	playerTurnInitialSpeed = 0.01f * TARGET_FPS;
 	playerTurnAccel = 0.1f * TARGET_FPS;
 	playerTurnDrag = 0.25f * TARGET_FPS;
-	playerMaxSpeed = 0.8f * TARGET_FPS;
 	playerInitialSpeed = 0.4f * TARGET_FPS;
 	playerSpeed = 0;
 	playerStrafeSpeed = 0;
@@ -151,12 +147,12 @@ void handleInput(float deltaTime)
 		if (interactableIndex != -1) {
 			interact(interactableIndex);
 		} else if (weaponCurCooldown <= 0) {
-			weaponCurCooldown = weaponCooldown;
+			weaponCurCooldown = PLAYER_STATS.weaponCooldown;
 			float projectileX = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
 			float projectileY = playerY + sinf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
 			float deltaX = cosf(playerAngle);
 			float deltaY = sinf(playerAngle);	
-			fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, projectileDamage, TEXTURES[TEXTURE_PROJECTILE], 0 /*isEnemy*/);
+			fireProjectile(projectileX, projectileY, deltaX, deltaY, PLAYER_STATS.projectileSpeed, PLAYER_STATS.projectileDamage, TEXTURES[TEXTURE_PROJECTILE], 0 /*isEnemy*/);
 		}
 	}
 
@@ -218,19 +214,19 @@ void handleInput(float deltaTime)
 			playerStrafeSpeed = playerInitialSpeed;
 		}
 		playerStrafeSpeed += playerAccel * deltaTime;
-		if (playerStrafeSpeed > playerMaxSpeed) {
-			playerStrafeSpeed = playerMaxSpeed;
+		if (playerStrafeSpeed > PLAYER_STATS.maxSpeed) {
+			playerStrafeSpeed = PLAYER_STATS.maxSpeed;
 		}
 	} else if ((current & kButtonLeft) && strafeEnabled) {
 		if (playerStrafeSpeed > -playerInitialSpeed) {
 			playerStrafeSpeed = -playerInitialSpeed;
 		}
 		playerStrafeSpeed -= playerAccel * deltaTime;
-		if (playerStrafeSpeed < -playerMaxSpeed) {
-			playerStrafeSpeed = -playerMaxSpeed;
+		if (playerStrafeSpeed < -PLAYER_STATS.maxSpeed) {
+			playerStrafeSpeed = -PLAYER_STATS.maxSpeed;
 		}
 	} else {
-		float dragCutoff = 0.1f * playerMaxSpeed;
+		float dragCutoff = 0.1f * PLAYER_STATS.maxSpeed;
 		if (playerStrafeSpeed < dragCutoff && playerStrafeSpeed > -dragCutoff) {
 			playerStrafeSpeed = 0;
 		} else if (playerStrafeSpeed > 0) {
@@ -245,19 +241,19 @@ void handleInput(float deltaTime)
 			playerSpeed = playerInitialSpeed;
 		}
 		playerSpeed += playerAccel * deltaTime;
-		if (playerSpeed > playerMaxSpeed) {
-			playerSpeed = playerMaxSpeed;
+		if (playerSpeed > PLAYER_STATS.maxSpeed) {
+			playerSpeed = PLAYER_STATS.maxSpeed;
 		}
 	} else if (current & kButtonDown) {
 		if (playerSpeed > -playerInitialSpeed) {
 			playerSpeed = -playerInitialSpeed;
 		}
 		playerSpeed -= playerAccel * deltaTime;
-		if (playerSpeed < -playerMaxSpeed) {
-			playerSpeed = -playerMaxSpeed;
+		if (playerSpeed < -PLAYER_STATS.maxSpeed) {
+			playerSpeed = -PLAYER_STATS.maxSpeed;
 		}
 	} else {
-		float dragCutoff = 0.1f * playerMaxSpeed;
+		float dragCutoff = 0.1f * PLAYER_STATS.maxSpeed;
 		if (playerSpeed < dragCutoff && playerSpeed > -dragCutoff) {
 			playerSpeed = 0;
 		} else if (playerSpeed > 0) {
@@ -363,8 +359,8 @@ void updatePlayer(float deltaTime) {
 
 void healPlayer(int amount) {
 	playerHealth += amount;
-	if (playerHealth >= playerMaxHealth) {
-		playerHealth = playerMaxHealth;
+	if (playerHealth >= PLAYER_STATS.maxHealth) {
+		playerHealth = PLAYER_STATS.maxHealth;
 	}
 }
 

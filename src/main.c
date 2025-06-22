@@ -18,6 +18,7 @@
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/upgradeManager.h"
 #include "game/settings/settings.h"
 
 PlaydateAPI *pd = NULL;
@@ -36,11 +37,15 @@ int initGameScene(lua_State* L)
 	pd->system->resetElapsedTime();
 
 	// Args 0/1 are the state and an unused scene object
-	int playerMaxHealth = pd->lua->getArgInt(2);
-	int playerHealth = pd->lua->getArgInt(3);
-	int currentArea = pd->lua->getArgInt(4) - 1;
-	int currentRoom = pd->lua->getArgInt(5) - 1;
-	RoomType roomType = pd->lua->getArgInt(6);
+	int currentArea = pd->lua->getArgInt(2) - 1;
+	int currentRoom = pd->lua->getArgInt(3) - 1;
+	RoomType roomType = pd->lua->getArgInt(4);
+
+	// Upgrades
+	if (currentArea == 0 && currentRoom == 0) {
+		initUpgradeManager();
+	}
+	initUpgradeValues();
 
 	// Progression
 	initProgressionManager(currentArea, currentRoom);
@@ -62,7 +67,7 @@ int initGameScene(lua_State* L)
 	initUI();
 
 	// Player
-	initPlayer(playerMaxHealth, playerHealth);
+	initPlayer(currentArea, currentRoom);
 
 	return 0;
 }
