@@ -1,4 +1,10 @@
+local pd <const> = playdate
+local gfx <const> = pd.graphics
+
 function math.lerp(a, b, t)
+    if (math.abs(a - b) < 0.5) then
+        return b
+    end
 	return a + (b - a) * t
 end
 
@@ -19,4 +25,19 @@ function ScreenShake(shakeTime, shakeMagnitude)
     shakeTimer.timerEndedCallback = function()
         playdate.display.setOffset(0, 0)
     end
+end
+
+Utilities = {}
+
+function Utilities.imageWithText(string, font)
+	local textImage = gfx.image.new(font:getTextWidth(string), font:getHeight())
+	gfx.pushContext(textImage)
+        font:drawText(string, 0, 0)
+    gfx.popContext()
+    return textImage
+end
+
+function Utilities.spriteWithText(string, font)
+   local textImage = Utilities.imageWithText(string, font)
+   return gfx.sprite.new(textImage)
 end

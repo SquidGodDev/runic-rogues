@@ -23,15 +23,15 @@
 
 PlaydateAPI *pd = NULL;
 
+// Run when game is launched
 void initSystems(void)
 {
-	// Textures
 	initTextures();
-
-	// Settings
 	initSettings();
+	initUpgradeManager();
 }
 
+// Run at the start of every room
 int initGameScene(lua_State* L)
 {	
 	pd->system->resetElapsedTime();
@@ -42,10 +42,7 @@ int initGameScene(lua_State* L)
 	RoomType roomType = pd->lua->getArgInt(4);
 
 	// Upgrades
-	if (currentArea == 0 && currentRoom == 0) {
-		initUpgradeManager();
-	}
-	initUpgradeValues();
+	initUpgradeValues(currentArea, currentRoom);
 
 	// Progression
 	initProgressionManager(currentArea, currentRoom);
@@ -60,7 +57,6 @@ int initGameScene(lua_State* L)
 	// Map
 	initMap(roomType);
 	initRaycasting();
-
 	spawnEnemies(roomType);
 
 	// UI

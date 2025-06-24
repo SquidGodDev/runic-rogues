@@ -1,7 +1,10 @@
 #define TARGET_EXTENSION 1
+#include "pd_api.h"
 
 #include "globals.h"
 #include "game/systems/upgradeManager.h"
+#include "game/settings/settings.h"
+#include "game/rendering/textures.h"
 
 #define BASE_MAX_HEALTH 8
 #define BASE_MOVE_SPEED 0.8f
@@ -9,8 +12,11 @@
 #define BASE_PROJECTILE_SPEED 4.0f
 #define BASE_WEAPON_COOLDOWN 0.6f
 
+#define UPGRADE_OPTION_COUNT 3
+
 typedef struct UpgradeData {
     float modifier;
+    LCDBitmap *icon;
     char* name_en;
     char* name_jp;
     char* desc_en;
@@ -19,54 +25,9 @@ typedef struct UpgradeData {
 
 PlayerStats PLAYER_STATS;
 
-static UpgradeData upgradeData[UPGRADE_TYPE_COUNT] = {
-    [UPGRADE_TYPE_MAX_HEALTH] = {
-        .modifier = 1,
-        .name_en = "Health",
-        .name_jp = "Health",
-        .desc_en = "Increases max health",
-        .desc_jp = "Increases max health"
-    },
-    [UPGRADE_TYPE_MOVE_SPEED] = {
-        .modifier = 0.2f,
-        .name_en = "Speed",
-        .name_jp = "Speed",
-        .desc_en = "Increases move speed",
-        .desc_jp = "Increases move speed"
-    },
-    [UPGRADE_TYPE_ATTACK_COOLDOWN] = {
-        .modifier = 0.2f,
-        .name_en = "Attack Cooldown",
-        .name_jp = "Attack Cooldown",
-        .desc_en = "Decreases basic attack cooldown",
-        .desc_jp = "Decreases basic attack cooldown"
-    },
-    [UPGRADE_TYPE_PROJECTILE_SPEED] = {
-        .modifier = 0.5f,
-        .name_en = "Projectile Speed",
-        .name_jp = "Projectile Speed",
-        .desc_en = "Increase basic attack projectile speed",
-        .desc_jp = "Increase basic attack projectile speed"
-    },
-    [UPGRADE_TYPE_VAMPIRISM] = {
-        .modifier = 0.1f,
-        .name_en = "Vampirism",
-        .name_jp = "Vampirism",
-        .desc_en = "+10%% chance to heal when damaging an enemy",
-        .desc_jp = "+10%% chance to heal when damaging an enemy"
-    }
-};
+static UpgradeData upgradeData[UPGRADE_TYPE_COUNT];
 
 static UpgradeValue upgradeValues[UPGRADE_TYPE_COUNT];
-
-void initUpgradeManager(void) {
-    for (int i = 0; i < UPGRADE_TYPE_COUNT; i++) {
-        upgradeValues[i] = (UpgradeValue) {
-            .count = 0,
-            .value = 0
-        };
-    }
-}
 
 float getUpgradeValue(UpgradeType upgradeType) {
     return upgradeValues[upgradeType].value;
@@ -76,7 +37,100 @@ void addUpgrade(UpgradeType upgradeType) {
     upgradeValues[upgradeType].count += 1;
 }
 
-void initUpgradeValues(void) {
+int upgradeOptions[UPGRADE_OPTION_COUNT];
+int getUpgradeOption(lua_State* L) {
+    int option = pd->lua->getArgInt(1);
+    if (option == 0) {
+        int count = 0;
+        while (count < UPGRADE_OPTION_COUNT) {
+            int num = rand() % UPGRADE_TYPE_COUNT;
+            int duplicate = 0;
+            for (int i = 0; i < count; i++) {
+                if (upgradeOptions[i] == num) {
+                    duplicate = 1;
+                    break;
+                }
+            }
+
+            if (!duplicate) {
+                upgradeOptions[count++] = num;
+            }
+        }
+    }
+
+    // Return name, description, and icon
+    UpgradeData curUpgradeData = upgradeData[upgradeOptions[option]];
+    if (SETTINGS.language == LANGUAGE_EN) {
+        pd->lua->pushString(curUpgradeData.name_en);
+        pd->lua->pushString(curUpgradeData.desc_en);
+    } else if (SETTINGS.language == LANGUAGE_JP) {
+        pd->lua->pushString(curUpgradeData.name_jp);
+        pd->lua->pushString(curUpgradeData.desc_jp);
+    }
+    pd->lua->pushBitmap(curUpgradeData.icon);
+
+    return 3;
+}
+
+void selectUpgradeOption(int option) {
+    addUpgrade(upgradeOptions[option]);
+}
+
+void initUpgradeManager(void) {
+    pd->lua->addFunction(getUpgradeOption, "Upgrades.getUpgradeOption", NULL);
+
+    upgradeData[UPGRADE_TYPE_MAX_HEALTH] = (UpgradeData) {
+        .modifier = 1,
+        .icon = BITMAPS[BITMAP_UPGRADE_MAX_HEALTH],
+        .name_en = "Health",
+        .name_jp = "Health",
+        .desc_en = "Increases max health",
+        .desc_jp = "Increases max health"
+    };
+    upgradeData[UPGRADE_TYPE_MOVE_SPEED] = (UpgradeData) {
+        .modifier = 0.2f,
+        .icon = BITMAPS[BITMAP_UPGRADE_MOVE_SPEED],
+        .name_en = "Speed",
+        .name_jp = "Speed",
+        .desc_en = "Increases move speed",
+        .desc_jp = "Increases move speed"
+    };
+    upgradeData[UPGRADE_TYPE_ATTACK_COOLDOWN] = (UpgradeData) {
+        .modifier = 0.2f,
+        .icon = BITMAPS[BITMAP_UPGRADE_ATTACK_COOLDOWN],
+        .name_en = "Attack Cooldown",
+        .name_jp = "Attack Cooldown",
+        .desc_en = "Decreases basic attack cooldown",
+        .desc_jp = "Decreases basic attack cooldown"
+    };
+    upgradeData[UPGRADE_TYPE_PROJECTILE_SPEED] = (UpgradeData) {
+        .modifier = 0.5f,
+        .icon = BITMAPS[BITMAP_UPGRADE_PROJECTILE_SPEED],
+        .name_en = "Projectile Speed",
+        .name_jp = "Projectile Speed",
+        .desc_en = "Increase basic attack projectile speed",
+        .desc_jp = "Increase basic attack projectile speed"
+    };
+    upgradeData[UPGRADE_TYPE_VAMPIRISM] = (UpgradeData) {
+        .modifier = 0.1f,
+        .icon = BITMAPS[BITMAP_UPGRADE_VAMPIRISM],
+        .name_en = "Vampirism",
+        .name_jp = "Vampirism",
+        .desc_en = "+10% chance to heal when damaging an enemy",
+        .desc_jp = "+10% chance to heal when damaging an enemy"
+    };
+}
+
+void initUpgradeValues(int currentArea, int currentRoom) {
+    if (currentArea == 0 && currentRoom == 0) {
+        for (int i = 0; i < UPGRADE_TYPE_COUNT; i++) {
+            upgradeValues[i] = (UpgradeValue) {
+                .count = 0,
+                .value = 0
+            };
+        }
+    }
+
     for (int i = 0; i < UPGRADE_TYPE_COUNT; i++) {
         upgradeValues[i].value = upgradeValues[i].count * upgradeData[i].modifier;
     }

@@ -2,18 +2,21 @@ import "CoreLibs/graphics"
 import "CoreLibs/object"
 import "CoreLibs/timer"
 import "CoreLibs/animator"
+import "CoreLibs/sprites"
 
 import "scripts/globals/helpers"
 import "scripts/systems/sceneManager"
-import "scripts/systems/AudioManager"
-import "scripts/systems/GameManager"
+import "scripts/systems/audioManager"
+import "scripts/systems/gameManager"
+import "scripts/systems/settingsManager"
 import "scripts/roomSelect/roomSelectScene"
+import "scripts/roomSelect/upgradeSelectScene"
 import "scripts/title/titleScene"
 import "scripts/title/gameOverScene"
 
 AudioManager.init()
 
-SceneManager.loadNewScene(TitleScene, {})
+SceneManager.loadNewScene(UpgradeSelectScene, {})
 
 function NextLevel(playerHealth)
 	GAME_DATA.currentRoom += 1
