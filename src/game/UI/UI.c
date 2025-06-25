@@ -61,17 +61,28 @@ void initUI(void) {
 void drawPlayerHearts(void) {
     int fullHeartCount = playerHealth / 2;
     int hasHalfHeart = playerHealth % 2;
-    int heartCount = (PLAYER_STATS.maxHealth + 1) / 2;
+    int maxHeartSlots = PLAYER_STATS.maxHealth / 2;
+    int hasHalfContainer = PLAYER_STATS.maxHealth % 2;
+    
+    int drawX = 2;
     int drawY = 2;
-    for (int i = 0; i < heartCount; i++) {
-        int drawX = 2 + i * 16;
 
+    for (int i = 0; i < maxHeartSlots; i++) {
         if (i < fullHeartCount) {
             pd->graphics->drawBitmap(BITMAPS[BITMAP_FULL_HEART], drawX, drawY, kBitmapUnflipped);
-        } else if (i == fullHeartCount && hasHalfHeart) {
+        } else if (hasHalfHeart && i == fullHeartCount) {
             pd->graphics->drawBitmap(BITMAPS[BITMAP_HALF_HEART], drawX, drawY, kBitmapUnflipped);
         } else {
             pd->graphics->drawBitmap(BITMAPS[BITMAP_EMPTY_HEART], drawX, drawY, kBitmapUnflipped);
+        }
+        drawX += 16;
+    }
+
+    if (hasHalfContainer) {
+        if (hasHalfHeart && playerHealth == PLAYER_STATS.maxHealth) {
+            pd->graphics->drawBitmap(BITMAPS[BITMAP_HALF_CONTAINER_FULL_HEART], drawX, drawY, kBitmapUnflipped);
+        } else {
+            pd->graphics->drawBitmap(BITMAPS[BITMAP_HALF_CONTAINER_EMPTY_HEART], drawX, drawY, kBitmapUnflipped);
         }
     }
 }
