@@ -10,7 +10,7 @@ extern int playerHealth;
 
 extern int interactableIndex;
 
-void initPlayer(int currentArea, int currentRoom);
+void initPlayer(int isGameStart);
 void updatePlayer(float deltaTime);
 void healPlayer(int amount);
 void damagePlayer(int amount);

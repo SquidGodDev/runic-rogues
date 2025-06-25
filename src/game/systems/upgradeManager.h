@@ -28,4 +28,4 @@ typedef struct UpgradeValue {
 void initUpgradeManager(void);
 float getUpgradeValue(UpgradeType upgradeType);
 void addUpgrade(UpgradeType upgradeType);
-void initUpgradeValues(int currentArea, int currentRoom);
+void initUpgradeValues(int isGameStart);

@@ -78,9 +78,9 @@ void toggleMovementCallback(void* userdata) {
 	movementToggled = 0;
 }
 
-void initPlayer(int currentArea, int currentRoom) {
+void initPlayer(int isGameStart) {
     // Player starting values
-	if (currentArea == 0 && currentRoom == 0) {
+	if (isGameStart) {
 		playerHealth = PLAYER_STATS.maxHealth;
 	}
 	playerDead = 0;

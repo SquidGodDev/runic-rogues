@@ -5,6 +5,7 @@
 #include "game/systems/upgradeManager.h"
 #include "game/settings/settings.h"
 #include "game/rendering/textures.h"
+#include "game/player/player.h"
 
 #define BASE_MAX_HEALTH 8
 #define BASE_MOVE_SPEED 0.8f
@@ -36,6 +37,10 @@ float getUpgradeValue(UpgradeType upgradeType) {
 
 void addUpgrade(UpgradeType upgradeType) {
     upgradeValues[upgradeType].count += 1;
+    initUpgradeValues(0);
+    if (upgradeType == UPGRADE_TYPE_MAX_HEALTH) {
+        healPlayer(upgradeData[upgradeType].modifier);
+    }
 }
 
 int upgradeOptions[UPGRADE_OPTION_COUNT];
@@ -133,8 +138,8 @@ void initUpgradeManager(void) {
     };
 }
 
-void initUpgradeValues(int currentArea, int currentRoom) {
-    if (currentArea == 0 && currentRoom == 0) {
+void initUpgradeValues(int isGameStart) {
+    if (isGameStart) {
         for (int i = 0; i < UPGRADE_TYPE_COUNT; i++) {
             upgradeValues[i] = (UpgradeValue) {
                 .count = 0,

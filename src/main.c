@@ -40,9 +40,10 @@ int initGameScene(lua_State* L)
 	int currentArea = pd->lua->getArgInt(2) - 1;
 	int currentRoom = pd->lua->getArgInt(3) - 1;
 	RoomType roomType = pd->lua->getArgInt(4);
+	int isGameStart = currentArea == 0 && currentRoom == 0;
 
 	// Upgrades
-	initUpgradeValues(currentArea, currentRoom);
+	initUpgradeValues(isGameStart);
 
 	// Progression
 	initProgressionManager(currentArea, currentRoom);
@@ -63,7 +64,7 @@ int initGameScene(lua_State* L)
 	initUI();
 
 	// Player
-	initPlayer(currentArea, currentRoom);
+	initPlayer(isGameStart);
 
 	return 0;
 }
