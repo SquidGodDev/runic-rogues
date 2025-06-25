@@ -143,7 +143,7 @@ void handleInput(float deltaTime)
 		pushed = 0;
 	}
 
-	if (pushed & kButtonA) {
+	if (current & kButtonA) {
 		if (interactableIndex != -1) {
 			interact(interactableIndex);
 		} else if (weaponCurCooldown <= 0) {
