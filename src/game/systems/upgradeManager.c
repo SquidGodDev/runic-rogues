@@ -8,9 +8,9 @@
 #include "game/player/player.h"
 
 #define BASE_MAX_HEALTH 8
-#define BASE_MOVE_SPEED 0.8f
+#define BASE_MOVE_SPEED 0.5f
 #define BASE_PROJECTILE_DAMAGE 1
-#define BASE_PROJECTILE_SPEED 4.0f
+#define BASE_PROJECTILE_SPEED 2.0f
 #define BASE_WEAPON_COOLDOWN 0.6f
 
 #define UPGRADE_OPTION_COUNT 3
@@ -101,7 +101,7 @@ void initUpgradeManager(void) {
         .desc_jp = "最大体力の増加"
     };
     upgradeData[UPGRADE_TYPE_MOVE_SPEED] = (UpgradeData) {
-        .modifier = 0.2f,
+        .modifier = 0.1f,
         .maxUpgradeCount = 5,
         .icon = BITMAPS[BITMAP_UPGRADE_MOVE_SPEED],
         .name_en = "Speed",
@@ -119,7 +119,7 @@ void initUpgradeManager(void) {
         .desc_jp = "基本攻撃のクールダウンを短縮"
     };
     upgradeData[UPGRADE_TYPE_PROJECTILE_SPEED] = (UpgradeData) {
-        .modifier = 0.5f,
+        .modifier = 1.0f,
         .maxUpgradeCount = 5,
         .icon = BITMAPS[BITMAP_UPGRADE_PROJECTILE_SPEED],
         .name_en = "Projectile Speed",
