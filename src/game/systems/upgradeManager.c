@@ -83,41 +83,41 @@ void initUpgradeManager(void) {
         .modifier = 1,
         .icon = BITMAPS[BITMAP_UPGRADE_MAX_HEALTH],
         .name_en = "Health",
-        .name_jp = "Health",
+        .name_jp = "体力",
         .desc_en = "Increases max health",
-        .desc_jp = "Increases max health"
+        .desc_jp = "最大体力の増加"
     };
     upgradeData[UPGRADE_TYPE_MOVE_SPEED] = (UpgradeData) {
         .modifier = 0.2f,
         .icon = BITMAPS[BITMAP_UPGRADE_MOVE_SPEED],
         .name_en = "Speed",
-        .name_jp = "Speed",
+        .name_jp = "スピード",
         .desc_en = "Increases move speed",
-        .desc_jp = "Increases move speed"
+        .desc_jp = "移動速度の増加"
     };
     upgradeData[UPGRADE_TYPE_ATTACK_COOLDOWN] = (UpgradeData) {
         .modifier = 0.2f,
         .icon = BITMAPS[BITMAP_UPGRADE_ATTACK_COOLDOWN],
         .name_en = "Attack Cooldown",
-        .name_jp = "Attack Cooldown",
+        .name_jp = "攻撃CD短縮",
         .desc_en = "Decreases basic attack cooldown",
-        .desc_jp = "Decreases basic attack cooldown"
+        .desc_jp = "基本攻撃のクールダウンを短縮"
     };
     upgradeData[UPGRADE_TYPE_PROJECTILE_SPEED] = (UpgradeData) {
         .modifier = 0.5f,
         .icon = BITMAPS[BITMAP_UPGRADE_PROJECTILE_SPEED],
         .name_en = "Projectile Speed",
-        .name_jp = "Projectile Speed",
-        .desc_en = "Increase basic attack projectile speed",
-        .desc_jp = "Increase basic attack projectile speed"
+        .name_jp = "弾速強化",
+        .desc_en = "Increases basic attack projectile speed",
+        .desc_jp = "基本攻撃の弾速が上がる"
     };
     upgradeData[UPGRADE_TYPE_VAMPIRISM] = (UpgradeData) {
         .modifier = 0.1f,
         .icon = BITMAPS[BITMAP_UPGRADE_VAMPIRISM],
         .name_en = "Vampirism",
-        .name_jp = "Vampirism",
+        .name_jp = "吸血鬼",
         .desc_en = "+10% chance to heal when damaging an enemy",
-        .desc_jp = "+10% chance to heal when damaging an enemy"
+        .desc_jp = "敵にダメージを与えた際に回復確率が10%増加"
     };
 }
 
