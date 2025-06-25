@@ -128,13 +128,13 @@ void initUpgradeManager(void) {
         .desc_jp = "基本攻撃の弾速が上がる"
     };
     upgradeData[UPGRADE_TYPE_VAMPIRISM] = (UpgradeData) {
-        .modifier = 0.1f,
+        .modifier = 0.05f,
         .maxUpgradeCount = 10,
         .icon = BITMAPS[BITMAP_UPGRADE_VAMPIRISM],
         .name_en = "Vampirism",
         .name_jp = "吸血鬼",
-        .desc_en = "+10% chance to heal when damaging an enemy",
-        .desc_jp = "敵にダメージを与えた際に回復確率が10%増加"
+        .desc_en = "+5% chance to heal when defeating an enemy",
+        .desc_jp = "敵に倒したときに回復確率が5%増加"
     };
 }
 

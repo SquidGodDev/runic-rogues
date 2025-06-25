@@ -10,6 +10,7 @@
 #include "game/entities/projectiles.h"
 #include "game/rendering/textures.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/upgradeManager.h"
 
 #define HIT_FLASH_TIME 0.1f // Seconds
 #define PROJECTILE_OFFSET 3
@@ -489,8 +490,14 @@ int damageEnemy(int index, int damage) {
 	EnemyData curEnemyData = enemyData[curEnemy.type];
 	curEnemy.hitFlashTime = HIT_FLASH_TIME;
 	curEnemy.health -= damage;
+
 	if (curEnemy.health <= 0) {
 		enemyDeathEffect(index);
+
+		// Check for vampirism upgrade
+		if (randInt(0, 100) < getUpgradeValue(UPGRADE_TYPE_VAMPIRISM) * 100) {
+			healPlayer(1);
+		}
 
 		curEnemy.state = ENEMY_STATE_DEAD;
 		curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
