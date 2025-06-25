@@ -102,7 +102,7 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 0,
 		.abilityCooldown = 0,
-		.moveSpeed = 0.2f,
+		.moveSpeed = 0.4f,
 		.dodgeChance = 0,
 		.texture = TEXTURES[TEXTURE_BABY_SLIME],
 		.idleFrameEnd = 6,
