@@ -16,6 +16,7 @@
 
 typedef struct UpgradeData {
     float modifier;
+    int maxUpgradeCount;
     LCDBitmap *icon;
     char* name_en;
     char* name_jp;
@@ -44,6 +45,9 @@ int getUpgradeOption(lua_State* L) {
         int count = 0;
         while (count < UPGRADE_OPTION_COUNT) {
             int num = rand() % UPGRADE_TYPE_COUNT;
+            if (upgradeValues[num].count >= upgradeData[num].maxUpgradeCount) {
+                continue;
+            }
             int duplicate = 0;
             for (int i = 0; i < count; i++) {
                 if (upgradeOptions[i] == num) {
@@ -81,6 +85,7 @@ void initUpgradeManager(void) {
 
     upgradeData[UPGRADE_TYPE_MAX_HEALTH] = (UpgradeData) {
         .modifier = 1,
+        .maxUpgradeCount = 5,
         .icon = BITMAPS[BITMAP_UPGRADE_MAX_HEALTH],
         .name_en = "Health",
         .name_jp = "体力",
@@ -89,6 +94,7 @@ void initUpgradeManager(void) {
     };
     upgradeData[UPGRADE_TYPE_MOVE_SPEED] = (UpgradeData) {
         .modifier = 0.2f,
+        .maxUpgradeCount = 5,
         .icon = BITMAPS[BITMAP_UPGRADE_MOVE_SPEED],
         .name_en = "Speed",
         .name_jp = "スピード",
@@ -96,7 +102,8 @@ void initUpgradeManager(void) {
         .desc_jp = "移動速度の増加"
     };
     upgradeData[UPGRADE_TYPE_ATTACK_COOLDOWN] = (UpgradeData) {
-        .modifier = 0.2f,
+        .modifier = 0.1f,
+        .maxUpgradeCount = 5,
         .icon = BITMAPS[BITMAP_UPGRADE_ATTACK_COOLDOWN],
         .name_en = "Attack Cooldown",
         .name_jp = "攻撃CD短縮",
@@ -105,6 +112,7 @@ void initUpgradeManager(void) {
     };
     upgradeData[UPGRADE_TYPE_PROJECTILE_SPEED] = (UpgradeData) {
         .modifier = 0.5f,
+        .maxUpgradeCount = 5,
         .icon = BITMAPS[BITMAP_UPGRADE_PROJECTILE_SPEED],
         .name_en = "Projectile Speed",
         .name_jp = "弾速強化",
@@ -113,6 +121,7 @@ void initUpgradeManager(void) {
     };
     upgradeData[UPGRADE_TYPE_VAMPIRISM] = (UpgradeData) {
         .modifier = 0.1f,
+        .maxUpgradeCount = 10,
         .icon = BITMAPS[BITMAP_UPGRADE_VAMPIRISM],
         .name_en = "Vampirism",
         .name_jp = "吸血鬼",
