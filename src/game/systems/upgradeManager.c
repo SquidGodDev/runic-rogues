@@ -76,12 +76,15 @@ int getUpgradeOption(lua_State* L) {
     return 3;
 }
 
-void selectUpgradeOption(int option) {
+int selectUpgradeOption(lua_State* L) {
+    int option = pd->lua->getArgInt(1);
     addUpgrade(upgradeOptions[option]);
+    return 0;
 }
 
 void initUpgradeManager(void) {
     pd->lua->addFunction(getUpgradeOption, "Upgrades.getUpgradeOption", NULL);
+    pd->lua->addFunction(selectUpgradeOption, "Upgrades.selectUpgradeOption", NULL);
 
     upgradeData[UPGRADE_TYPE_MAX_HEALTH] = (UpgradeData) {
         .modifier = 1,

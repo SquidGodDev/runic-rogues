@@ -40,6 +40,10 @@ local function cleanupScene()
     end
 end
 
+function SceneManager.loadFirstScene(scene)
+    SceneManager.loadNewScene(scene, {})
+end
+
 function SceneManager.loadNewScene(scene, args)
     cleanupScene()
     scene.init(scene, table.unpack(args))

@@ -16,7 +16,7 @@ import "scripts/title/gameOverScene"
 
 AudioManager.init()
 
-SceneManager.loadNewScene(UpgradeSelectScene, {})
+SceneManager.loadFirstScene(TitleScene)
 
 function NextLevel(playerHealth)
 	GAME_DATA.currentRoom += 1
@@ -25,7 +25,7 @@ function NextLevel(playerHealth)
 		GAME_DATA.currentArea += 1
 	end
 	GAME_DATA.playerHealth = playerHealth
-	SceneManager.switchScene(RoomSelectScene)
+	SceneManager.switchScene(UpgradeSelectScene)
 end
 
 function GameOver()

@@ -83,6 +83,12 @@ function UpgradeSelectScene:update()
         self:displayOptionInfo()
     end
 
+    if pd.buttonJustPressed(pd.kButtonA) then
+        local upgradeIndex = self.selectedOption - 1
+        Upgrades.selectUpgradeOption(upgradeIndex) -- C function from upgradeManager.c
+        SceneManager.switchScene(RoomSelectScene)
+    end
+
     for i=1, 3 do
         local curCard = self.upgradeCards[i]
         local targetY = (i == self.selectedOption) and cardSelectedY or cardY
