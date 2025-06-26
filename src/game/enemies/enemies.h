@@ -26,8 +26,6 @@ typedef enum EnemyState
 typedef struct Enemy {
 	float x;
 	float y;
-	int targetMapX;
-	int targetMapY;
 	int health;
 	float attackCooldown;
 	float abilityCooldown;

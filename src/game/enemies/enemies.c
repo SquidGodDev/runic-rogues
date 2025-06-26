@@ -34,7 +34,7 @@
 
 typedef enum AttackPattern
 {
-	ATTACK_PATTERN_PROXIMITY,
+	ATTACK_PATTERN_PRotherXIMITY,
 	ATTACK_PATTERN_MELEE,
 	ATTACK_PATTERN_PROJECTILE,
 	ATTACK_PATTERN_RUSH
@@ -50,9 +50,7 @@ typedef struct EnemyData {
 	int attackDamage;
 	float attackCooldown;
 	float moveSpeed;
-	int dodgeChance;
 	float abilityDataPrimary; // Flexible property for enemy-specific behaviors or traits
-	float abilityDataSecondary;
 	uint8_t* texture;
 	int idleFrameEnd; // Frames are 1-indexed to match Aseprite
 	int attackFrameStart;
@@ -74,12 +72,12 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 1.0f,
 		.moveSpeed = 0.15f,
-		.texture = TEXTURES[TEXTURE_BAT],
+		.texture = TEXTURES[TEXTURE_WRAITH_BOSS],
 		.idleFrameEnd = 6,
 		.deathFrameStart = 1,
 		.deathFrameEnd = 1,
 		.frameTime = 0.15f,
-		.attackPattern = ATTACK_PATTERN_PROXIMITY
+		.attackPattern = ATTACK_PATTERN_PRotherXIMITY
 	};
 	enemyData[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
@@ -89,13 +87,12 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 1.0f,
 		.moveSpeed = 0.3f,
-		.dodgeChance = 20,
 		.texture = TEXTURES[TEXTURE_BAT],
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
 		.frameTime = 0.12f,
-		.attackPattern = ATTACK_PATTERN_PROXIMITY
+		.attackPattern = ATTACK_PATTERN_PRotherXIMITY
 	};
 	enemyData[ENEMY_TYPE_SLIME] = (EnemyData){
 		.name = "Slime",
@@ -105,14 +102,13 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 0,
 		.moveSpeed = 0.1f,
-		.dodgeChance = 20,
 		.abilityDataPrimary = 4, // Number of baby slimes to spawn
 		.texture = TEXTURES[TEXTURE_SLIME],
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
 		.frameTime = 0.14f,
-		.attackPattern = ATTACK_PATTERN_PROXIMITY
+		.attackPattern = ATTACK_PATTERN_PRotherXIMITY
 	};
 	enemyData[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
 		.name = "Baby Slime",
@@ -122,13 +118,12 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 0,
 		.moveSpeed = 0.35f,
-		.dodgeChance = 0,
 		.texture = TEXTURES[TEXTURE_BABY_SLIME],
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
 		.frameTime = 0.1f,
-		.attackPattern = ATTACK_PATTERN_PROXIMITY
+		.attackPattern = ATTACK_PATTERN_PRotherXIMITY
 	};
 	enemyData[ENEMY_TYPE_SKELETON] = (EnemyData){
 		.name = "Skeleton",
@@ -138,7 +133,6 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 0,
 		.moveSpeed = 0.2f,
-		.dodgeChance = 20,
 		.texture = TEXTURES[TEXTURE_SKELETON],
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
@@ -156,7 +150,6 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 8.0f,
 		.moveSpeed = 0.2f,
-		.dodgeChance = 20,
 		.abilityDataPrimary = 1.0f * TARGET_FPS, // Projectile speed
 		.texture = TEXTURES[TEXTURE_IMP],
 		.idleFrameEnd = 6,
@@ -176,7 +169,6 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 5.0f,
 		.moveSpeed = 0.2f,
-		.dodgeChance = 20,
 		.abilityDataPrimary = 1.2f, // Rush move speed
 		.texture = TEXTURES[TEXTURE_FLYING_TOME],
 		.idleFrameEnd = 6,
@@ -195,7 +187,6 @@ void initEnemyData(void) {
 		.attackDamage = 2,
 		.attackCooldown = 0,
 		.moveSpeed = 0.25f,
-		.dodgeChance = 10,
 		.texture = TEXTURES[TEXTURE_LIVING_ARMOR],
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
@@ -211,31 +202,31 @@ void initEnemyData(void) {
 Enemy moveEnemy(Enemy enemy, int enemyIndex, float moveSpeed) {
 	float dx = (playerX - enemy.x);
 	float dy = (playerY - enemy.y);
-	float dist = sqrtf(dx*dx + dy*dy);
+	float distToPlayer = sqrtf(dx*dx + dy*dy);
 
-	if (dist < MIN_DIST_TO_PLAYER) {
+	if (distToPlayer < MIN_DIST_TO_PLAYER) {
 		return enemy;	
 	}
 
-	dx /= dist;
-	dy /= dist;
+	dx /= distToPlayer;
+	dy /= distToPlayer;
 
 	// Repulsion from other enemies
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		if (i == enemyIndex || !enemies[i].active) continue;
 		Enemy other = enemies[i];
 
-		float ox = enemy.x - other.x;
-		float oy = enemy.y - other.y;
-		float d2 = ox*ox + oy*oy;
+		float otherX = enemy.x - other.x;
+		float otherY = enemy.y - other.y;
+		float distSquared = otherX*otherX + otherY*otherY;
 
-		if (d2 < ENEMY_SEPARATION_RADIUS * ENEMY_SEPARATION_RADIUS && d2 > 0.01f) {
-			float d = sqrtf(d2);
-			ox /= d;
-			oy /= d;
-			float force = ENEMY_SEPARATION_FORCE * (1.0f - d / ENEMY_SEPARATION_RADIUS);
-			dx += ox * force;
-			dy += oy * force;
+		if (distSquared < ENEMY_SEPARATION_RADIUS * ENEMY_SEPARATION_RADIUS && distSquared > 0.01f) {
+			float dist = sqrtf(distSquared);
+			otherX /= dist;
+			otherY /= dist;
+			float force = ENEMY_SEPARATION_FORCE * (1.0f - dist / ENEMY_SEPARATION_RADIUS);
+			dx += otherX * force;
+			dy += otherY * force;
 		}
 	}
 
@@ -248,10 +239,10 @@ Enemy moveEnemy(Enemy enemy, int enemyIndex, float moveSpeed) {
 	}
 
 	// Normalize final direction vector
-	float mag = sqrtf(dx*dx + dy*dy);
-	if (mag > 0.01f) {
-		dx = (dx / mag) * moveSpeed;
-		dy = (dy / mag) * moveSpeed;
+	float magnitude = sqrtf(dx*dx + dy*dy);
+	if (magnitude > 0.01f) {
+		dx = (dx / magnitude) * moveSpeed;
+		dy = (dy / magnitude) * moveSpeed;
 	}
 
 	// Apply movement
@@ -279,8 +270,6 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 	enemies[newEnemyIndex] = (struct Enemy) {
 		.x = x,
 		.y = y,
-		.targetMapX = x / CELL_SIZE,
-		.targetMapY = y / CELL_SIZE,
 		.health = curEnemyData.health,
 		.attackCooldown = 0,
 		.hitFlashTime = 0,
@@ -393,7 +382,7 @@ void updateEnemies(float deltaTime) {
 					curEnemy.state = ENEMY_STATE_ATTACK;
 					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
 					curEnemy.animationTime = curEnemyData.frameTime;
-				} else if (curAttackPattern == ATTACK_PATTERN_PROXIMITY) {
+				} else if (curAttackPattern == ATTACK_PATTERN_PRotherXIMITY) {
 					if (playerInAttackDistance(i)) {
 						damagePlayer(curEnemyData.attackDamage);
 					}
