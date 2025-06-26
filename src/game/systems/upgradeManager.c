@@ -9,7 +9,7 @@
 
 #define BASE_MAX_HEALTH 8
 #define BASE_MAX_MANA 10
-#define BASE_MANA_REGEN_RATE 1.0f
+#define BASE_MANA_REGEN_RATE 1.5f
 #define BASE_MOVE_SPEED 0.5f
 #define BASE_PROJECTILE_DAMAGE 1
 #define BASE_PROJECTILE_SPEED 2.0f
@@ -112,7 +112,7 @@ void initUpgradeManager(void) {
         .desc_jp = "最大マナの増加"
     };
     upgradeData[UPGRADE_TYPE_MANA_REGEN] = (UpgradeData) {
-        .modifier = 0.2f,
+        .modifier = 0.5f,
         .maxUpgradeCount = 10,
         .icon = BITMAPS[BITMAP_UPGRADE_MANA_REGEN],
         .name_en = "Mana Regen",
