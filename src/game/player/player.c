@@ -80,7 +80,8 @@ void toggleMovementCallback(void* userdata) {
 
 void initPlayer(int isGameStart) {
     // Player starting values
-	if (isGameStart) {
+	if (isGameStart || playerHealth == 0) {
+		// Reset player health on game start or when testing (i.e. playerHealth is 0)
 		playerHealth = PLAYER_STATS.maxHealth;
 	}
 	playerDead = 0;
