@@ -4,6 +4,7 @@
 
 typedef enum EnemyType
 {
+	ENEMY_TYPE_TEST,
 	ENEMY_TYPE_BAT,
 	ENEMY_TYPE_SLIME,
 	ENEMY_TYPE_BABY_SLIME,

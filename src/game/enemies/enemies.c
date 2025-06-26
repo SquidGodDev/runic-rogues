@@ -12,6 +12,8 @@
 #include "game/systems/progressionManager.h"
 #include "game/systems/upgradeManager.h"
 
+#define SPAWN_TEST_ENEMY 0
+
 #define HIT_FLASH_TIME 0.1f // Seconds
 #define PROJECTILE_OFFSET 3
 
@@ -64,6 +66,21 @@ typedef struct EnemyData {
 
 EnemyData enemyData[ENEMY_TYPE_COUNT];
 void initEnemyData(void) {
+	enemyData[ENEMY_TYPE_TEST] = (EnemyData){
+		.name = "Test",
+		.health = 4,
+		.attackDetectionRange = 100,
+		.attackDistance = 100,
+		.attackDamage = 1,
+		.attackCooldown = 1.0f,
+		.moveSpeed = 0.15f,
+		.texture = TEXTURES[TEXTURE_BAT],
+		.idleFrameEnd = 6,
+		.deathFrameStart = 1,
+		.deathFrameEnd = 1,
+		.frameTime = 0.15f,
+		.attackPattern = ATTACK_PATTERN_PROXIMITY
+	};
 	enemyData[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
 		.health = 4,
@@ -278,6 +295,10 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 void spawnRandomEnemy(void) {
 	EnemyType *spawnList = getAreaSpawnList();
 	EnemyType enemyType = spawnList[randInt(0, ENEMY_TYPES_PER_AREA - 1)];
+
+	if (SPAWN_TEST_ENEMY) {
+		enemyType = ENEMY_TYPE_TEST;
+	}
 
 	int randMapX = randInt(ENEMY_SPAWN_MIN_X, ENEMY_SPAWN_MAX_X);
 	int randMapY = randInt(ENEMY_SPAWN_MIN_Y, ENEMY_SPAWN_MAX_Y);
