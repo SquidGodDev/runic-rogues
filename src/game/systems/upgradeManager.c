@@ -8,6 +8,8 @@
 #include "game/player/player.h"
 
 #define BASE_MAX_HEALTH 8
+#define BASE_MAX_MANA 10
+#define BASE_MANA_REGEN_RATE 1.0f
 #define BASE_MOVE_SPEED 0.5f
 #define BASE_PROJECTILE_DAMAGE 1
 #define BASE_PROJECTILE_SPEED 2.0f
@@ -100,6 +102,24 @@ void initUpgradeManager(void) {
         .desc_en = "Increases max health",
         .desc_jp = "最大体力の増加"
     };
+    upgradeData[UPGRADE_TYPE_MAX_MANA] = (UpgradeData) {
+        .modifier = 2,
+        .maxUpgradeCount = 5,
+        .icon = BITMAPS[BITMAP_UPGRADE_MAX_MANA],
+        .name_en = "Mana",
+        .name_jp = "マナ",
+        .desc_en = "Increases max mana",
+        .desc_jp = "最大マナの増加"
+    };
+    upgradeData[UPGRADE_TYPE_MANA_REGEN] = (UpgradeData) {
+        .modifier = 0.2f,
+        .maxUpgradeCount = 10,
+        .icon = BITMAPS[BITMAP_UPGRADE_MANA_REGEN],
+        .name_en = "Mana Regen",
+        .name_jp = "マナ回復",
+        .desc_en = "Increases mana regen rate",
+        .desc_jp = "マナ回復速度の増加"
+    };
     upgradeData[UPGRADE_TYPE_MOVE_SPEED] = (UpgradeData) {
         .modifier = 0.1f,
         .maxUpgradeCount = 5,
@@ -154,6 +174,8 @@ void initUpgradeValues(int isGameStart) {
 
     PLAYER_STATS = (PlayerStats) {
         .maxHealth = BASE_MAX_HEALTH + upgradeValues[UPGRADE_TYPE_MAX_HEALTH].value,
+        .maxMana = BASE_MAX_MANA + upgradeValues[UPGRADE_TYPE_MAX_MANA].value,
+        .manaRegenRate = BASE_MANA_REGEN_RATE + upgradeValues[UPGRADE_TYPE_MANA_REGEN].value,
         .maxSpeed = TARGET_FPS * (BASE_MOVE_SPEED + upgradeValues[UPGRADE_TYPE_MOVE_SPEED].value),
         .projectileDamage = BASE_PROJECTILE_DAMAGE,
         .projectileSpeed = TARGET_FPS * (BASE_PROJECTILE_SPEED + upgradeValues[UPGRADE_TYPE_PROJECTILE_SPEED].value),

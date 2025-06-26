@@ -82,7 +82,7 @@ int updateGameScene(lua_State* L)
 	renderScene();
 	drawUI(deltaTime);
 
-	pd->system->drawFPS(0, 108);
+	pd->system->drawFPS(185, 108);
 
 	pd->lua->pushNil();
 	return 1;

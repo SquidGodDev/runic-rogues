@@ -43,6 +43,7 @@ const char *bitmapPathStrings[] = {
 	"images/UI/hearts/empty",
 	"images/UI/hearts/halfContainerEmpty",
 	"images/UI/hearts/halfContainerFull",
+	"images/UI/mana/manaBar",
 	"images/UI/minimap/minimapWall",
 	"images/UI/minimap/minimapBorder",
 	"images/UI/minimap/minimapMask",
@@ -53,6 +54,8 @@ const char *bitmapPathStrings[] = {
 	"images/UI/prompts/restPrompt_JP",
 	"images/upgrades/icons/attackCooldown",
 	"images/upgrades/icons/maxHealth",
+	"images/upgrades/icons/maxMana",
+	"images/upgrades/icons/manaRegen",
 	"images/upgrades/icons/moveSpeed",
 	"images/upgrades/icons/projectileSpeed",
 	"images/upgrades/icons/vampirism"

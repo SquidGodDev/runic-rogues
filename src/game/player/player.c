@@ -19,12 +19,15 @@
 
 #define HIT_INVINCIBILITY_TIME 0.5f // Seconds
 
+#define BASIC_ATTACK_MANA_COST 1
+
 // === Extern variables ===
 float playerX, playerY;
 float playerAngle;
 float planeX, planeY;
 float dirX, dirY;
 int playerHealth;
+float playerMana;
 
 int interactableIndex;
 // ========================
@@ -84,6 +87,7 @@ void initPlayer(int isGameStart) {
 		// Reset player health on game start or when testing (i.e. playerHealth is 0)
 		playerHealth = PLAYER_STATS.maxHealth;
 	}
+	playerMana = PLAYER_STATS.maxMana;
 	playerDead = 0;
 	playerHitInvincibility = 0;
 
@@ -147,7 +151,8 @@ void handleInput(float deltaTime)
 	if (current & kButtonA) {
 		if (interactableIndex != -1) {
 			interact(interactableIndex);
-		} else if (weaponCurCooldown <= 0) {
+		} else if (weaponCurCooldown <= 0 && playerMana >= BASIC_ATTACK_MANA_COST) {
+			playerMana -= BASIC_ATTACK_MANA_COST;
 			weaponCurCooldown = PLAYER_STATS.weaponCooldown;
 			float projectileX = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
 			float projectileY = playerY + sinf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
@@ -354,6 +359,12 @@ void updatePlayer(float deltaTime) {
             playerHitInvincibility = 0;
         }
     }
+	if (weaponCurCooldown <= 0) {
+		playerMana += PLAYER_STATS.manaRegenRate * deltaTime;
+	}
+	if (playerMana > PLAYER_STATS.maxMana) {
+		playerMana = PLAYER_STATS.maxMana;
+	}
 	handleInput(deltaTime);
 	handleInteractables();
 }

@@ -253,6 +253,12 @@ void drawExitArrow(void) {
     drawCenteredBitmap(pd->graphics->getTableBitmap(BITMAP_TABLES[BITMAP_TABLE_EXIT_ARROW], rotationTableIndex), EXIT_ARROW_X, EXIT_ARROW_Y);
 }
 
+void drawManaBar(void) {
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_MANA_BAR], 2, 90, kBitmapUnflipped);
+    int manaBarWidth = playerMana / (float)PLAYER_STATS.maxMana * 58;
+    pd->graphics->fillRect(20, 104, manaBarWidth, 8, kColorWhite);
+}
+
 void drawUI(float deltaTime) {
     if (screenShakeTime > 0) {
         screenShakeTime -= deltaTime;
@@ -270,6 +276,7 @@ void drawUI(float deltaTime) {
     drawPlayerHearts();
     drawMinimap();
     drawWeapon(deltaTime);
+    drawManaBar();
     drawInteractablePrompt();
     drawExitArrow();
 }

@@ -7,6 +7,7 @@ extern float planeX, planeY;
 extern float dirX, dirY;
 
 extern int playerHealth;
+extern float playerMana;
 
 extern int interactableIndex;
 

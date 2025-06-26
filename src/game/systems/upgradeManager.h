@@ -1,8 +1,9 @@
 #pragma once
 
 typedef struct PlayerStats {
-    int health;
 	int maxHealth;
+    int maxMana;
+    float manaRegenRate;
 	float maxSpeed;
 	int projectileDamage;
 	float projectileSpeed;
@@ -13,6 +14,8 @@ extern PlayerStats PLAYER_STATS;
 
 typedef enum UpgradeType {
     UPGRADE_TYPE_MAX_HEALTH,
+    UPGRADE_TYPE_MAX_MANA,
+    UPGRADE_TYPE_MANA_REGEN,
     UPGRADE_TYPE_MOVE_SPEED,
     UPGRADE_TYPE_ATTACK_COOLDOWN,
     UPGRADE_TYPE_PROJECTILE_SPEED,
