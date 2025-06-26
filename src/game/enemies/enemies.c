@@ -34,7 +34,7 @@
 
 typedef enum AttackPattern
 {
-	ATTACK_PATTERN_PRotherXIMITY,
+	ATTACK_PATTERN_PROXIMITY,
 	ATTACK_PATTERN_MELEE,
 	ATTACK_PATTERN_PROJECTILE,
 	ATTACK_PATTERN_RUSH
@@ -77,7 +77,7 @@ void initEnemyData(void) {
 		.deathFrameStart = 1,
 		.deathFrameEnd = 1,
 		.frameTime = 0.15f,
-		.attackPattern = ATTACK_PATTERN_PRotherXIMITY
+		.attackPattern = ATTACK_PATTERN_PROXIMITY
 	};
 	enemyData[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
@@ -92,7 +92,7 @@ void initEnemyData(void) {
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
 		.frameTime = 0.12f,
-		.attackPattern = ATTACK_PATTERN_PRotherXIMITY
+		.attackPattern = ATTACK_PATTERN_PROXIMITY
 	};
 	enemyData[ENEMY_TYPE_SLIME] = (EnemyData){
 		.name = "Slime",
@@ -108,7 +108,7 @@ void initEnemyData(void) {
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
 		.frameTime = 0.14f,
-		.attackPattern = ATTACK_PATTERN_PRotherXIMITY
+		.attackPattern = ATTACK_PATTERN_PROXIMITY
 	};
 	enemyData[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
 		.name = "Baby Slime",
@@ -123,7 +123,7 @@ void initEnemyData(void) {
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
 		.frameTime = 0.1f,
-		.attackPattern = ATTACK_PATTERN_PRotherXIMITY
+		.attackPattern = ATTACK_PATTERN_PROXIMITY
 	};
 	enemyData[ENEMY_TYPE_SKELETON] = (EnemyData){
 		.name = "Skeleton",
@@ -382,7 +382,7 @@ void updateEnemies(float deltaTime) {
 					curEnemy.state = ENEMY_STATE_ATTACK;
 					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
 					curEnemy.animationTime = curEnemyData.frameTime;
-				} else if (curAttackPattern == ATTACK_PATTERN_PRotherXIMITY) {
+				} else if (curAttackPattern == ATTACK_PATTERN_PROXIMITY) {
 					if (playerInAttackDistance(i)) {
 						damagePlayer(curEnemyData.attackDamage);
 					}
