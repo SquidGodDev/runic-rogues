@@ -20,7 +20,7 @@ SceneManager.loadFirstScene(TitleScene)
 
 function NextLevel(playerHealth)
 	GAME_DATA.currentRoom += 1
-	if GAME_DATA.currentRoom >= 10 then
+	if GAME_DATA.currentRoom > 10 then
 		GAME_DATA.currentRoom = 1
 		GAME_DATA.currentArea += 1
 	end

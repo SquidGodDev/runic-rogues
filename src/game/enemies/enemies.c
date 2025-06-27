@@ -29,6 +29,12 @@
 #define WALL_CHECK_DISTANCE 10
 #define WALL_AVOID_FORCE 0.1f
 
+#define BOSS_IDLE_TIME 2.0f
+#define BOSS_PREP_TIME 1.0f
+#define BOSS_ATTACK1_TIME 2.5f
+#define BOSS_ATTACK2_TIME 2.0f
+#define BOSS_ATTACK3_TIME 5.0f
+
 // DEBUG
 #define SKIP_ENEMY_UPDATE 0
 
@@ -37,9 +43,27 @@ typedef enum AttackPattern
 	ATTACK_PATTERN_PROXIMITY,
 	ATTACK_PATTERN_MELEE,
 	ATTACK_PATTERN_PROJECTILE,
-	ATTACK_PATTERN_RUSH
+	ATTACK_PATTERN_RUSH,
+	ATTACK_PATTERN_WRAITH_BOSS
 } AttackPattern;
 
+typedef enum BossState {
+	BOSS_STATE_IDLE,
+	BOSS_STATE_PREPARING,
+	BOSS_STATE_ATTACK1,
+	BOSS_STATE_ATTACK2,
+	BOSS_STATE_ATTACK3
+} BossState;
+
+typedef struct Boss {
+	BossState bossState;
+	BossState nextAttackState;
+	int stateCount;
+	float stateTimer;
+	float stateData;
+} Boss;
+
+Boss boss = {0};
 Enemy enemies[MAX_ENEMY_COUNT] = {0};
 
 typedef struct EnemyData {
@@ -51,8 +75,11 @@ typedef struct EnemyData {
 	float attackCooldown;
 	float moveSpeed;
 	float abilityDataPrimary; // Flexible property for enemy-specific behaviors or traits
+	float abilityDataSecondary; // Flexible property for enemy-specific behaviors or traits
 	uint8_t* texture;
 	int idleFrameEnd; // Frames are 1-indexed to match Aseprite
+	int prepFrameStart;
+	int prepFrameEnd;
 	int attackFrameStart;
 	int attackFrameEnd;
 	int attackActiveFrame;
@@ -150,7 +177,7 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 8.0f,
 		.moveSpeed = 0.2f,
-		.abilityDataPrimary = 1.0f * TARGET_FPS, // Projectile speed
+		.abilityDataPrimary = 50.0f, // Projectile speed
 		.texture = TEXTURES[TEXTURE_IMP],
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
@@ -197,19 +224,53 @@ void initEnemyData(void) {
 		.frameTime = 0.15f,
 		.attackPattern = ATTACK_PATTERN_MELEE
 	};
+	enemyData[ENEMY_TYPE_WRAITH_BOSS] = (EnemyData){
+		.name = "Wraith Boss",
+		.health = 30,
+		.attackDetectionRange = 100,
+		.attackDistance = 100,
+		.attackDamage = 2,
+		.attackCooldown = 0.5f,
+		.moveSpeed = 0.25f,
+		.abilityDataPrimary = 1.2f, // Rush move speed
+		.abilityDataSecondary = 70.0f, // Projectile speed
+		.texture = TEXTURES[TEXTURE_WRAITH_BOSS],
+		.idleFrameEnd = 6,
+		.prepFrameStart = 7,
+		.prepFrameEnd = 10,
+		.deathFrameStart = 11,
+		.deathFrameEnd = 14,
+		.frameTime = 0.15f,
+		.attackPattern = ATTACK_PATTERN_WRAITH_BOSS
+	};
+	enemyData[ENEMY_TYPE_WRAITH] = (EnemyData){
+		.name = "Wraith",
+		.health = 1,
+		.attackDetectionRange = 100,
+		.attackDistance = 100,
+		.attackDamage = 1,
+		.attackCooldown = 1.0f,
+		.moveSpeed = 0.6f,
+		.texture = TEXTURES[TEXTURE_WRAITH],
+		.idleFrameEnd = 4,
+		.deathFrameStart = 5,
+		.deathFrameEnd = 8,
+		.frameTime = 0.15f,
+		.attackPattern = ATTACK_PATTERN_PROXIMITY
+	};
 }
 
-Enemy moveEnemy(Enemy enemy, int enemyIndex, float moveSpeed) {
-	float dx = (playerX - enemy.x);
-	float dy = (playerY - enemy.y);
-	float distToPlayer = sqrtf(dx*dx + dy*dy);
+Enemy moveEnemy(Enemy enemy, int enemyIndex, float targetX, float targetY, float moveSpeed) {
+	float dx = (targetX - enemy.x);
+	float dy = (targetY - enemy.y);
+	float distToTarget = sqrtf(dx*dx + dy*dy);
 
-	if (distToPlayer < MIN_DIST_TO_PLAYER) {
+	if (distToTarget < MIN_DIST_TO_PLAYER) {
 		return enemy;	
 	}
 
-	dx /= distToPlayer;
-	dy /= distToPlayer;
+	dx /= distToTarget;
+	dy /= distToTarget;
 
 	// Repulsion from other enemies
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
@@ -265,11 +326,21 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 		return;
 	}
 
+	if (enemyType == ENEMY_TYPE_WRAITH_BOSS) {
+		boss.bossState = BOSS_STATE_IDLE;
+		boss.nextAttackState = BOSS_STATE_ATTACK1;
+		boss.stateCount = 0;
+		boss.stateTimer = BOSS_IDLE_TIME;
+		boss.stateData = 0;
+	}
+
 	EnemyData curEnemyData = enemyData[enemyType];
 
 	enemies[newEnemyIndex] = (struct Enemy) {
 		.x = x,
 		.y = y,
+		.targetX = x,
+		.targetY = y,
 		.health = curEnemyData.health,
 		.attackCooldown = 0,
 		.hitFlashTime = 0,
@@ -281,7 +352,7 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 	};
 }
 
-void spawnRandomEnemy(void) {
+void spawnRandomEnemy(int spawnX, int spawnY) {
 	EnemyType *spawnList = getAreaSpawnList();
 	EnemyType enemyType = spawnList[randInt(0, ENEMY_TYPES_PER_AREA - 1)];
 
@@ -289,15 +360,7 @@ void spawnRandomEnemy(void) {
 		enemyType = ENEMY_TYPE_TEST;
 	}
 
-	int randMapX = randInt(ENEMY_SPAWN_MIN_X, ENEMY_SPAWN_MAX_X);
-	int randMapY = randInt(ENEMY_SPAWN_MIN_Y, ENEMY_SPAWN_MAX_Y);
-
-	while (map[randMapY * MAP_WIDTH + randMapX] != 0) {
-		randMapX = randInt(ENEMY_SPAWN_MIN_X, ENEMY_SPAWN_MAX_X);
-		randMapY = randInt(ENEMY_SPAWN_MIN_Y, ENEMY_SPAWN_MAX_Y);
-	}
-
-	spawnEnemy(enemyType, randMapX * CELL_SIZE + CELL_SIZE / 2, randMapY * CELL_SIZE + CELL_SIZE / 2);
+	spawnEnemy(enemyType, spawnX, spawnY);
 }
 
 void initEnemies(void) {
@@ -308,11 +371,25 @@ void initEnemies(void) {
 	}
 }
 
-void spawnEnemies(RoomType roomType) {
-	if (roomType == ROOM_TYPE_ENEMY || roomType == ROOM_TYPE_ELITE) {
+void spawnEnemies(int currentArea, RoomType roomType) {
+	if (roomType == ROOM_TYPE_BOSS) {
+		if (currentArea == AREA_ECHOING_CAVERNS) {
+			spawnEnemy(ENEMY_TYPE_WRAITH_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE);
+		}
+	} else if (roomType == ROOM_TYPE_ENEMY || roomType == ROOM_TYPE_ELITE) {
 		int enemiesSpawned = getCurrentRoom() + 2;
 		for (int i = 0; i < enemiesSpawned; i++) {
-			spawnRandomEnemy();
+			int randMapX = randInt(ENEMY_SPAWN_MIN_X, ENEMY_SPAWN_MAX_X);
+			int randMapY = randInt(ENEMY_SPAWN_MIN_Y, ENEMY_SPAWN_MAX_Y);
+
+			while (map[randMapY * MAP_WIDTH + randMapX] != 0) {
+				randMapX = randInt(ENEMY_SPAWN_MIN_X, ENEMY_SPAWN_MAX_X);
+				randMapY = randInt(ENEMY_SPAWN_MIN_Y, ENEMY_SPAWN_MAX_Y);
+			}
+
+			int spawnX = randMapX * CELL_SIZE + CELL_SIZE / 2;
+			int spawnY = randMapY * CELL_SIZE + CELL_SIZE / 2;
+			spawnRandomEnemy(spawnX, spawnY);
 		}
 	}
 }
@@ -351,6 +428,10 @@ void updateEnemies(float deltaTime) {
 				if (curEnemy.animationFrame >= curEnemyData.idleFrameEnd) {
 					curEnemy.animationFrame = 0;
 				}
+			} else if (curEnemy.state == ENEMY_STATE_PREP) {
+				if (curEnemy.animationFrame >= curEnemyData.prepFrameEnd) {
+					curEnemy.animationFrame = curEnemyData.prepFrameEnd - 1;
+				}
 			} else if (curEnemy.state == ENEMY_STATE_ATTACK || curEnemy.state == ENEMY_STATE_ATTACK_END) {
 				if (curEnemy.animationFrame >= curEnemyData.attackFrameEnd) {
 					curEnemy.animationFrame = 0;
@@ -374,50 +455,118 @@ void updateEnemies(float deltaTime) {
 			curEnemy.attackCooldown = 0;
 		}
 
-		if (curEnemy.state == ENEMY_STATE_IDLE) {
-			AttackPattern curAttackPattern = curEnemyData.attackPattern;
-			if (curEnemy.attackCooldown <= 0 && playerInAttackDetectionRange(i)) {
+		if (curEnemyData.attackPattern == ATTACK_PATTERN_WRAITH_BOSS) {
+			boss.stateTimer -= deltaTime;
+			if (curEnemy.attackCooldown <= 0 && playerInAttackDistance(i)) {
 				curEnemy.attackCooldown = curEnemyData.attackCooldown;
-				if (curAttackPattern == ATTACK_PATTERN_MELEE || curAttackPattern == ATTACK_PATTERN_PROJECTILE) {
-					curEnemy.state = ENEMY_STATE_ATTACK;
-					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
-					curEnemy.animationTime = curEnemyData.frameTime;
-				} else if (curAttackPattern == ATTACK_PATTERN_PROXIMITY) {
-					if (playerInAttackDistance(i)) {
-						damagePlayer(curEnemyData.attackDamage);
-					}
-				} else if (curAttackPattern == ATTACK_PATTERN_RUSH && isClearLine(curEnemy.x, curEnemy.y, playerX, playerY)) {
-					curEnemy.state = ENEMY_STATE_ATTACK;
-					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
-					curEnemy.animationTime = curEnemyData.frameTime;
-				}
+				damagePlayer(curEnemyData.attackDamage);
 			}
-
-			curEnemy = moveEnemy(curEnemy, i, curEnemyData.moveSpeed);
-		} else if (curEnemy.state == ENEMY_STATE_ATTACK) {
-			AttackPattern curAttackPattern = curEnemyData.attackPattern;
-			if (curAttackPattern == ATTACK_PATTERN_RUSH) {
-				curEnemy = moveEnemy(curEnemy, i, curEnemyData.abilityDataPrimary);
-				if (playerInAttackDistance(i)) {
-					damagePlayer(curEnemyData.attackDamage);
+			if (boss.bossState == BOSS_STATE_IDLE) {
+				if (boss.stateTimer <= 0) {
+					boss.bossState = BOSS_STATE_PREPARING;
+					boss.stateTimer = BOSS_PREP_TIME;
+					curEnemy.state = ENEMY_STATE_PREP;
+					curEnemy.animationFrame = curEnemyData.prepFrameStart - 1;
+					curEnemy.animationTime = curEnemyData.frameTime;
+					curEnemy.state = ENEMY_STATE_PREP;
+				}
+			} else if (boss.bossState == BOSS_STATE_PREPARING) {
+				if (boss.stateTimer <= 0) {
+					if (boss.nextAttackState == BOSS_STATE_ATTACK1) {
+						boss.bossState = BOSS_STATE_ATTACK1;
+						boss.stateTimer = BOSS_ATTACK1_TIME;
+						boss.stateCount++;
+						curEnemy.targetX = playerX;
+						curEnemy.targetY = playerY;
+						if (boss.stateCount >= 3) {
+							boss.stateCount = 0;
+							boss.nextAttackState = BOSS_STATE_ATTACK2;
+						}
+					} else if (boss.nextAttackState == BOSS_STATE_ATTACK2) {
+						boss.bossState = BOSS_STATE_ATTACK2;
+						boss.stateTimer = BOSS_ATTACK2_TIME;
+						boss.nextAttackState = BOSS_STATE_ATTACK3;
+					} else if (boss.nextAttackState == BOSS_STATE_ATTACK3) {
+						boss.bossState = BOSS_STATE_IDLE;
+						boss.stateTimer = BOSS_ATTACK3_TIME;
+						boss.nextAttackState = BOSS_STATE_ATTACK1;
+						curEnemy.animationFrame = 0;
+						curEnemy.state = ENEMY_STATE_IDLE;
+						for (int i = 0; i < 3; i++) {
+							spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy.x, curEnemy.y);
+						}
+					}
+				}
+			} else if (boss.bossState == BOSS_STATE_ATTACK1 || boss.bossState == BOSS_STATE_ATTACK2 || boss.bossState == BOSS_STATE_ATTACK3) {
+				if (boss.stateTimer <= 0) {
+					boss.bossState = BOSS_STATE_IDLE;
+					boss.stateTimer = BOSS_IDLE_TIME;
+					curEnemy.animationFrame = 0;
 					curEnemy.state = ENEMY_STATE_IDLE;
 				}
-			} else if (curEnemy.animationFrame >= curEnemyData.attackActiveFrame) {
-				if (curAttackPattern == ATTACK_PATTERN_MELEE) {
+				if (boss.bossState == BOSS_STATE_ATTACK1) {
+					curEnemy = moveEnemy(curEnemy, i, curEnemy.targetX, curEnemy.targetY, curEnemyData.abilityDataPrimary);
+				} else if (boss.bossState == BOSS_STATE_ATTACK2) {
+					if (curEnemy.attackCooldown <= 0) {
+						curEnemy.attackCooldown = curEnemyData.attackCooldown;
+						float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy.x, curEnemy.y));
+						float deltaX = (playerX - curEnemy.x) / distanceToPlayer;
+						float deltaY = (playerY - curEnemy.y) / distanceToPlayer;
+						float projectileSpeed = curEnemyData.abilityDataSecondary;
+						float damage = curEnemyData.attackDamage;
+						float projectileX = curEnemy.x + deltaX * PROJECTILE_OFFSET;
+						float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
+						fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/);
+					}
+				}
+			}
+		} else {
+			// Non-boss enemies
+			if (curEnemy.state == ENEMY_STATE_IDLE) {
+				AttackPattern curAttackPattern = curEnemyData.attackPattern;
+				if (curEnemy.attackCooldown <= 0 && playerInAttackDetectionRange(i)) {
+					curEnemy.attackCooldown = curEnemyData.attackCooldown;
+					if (curAttackPattern == ATTACK_PATTERN_MELEE || curAttackPattern == ATTACK_PATTERN_PROJECTILE) {
+						curEnemy.state = ENEMY_STATE_ATTACK;
+						curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
+						curEnemy.animationTime = curEnemyData.frameTime;
+					} else if (curAttackPattern == ATTACK_PATTERN_PROXIMITY) {
+						if (playerInAttackDistance(i)) {
+							damagePlayer(curEnemyData.attackDamage);
+						}
+					} else if (curAttackPattern == ATTACK_PATTERN_RUSH && isClearLine(curEnemy.x, curEnemy.y, playerX, playerY)) {
+						curEnemy.state = ENEMY_STATE_ATTACK;
+						curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
+						curEnemy.animationTime = curEnemyData.frameTime;
+					}
+				}
+
+				curEnemy = moveEnemy(curEnemy, i, playerX, playerY, curEnemyData.moveSpeed);
+			} else if (curEnemy.state == ENEMY_STATE_ATTACK) {
+				AttackPattern curAttackPattern = curEnemyData.attackPattern;
+				if (curAttackPattern == ATTACK_PATTERN_RUSH) {
+					curEnemy = moveEnemy(curEnemy, i, playerX, playerY, curEnemyData.abilityDataPrimary);
 					if (playerInAttackDistance(i)) {
 						damagePlayer(curEnemyData.attackDamage);
+						curEnemy.state = ENEMY_STATE_IDLE;
 					}
-				} else if (curAttackPattern == ATTACK_PATTERN_PROJECTILE) {
-					float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy.x, curEnemy.y));
-					float deltaX = (playerX - curEnemy.x) / distanceToPlayer;
-					float deltaY = (playerY - curEnemy.y) / distanceToPlayer;
-					float projectileSpeed = curEnemyData.abilityDataPrimary;
-					float damage = curEnemyData.attackDamage;
-					float projectileX = curEnemy.x + deltaX * PROJECTILE_OFFSET;
-					float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
-					fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/);
+				} else if (curEnemy.animationFrame >= curEnemyData.attackActiveFrame) {
+					if (curAttackPattern == ATTACK_PATTERN_MELEE) {
+						if (playerInAttackDistance(i)) {
+							damagePlayer(curEnemyData.attackDamage);
+						}
+					} else if (curAttackPattern == ATTACK_PATTERN_PROJECTILE) {
+						float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy.x, curEnemy.y));
+						float deltaX = (playerX - curEnemy.x) / distanceToPlayer;
+						float deltaY = (playerY - curEnemy.y) / distanceToPlayer;
+						float projectileSpeed = curEnemyData.abilityDataPrimary;
+						float damage = curEnemyData.attackDamage;
+						float projectileX = curEnemy.x + deltaX * PROJECTILE_OFFSET;
+						float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
+						fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/);
+					}
+					curEnemy.state = ENEMY_STATE_ATTACK_END;
 				}
-				curEnemy.state = ENEMY_STATE_ATTACK_END;
 			}
 		}
 

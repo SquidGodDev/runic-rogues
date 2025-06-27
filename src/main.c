@@ -58,7 +58,7 @@ int initGameScene(lua_State* L)
 	// Map
 	initMap(roomType);
 	initRaycasting();
-	spawnEnemies(roomType);
+	spawnEnemies(currentArea, roomType);
 
 	// UI
 	initUI();
