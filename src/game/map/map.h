@@ -11,6 +11,7 @@ void spawnExit(void);
 void initMap(RoomType roomType);
 int isBlocked(int x, int y);
 int isClearLine(int x1, int y1, int x2, int y2);
+void castRayToWall(float x1, float y1, float x2, float y2, float *targetX, float *targetY);
 
 /* Lua program to create basic map
 ================================

@@ -26,14 +26,16 @@
 #define MIN_DIST_TO_PLAYER 5
 #define ENEMY_SEPARATION_RADIUS 20
 #define ENEMY_SEPARATION_FORCE 0.1f
-#define WALL_CHECK_DISTANCE 10
+#define WALL_CHECK_DISTANCE 4
 #define WALL_AVOID_FORCE 0.1f
 
-#define BOSS_IDLE_TIME 2.0f
-#define BOSS_PREP_TIME 1.0f
-#define BOSS_ATTACK1_TIME 2.5f
-#define BOSS_ATTACK2_TIME 2.0f
-#define BOSS_ATTACK3_TIME 5.0f
+#define WRAITH_BOSS_IDLE_TIME 2.0f
+#define WRAITH_BOSS_PREP_TIME 1.0f
+#define WRAITH_BOSS_ATTACK1_TIME 2.5f
+#define WRAITH_BOSS_ATTACK2_TIME 2.0f
+#define WRAITH_BOSS_ATTACK3_TIME 5.0f
+#define WRAITH_BOSS_RUSH_COUNT 3
+#define WRAITH_BOSS_PROJECTILE_COOLDOWN 0.5f
 
 // DEBUG
 #define SKIP_ENEMY_UPDATE 0
@@ -230,7 +232,7 @@ void initEnemyData(void) {
 		.attackDetectionRange = 100,
 		.attackDistance = 100,
 		.attackDamage = 2,
-		.attackCooldown = 0.5f,
+		.attackCooldown = 1.5f,
 		.moveSpeed = 0.25f,
 		.abilityDataPrimary = 1.2f, // Rush move speed
 		.abilityDataSecondary = 70.0f, // Projectile speed
@@ -330,7 +332,7 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 		boss.bossState = BOSS_STATE_IDLE;
 		boss.nextAttackState = BOSS_STATE_ATTACK1;
 		boss.stateCount = 0;
-		boss.stateTimer = BOSS_IDLE_TIME;
+		boss.stateTimer = WRAITH_BOSS_IDLE_TIME;
 		boss.stateData = 0;
 	}
 
@@ -464,7 +466,7 @@ void updateEnemies(float deltaTime) {
 			if (boss.bossState == BOSS_STATE_IDLE) {
 				if (boss.stateTimer <= 0) {
 					boss.bossState = BOSS_STATE_PREPARING;
-					boss.stateTimer = BOSS_PREP_TIME;
+					boss.stateTimer = WRAITH_BOSS_PREP_TIME;
 					curEnemy.state = ENEMY_STATE_PREP;
 					curEnemy.animationFrame = curEnemyData.prepFrameStart - 1;
 					curEnemy.animationTime = curEnemyData.frameTime;
@@ -474,33 +476,39 @@ void updateEnemies(float deltaTime) {
 				if (boss.stateTimer <= 0) {
 					if (boss.nextAttackState == BOSS_STATE_ATTACK1) {
 						boss.bossState = BOSS_STATE_ATTACK1;
-						boss.stateTimer = BOSS_ATTACK1_TIME;
+						boss.stateTimer = WRAITH_BOSS_ATTACK1_TIME;
 						boss.stateCount++;
-						curEnemy.targetX = playerX;
-						curEnemy.targetY = playerY;
-						if (boss.stateCount >= 3) {
+
+						// Project line towards player and set target to first wall hit
+						float targetX, targetY;
+						castRayToWall(curEnemy.x, curEnemy.y, playerX, playerY, &targetX, &targetY);
+						curEnemy.targetX = targetX;
+						curEnemy.targetY = targetY;
+
+						// Rush attack 3 times
+						if (boss.stateCount >= WRAITH_BOSS_RUSH_COUNT) {
 							boss.stateCount = 0;
 							boss.nextAttackState = BOSS_STATE_ATTACK2;
 						}
 					} else if (boss.nextAttackState == BOSS_STATE_ATTACK2) {
 						boss.bossState = BOSS_STATE_ATTACK2;
-						boss.stateTimer = BOSS_ATTACK2_TIME;
+						boss.stateTimer = WRAITH_BOSS_ATTACK2_TIME;
 						boss.nextAttackState = BOSS_STATE_ATTACK3;
 					} else if (boss.nextAttackState == BOSS_STATE_ATTACK3) {
 						boss.bossState = BOSS_STATE_IDLE;
-						boss.stateTimer = BOSS_ATTACK3_TIME;
+						boss.stateTimer = WRAITH_BOSS_ATTACK3_TIME;
 						boss.nextAttackState = BOSS_STATE_ATTACK1;
 						curEnemy.animationFrame = 0;
 						curEnemy.state = ENEMY_STATE_IDLE;
-						for (int i = 0; i < 3; i++) {
-							spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy.x, curEnemy.y);
-						}
+						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy.x, curEnemy.y);
+						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy.x - CELL_SIZE, curEnemy.y);
+						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy.x + CELL_SIZE, curEnemy.y);
 					}
 				}
 			} else if (boss.bossState == BOSS_STATE_ATTACK1 || boss.bossState == BOSS_STATE_ATTACK2 || boss.bossState == BOSS_STATE_ATTACK3) {
 				if (boss.stateTimer <= 0) {
 					boss.bossState = BOSS_STATE_IDLE;
-					boss.stateTimer = BOSS_IDLE_TIME;
+					boss.stateTimer = WRAITH_BOSS_IDLE_TIME;
 					curEnemy.animationFrame = 0;
 					curEnemy.state = ENEMY_STATE_IDLE;
 				}
@@ -508,7 +516,7 @@ void updateEnemies(float deltaTime) {
 					curEnemy = moveEnemy(curEnemy, i, curEnemy.targetX, curEnemy.targetY, curEnemyData.abilityDataPrimary);
 				} else if (boss.bossState == BOSS_STATE_ATTACK2) {
 					if (curEnemy.attackCooldown <= 0) {
-						curEnemy.attackCooldown = curEnemyData.attackCooldown;
+						curEnemy.attackCooldown = WRAITH_BOSS_PROJECTILE_COOLDOWN;
 						float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy.x, curEnemy.y));
 						float deltaX = (playerX - curEnemy.x) / distanceToPlayer;
 						float deltaY = (playerY - curEnemy.y) / distanceToPlayer;
