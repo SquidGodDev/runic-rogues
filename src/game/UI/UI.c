@@ -29,8 +29,8 @@
 #define EXIT_ARROW_ROTATION_COUNT 64
 #define EXIT_ARROW_ROTATION_DEGREE_STEP (2 * PI / EXIT_ARROW_ROTATION_COUNT)
 
-#define MINIMAP_X 170
-#define MINIMAP_Y 30
+#define MINIMAP_X 172
+#define MINIMAP_Y 28
 
 #define MINIMAP_SIZE 13 // Width/height in terms of cells
 #define CELL_DRAW_SIZE 4 // Pixel size of each cell
@@ -49,13 +49,17 @@ static int showExitArrow;
 static int exitWorldX;
 static int exitWorldY;
 
-void initUI(void) {
+static int showBossHealthBar;
+
+void initUI(int isBossRoom) {
     showExitArrow = 0;
 
     screenShakeTime = 0;
     shakeMagnitude = 0;
     pd->display->setOffset(0, 0);
     pd->graphics->setBackgroundColor(kColorBlack);
+
+    showBossHealthBar = isBossRoom;
 }
 
 void drawPlayerHearts(void) {
@@ -259,6 +263,15 @@ void drawManaBar(void) {
     pd->graphics->fillRect(20, 104, manaBarWidth, 8, kColorWhite);
 }
 
+void drawBossHealthBar(void) {
+    float healthPercentage = getBossHealthPercentage();
+    int healthBarWidth = healthPercentage * 68;
+
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_BOSS_HEALTH_BAR], 64, 27, kBitmapUnflipped);
+    pd->graphics->fillRect(66, 29, healthBarWidth, 4, kColorWhite);
+    drawCenteredBitmap(BITMAPS[BITMAP_WRAITH_BOSS_TITLE], 100, 21);
+}
+
 void drawUI(float deltaTime) {
     if (screenShakeTime > 0) {
         screenShakeTime -= deltaTime;
@@ -279,6 +292,10 @@ void drawUI(float deltaTime) {
     drawManaBar();
     drawInteractablePrompt();
     drawExitArrow();
+
+    if (showBossHealthBar && !showExitArrow) {
+        drawBossHealthBar();
+    }
 }
 
 void screenShake(ScreenShakeStrength strength) {

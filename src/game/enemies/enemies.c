@@ -65,8 +65,9 @@ typedef struct Boss {
 	float stateData;
 } Boss;
 
-Boss boss = {0};
 Enemy enemies[MAX_ENEMY_COUNT] = {0};
+static int bossIndex;
+static Boss boss = {0};
 
 typedef struct EnemyData {
 	char* name;
@@ -315,7 +316,7 @@ Enemy moveEnemy(Enemy enemy, int enemyIndex, float targetX, float targetY, float
 	return enemy;
 }
 
-void spawnEnemy(EnemyType enemyType, int x, int y) {
+int spawnEnemy(EnemyType enemyType, int x, int y) {
 	int newEnemyIndex = -1;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		if (!enemies[i].active) {
@@ -325,7 +326,7 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 	}
 
 	if (newEnemyIndex == -1) {
-		return;
+		return -1;
 	}
 
 	if (enemyType == ENEMY_TYPE_WRAITH_BOSS) {
@@ -352,6 +353,8 @@ void spawnEnemy(EnemyType enemyType, int x, int y) {
 		.state = ENEMY_STATE_IDLE,
 		.type = enemyType
 	};
+
+	return newEnemyIndex;
 }
 
 void spawnRandomEnemy(int spawnX, int spawnY) {
@@ -376,7 +379,7 @@ void initEnemies(void) {
 void spawnEnemies(int currentArea, RoomType roomType) {
 	if (roomType == ROOM_TYPE_BOSS) {
 		if (currentArea == AREA_ECHOING_CAVERNS) {
-			spawnEnemy(ENEMY_TYPE_WRAITH_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE);
+			bossIndex = spawnEnemy(ENEMY_TYPE_WRAITH_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE);
 		}
 	} else if (roomType == ROOM_TYPE_ENEMY || roomType == ROOM_TYPE_ELITE) {
 		int enemiesSpawned = getCurrentRoom() + 2;
@@ -452,6 +455,12 @@ void updateEnemies(float deltaTime) {
 			curEnemy.hitFlashTime = 0;
 		}
 
+		if (curEnemy.state == ENEMY_STATE_DEAD) {
+			enemies[i] = curEnemy;
+			addEntityToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, i, curEnemyData.texture, curEnemy.animationFrame);
+			continue;
+		}
+
 		curEnemy.attackCooldown -= deltaTime;
 		if (curEnemy.attackCooldown <= 0) {
 			curEnemy.attackCooldown = 0;
@@ -470,7 +479,6 @@ void updateEnemies(float deltaTime) {
 					curEnemy.state = ENEMY_STATE_PREP;
 					curEnemy.animationFrame = curEnemyData.prepFrameStart - 1;
 					curEnemy.animationTime = curEnemyData.frameTime;
-					curEnemy.state = ENEMY_STATE_PREP;
 				}
 			} else if (boss.bossState == BOSS_STATE_PREPARING) {
 				if (boss.stateTimer <= 0) {
@@ -593,6 +601,16 @@ void enemyDeathEffect(int index) {
 			spawnEnemy(ENEMY_TYPE_BABY_SLIME, curEnemy.x, curEnemy.y);
 		}
 	}
+}
+
+float getBossHealthPercentage(void) {
+	Enemy boss = enemies[bossIndex];
+	if (boss.state == ENEMY_STATE_DEAD) {
+		return 0;
+	}
+
+	EnemyData bossData = enemyData[boss.type];
+	return (float)boss.health / (float)bossData.health;
 }
 
 int damageEnemy(int index, int damage) {

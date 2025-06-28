@@ -47,4 +47,5 @@ extern Enemy enemies[MAX_ENEMY_COUNT];
 void initEnemies(void);
 void spawnEnemies(int currentArea, RoomType roomType);
 void updateEnemies(float deltaTime);
+float getBossHealthPercentage(void);
 int checkEnemyCollision(float x, float y, float collisionRange, int damage);

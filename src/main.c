@@ -41,6 +41,7 @@ int initGameScene(lua_State* L)
 	int currentRoom = pd->lua->getArgInt(3) - 1;
 	RoomType roomType = pd->lua->getArgInt(4);
 	int isGameStart = currentArea == 0 && currentRoom == 0;
+	int isBossRoom = roomType == ROOM_TYPE_BOSS;
 
 	// Upgrades
 	initUpgradeValues(isGameStart);
@@ -61,7 +62,7 @@ int initGameScene(lua_State* L)
 	spawnEnemies(currentArea, roomType);
 
 	// UI
-	initUI();
+	initUI(isBossRoom);
 
 	// Player
 	initPlayer(isGameStart);

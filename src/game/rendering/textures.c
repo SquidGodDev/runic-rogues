@@ -54,6 +54,8 @@ const char *bitmapPathStrings[] = {
 	"images/UI/prompts/exitPrompt_JP",
 	"images/UI/prompts/restPrompt",
 	"images/UI/prompts/restPrompt_JP",
+	"images/UI/prompts/bossHealthBar",
+	"images/UI/prompts/wraithBossTitle",
 	"images/upgrades/icons/attackCooldown",
 	"images/upgrades/icons/maxHealth",
 	"images/upgrades/icons/maxMana",
