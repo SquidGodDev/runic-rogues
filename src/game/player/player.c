@@ -148,10 +148,10 @@ void handleInput(float deltaTime)
 		pushed = 0;
 	}
 
-	if (current & kButtonA) {
-		if (interactableIndex != -1) {
-			interact(interactableIndex);
-		} else if (weaponCurCooldown <= 0 && playerMana >= BASIC_ATTACK_MANA_COST) {
+	if (interactableIndex != -1 && (pushed & kButtonA)) {
+		interact(interactableIndex);
+	} else if (current & kButtonA) {
+		if (weaponCurCooldown <= 0 && playerMana >= BASIC_ATTACK_MANA_COST) {
 			playerMana -= BASIC_ATTACK_MANA_COST;
 			weaponCurCooldown = PLAYER_STATS.weaponCooldown;
 			float projectileX = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
