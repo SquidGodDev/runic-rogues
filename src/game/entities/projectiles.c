@@ -64,7 +64,7 @@ void updateProjectiles(float deltaTime) {
 		int entityMapIndex = entityMapY * MAP_WIDTH + entityMapX;
 		if ((entityMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[entityMapIndex] != 0)) {
 			curProjectile.active = 0;
-			spawnParticle(curProjectile.x - PARTICLE_OFFSET * deltaX, curProjectile.y - PARTICLE_OFFSET * deltaY);
+			spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, curProjectile.x - PARTICLE_OFFSET * deltaX, curProjectile.y - PARTICLE_OFFSET * deltaY, PARTICLE_TYPE_NONE);
 		} else {
 			int collided = 0;
 			if (curProjectile.isEnemy) {
@@ -79,7 +79,7 @@ void updateProjectiles(float deltaTime) {
 			if (collided) {
 				curProjectile.active = 0;
 				projectiles[i] = curProjectile;
-				spawnParticle(curProjectile.x - PARTICLE_OFFSET * deltaX, curProjectile.y - PARTICLE_OFFSET * deltaY);
+				spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, curProjectile.x - PARTICLE_OFFSET * deltaX, curProjectile.y - PARTICLE_OFFSET * deltaY, PARTICLE_TYPE_NONE);
 				continue;
 			}
 		}

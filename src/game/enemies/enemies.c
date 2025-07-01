@@ -9,6 +9,7 @@
 #include "game/entities/entities.h"
 #include "game/entities/projectiles.h"
 #include "game/rendering/textures.h"
+#include "game/rendering/particles.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/upgradeManager.h"
 
