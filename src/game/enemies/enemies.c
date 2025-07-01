@@ -30,6 +30,11 @@
 #define WALL_CHECK_DISTANCE 4
 #define WALL_AVOID_FORCE 0.1f
 
+#define ELDER_BOSS_IDLE_TIME 4.0f
+#define ELDER_BOSS_PREP_TIME 2.0f
+#define ELDER_BOSS_ATTACK2_COUNT 5
+#define ELDER_BOSS_ATTACK2_SPACING CELL_SIZE
+
 #define WRAITH_BOSS_IDLE_TIME 2.0f
 #define WRAITH_BOSS_PREP_TIME 1.0f
 #define WRAITH_BOSS_ATTACK1_TIME 2.5f
@@ -47,6 +52,7 @@ typedef enum AttackPattern
 	ATTACK_PATTERN_MELEE,
 	ATTACK_PATTERN_PROJECTILE,
 	ATTACK_PATTERN_RUSH,
+	ATTACK_PATTERN_ELDER_BOSS,
 	ATTACK_PATTERN_WRAITH_BOSS
 } AttackPattern;
 
@@ -173,6 +179,26 @@ void initEnemyData(void) {
 		.deathFrameEnd = 19,
 		.frameTime = 0.12f,
 		.attackPattern = ATTACK_PATTERN_MELEE
+	};
+	enemyData[ENEMY_TYPE_ELDER_BOSS] = (EnemyData){
+		.name = "Elder Boss",
+		.health = 30,
+		.attackDetectionRange = 350,
+		.attackDistance = 350,
+		.attackDamage = 2,
+		.attackCooldown = 1.5f,
+		.moveSpeed = 0.2f,
+		.texture = TEXTURES[TEXTURE_ELDER_BOSS],
+		.idleFrameEnd = 14,
+		.prepFrameStart = 15,
+		.prepFrameEnd = 17,
+		.attackFrameStart = 18,
+		.attackFrameEnd = 22,
+		.attackActiveFrame = 21,
+		.deathFrameStart = 23,
+		.deathFrameEnd = 26,
+		.frameTime = 0.15f,
+		.attackPattern = ATTACK_PATTERN_ELDER_BOSS
 	};
 	enemyData[ENEMY_TYPE_IMP] = (EnemyData){
 		.name = "Imp",
@@ -336,6 +362,8 @@ int spawnEnemy(EnemyType enemyType, int x, int y) {
 		boss.stateCount = 0;
 		boss.stateTimer = WRAITH_BOSS_IDLE_TIME;
 		boss.stateData = 0;
+	} else if (enemyType == ENEMY_TYPE_ELDER_BOSS) {
+		boss.stateTimer = ELDER_BOSS_IDLE_TIME;
 	}
 
 	EnemyData curEnemyData = enemyData[enemyType];
@@ -380,6 +408,8 @@ void initEnemies(void) {
 void spawnEnemies(int currentArea, RoomType roomType) {
 	if (roomType == ROOM_TYPE_BOSS) {
 		if (currentArea == AREA_ECHOING_CAVERNS) {
+			bossIndex = spawnEnemy(ENEMY_TYPE_ELDER_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE);	
+		} else if (currentArea == AREA_LOST_ARCHIVES) {
 			bossIndex = spawnEnemy(ENEMY_TYPE_WRAITH_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE);
 		}
 	} else if (roomType == ROOM_TYPE_ENEMY || roomType == ROOM_TYPE_ELITE) {
@@ -535,6 +565,54 @@ void updateEnemies(float deltaTime) {
 						float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
 						fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/);
 					}
+				}
+			}
+		} else if (curEnemyData.attackPattern == ATTACK_PATTERN_ELDER_BOSS) {
+			boss.stateTimer -= deltaTime;
+			if (curEnemy.state == ENEMY_STATE_IDLE) {
+				if (playerInAttackDetectionRange(i)) {
+					boss.stateTimer = ELDER_BOSS_IDLE_TIME;
+					curEnemy.state = ENEMY_STATE_ATTACK;
+					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
+					curEnemy.animationTime = curEnemyData.frameTime;
+				} else if (boss.stateTimer <= 0) {
+					boss.stateTimer = ELDER_BOSS_PREP_TIME;
+					curEnemy.state = ENEMY_STATE_PREP;
+					curEnemy.animationFrame = curEnemyData.prepFrameStart - 1;
+					curEnemy.animationTime = curEnemyData.frameTime;
+					
+					// Spawn root attacks towards player in a line
+					float dx = playerX - curEnemy.x;
+					float dy = playerY - curEnemy.y;
+					if (dx == 0 && dy == 0) {
+						dx = 1;
+						dy = 0;
+					}
+					float length = sqrtf(dx * dx + dy * dy);
+					if (length > 0) {
+						dx /= length;
+						dy /= length;
+					}
+
+					for (int root = 0; root < ELDER_BOSS_ATTACK2_COUNT; root++) {
+						float offsetX = dx * root * ELDER_BOSS_ATTACK2_SPACING;
+						float offsetY = dy * root * ELDER_BOSS_ATTACK2_SPACING;
+						spawnParticle(PARTICLE_TYPE_WARNING, curEnemy.x + offsetX, curEnemy.y + offsetY, PARTICLE_TYPE_ROOT_ATTACK);
+					}
+				} else {
+					curEnemy = moveEnemy(curEnemy, i, playerX, playerY, curEnemyData.moveSpeed);
+				}
+			} else if (curEnemy.state == ENEMY_STATE_PREP) {
+				if (boss.stateTimer <= 0) {
+					boss.stateTimer = ELDER_BOSS_IDLE_TIME;
+					curEnemy.state = ENEMY_STATE_IDLE;
+				}
+			} else if (curEnemy.state == ENEMY_STATE_ATTACK) {
+				if (curEnemy.animationFrame >= curEnemyData.attackActiveFrame) {
+					if (playerInAttackDistance(i)) {
+						damagePlayer(curEnemyData.attackDamage);
+					}
+					curEnemy.state = ENEMY_STATE_ATTACK_END;
 				}
 			}
 		} else {

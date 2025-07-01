@@ -2,7 +2,7 @@
 
 #include "pd_api.h"
 
-#define MAX_PARTICLE_COUNT 3
+#define MAX_PARTICLE_COUNT 8
 
 typedef enum ParticleType {
 	PARTICLE_TYPE_NONE,

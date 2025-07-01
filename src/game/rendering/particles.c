@@ -35,7 +35,7 @@ void initParticles(void) {
 	};
 
 	particleData[PARTICLE_TYPE_WARNING] = (ParticleData) {
-		.frameCount = 4,
+		.frameCount = 6,
 		.animationTime = 0.4f,
 		.texture = TEXTURES[TEXTURE_WARNING],
 		.damageFrame = 0,
