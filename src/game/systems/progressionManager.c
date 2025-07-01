@@ -10,6 +10,7 @@
 
 static int currentRoom = 0;
 static int transitioning = 0;
+static int roomCompleted = 0;
 
 static Area currentArea = AREA_LOST_ARCHIVES;
 static AreaData areaData[AREA_COUNT];
@@ -23,6 +24,7 @@ void initProgressionManager(int area, int room) {
     currentArea = area;
     currentRoom = room;
     transitioning = 0;
+    roomCompleted = 0;
 
     areaData[AREA_ECHOING_CAVERNS] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
@@ -53,8 +55,15 @@ int getCurrentRoom(void) {
     return currentRoom;
 }
 
-void roomCompleted(void) {
-    spawnExit();
+void setRoomCompleted(int completed) {
+    roomCompleted = completed;
+    if (completed) {
+        spawnExit();
+    }
+}
+
+int isRoomCompleted(void) {
+    return roomCompleted;
 }
 
 void nextRoom(void) {

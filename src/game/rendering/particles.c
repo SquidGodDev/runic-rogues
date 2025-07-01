@@ -7,6 +7,7 @@
 #include "game/entities/entities.h"
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
+#include "game/systems/progressionManager.h"
 
 typedef struct ParticleData {
 	int frameCount;
@@ -96,7 +97,7 @@ void updateParticles(float deltaTime) {
 			if (curParticle.animationFrame >= curParticle.frameCount) {
 				curParticle.active = 0;
 				particles[i] = curParticle;
-				if (curParticle.spawnOnEndParticleType != PARTICLE_TYPE_NONE) {
+				if (curParticle.spawnOnEndParticleType != PARTICLE_TYPE_NONE && !isRoomCompleted()) {
 					spawnParticle(curParticle.spawnOnEndParticleType, curParticle.x, curParticle.y, PARTICLE_TYPE_NONE);
 				}
 				continue;

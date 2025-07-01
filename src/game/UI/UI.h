@@ -8,5 +8,5 @@ typedef enum ScreenShakeStrength {
 
 void initUI(int isBossRoom);
 void drawUI(float deltaTime);
-void displayExitArrow(int worldX, int worldY);
+void setExitArrowPosition(int worldX, int worldY);
 void screenShake(ScreenShakeStrength strength);

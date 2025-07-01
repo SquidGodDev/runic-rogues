@@ -46,15 +46,12 @@
 static float screenShakeTime;
 static int shakeMagnitude;
 
-static int showExitArrow;
 static int exitWorldX;
 static int exitWorldY;
 
 static int showBossHealthBar;
 
 void initUI(int isBossRoom) {
-    showExitArrow = 0;
-
     screenShakeTime = 0;
     shakeMagnitude = 0;
     pd->display->setOffset(0, 0);
@@ -238,14 +235,13 @@ void drawInteractablePrompt(void) {
     }
 }
 
-void displayExitArrow(int worldX, int worldY) {
-    showExitArrow = 1;
+void setExitArrowPosition(int worldX, int worldY) {
     exitWorldX = worldX;
     exitWorldY = worldY;
 }
 
 void drawExitArrow(void) {
-    if (!showExitArrow) {
+    if (!isRoomCompleted()) {
         return;
     }
 
@@ -309,7 +305,7 @@ void drawUI(float deltaTime) {
     drawInteractablePrompt();
     drawExitArrow();
 
-    if (showBossHealthBar && !showExitArrow) {
+    if (showBossHealthBar && !isRoomCompleted()) {
         drawBossHealthBar();
     }
 }

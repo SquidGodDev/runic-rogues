@@ -727,7 +727,7 @@ int damageEnemy(int index, int damage) {
 		}
 
 		if (allEnemiesDead) {
-			roomCompleted();
+			setRoomCompleted(1);
 		}
 	}
 	
