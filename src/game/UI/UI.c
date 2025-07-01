@@ -13,6 +13,7 @@
 #include "game/entities/interactables.h"
 #include "game/settings/settings.h"
 #include "game/systems/upgradeManager.h"
+#include "game/systems/progressionManager.h"
 
 #define drawPixel(frameBuffer, x, y) (frameBuffer[y * LCD_ROWSIZE + (x >> 3)] |= (1 << (7 - (x & 7))))
 
@@ -267,9 +268,24 @@ void drawBossHealthBar(void) {
     float healthPercentage = getBossHealthPercentage();
     int healthBarWidth = healthPercentage * 68;
 
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_BOSS_HEALTH_BAR], 64, 27, kBitmapUnflipped);
-    pd->graphics->fillRect(66, 29, healthBarWidth, 4, kColorWhite);
-    drawCenteredBitmap(BITMAPS[BITMAP_WRAITH_BOSS_TITLE], 100, 21);
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_BOSS_HEALTH_BAR], 64, 28, kBitmapUnflipped);
+    pd->graphics->fillRect(66, 30, healthBarWidth, 4, kColorWhite);
+    
+    int titleDrawX = 100;
+    int titleDrawY = 21;
+    if (SETTINGS.language == LANGUAGE_EN) {
+        if (getCurrentArea() == AREA_ECHOING_CAVERNS) {
+            drawCenteredBitmap(BITMAPS[BITMAP_ELDER_BOSS_TITLE], titleDrawX, titleDrawY);
+        } else if (getCurrentArea() == AREA_LOST_ARCHIVES) {
+            drawCenteredBitmap(BITMAPS[BITMAP_WRAITH_BOSS_TITLE], titleDrawX, titleDrawY);
+        }
+    } else if (SETTINGS.language == LANGUAGE_JP) {
+        if (getCurrentArea() == AREA_ECHOING_CAVERNS) {
+            drawCenteredBitmap(BITMAPS[BITMAP_ELDER_BOSS_TITLE_JP], titleDrawX, titleDrawY);
+        } else if (getCurrentArea() == AREA_LOST_ARCHIVES) {
+            drawCenteredBitmap(BITMAPS[BITMAP_WRAITH_BOSS_TITLE_JP], titleDrawX, titleDrawY);
+        }
+    }
 }
 
 void drawUI(float deltaTime) {
