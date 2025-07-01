@@ -193,10 +193,10 @@ void initEnemyData(void) {
 		.prepFrameStart = 15,
 		.prepFrameEnd = 17,
 		.attackFrameStart = 18,
-		.attackFrameEnd = 22,
-		.attackActiveFrame = 21,
-		.deathFrameStart = 23,
-		.deathFrameEnd = 26,
+		.attackFrameEnd = 26,
+		.attackActiveFrame = 22,
+		.deathFrameStart = 27,
+		.deathFrameEnd = 30,
 		.frameTime = 0.15f,
 		.attackPattern = ATTACK_PATTERN_ELDER_BOSS
 	};
