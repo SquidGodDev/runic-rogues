@@ -514,6 +514,7 @@ void updateEnemies(float deltaTime) {
 			} else if (boss.bossState == BOSS_STATE_PREPARING) {
 				if (boss.stateTimer <= 0) {
 					if (boss.nextAttackState == BOSS_STATE_ATTACK1) {
+						// == Dash attack ==
 						boss.bossState = BOSS_STATE_ATTACK1;
 						boss.stateTimer = WRAITH_BOSS_ATTACK1_TIME;
 						boss.stateCount++;
@@ -530,15 +531,19 @@ void updateEnemies(float deltaTime) {
 							boss.nextAttackState = BOSS_STATE_ATTACK2;
 						}
 					} else if (boss.nextAttackState == BOSS_STATE_ATTACK2) {
+						// == Projectile attack ==
 						boss.bossState = BOSS_STATE_ATTACK2;
 						boss.stateTimer = WRAITH_BOSS_ATTACK2_TIME;
 						boss.nextAttackState = BOSS_STATE_ATTACK3;
 					} else if (boss.nextAttackState == BOSS_STATE_ATTACK3) {
-						boss.bossState = BOSS_STATE_IDLE;
+						// == Summon wraiths ==
+						boss.bossState = BOSS_STATE_ATTACK3;
 						boss.stateTimer = WRAITH_BOSS_ATTACK3_TIME;
 						boss.nextAttackState = BOSS_STATE_ATTACK1;
 						curEnemy.animationFrame = 0;
 						curEnemy.state = ENEMY_STATE_IDLE;
+						curEnemy.targetX = MAP_WIDTH / 2 * CELL_SIZE;
+						curEnemy.targetY = MAP_HEIGHT / 2 * CELL_SIZE;
 						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy.x, curEnemy.y);
 						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy.x - CELL_SIZE, curEnemy.y);
 						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy.x + CELL_SIZE, curEnemy.y);
@@ -565,6 +570,8 @@ void updateEnemies(float deltaTime) {
 						float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
 						fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/);
 					}
+				} else if (boss.bossState == BOSS_STATE_ATTACK3) {
+					curEnemy = moveEnemy(curEnemy, i, curEnemy.targetX, curEnemy.targetY, curEnemyData.moveSpeed);
 				}
 			}
 		} else if (curEnemyData.attackPattern == ATTACK_PATTERN_ELDER_BOSS) {
