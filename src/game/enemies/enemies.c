@@ -571,7 +571,6 @@ void updateEnemies(float deltaTime) {
 			boss.stateTimer -= deltaTime;
 			if (curEnemy.state == ENEMY_STATE_IDLE) {
 				if (playerInAttackDetectionRange(i)) {
-					boss.stateTimer = ELDER_BOSS_IDLE_TIME;
 					curEnemy.state = ENEMY_STATE_ATTACK;
 					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
 					curEnemy.animationTime = curEnemyData.frameTime;
