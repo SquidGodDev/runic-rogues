@@ -10,6 +10,7 @@ const char *texturePathStrings[] = {
 	"images/UI/minimap/minimapEnemy",
 	"images/UI/minimap/minimapExit",
 	"images/UI/minimap/minimapProjectile",
+	"images/UI/minimap/minimapWarning",
 	"images/environment/echoingCaverns/echoingCavernsWall",
 	"images/environment/echoingCaverns/echoingCavernsCeiling",
 	"images/environment/echoingCaverns/echoingCavernsFloor",

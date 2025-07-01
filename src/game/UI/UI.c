@@ -6,6 +6,7 @@
 #include "game/UI/UI.h"
 #include "game/player/player.h"
 #include "game/rendering/textures.h"
+#include "game/rendering/particles.h"
 #include "game/map/map.h"
 #include "game/enemies/enemies.h"
 #include "game/entities/entities.h"
@@ -199,6 +200,15 @@ void drawMinimap(void) {
         }
 
         drawEntityToMinimap(curProjectile.x, curProjectile.y, TEXTURES[TEXTURE_MINIMAP_PROJECTILE], playerAngleCos, playerAngleSin);
+    }
+    // Draw warnings
+    for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {
+        Particle curParticle = particles[i];
+        if (!curParticle.active || curParticle.type != PARTICLE_TYPE_WARNING) {
+            continue;
+        }
+
+        drawEntityToMinimap(curParticle.x, curParticle.y, TEXTURES[TEXTURE_MINIMAP_WARNING], playerAngleCos, playerAngleSin);
     }
     // == End of entity layer ==
 }
