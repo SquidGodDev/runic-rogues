@@ -10,6 +10,7 @@
 #include "game/entities/projectiles.h"
 #include "game/rendering/textures.h"
 #include "game/rendering/particles.h"
+#include "game/systems/audioManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/upgradeManager.h"
 
@@ -707,8 +708,10 @@ int damageEnemy(int index, int damage) {
 	EnemyData curEnemyData = enemyData[curEnemy.type];
 	curEnemy.hitFlashTime = HIT_FLASH_TIME;
 	curEnemy.health -= damage;
+	playSound(SFX_ENEMY_HIT);
 
 	if (curEnemy.health <= 0) {
+		playSound(SFX_ENEMY_DEATH);
 		enemyDeathEffect(index);
 
 		// Check for vampirism upgrade

@@ -9,6 +9,7 @@
 #include "game/player/player.h"
 #include "game/rendering/particles.h"
 #include "game/enemies/enemies.h"
+#include "game/systems/audioManager.h"
 
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
@@ -63,6 +64,7 @@ void updateProjectiles(float deltaTime) {
 		int entityMapY = (int)((curProjectile.y + MAP_CHECK_OFFSET_Y) / CELL_SIZE);
 		int entityMapIndex = entityMapY * MAP_WIDTH + entityMapX;
 		if ((entityMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[entityMapIndex] != 0)) {
+			playSound(SFX_WALL_HIT);
 			curProjectile.active = 0;
 			spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, curProjectile.x - PARTICLE_OFFSET * deltaX, curProjectile.y - PARTICLE_OFFSET * deltaY, PARTICLE_TYPE_NONE);
 		} else {

@@ -2,6 +2,7 @@ local pd = playdate
 local sound = pd.sound
 
 local DEFAULT_PLAY_DURATION <const> = 3.0
+local DEFAULT_VOLUME <const> = 0.5
 
 SFX = {
     CursorNavigate = 1,
@@ -31,7 +32,7 @@ end
 function AudioManager.init()
     createSynth(SFX.CursorNavigate, {
         defaultNote = 27,
-        volume = 1.0,
+        volume = DEFAULT_VOLUME,
         waveform = sound.kWaveSquare,
         attack = 0.0,
         decay = 0.3,
@@ -42,7 +43,7 @@ function AudioManager.init()
 
     createSynth(SFX.CursorConfirm, {
         defaultNote = 56,
-        volume = 1.0,
+        volume = DEFAULT_VOLUME,
         waveform = sound.kWaveNoise,
         attack = 0.0,
         decay = 0.2,
@@ -53,7 +54,7 @@ function AudioManager.init()
 
     createSynth(SFX.CursorSlide, {
         defaultNote = 52,
-        volume = 1.0,
+        volume = DEFAULT_VOLUME,
         waveform = sound.kWaveNoise,
         attack = 0.2,
         decay = 1.2,
@@ -64,7 +65,7 @@ function AudioManager.init()
 
     createSynth(SFX.RoomPopulate, {
         defaultNote = 60,
-        volume = 1.0,
+        volume = DEFAULT_VOLUME,
         waveform = sound.kWaveSawtooth,
         attack = 0.0,
         decay = 0.1,
@@ -75,7 +76,7 @@ function AudioManager.init()
 
     createSynth(SFX.BossRoomPopulate, {
         defaultNote = 30,
-        volume = 1.0,
+        volume = DEFAULT_VOLUME,
         waveform = sound.kWaveNoise,
         attack = 0.0,
         decay = 1.0,
@@ -86,7 +87,7 @@ function AudioManager.init()
 
     createSynth(SFX.TransitionStart, {
         defaultNote = 67,
-        volume = 1.0,
+        volume = DEFAULT_VOLUME,
         waveform = sound.kWaveNoise,
         attack = 0.15,
         decay = 0.6,

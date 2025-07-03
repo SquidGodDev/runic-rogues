@@ -9,6 +9,7 @@
 #include "game/entities/interactables.h"
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
+#include "game/systems/audioManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/upgradeManager.h"
 
@@ -152,6 +153,7 @@ void handleInput(float deltaTime)
 		interact(interactableIndex);
 	} else if (current & kButtonA) {
 		if (weaponCurCooldown <= 0 && playerMana >= BASIC_ATTACK_MANA_COST) {
+			playSound(SFX_SHOOT);
 			playerMana -= BASIC_ATTACK_MANA_COST;
 			weaponCurCooldown = PLAYER_STATS.weaponCooldown;
 			float projectileX = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
@@ -381,6 +383,7 @@ void damagePlayer(int amount) {
         return;
     }
 
+	playSound(SFX_PLAYER_HIT);
     screenShake(SCREEN_SHAKE_MEDIUM);
     playerHitInvincibility = HIT_INVINCIBILITY_TIME;
     playerHealth -= amount;

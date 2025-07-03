@@ -17,6 +17,7 @@
 #include "game/UI/UI.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
+#include "game/systems/audioManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/upgradeManager.h"
 #include "game/settings/settings.h"
@@ -29,6 +30,7 @@ void initSystems(void)
 	initTextures();
 	initSettings();
 	initUpgradeManager();
+	initAudioManager();
 }
 
 // Run at the start of every room
