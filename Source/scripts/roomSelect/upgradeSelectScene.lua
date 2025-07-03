@@ -76,9 +76,11 @@ function UpgradeSelectScene:update()
     gfx.sprite.update()
 
     if pd.buttonJustPressed(pd.kButtonLeft) and self.selectedOption > 1 then
+        AudioManager.playSFX(SFX.CursorNavigate)
         self.selectedOption -= 1
         self:displayOptionInfo()
     elseif pd.buttonJustPressed(pd.kButtonRight) and self.selectedOption < 3 then
+        AudioManager.playSFX(SFX.CursorNavigate)
         self.selectedOption += 1
         self:displayOptionInfo()
     end
