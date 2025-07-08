@@ -9,7 +9,7 @@
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
 
-#define MAX_ENTITY_COUNT 20
+#define MAX_ENTITY_COUNT 30
 #define ENTITY_TEXTURE_SIZE 32
 
 static int queuedEntities = 0;

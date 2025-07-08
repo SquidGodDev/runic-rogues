@@ -7,6 +7,7 @@ enum EntityType {
     PROJECTILE,
     PARTICLE,
     INTERACTABLE,
+    PICKUP,
 };
 
 extern enum ENTITY_TYPE EntityType;

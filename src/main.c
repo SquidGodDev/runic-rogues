@@ -9,11 +9,13 @@
 #include "helpers.h"
 #include "game/entities/entities.h"
 #include "game/entities/projectiles.h"
+#include "game/entities/pickups.h"
 #include "game/entities/interactables.h"
 #include "game/rendering/particles.h"
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
+#include "game/player/spells.h"
 #include "game/UI/UI.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
@@ -31,6 +33,7 @@ void initSystems(void)
 	initSettings();
 	initUpgradeManager();
 	initAudioManager();
+	initSpellData();
 }
 
 // Run at the start of every room
@@ -50,6 +53,10 @@ int initGameScene(lua_State* L)
 
 	// Progression
 	initProgressionManager(currentArea, currentRoom);
+
+	// Spells
+	initSpells();
+	initPickups();
 
 	// Entities
 	initEntities();
@@ -77,6 +84,8 @@ int updateGameScene(lua_State* L)
 	float deltaTime = pd->system->getElapsedTime(); // In seconds
 	pd->system->resetElapsedTime();
 
+	updatePickups(deltaTime);
+	updateSpells(deltaTime);
 	updatePlayer(deltaTime);
 	updateEnemies(deltaTime);
 	updateProjectiles(deltaTime);

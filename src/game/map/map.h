@@ -8,6 +8,7 @@ extern int map[MAP_WIDTH * MAP_HEIGHT];
 Point getPlayerSpawnMapPosition(void);
 Point getExitMapPosition(void);
 void spawnExit(void);
+void getRandomEmptyPosition(float *x, float *y);
 void initMap(RoomType roomType);
 int isBlocked(int x, int y);
 int isClearLine(int x1, int y1, int x2, int y2);

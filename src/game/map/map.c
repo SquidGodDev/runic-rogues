@@ -4,6 +4,7 @@
 #include "helpers.h"
 #include "game/entities/interactables.h"
 #include "game/systems/progressionManager.h"
+#include "game/entities/pickups.h"
 
 #define PLAYDATE_SDK 1
 
@@ -132,7 +133,21 @@ void generateSquareDungeon(void) {
         spawnExit();
     } else if (curRoomType == ROOM_TYPE_SHOP) {
         spawnExit();
+    } else {
+        spawnRandomPickup();
+        spawnRandomPickup();
+        spawnRandomPickup();
     }
+}
+
+void getRandomEmptyPosition(float *x, float *y) {
+    int mapX, mapY;
+    do {
+        mapX = randInt(1, MAP_WIDTH - 2);
+        mapY = randInt(1, MAP_HEIGHT - 2);
+    } while (map[mapY * MAP_WIDTH + mapX] != FLOOR);
+    *x = mapX * CELL_SIZE + CELL_SIZE / 2;
+    *y = mapY * CELL_SIZE + CELL_SIZE / 2;
 }
 
 void initMap(RoomType roomType) {

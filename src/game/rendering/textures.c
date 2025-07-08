@@ -38,6 +38,9 @@ const char *texturePathStrings[] = {
 	"images/interactables/portal",
 	"images/interactables/campfire",
 	"images/interactables/extinguishedCampfire",
+	"images/spells/fireball",
+	"images/spells/tripleShot",
+	"images/spells/shotgun",
 };
 
 LCDBitmap* BITMAPS[BITMAP_PATHS_COUNT];

@@ -4,6 +4,7 @@
 #include "globals.h"
 #include "helpers.h"
 #include "game/player/player.h"
+#include "game/player/spells.h"
 #include "game/UI/UI.h"
 #include "game/entities/projectiles.h"
 #include "game/entities/interactables.h"
@@ -19,8 +20,6 @@
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
 #define HIT_INVINCIBILITY_TIME 0.5f // Seconds
-
-#define BASIC_ATTACK_MANA_COST 1
 
 // === Extern variables ===
 float playerX, playerY;
@@ -152,16 +151,7 @@ void handleInput(float deltaTime)
 	if (interactableIndex != -1 && (pushed & kButtonA)) {
 		interact(interactableIndex);
 	} else if (current & kButtonA) {
-		if (weaponCurCooldown <= 0 && playerMana >= BASIC_ATTACK_MANA_COST) {
-			playSound(SFX_SHOOT);
-			playerMana -= BASIC_ATTACK_MANA_COST;
-			weaponCurCooldown = PLAYER_STATS.weaponCooldown;
-			float projectileX = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-			float projectileY = playerY + sinf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-			float deltaX = cosf(playerAngle);
-			float deltaY = sinf(playerAngle);	
-			fireProjectile(projectileX, projectileY, deltaX, deltaY, PLAYER_STATS.projectileSpeed, PLAYER_STATS.projectileDamage, TEXTURES[TEXTURE_PROJECTILE], 0 /*isEnemy*/);
-		}
+		castHeldSpell();
 	}
 
 	if (pushed & kButtonB) {
@@ -361,12 +351,6 @@ void updatePlayer(float deltaTime) {
             playerHitInvincibility = 0;
         }
     }
-	if (weaponCurCooldown <= 0) {
-		playerMana += PLAYER_STATS.manaRegenRate * deltaTime;
-	}
-	if (playerMana > PLAYER_STATS.maxMana) {
-		playerMana = PLAYER_STATS.maxMana;
-	}
 	handleInput(deltaTime);
 	handleInteractables();
 }
