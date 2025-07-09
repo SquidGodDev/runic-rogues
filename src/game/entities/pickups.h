@@ -17,6 +17,8 @@ typedef struct Pickup {
     Spell spell;
 } Pickup;
 
+extern Pickup pickups[MAX_PICKUP_COUNT];
+
 void initPickups(void);
 void spawnRandomPickup(void);
 void spawnPickup(int mapX, int mapY, Spell spell);

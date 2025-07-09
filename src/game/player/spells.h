@@ -29,6 +29,7 @@ typedef struct SpellData {
 
 void initSpellData(void);
 uint8_t* getSpellPickupTexture(Spell spell);
+int isHoldingSpell(void);
 float getManaPercentage(void);
 void rechargeUtilitySpell(void);
 void castUtilitySpell(void);

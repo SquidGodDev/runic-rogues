@@ -11,6 +11,7 @@
 #include "game/map/map.h"
 #include "game/enemies/enemies.h"
 #include "game/entities/entities.h"
+#include "game/entities/pickups.h"
 #include "game/entities/projectiles.h"
 #include "game/entities/interactables.h"
 #include "game/settings/settings.h"
@@ -41,7 +42,7 @@
 #define ENTITY_DIST_SCALE_FACTOR CELL_DRAW_SIZE / CELL_SIZE
 #define MINIMAP_PIXEL_SIZE MINIMAP_SIZE * CELL_DRAW_SIZE
 #define MINIMAP_HALF_PIXEL_SIZE MINIMAP_PIXEL_SIZE / 2
-#define ENTITY_CHECK_DISTANCE powf((MINIMAP_SIZE / 2 - 1) * CELL_SIZE, 2.0f)
+#define ENTITY_CHECK_DISTANCE powf((MINIMAP_SIZE / 2) * CELL_SIZE - CELL_SIZE / 2, 2.0f)
 
 #define ICON_SIZE 6
 
@@ -210,6 +211,15 @@ void drawMinimap(void) {
         }
 
         drawEntityToMinimap(curParticle.x, curParticle.y, TEXTURES[TEXTURE_MINIMAP_WARNING], playerAngleCos, playerAngleSin);
+    }
+    // Draw pickups
+    for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
+        Pickup curPickup = pickups[i];
+        if (!curPickup.active) {
+            continue;
+        }
+
+        drawEntityToMinimap(curPickup.x, curPickup.y, TEXTURES[TEXTURE_MINIMAP_CARD], playerAngleCos, playerAngleSin);
     }
     // == End of entity layer ==
 }

@@ -72,6 +72,10 @@ uint8_t* getSpellPickupTexture(Spell spell) {
     return spellData[spell].pickupTexture;
 }
 
+int isHoldingSpell(void) {
+    return heldSpell != SPELL_NONE;
+}
+
 float getManaPercentage(void) {
     if (currentSpell != SPELL_NONE) {
         SpellData data = spellData[currentSpell];
