@@ -38,10 +38,7 @@ const char *texturePathStrings[] = {
 	"images/enemies/wraith",
 	"images/interactables/portal",
 	"images/interactables/campfire",
-	"images/interactables/extinguishedCampfire",
-	"images/spells/fireball",
-	"images/spells/tripleShot",
-	"images/spells/shotgun",
+	"images/interactables/extinguishedCampfire"
 };
 
 LCDBitmap* BITMAPS[BITMAP_PATHS_COUNT];
@@ -54,10 +51,6 @@ const char *bitmapPathStrings[] = {
 	"images/UI/hearts/halfContainerEmpty",
 	"images/UI/hearts/halfContainerFull",
 	"images/UI/mana/manaBar",
-	"images/spells/icons/emptyIcon",
-	"images/spells/icons/fireballIcon",
-	"images/spells/icons/tripleShotIcon",
-	"images/spells/icons/shotgunIcon",
 	"images/spells/icons/dashIndicatorEmpty",
 	"images/spells/icons/dashIndicatorFull",
 	"images/UI/minimap/minimapWall",
@@ -79,7 +72,11 @@ const char *bitmapPathStrings[] = {
 	"images/upgrades/icons/manaRegen",
 	"images/upgrades/icons/moveSpeed",
 	"images/upgrades/icons/projectileSpeed",
-	"images/upgrades/icons/vampirism"
+	"images/upgrades/icons/vampirism",
+	"images/spells/icons/emptyIcon",
+	"images/spells/icons/fireballIcon",
+	"images/spells/icons/tripleShotIcon",
+	"images/spells/icons/shotgunIcon",
 };
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];
@@ -129,28 +126,34 @@ for _, pattern in ipairs(patterns) do
 end
 */
 
-uint8_t* loadTexture(const char *texturePath) {
-	const char *outErr = NULL;
-	LCDBitmap *textureBitmap = pd->graphics->loadBitmap(texturePath, &outErr);
-	if (!textureBitmap) {
-		pd->system->error(outErr);
-	}
+uint8_t* bitmapToTextureArray(LCDBitmap *bitmap) {
 	int width, height;
-	pd->graphics->getBitmapData(textureBitmap, &width, &height, NULL, NULL, NULL);
+	pd->graphics->getBitmapData(bitmap, &width, &height, NULL, NULL, NULL);
 	uint8_t *textureArray = pd->system->realloc(NULL, width * height * sizeof(uint8_t));
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
-			LCDColor drawColor = pd->graphics->getBitmapPixel(textureBitmap, x, y);
+			LCDColor drawColor = pd->graphics->getBitmapPixel(bitmap, x, y);
 			textureArray[y * width + x] = (uint8_t)drawColor;
 		}
 	}
 	return textureArray;
 }
 
+uint8_t* loadTexture(const char *texturePath) {
+	const char *outErr = NULL;
+	LCDBitmap *textureBitmap = pd->graphics->loadBitmap(texturePath, &outErr);
+	if (!textureBitmap) {
+		pd->system->error(outErr);
+	}
+	return bitmapToTextureArray(textureBitmap);
+}
+
 void initTextures(void)
 {
 	for (int i = 0; i < TEXTURE_COUNT; i++) {
-		TEXTURES[i] = loadTexture(texturePathStrings[i]);
+		if (i < TEXTURE_SPELL_NONE) {
+			TEXTURES[i] = loadTexture(texturePathStrings[i]);
+		}
 	}
 
 	for (int i = 0; i < BITMAP_PATHS_COUNT; i++) {
@@ -160,6 +163,22 @@ void initTextures(void)
 			pd->system->error(outErr);
 		}
 		BITMAPS[i] = pd->graphics->loadBitmap(bitmapPathStrings[i], NULL);
+		if (i >= BITMAP_SPELL_EMPTY_ICON) {
+			int frames = 8;
+			LCDBitmap *spellBitmap = pd->graphics->newBitmap(32, 32 * frames, kColorClear);
+			int baseX = 10, baseY = 8;
+			pd->graphics->pushContext(spellBitmap);
+				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY, kBitmapUnflipped);
+				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 + 1, kBitmapUnflipped);
+				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 2 + 2, kBitmapUnflipped);
+				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 3 + 3, kBitmapUnflipped);
+				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 4 + 3, kBitmapUnflipped);
+				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 5 + 2, kBitmapUnflipped);
+				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 6 + 1, kBitmapUnflipped);
+				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 7, kBitmapUnflipped);
+			pd->graphics->popContext();
+			TEXTURES[TEXTURE_SPELL_NONE + (i - BITMAP_SPELL_EMPTY_ICON)] = bitmapToTextureArray(spellBitmap);
+		}
 	}
 
 	for (int i = 0; i < BITMAP_TABLE_PATHS_COUNT; i++) {

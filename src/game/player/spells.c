@@ -136,20 +136,14 @@ void activateSpellEffect(Spell spell) {
     float deltaX = cosf(playerAngle);
     float deltaY = sinf(playerAngle);
     float offsetAngle = PI / 8.0f;
-    switch (spell) {
-        case SPELL_FIREBALL:
-            fireProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
-            break;
-        case SPELL_TRIPLE_SHOT:
-            fireProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
-            break;
-        case SPELL_SHOTGUN:
-            fireProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
-            fireProjectile(projectileX, projectileY, cosf(playerAngle + offsetAngle), sinf(playerAngle + offsetAngle), data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
-            fireProjectile(projectileX, projectileY, cosf(playerAngle - offsetAngle), sinf(playerAngle - offsetAngle), data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
-            break;
-        default:
-            break;
+    if (spell == SPELL_FIREBALL) {
+        fireProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
+    } else if (spell == SPELL_TRIPLE_SHOT) {
+        fireProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
+    } else if (spell == SPELL_SHOTGUN) {
+        fireProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
+        fireProjectile(projectileX, projectileY, cosf(playerAngle + offsetAngle), sinf(playerAngle + offsetAngle), data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
+        fireProjectile(projectileX, projectileY, cosf(playerAngle - offsetAngle), sinf(playerAngle - offsetAngle), data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
     }
 }
 
