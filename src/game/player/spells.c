@@ -66,6 +66,21 @@ uint8_t* getSpellPickupTexture(Spell spell) {
     return spellData[spell].pickupTexture;
 }
 
+float getManaPercentage(void) {
+    if (currentSpell != SPELL_NONE) {
+        SpellData data = spellData[currentSpell];
+        if (data.type == SPELL_TYPE_REPEAT) {
+            return (float)(data.count - spellActivateCount) / (float)data.count;
+        } else {
+            return 1.0f;
+        }
+    } else if (heldSpell != SPELL_NONE) {
+        return 1.0f;
+    } else {
+        return 0.0f;
+    }
+}
+
 void activateSpellEffect(Spell spell) {
     SpellData data = spellData[spell];
     float projectileX = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;

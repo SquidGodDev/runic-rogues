@@ -5,6 +5,7 @@
 #include "helpers.h"
 #include "game/UI/UI.h"
 #include "game/player/player.h"
+#include "game/player/spells.h"
 #include "game/rendering/textures.h"
 #include "game/rendering/particles.h"
 #include "game/map/map.h"
@@ -266,7 +267,7 @@ void drawExitArrow(void) {
 
 void drawManaBar(void) {
     pd->graphics->drawBitmap(BITMAPS[BITMAP_MANA_BAR], 2, 90, kBitmapUnflipped);
-    int manaBarWidth = playerMana / (float)PLAYER_STATS.maxMana * 58;
+    int manaBarWidth = getManaPercentage() * 58;
     pd->graphics->fillRect(20, 104, manaBarWidth, 8, kColorWhite);
 }
 
