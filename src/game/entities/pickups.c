@@ -6,7 +6,7 @@
 #include "game/player/player.h"
 #include "game/map/map.h"
 
-#define PICKUP_DISTANCE 50.0f
+#define PICKUP_DISTANCE 80.0f
 
 #define PICKUP_ANIM_FRAME_TIME 0.2f
 #define PICKUP_ANIM_FRAMES 8

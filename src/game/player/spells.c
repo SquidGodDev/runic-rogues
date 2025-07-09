@@ -47,7 +47,7 @@ void initSpellData(void) {
         .damage = 1,
         .count = 3,
         .speed = TARGET_FPS * 3.0f,
-        .activationTime = 1.0f
+        .activationTime = 0.3f
     };
     spellData[SPELL_SHOTGUN] = (SpellData) {
         .pickupTexture = TEXTURES[TEXTURE_SPELL_SHOTGUN],
