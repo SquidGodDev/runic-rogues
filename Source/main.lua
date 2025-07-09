@@ -25,7 +25,7 @@ function NextLevel(playerHealth)
 		GAME_DATA.currentArea += 1
 	end
 	GAME_DATA.playerHealth = playerHealth
-	SceneManager.switchScene(UpgradeSelectScene)
+	SceneManager.switchScene(RoomSelectScene)
 end
 
 function GameOver()
