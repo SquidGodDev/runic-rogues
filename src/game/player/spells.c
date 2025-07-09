@@ -98,15 +98,19 @@ int getMaxHeldSpells(void) {
 }
 
 float getManaPercentage(void) {
-    if (currentSpell != SPELL_NONE) {
+    if (currentSpell == SPELL_NONE) {
+        if (queueCount(&heldSpellsQueue) == 0) {
+            return 0.0f;
+        } else {
+            return 1.0f;
+        }
+    } else {
         SpellData data = spellData[currentSpell];
         if (data.type == SPELL_TYPE_REPEAT) {
             return (float)(data.count - spellActivateCount) / (float)data.count;
         } else {
             return 1.0f;
         }
-    } else {
-        return 1.0f;
     }
 }
 
