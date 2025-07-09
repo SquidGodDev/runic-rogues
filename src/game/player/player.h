@@ -13,6 +13,7 @@ extern int interactableIndex;
 
 void initPlayer(int isGameStart);
 void updatePlayer(float deltaTime);
+void playerDash(void);
 void healPlayer(int amount);
 void damagePlayer(int amount);
 void drawWeapon(float deltaTime);

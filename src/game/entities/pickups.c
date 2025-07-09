@@ -60,6 +60,7 @@ void updatePickups(float deltaTime) {
 
         if (distanceSquared(pickups[i].x, pickups[i].y, playerX, playerY) <= PICKUP_DISTANCE) {
             pickups[i].active = 0; // Pickup collected
+            rechargeUtilitySpell();
             setHeldSpell(pickups[i].spell);
             spawnRandomPickup();
         }

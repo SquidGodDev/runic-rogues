@@ -10,6 +10,8 @@
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
+#define DASH_COUNT 3
+
 static SpellData spellData[SPELL_COUNT];
 
 static Spell heldSpell;
@@ -17,6 +19,8 @@ static Spell currentSpell;
 static float spellActiveTime;
 static float spellActivationTime;
 static int spellActivateCount;
+
+static int utilitySpellCount;
 
 void initSpellData(void) {
     spellData[SPELL_NONE] = (SpellData) {
@@ -60,6 +64,8 @@ void initSpells(void) {
     spellActiveTime = 0.0f;
     spellActivationTime = 0.0f;
     spellActivateCount = 0;
+
+    utilitySpellCount = DASH_COUNT;
 }
 
 uint8_t* getSpellPickupTexture(Spell spell) {
@@ -78,6 +84,17 @@ float getManaPercentage(void) {
         return 1.0f;
     } else {
         return 0.0f;
+    }
+}
+
+void rechargeUtilitySpell(void) {
+    utilitySpellCount = DASH_COUNT;
+}
+
+void castUtilitySpell(void) {
+    if (utilitySpellCount > 0) {
+        utilitySpellCount -= 1;
+        playerDash();
     }
 }
 

@@ -49,6 +49,11 @@ static float playerAccel;
 static float playerDrag;
 static float playerStrafeSpeed;
 
+PDButtons dashMovementDir;
+static float playerDashSpeed;
+static float playerDashTime;
+static float playerCurDashTime;
+
 static float weaponCurCooldown = 0;
 static float weaponBobCounter = 0;
 static float weaponBobSpeed = 0.15f;
@@ -113,6 +118,11 @@ void initPlayer(int isGameStart) {
 	dirX = 1;
 	dirY = 0;
 
+	dashMovementDir = 0;
+	playerDashSpeed = 2.5f * TARGET_FPS;
+	playerDashTime = 0.3f;
+	playerCurDashTime = 0;
+
 	// Animation
 	weaponTargetDrawX = weaponBasePositionX;
 	weaponTargetDrawY = weaponBasePositionY;
@@ -148,6 +158,14 @@ void handleInput(float deltaTime)
 		pushed = 0;
 	}
 
+	playerCurDashTime -= deltaTime;
+	if (playerCurDashTime < 0) {
+		playerCurDashTime = 0;
+	}
+	if (pushed & kButtonB) {
+		castUtilitySpell();
+	}
+
 	if (interactableIndex != -1 && (pushed & kButtonA)) {
 		interact(interactableIndex);
 	} else if (current & kButtonA) {
@@ -160,12 +178,13 @@ void handleInput(float deltaTime)
 		movementToggled ^= 1;
 	}
 
+	int playerIsDashing = playerCurDashTime > 0;
 	int bButtonPressed = (current & kButtonB) != 0;
 	if (toggleMovementSetting) {
 		bButtonPressed = movementToggled;
 	}
-	int rotationEnabled = (defaultStrafeSetting == bButtonPressed);
-	int strafeEnabled = (defaultStrafeSetting != bButtonPressed);
+	int rotationEnabled = (defaultStrafeSetting == bButtonPressed) && !playerIsDashing;
+	int strafeEnabled = (defaultStrafeSetting != bButtonPressed) || playerIsDashing;
 	float crankChange = pd->system->getCrankChange();
 
 	if ((current & kButtonLeft) && rotationEnabled) {
@@ -209,24 +228,27 @@ void handleInput(float deltaTime)
 	planeX = planeX * cosf(adjustedTurnSpeed) - planeY * sinf(adjustedTurnSpeed);
 	planeY = oldPlaneX * sinf(adjustedTurnSpeed) + planeY * cosf(adjustedTurnSpeed);
 
-	if ((current & kButtonRight) && strafeEnabled) {
+	float maxSpeed = playerIsDashing ? playerDashSpeed : PLAYER_STATS.maxSpeed;
+	PDButtons movementDir = playerIsDashing ? dashMovementDir : current;
+
+	if ((movementDir & kButtonRight) && strafeEnabled) {
 		if (playerStrafeSpeed < playerInitialSpeed) {
 			playerStrafeSpeed = playerInitialSpeed;
 		}
 		playerStrafeSpeed += playerAccel * deltaTime;
-		if (playerStrafeSpeed > PLAYER_STATS.maxSpeed) {
-			playerStrafeSpeed = PLAYER_STATS.maxSpeed;
+		if (playerStrafeSpeed > maxSpeed) {
+			playerStrafeSpeed = maxSpeed;
 		}
-	} else if ((current & kButtonLeft) && strafeEnabled) {
+	} else if ((movementDir & kButtonLeft) && strafeEnabled) {
 		if (playerStrafeSpeed > -playerInitialSpeed) {
 			playerStrafeSpeed = -playerInitialSpeed;
 		}
 		playerStrafeSpeed -= playerAccel * deltaTime;
-		if (playerStrafeSpeed < -PLAYER_STATS.maxSpeed) {
-			playerStrafeSpeed = -PLAYER_STATS.maxSpeed;
+		if (playerStrafeSpeed < -maxSpeed) {
+			playerStrafeSpeed = -maxSpeed;
 		}
 	} else {
-		float dragCutoff = 0.1f * PLAYER_STATS.maxSpeed;
+		float dragCutoff = 0.1f * maxSpeed;
 		if (playerStrafeSpeed < dragCutoff && playerStrafeSpeed > -dragCutoff) {
 			playerStrafeSpeed = 0;
 		} else if (playerStrafeSpeed > 0) {
@@ -236,24 +258,24 @@ void handleInput(float deltaTime)
 		}
 	}
 
-	if (current & kButtonUp) {
+	if (movementDir & kButtonUp) {
 		if (playerSpeed < playerInitialSpeed) {
 			playerSpeed = playerInitialSpeed;
 		}
 		playerSpeed += playerAccel * deltaTime;
-		if (playerSpeed > PLAYER_STATS.maxSpeed) {
-			playerSpeed = PLAYER_STATS.maxSpeed;
+		if (playerSpeed > maxSpeed) {
+			playerSpeed = maxSpeed;
 		}
-	} else if (current & kButtonDown) {
+	} else if (movementDir & kButtonDown) {
 		if (playerSpeed > -playerInitialSpeed) {
 			playerSpeed = -playerInitialSpeed;
 		}
 		playerSpeed -= playerAccel * deltaTime;
-		if (playerSpeed < -PLAYER_STATS.maxSpeed) {
-			playerSpeed = -PLAYER_STATS.maxSpeed;
+		if (playerSpeed < -maxSpeed) {
+			playerSpeed = -maxSpeed;
 		}
 	} else {
-		float dragCutoff = 0.1f * PLAYER_STATS.maxSpeed;
+		float dragCutoff = 0.1f * maxSpeed;
 		if (playerSpeed < dragCutoff && playerSpeed > -dragCutoff) {
 			playerSpeed = 0;
 		} else if (playerSpeed > 0) {
@@ -355,6 +377,12 @@ void updatePlayer(float deltaTime) {
     }
 	handleInput(deltaTime);
 	handleInteractables();
+}
+
+void playerDash(void) {
+	pd->system->getButtonState(&dashMovementDir, NULL, NULL);
+	playerCurDashTime = playerDashTime;
+	playerHitInvincibility = playerDashTime * 2;
 }
 
 void healPlayer(int amount) {
