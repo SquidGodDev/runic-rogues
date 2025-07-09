@@ -19,6 +19,7 @@ typedef enum SpellType {
 typedef struct SpellData {
     uint8_t *pickupTexture;
     uint8_t *spellTexture;
+    LCDBitmap *spellIcon;
     SpellType type;
     int damage;
     int count;
@@ -29,8 +30,13 @@ typedef struct SpellData {
 
 void initSpellData(void);
 uint8_t* getSpellPickupTexture(Spell spell);
+LCDBitmap* getSpellIcon(Spell spell);
 Spell heldSpellsFull(void);
+Spell getHeldSpell(int index);
+int getMaxHeldSpells(void);
 float getManaPercentage(void);
+int getMaxUtilitySpells(void);
+int getUtilitySpellCount(void);
 void rechargeUtilitySpell(void);
 void castUtilitySpell(void);
 void addHeldSpell(Spell spell);

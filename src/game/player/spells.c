@@ -28,6 +28,7 @@ void initSpellData(void) {
     spellData[SPELL_NONE] = (SpellData) {
         .pickupTexture = NULL,
         .spellTexture = NULL,
+        .spellIcon = BITMAPS[BITMAP_SPELL_EMPTY_ICON],
         .type = SPELL_TYPE_INSTANT,
         .damage = 0,
         .count = 0,
@@ -38,6 +39,7 @@ void initSpellData(void) {
     spellData[SPELL_FIREBALL] = (SpellData) {
         .pickupTexture = TEXTURES[TEXTURE_SPELL_FIREBALL],
         .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
+        .spellIcon = BITMAPS[BITMAP_SPELL_FIREBALL_ICON],
         .type = SPELL_TYPE_INSTANT,
         .damage = 3,
         .speed = TARGET_FPS * 1.5f
@@ -45,6 +47,7 @@ void initSpellData(void) {
     spellData[SPELL_TRIPLE_SHOT] = (SpellData) {
         .pickupTexture = TEXTURES[TEXTURE_SPELL_TRIPLE_SHOT],
         .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
+        .spellIcon = BITMAPS[BITMAP_SPELL_TRIPLE_SHOT_ICON],
         .type = SPELL_TYPE_REPEAT,
         .damage = 1,
         .count = 3,
@@ -54,6 +57,7 @@ void initSpellData(void) {
     spellData[SPELL_SHOTGUN] = (SpellData) {
         .pickupTexture = TEXTURES[TEXTURE_SPELL_SHOTGUN],
         .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
+        .spellIcon = BITMAPS[BITMAP_SPELL_SHOTGUN_ICON],
         .type = SPELL_TYPE_INSTANT,
         .damage = 1,
         .speed = TARGET_FPS * 2.0f
@@ -74,6 +78,10 @@ uint8_t* getSpellPickupTexture(Spell spell) {
     return spellData[spell].pickupTexture;
 }
 
+LCDBitmap* getSpellIcon(Spell spell) {
+    return spellData[spell].spellIcon;
+}
+
 Spell heldSpellsFull(void) {
     return queueCount(&heldSpellsQueue) >= MAX_HELD_SPELLS;
 }
@@ -85,6 +93,10 @@ Spell getHeldSpell(int index) {
     return queuePeek(&heldSpellsQueue, index);
 }
 
+int getMaxHeldSpells(void) {
+    return MAX_HELD_SPELLS;
+}
+
 float getManaPercentage(void) {
     if (currentSpell != SPELL_NONE) {
         SpellData data = spellData[currentSpell];
@@ -94,8 +106,16 @@ float getManaPercentage(void) {
             return 1.0f;
         }
     } else {
-        return 0.0f;
+        return 1.0f;
     }
+}
+
+int getMaxUtilitySpells(void) {
+    return DASH_COUNT;
+}
+
+int getUtilitySpellCount(void) {
+    return utilitySpellCount;
 }
 
 void rechargeUtilitySpell(void) {
