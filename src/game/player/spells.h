@@ -31,5 +31,5 @@ void initSpellData(void);
 uint8_t* getSpellPickupTexture(Spell spell);
 float getManaPercentage(void);
 void setHeldSpell(Spell spell);
-void castHeldSpell(void);
+int castHeldSpell(void);
 void updateSpells(float deltaTime);

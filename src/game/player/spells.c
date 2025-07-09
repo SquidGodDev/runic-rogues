@@ -109,9 +109,9 @@ void setHeldSpell(Spell spell) {
     heldSpell = spell;
 }
 
-void castHeldSpell(void) {
+int castHeldSpell(void) {
     if (heldSpell == SPELL_NONE) {
-        return;
+        return 0;
     }
 
     currentSpell = heldSpell;
@@ -127,6 +127,8 @@ void castHeldSpell(void) {
         spellActivateCount = 1;
         spellActivationTime = data.activationTime;
     }
+
+    return 1;
 }
 
 void updateSpells(float deltaTime) {
