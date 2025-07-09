@@ -19,19 +19,37 @@ void initPickups(void) {
     }
 }
 
-void spawnRandomPickup(void) {
-    float x, y;
-    getRandomEmptyPosition(&x, &y);
-    Spell spell = randInt(1, SPELL_COUNT - 1);
-    spawnPickup(x, y, spell);
+int otherPickupAtPosition(int mapX, int mapY) {
+    for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
+        if (pickups[i].active) {
+            if (pickups[i].mapX == mapX && pickups[i].mapY == mapY) {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
-void spawnPickup(float x, float y, Spell spell) {
+void spawnRandomPickup(void) {
+    int mapX, mapY;
+    do {
+        getRandomEmptyMapPosition(&mapX, &mapY);
+    } while (otherPickupAtPosition(mapX, mapY));
+
+    Spell spell = randInt(1, SPELL_COUNT - 1);
+    spawnPickup(mapX, mapY, spell);
+}
+
+void spawnPickup(int mapX, int mapY, Spell spell) {
+    float x = mapX * CELL_SIZE + CELL_SIZE / 2;
+    float y = mapY * CELL_SIZE + CELL_SIZE / 2;
     for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
         if (!pickups[i].active) {
             pickups[i] = (Pickup) {
                 .x = x,
                 .y = y,
+                .mapX = mapX,
+                .mapY = mapY,
                 .active = 1,
                 .animationFrame = 0,
                 .animationTime = PICKUP_ANIM_FRAME_TIME,

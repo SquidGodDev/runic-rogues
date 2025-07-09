@@ -140,14 +140,11 @@ void generateSquareDungeon(void) {
     }
 }
 
-void getRandomEmptyPosition(float *x, float *y) {
-    int mapX, mapY;
+void getRandomEmptyMapPosition(int *mapX, int *mapY) {
     do {
-        mapX = randInt(1, MAP_WIDTH - 2);
-        mapY = randInt(1, MAP_HEIGHT - 2);
-    } while (map[mapY * MAP_WIDTH + mapX] != FLOOR);
-    *x = mapX * CELL_SIZE + CELL_SIZE / 2;
-    *y = mapY * CELL_SIZE + CELL_SIZE / 2;
+        *mapX = randInt(2, MAP_WIDTH - 3);
+        *mapY = randInt(2, MAP_HEIGHT - 3);
+    } while (map[*mapY * MAP_WIDTH + *mapX] != FLOOR);
 }
 
 void initMap(RoomType roomType) {

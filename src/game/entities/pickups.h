@@ -8,6 +8,8 @@
 typedef struct Pickup {
     float x;
     float y;
+    int mapX;
+    int mapY;
     int active;
 	int animationFrame;
     float animationTime;
@@ -17,5 +19,5 @@ typedef struct Pickup {
 
 void initPickups(void);
 void spawnRandomPickup(void);
-void spawnPickup(float x, float y, Spell spell);
+void spawnPickup(int mapX, int mapY, Spell spell);
 void updatePickups(float deltaTime);
