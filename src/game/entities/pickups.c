@@ -76,10 +76,10 @@ void updatePickups(float deltaTime) {
             }
         }
 
-        if (!isHoldingSpell() && distanceSquared(pickups[i].x, pickups[i].y, playerX, playerY) <= PICKUP_DISTANCE) {
+        if (!heldSpellsFull() && distanceSquared(pickups[i].x, pickups[i].y, playerX, playerY) <= PICKUP_DISTANCE) {
             pickups[i].active = 0; // Pickup collected
             rechargeUtilitySpell();
-            setHeldSpell(pickups[i].spell);
+            addHeldSpell(pickups[i].spell);
             spawnRandomPickup();
         }
 

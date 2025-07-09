@@ -67,3 +67,21 @@ static inline float radToDeg(float radAngle) {
 
 // === DRAWING HELPERS ===
 void drawCenteredBitmap(LCDBitmap *bitmap, int x, int y);
+
+// === QUEUE ===
+#define QUEUE_MAX_SIZE 30
+
+typedef struct {
+    int items[QUEUE_MAX_SIZE];
+    int front;
+    int rear;
+} Queue;
+
+void queueInit(Queue* q);
+void queueClear(Queue* q);
+bool queueIsEmpty(Queue* q);
+bool queueIsFull(Queue* q);
+int queueCount(Queue* q);
+void queuePush(Queue* q, int value);
+int queuePop(Queue* q);
+int queuePeek(Queue* q, int index);

@@ -1,4 +1,5 @@
 #include "globals.h"
+#include "helpers.h"
 
 #include "game/entities/projectiles.h"
 #include "game/rendering/textures.h"
@@ -11,10 +12,11 @@
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
 #define DASH_COUNT 3
+#define MAX_HELD_SPELLS 3
 
 static SpellData spellData[SPELL_COUNT];
 
-static Spell heldSpell;
+Queue heldSpellsQueue;
 static Spell currentSpell;
 static float spellActiveTime;
 static float spellActivationTime;
@@ -59,7 +61,7 @@ void initSpellData(void) {
 }
 
 void initSpells(void) {
-    heldSpell = SPELL_NONE;
+    queueInit(&heldSpellsQueue);
     currentSpell = SPELL_NONE;
     spellActiveTime = 0.0f;
     spellActivationTime = 0.0f;
@@ -72,8 +74,15 @@ uint8_t* getSpellPickupTexture(Spell spell) {
     return spellData[spell].pickupTexture;
 }
 
-int isHoldingSpell(void) {
-    return heldSpell != SPELL_NONE;
+Spell heldSpellsFull(void) {
+    return queueCount(&heldSpellsQueue) >= MAX_HELD_SPELLS;
+}
+
+Spell getHeldSpell(int index) {
+    if (index >= queueCount(&heldSpellsQueue)) {
+        return SPELL_NONE;
+    }
+    return queuePeek(&heldSpellsQueue, index);
 }
 
 float getManaPercentage(void) {
@@ -84,8 +93,6 @@ float getManaPercentage(void) {
         } else {
             return 1.0f;
         }
-    } else if (heldSpell != SPELL_NONE) {
-        return 1.0f;
     } else {
         return 0.0f;
     }
@@ -126,17 +133,16 @@ void activateSpellEffect(Spell spell) {
     }
 }
 
-void setHeldSpell(Spell spell) {
-    heldSpell = spell;
+void addHeldSpell(Spell spell) {
+    queuePush(&heldSpellsQueue, spell);
 }
 
 int castHeldSpell(void) {
-    if (heldSpell == SPELL_NONE) {
+    if (queueIsEmpty(&heldSpellsQueue)) {
         return 0;
     }
 
-    currentSpell = heldSpell;
-    heldSpell = SPELL_NONE;
+    currentSpell = queuePop(&heldSpellsQueue);
 
     playSound(SFX_SHOOT);
     SpellData data = spellData[currentSpell];
