@@ -6,6 +6,7 @@ typedef enum Spell {
     SPELL_FIREBALL,
     SPELL_TRIPLE_SHOT,
     SPELL_SHOTGUN,
+    SPELL_LASER,
     SPELL_COUNT
 } Spell;
 

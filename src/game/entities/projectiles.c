@@ -8,6 +8,7 @@
 #include "game/map/map.h"
 #include "game/player/player.h"
 #include "game/rendering/particles.h"
+#include "game/rendering/textures.h"
 #include "game/enemies/enemies.h"
 #include "game/systems/audioManager.h"
 
@@ -28,27 +29,34 @@ void initProjectiles(void) {
 	}
 }
 
-void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, uint8_t *texture, int isEnemy) {
+void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, uint8_t *texture, int isEnemy, int hitCount) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		if (!projectiles[i].active) {
-			float projectileX = x, projectileY = y;
-			if (isEnemy) {
-				projectiles[i].texture = texture;
-			} else {
-				projectiles[i].texture = texture;
-			}
-			projectiles[i].x = projectileX;
-			projectiles[i].y = projectileY;
-			projectiles[i].deltaX = deltaX;
-			projectiles[i].deltaY = deltaY;
-			projectiles[i].speed = speed;
-			projectiles[i].damage = damage;
-			projectiles[i].isEnemy = isEnemy;
-			projectiles[i].active = 1;
+			projectiles[i] = (Projectile) {
+				.x = x,
+				.y = y,
+				.deltaX = deltaX,
+				.deltaY = deltaY,
+				.speed = speed,
+				.damage = damage,
+				.texture = texture,
+				.isEnemy = isEnemy,
+				.hitCount = hitCount,
+				.active = 1
+			};
 			break;
 		}
 	}
 }
+
+void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int hitCount) {
+	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURES[TEXTURE_PROJECTILE], 0 /*isEnemy*/, hitCount);
+}
+
+void fireEnemyProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage) {
+	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/, 1);
+}
+
 
 void updateProjectiles(float deltaTime) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
@@ -79,10 +87,13 @@ void updateProjectiles(float deltaTime) {
 				collided = checkEnemyCollision(curProjectile.x, curProjectile.y, PLAYER_COLLISION_RANGE, curProjectile.damage);
 			}
 			if (collided) {
-				curProjectile.active = 0;
-				projectiles[i] = curProjectile;
-				spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, curProjectile.x - PARTICLE_OFFSET * deltaX, curProjectile.y - PARTICLE_OFFSET * deltaY, PARTICLE_TYPE_NONE);
-				continue;
+				curProjectile.hitCount--;
+				if (curProjectile.hitCount <= 0) {
+					curProjectile.active = 0;
+					projectiles[i] = curProjectile;
+					spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, curProjectile.x - PARTICLE_OFFSET * deltaX, curProjectile.y - PARTICLE_OFFSET * deltaY, PARTICLE_TYPE_NONE);
+					continue;
+				}
 			}
 		}
 

@@ -3,9 +3,12 @@
 
 #include "game/entities/projectiles.h"
 #include "game/rendering/textures.h"
+#include "game/rendering/particles.h"
 #include "game/player/player.h"
 #include "game/player/spells.h"
 #include "game/systems/audioManager.h"
+#include "game/enemies/enemies.h"
+#include "game/map/map.h"
 
 // Spawn the projectile slightly to the right to match hand
 #define FIRE_ANGLE_OFFSET PI / 8
@@ -61,6 +64,15 @@ void initSpellData(void) {
         .type = SPELL_TYPE_INSTANT,
         .damage = 1,
         .speed = TARGET_FPS * 2.0f
+    };
+    spellData[SPELL_LASER] = (SpellData) {
+        .pickupTexture = TEXTURES[TEXTURE_SPELL_LASER],
+        .spellIcon = BITMAPS[BITMAP_SPELL_LASER_ICON],
+        .type = SPELL_TYPE_REPEAT,
+        .damage = 1,
+        .activationTime = 0.1f,
+        .count = 5,
+        .speed = TARGET_FPS * 6.0f
     };
 }
 
@@ -133,6 +145,41 @@ void castUtilitySpell(void) {
     }
 }
 
+void laserAttack(float x1, float y1, float x2, float y2, float damage) {
+    int maxSteps = 50;
+    float rayX = x1;
+    float rayY = y1;
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+
+    float length = sqrtf(dx * dx + dy * dy);
+    if (length == 0) {
+        return;
+    }
+
+    float stepSize = CELL_SIZE; // step in pixels
+    float stepX = (dx / length) * stepSize;
+    float stepY = (dy / length) * stepSize;
+
+    for (int i = 0; i < maxSteps; i++) {
+        int mapX = (int)rayX / CELL_SIZE;
+        int mapY = (int)rayY / CELL_SIZE;
+        if (mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) {
+            return;
+        }
+
+        damageEnemiesAtMapPosition(mapX, mapY, damage);
+
+        int index = mapY * MAP_WIDTH + mapX;
+        if (map[index] == 1) {
+            return;
+        }
+
+        rayX += stepX;
+        rayY += stepY;
+    }
+}
+
 void activateSpellEffect(Spell spell) {
     SpellData data = spellData[spell];
     float projectileX = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
@@ -141,13 +188,15 @@ void activateSpellEffect(Spell spell) {
     float deltaY = sinf(playerAngle);
     float offsetAngle = PI / 8.0f;
     if (spell == SPELL_FIREBALL) {
-        fireProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/);
     } else if (spell == SPELL_TRIPLE_SHOT) {
-        fireProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/);
     } else if (spell == SPELL_SHOTGUN) {
-        fireProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
-        fireProjectile(projectileX, projectileY, cosf(playerAngle + offsetAngle), sinf(playerAngle + offsetAngle), data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
-        fireProjectile(projectileX, projectileY, cosf(playerAngle - offsetAngle), sinf(playerAngle - offsetAngle), data.speed, data.damage, data.spellTexture, 0 /*isEnemy*/);
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(playerAngle + offsetAngle), sinf(playerAngle + offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(playerAngle - offsetAngle), sinf(playerAngle - offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
+    } else if (spell == SPELL_LASER) {
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 5 /*hitCount*/);
     }
 }
 

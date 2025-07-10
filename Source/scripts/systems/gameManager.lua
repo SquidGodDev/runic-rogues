@@ -4,7 +4,7 @@ GAME_DATA = {}
 GameManager = {}
 function GameManager:init()
     GAME_DATA = {
-        currentRoom = 1,
+        currentRoom = 2,
         currentArea = 1,
         areaRooms = self:getAreaRooms(),
         visitedRooms = {}

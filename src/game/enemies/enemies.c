@@ -569,7 +569,7 @@ void updateEnemies(float deltaTime) {
 						float damage = curEnemyData.attackDamage;
 						float projectileX = curEnemy.x + deltaX * PROJECTILE_OFFSET;
 						float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
-						fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/);
+						fireEnemyProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage);
 					}
 				} else if (boss.bossState == BOSS_STATE_ATTACK3) {
 					curEnemy = moveEnemy(curEnemy, i, curEnemy.targetX, curEnemy.targetY, curEnemyData.moveSpeed);
@@ -665,7 +665,7 @@ void updateEnemies(float deltaTime) {
 						float damage = curEnemyData.attackDamage;
 						float projectileX = curEnemy.x + deltaX * PROJECTILE_OFFSET;
 						float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
-						fireProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/);
+						fireEnemyProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage);
 					}
 					curEnemy.state = ENEMY_STATE_ATTACK_END;
 				}
@@ -743,6 +743,20 @@ int damageEnemy(int index, int damage) {
 	
 	enemies[index] = curEnemy;
 	return 1;
+}
+
+void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		Enemy enemy = enemies[i];
+		if (!enemy.active) {
+			continue;
+		}
+		int enemyMapX = (int)enemy.x / CELL_SIZE;
+		int enemyMapY = (int)enemy.y / CELL_SIZE;
+		if (enemyMapX == mapX && enemyMapY == mapY) {
+			damageEnemy(i, damage);
+		}
+	}
 }
 
 int checkEnemyCollision(float x, float y, float collisionRange, int damage) {

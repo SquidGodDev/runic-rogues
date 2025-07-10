@@ -29,16 +29,14 @@ void initParticles(void) {
 	particleData[PARTICLE_TYPE_PROJECTILE_BREAK] = (ParticleData) {
 		.frameCount = 21,
 		.animationTime = 0.016f,
-		.texture = TEXTURES[TEXTURE_PROJECTILE_BREAK],
+		.texture = TEXTURES[TEXTURE_PARTICLE_PROJECTILE_BREAK],
 		.damageFrame = 0,
-		.damage = 0,
-		.damageRadius = 0
 	};
 
 	particleData[PARTICLE_TYPE_WARNING] = (ParticleData) {
 		.frameCount = 6,
 		.animationTime = 0.4f,
-		.texture = TEXTURES[TEXTURE_WARNING],
+		.texture = TEXTURES[TEXTURE_PARTICLE_WARNING],
 		.damageFrame = 0,
 		.damage = 0,
 		.damageRadius = 0
@@ -47,7 +45,7 @@ void initParticles(void) {
 	particleData[PARTICLE_TYPE_ROOT_ATTACK] = (ParticleData) {
 		.frameCount = 10,
 		.animationTime = 0.1f,
-		.texture = TEXTURES[TEXTURE_ROOT_ATTACK],
+		.texture = TEXTURES[TEXTURE_PARTICLE_ROOT_ATTACK],
 		.damageFrame = 4,
 		.damage = 1,
 		.damageRadius = CELL_SIZE
