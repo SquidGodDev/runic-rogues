@@ -78,6 +78,7 @@ const char *bitmapPathStrings[] = {
 	"images/spells/icons/tripleShotIcon",
 	"images/spells/icons/shotgunIcon",
 	"images/spells/icons/laserIcon",
+	"images/spells/icons/rootAttackIcon"
 };
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];
@@ -157,6 +158,10 @@ void initTextures(void)
 		}
 	}
 
+	// Check if the number of bitmap paths matches the defined count
+	if (sizeof(bitmapPathStrings) / sizeof(bitmapPathStrings[0]) != BITMAP_PATHS_COUNT) {
+		pd->system->error("Bitmap path count does not match BITMAP_PATHS_COUNT");
+	}
 	for (int i = 0; i < BITMAP_PATHS_COUNT; i++) {
 		const char *outErr = NULL;
 		LCDBitmap *loadedBitmap = pd->graphics->loadBitmap(bitmapPathStrings[i], &outErr);

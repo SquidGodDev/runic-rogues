@@ -47,7 +47,6 @@ void initSpellData(void) {
         .spellIcon = BITMAPS[BITMAP_SPELL_FIREBALL_ICON],
         .type = SPELL_TYPE_INSTANT,
         .damage = 3,
-        .setAngle = 0,
         .speed = TARGET_FPS * 1.5f
     };
     spellData[SPELL_TRIPLE_SHOT] = (SpellData) {
@@ -67,7 +66,6 @@ void initSpellData(void) {
         .spellIcon = BITMAPS[BITMAP_SPELL_SHOTGUN_ICON],
         .type = SPELL_TYPE_INSTANT,
         .damage = 1,
-        .setAngle = 0,
         .speed = TARGET_FPS * 2.0f
     };
     spellData[SPELL_LASER] = (SpellData) {
@@ -79,6 +77,12 @@ void initSpellData(void) {
         .count = 5,
         .setAngle = 1,
         .speed = TARGET_FPS * 6.0f
+    };
+    spellData[SPELL_ROOT_ATTACK] = (SpellData) {
+        .pickupTexture = TEXTURES[TEXTURE_SPELL_ROOT_ATTACK],
+        .spellIcon = BITMAPS[BITMAP_SPELL_ROOT_ATTACK_ICON],
+        .type = SPELL_TYPE_INSTANT,
+        .damage = 1,
     };
 }
 
@@ -168,6 +172,13 @@ void activateSpellEffect(Spell spell, float angle) {
         firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle), sinf(angle - offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
     } else if (spell == SPELL_LASER) {
         firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 5 /*hitCount*/);
+    } else if (spell == SPELL_ROOT_ATTACK) {
+        int rootCount = 5;
+        for (int root = 0; root < rootCount; root++) {
+            float offsetX = deltaX * (root + 1) * CELL_SIZE;
+            float offsetY = deltaY * (root + 1) * CELL_SIZE;
+            spawnParticle(PARTICLE_TYPE_PLAYER_ROOT_ATTACK, playerX + offsetX, playerY + offsetY, PARTICLE_TYPE_NONE, false /* enemyParticle */);
+        }
     }
 }
 

@@ -2,7 +2,6 @@
 #include "pd_api.h"
 
 #include "globals.h"
-#include "helpers.h"
 #include "game/player/player.h"
 #include "game/entities/entities.h"
 #include "game/rendering/particles.h"
@@ -42,17 +41,26 @@ void initParticles(void) {
 		.damageRadius = 0
 	};
 
-	particleData[PARTICLE_TYPE_ROOT_ATTACK] = (ParticleData) {
+	particleData[PARTICLE_TYPE_BOSS_ROOT_ATTACK] = (ParticleData) {
 		.frameCount = 10,
 		.animationTime = 0.1f,
 		.texture = TEXTURES[TEXTURE_PARTICLE_ROOT_ATTACK],
 		.damageFrame = 4,
 		.damage = 1,
-		.damageRadius = CELL_SIZE
+		.damageRadius = CELL_SIZE / 2
+	};
+
+	particleData[PARTICLE_TYPE_PLAYER_ROOT_ATTACK] = (ParticleData) {
+		.frameCount = 10,
+		.animationTime = 0.05f,
+		.texture = TEXTURES[TEXTURE_PARTICLE_ROOT_ATTACK],
+		.damageFrame = 4,
+		.damage = 1,
+		.damageRadius = CELL_SIZE / 2
 	};
 }
 
-void spawnParticle(ParticleType type, int x, int y, ParticleType spawnOnEndParticleType) {
+void spawnParticle(ParticleType type, int x, int y, ParticleType spawnOnEndParticleType, bool enemyParticle) {
 	int newParticleIndex = -1;
 	for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {
 		if (!particles[i].active) {
@@ -66,6 +74,8 @@ void spawnParticle(ParticleType type, int x, int y, ParticleType spawnOnEndParti
 	}
 
 	ParticleData data = particleData[type];
+	Set damagedEntities;
+	setInit(&damagedEntities);
 	particles[newParticleIndex] = (struct Particle) {
 		.x = x,
 		.y = y,
@@ -73,8 +83,9 @@ void spawnParticle(ParticleType type, int x, int y, ParticleType spawnOnEndParti
 		.animationTime = data.animationTime,
 		.frameCount = data.frameCount,
 		.animationFrame = 0,
-		.active = 1,
-		.damagedPlayer = 0,
+		.active = true,
+		.enemyParticle = enemyParticle,
+		.appliedDamage = false,
 		.spawnOnEndParticleType = spawnOnEndParticleType
 	};
 }
@@ -96,17 +107,27 @@ void updateParticles(float deltaTime) {
 				curParticle.active = 0;
 				particles[i] = curParticle;
 				if (curParticle.spawnOnEndParticleType != PARTICLE_TYPE_NONE && !isRoomCompleted()) {
-					spawnParticle(curParticle.spawnOnEndParticleType, curParticle.x, curParticle.y, PARTICLE_TYPE_NONE);
+					spawnParticle(curParticle.spawnOnEndParticleType, curParticle.x, curParticle.y, PARTICLE_TYPE_NONE, curParticle.enemyParticle);
 				}
 				continue;
 			}
 		}
 
-		if (data.damageFrame > 0 && curParticle.animationFrame == data.damageFrame - 1 && !curParticle.damagedPlayer) {
-			float distSquared = distanceSquared(curParticle.x, curParticle.y, playerX, playerY);
-			if (distSquared < data.damageRadius * data.damageRadius) {
-				curParticle.damagedPlayer = 1;
-				damagePlayer(data.damage);
+		if (data.damageFrame > 0 && curParticle.animationFrame >= data.damageFrame - 1 && !curParticle.appliedDamage) {
+			curParticle.appliedDamage = true;
+			if (curParticle.enemyParticle) {
+				float distSquared = distanceSquared(curParticle.x, curParticle.y, playerX, playerY);
+				if (distSquared < data.damageRadius * data.damageRadius) {
+					damagePlayer(data.damage);
+				}
+			} else {
+				for (int enemyIndex = 0; enemyIndex < MAX_ENEMY_COUNT; enemyIndex++) {
+					Enemy curEnemy = enemies[enemyIndex];
+					float distSquared = distanceSquared(curParticle.x, curParticle.y, curEnemy.x, curEnemy.y);
+					if (distSquared < data.damageRadius * data.damageRadius) {
+						damageEnemy(enemyIndex, data.damage);
+					}
+				}
 			}
 		}
 

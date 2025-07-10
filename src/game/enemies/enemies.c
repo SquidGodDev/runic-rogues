@@ -375,6 +375,7 @@ int spawnEnemy(EnemyType enemyType, int x, int y) {
 		.targetX = x,
 		.targetY = y,
 		.health = curEnemyData.health,
+		.invincibilityTime = 0.02f,
 		.attackCooldown = 0,
 		.hitFlashTime = 0,
 		.animationTime = randFloat(0, curEnemyData.frameTime),
@@ -455,6 +456,10 @@ void updateEnemies(float deltaTime) {
 		if (SKIP_ENEMY_UPDATE) {
 			addEntityToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, i, curEnemyData.texture, curEnemy.animationFrame);
 			continue;
+		}
+
+		if (curEnemy.invincibilityTime > 0) {
+			curEnemy.invincibilityTime -= deltaTime;
 		}
 
 		curEnemy.animationTime -= deltaTime;
@@ -604,7 +609,7 @@ void updateEnemies(float deltaTime) {
 					for (int root = 0; root < ELDER_BOSS_ATTACK2_COUNT; root++) {
 						float offsetX = dx * root * ELDER_BOSS_ATTACK2_SPACING;
 						float offsetY = dy * root * ELDER_BOSS_ATTACK2_SPACING;
-						spawnParticle(PARTICLE_TYPE_WARNING, curEnemy.x + offsetX, curEnemy.y + offsetY, PARTICLE_TYPE_ROOT_ATTACK);
+						spawnParticle(PARTICLE_TYPE_WARNING, curEnemy.x + offsetX, curEnemy.y + offsetY, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /* enemyParticle */);
 					}
 				} else {
 					curEnemy = moveEnemy(curEnemy, i, playerX, playerY, curEnemyData.moveSpeed);
@@ -701,7 +706,7 @@ float getBossHealthPercentage(void) {
 
 int damageEnemy(int index, int damage) {
 	Enemy curEnemy = enemies[index];
-	if (curEnemy.state == ENEMY_STATE_DEAD) {
+	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.invincibilityTime > 0) {
 		return 0;
 	}
 

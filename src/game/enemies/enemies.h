@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stdbool.h"
+
 #define MAX_ENEMY_COUNT 25
 
 typedef enum EnemyType
@@ -33,12 +35,13 @@ typedef struct Enemy {
 	float targetX;
 	float targetY;
 	int health;
+	float invincibilityTime;
 	float attackCooldown;
 	float abilityCooldown;
 	float hitFlashTime;
 	float animationTime;
 	uint16_t animationFrame;
-	uint16_t active;
+	bool active;
 	int state;
 	int type;
 } Enemy;

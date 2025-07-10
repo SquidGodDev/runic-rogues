@@ -85,3 +85,17 @@ int queueCount(Queue* q);
 void queuePush(Queue* q, int value);
 int queuePop(Queue* q);
 int queuePeek(Queue* q, int index);
+
+// === SET ===
+#define SET_SIZE 53 // Use a prime number for better distribution
+
+typedef struct {
+    int data[SET_SIZE];
+    bool used[SET_SIZE];
+    bool deleted[SET_SIZE];
+} Set;
+
+void setInit(Set* set);
+void setAdd(Set* set, int value);
+void setRemove(Set* set, int value);
+bool setContains(Set* set, int value);

@@ -74,7 +74,9 @@ void updateProjectiles(float deltaTime) {
 		if ((entityMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[entityMapIndex] != 0)) {
 			playSound(SFX_WALL_HIT);
 			curProjectile.active = 0;
-			spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, curProjectile.x - PARTICLE_OFFSET * deltaX, curProjectile.y - PARTICLE_OFFSET * deltaY, PARTICLE_TYPE_NONE);
+			int particleX = curProjectile.x - PARTICLE_OFFSET * deltaX;
+			int particleY = curProjectile.y - PARTICLE_OFFSET * deltaY;
+			spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile.isEnemy);
 		} else {
 			int collided = 0;
 			if (curProjectile.isEnemy) {
@@ -91,7 +93,9 @@ void updateProjectiles(float deltaTime) {
 				if (curProjectile.hitCount <= 0) {
 					curProjectile.active = 0;
 					projectiles[i] = curProjectile;
-					spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, curProjectile.x - PARTICLE_OFFSET * deltaX, curProjectile.y - PARTICLE_OFFSET * deltaY, PARTICLE_TYPE_NONE);
+					int particleX = curProjectile.x - PARTICLE_OFFSET * deltaX;
+					int particleY = curProjectile.y - PARTICLE_OFFSET * deltaY;
+					spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile.isEnemy);
 					continue;
 				}
 			}

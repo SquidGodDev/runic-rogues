@@ -7,6 +7,7 @@ typedef enum Spell {
     SPELL_TRIPLE_SHOT,
     SPELL_SHOTGUN,
     SPELL_LASER,
+    SPELL_ROOT_ATTACK,
     SPELL_COUNT
 } Spell;
 
