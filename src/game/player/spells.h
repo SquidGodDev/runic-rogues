@@ -24,6 +24,7 @@ typedef struct SpellData {
     SpellType type;
     int damage;
     int count;
+    int setAngle;
     float speed;
     float activeTime;
     float activationTime;

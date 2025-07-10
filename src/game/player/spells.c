@@ -24,6 +24,7 @@ static Spell currentSpell;
 static float spellActiveTime;
 static float spellActivationTime;
 static int spellActivateCount;
+static float setAngle;
 
 static int utilitySpellCount;
 
@@ -35,6 +36,7 @@ void initSpellData(void) {
         .type = SPELL_TYPE_INSTANT,
         .damage = 0,
         .count = 0,
+        .setAngle = 0,
         .speed = 0,
         .activeTime = 0,
         .activationTime = 0
@@ -45,6 +47,7 @@ void initSpellData(void) {
         .spellIcon = BITMAPS[BITMAP_SPELL_FIREBALL_ICON],
         .type = SPELL_TYPE_INSTANT,
         .damage = 3,
+        .setAngle = 0,
         .speed = TARGET_FPS * 1.5f
     };
     spellData[SPELL_TRIPLE_SHOT] = (SpellData) {
@@ -54,6 +57,7 @@ void initSpellData(void) {
         .type = SPELL_TYPE_REPEAT,
         .damage = 1,
         .count = 3,
+        .setAngle = 0,
         .speed = TARGET_FPS * 3.0f,
         .activationTime = 0.3f
     };
@@ -63,6 +67,7 @@ void initSpellData(void) {
         .spellIcon = BITMAPS[BITMAP_SPELL_SHOTGUN_ICON],
         .type = SPELL_TYPE_INSTANT,
         .damage = 1,
+        .setAngle = 0,
         .speed = TARGET_FPS * 2.0f
     };
     spellData[SPELL_LASER] = (SpellData) {
@@ -72,6 +77,7 @@ void initSpellData(void) {
         .damage = 1,
         .activationTime = 0.1f,
         .count = 5,
+        .setAngle = 1,
         .speed = TARGET_FPS * 6.0f
     };
 }
@@ -145,12 +151,12 @@ void castUtilitySpell(void) {
     }
 }
 
-void activateSpellEffect(Spell spell) {
+void activateSpellEffect(Spell spell, float angle) {
     SpellData data = spellData[spell];
-    float projectileX = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-    float projectileY = playerY + sinf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-    float deltaX = cosf(playerAngle);
-    float deltaY = sinf(playerAngle);
+    float projectileX = playerX + cosf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
+    float projectileY = playerY + sinf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
+    float deltaX = cosf(angle);
+    float deltaY = sinf(angle);
     float offsetAngle = PI / 8.0f;
     if (spell == SPELL_FIREBALL) {
         firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/);
@@ -158,8 +164,8 @@ void activateSpellEffect(Spell spell) {
         firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/);
     } else if (spell == SPELL_SHOTGUN) {
         firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(playerAngle + offsetAngle), sinf(playerAngle + offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(playerAngle - offsetAngle), sinf(playerAngle - offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle), sinf(angle + offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle), sinf(angle - offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
     } else if (spell == SPELL_LASER) {
         firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 5 /*hitCount*/);
     }
@@ -179,10 +185,11 @@ int castHeldSpell(void) {
     playSound(SFX_SHOOT);
     SpellData data = spellData[currentSpell];
     if (data.type == SPELL_TYPE_INSTANT) {
-        activateSpellEffect(currentSpell);
+        activateSpellEffect(currentSpell, playerAngle);
         currentSpell = SPELL_NONE;
     } else if (data.type == SPELL_TYPE_REPEAT) {
-        activateSpellEffect(currentSpell);
+        setAngle = playerAngle;
+        activateSpellEffect(currentSpell, playerAngle);
         spellActivateCount = 1;
         spellActivationTime = data.activationTime;
     }
@@ -199,7 +206,8 @@ void updateSpells(float deltaTime) {
     if (data.type == SPELL_TYPE_REPEAT) {
         spellActivationTime -= deltaTime;
         if (spellActivationTime <= 0.0f) {
-            activateSpellEffect(currentSpell);
+            float angle = data.setAngle ? setAngle : playerAngle;
+            activateSpellEffect(currentSpell, angle);
             spellActivationTime = data.activationTime;
             spellActivateCount++;
             if (spellActivateCount >= data.count) {
