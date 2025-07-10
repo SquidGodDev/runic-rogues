@@ -145,41 +145,6 @@ void castUtilitySpell(void) {
     }
 }
 
-void laserAttack(float x1, float y1, float x2, float y2, float damage) {
-    int maxSteps = 50;
-    float rayX = x1;
-    float rayY = y1;
-    float dx = x2 - x1;
-    float dy = y2 - y1;
-
-    float length = sqrtf(dx * dx + dy * dy);
-    if (length == 0) {
-        return;
-    }
-
-    float stepSize = CELL_SIZE; // step in pixels
-    float stepX = (dx / length) * stepSize;
-    float stepY = (dy / length) * stepSize;
-
-    for (int i = 0; i < maxSteps; i++) {
-        int mapX = (int)rayX / CELL_SIZE;
-        int mapY = (int)rayY / CELL_SIZE;
-        if (mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) {
-            return;
-        }
-
-        damageEnemiesAtMapPosition(mapX, mapY, damage);
-
-        int index = mapY * MAP_WIDTH + mapX;
-        if (map[index] == 1) {
-            return;
-        }
-
-        rayX += stepX;
-        rayY += stepY;
-    }
-}
-
 void activateSpellEffect(Spell spell) {
     SpellData data = spellData[spell];
     float projectileX = playerX + cosf(playerAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
