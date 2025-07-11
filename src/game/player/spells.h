@@ -8,6 +8,8 @@ typedef enum Spell {
     SPELL_SHOTGUN,
     SPELL_LASER,
     SPELL_ROOT_ATTACK,
+    SPELL_WAVE,
+    SPELL_TRIPLE_WAVE,
     SPELL_COUNT
 } Spell;
 
