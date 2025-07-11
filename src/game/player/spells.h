@@ -28,7 +28,9 @@ typedef struct SpellData {
     LCDBitmap *spellIcon;
     SpellType type;
     int damage;
-    int count;
+    int repeatCount;
+    int hitCount;
+    float slowTime;
     int useInitialCastAngle;
     float speed;
     float castTime;
