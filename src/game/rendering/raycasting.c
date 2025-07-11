@@ -257,20 +257,20 @@ void renderScene(void)
 				int drawX = drawIntOffset + drawBit;
 				int fogShadeBit = (drawX + fogOffset) & 7; // mod 8
 
-				LineData curLineData = lineData[drawX];
-				int lineHeight = curLineData.lineHeight;
-				int lineOffset = curLineData.lineOffset;
+				LineData *curLineData = &lineData[drawX];
+				int lineHeight = curLineData->lineHeight;
+				int lineOffset = curLineData->lineOffset;
 
-				float textureYModifier = curLineData.textureYModifier;
+				float textureYModifier = curLineData->textureYModifier;
 				textureYModifier = textureYModifier > ENVIRONMENT_TEXTURE_SIZE - 1 ? ENVIRONMENT_TEXTURE_SIZE - 1 : textureYModifier;
-				lineData[drawX].textureYModifier += curLineData.textureYStep;
+				lineData[drawX].textureYModifier += curLineData->textureYStep;
 
 				if (drawY < lineOffset) {
 					if (skipCeilingFloor || (inFog & ((fogShade >> fogShadeBit) & 1))) {
 						drawColor = 0;
 					} else {
-						float textureCoordX = playerX - curLineData.ceilingXModifier * invDy;
-						float textureCoordY = playerY - curLineData.ceilingYModifier * invDy;
+						float textureCoordX = playerX - curLineData->ceilingXModifier * invDy;
+						float textureCoordY = playerY - curLineData->ceilingYModifier * invDy;
 
 						uint32_t textureX = (uint32_t)(textureCoordX) & (CELL_SIZE - 1);
 						uint32_t textureY = (uint32_t)(textureCoordY) & (CELL_SIZE - 1);
@@ -291,7 +291,7 @@ void renderScene(void)
 						curDrawInt &= ~(1 << (31 - (drawBit & 31)));
 						continue;
 					}
-					uint32_t textureX = curLineData.textureX;
+					uint32_t textureX = curLineData->textureX;
 					if (textureX >= 16) {
 						// Shaded wall
 						textureX -= 16;
