@@ -29,7 +29,7 @@ void initProjectiles(void) {
 	}
 }
 
-void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, uint8_t *texture, int isEnemy, int hitCount) {
+void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, uint8_t *texture, int isEnemy, int hitCount, float slowTime) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		if (!projectiles[i].active) {
 			projectiles[i] = (Projectile) {
@@ -42,6 +42,7 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 				.texture = texture,
 				.isEnemy = isEnemy,
 				.hitCount = hitCount,
+				.slowTime = slowTime,
 				.active = 1
 			};
 			break;
@@ -49,14 +50,13 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 	}
 }
 
-void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int hitCount) {
-	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURES[TEXTURE_PROJECTILE], 0 /*isEnemy*/, hitCount);
+void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int hitCount, float slowTime) {
+	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURES[TEXTURE_PROJECTILE], 0 /*isEnemy*/, hitCount, slowTime);
 }
 
 void fireEnemyProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage) {
-	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/, 1);
+	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/, 1 /*hitCount*/, 0 /* slowTime */);
 }
-
 
 void updateProjectiles(float deltaTime) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
@@ -86,7 +86,7 @@ void updateProjectiles(float deltaTime) {
 					damagePlayer(curProjectile.damage);
 				}
 			} else {
-				collided = checkEnemyCollision(curProjectile.x, curProjectile.y, PLAYER_COLLISION_RANGE, curProjectile.damage);
+				collided = checkEnemyCollision(curProjectile.x, curProjectile.y, PLAYER_COLLISION_RANGE, curProjectile.damage, curProjectile.slowTime);
 			}
 			if (collided) {
 				curProjectile.hitCount--;

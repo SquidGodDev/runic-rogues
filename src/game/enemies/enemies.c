@@ -330,6 +330,11 @@ Enemy moveEnemy(Enemy enemy, int enemyIndex, float targetX, float targetY, float
 		dy = -dy * WALL_AVOID_FORCE;
 	}
 
+	// Apply slow
+	if (enemy.slowTime > 0) {
+		moveSpeed *= 0.2f;
+	}
+
 	// Normalize final direction vector
 	float magnitude = sqrtf(dx*dx + dy*dy);
 	if (magnitude > 0.01f) {
@@ -382,7 +387,8 @@ int spawnEnemy(EnemyType enemyType, int x, int y) {
 		.animationFrame = randInt(0, curEnemyData.idleFrameEnd - 1),
 		.active = 1,
 		.state = ENEMY_STATE_IDLE,
-		.type = enemyType
+		.type = enemyType,
+		.slowTime = 0
 	};
 
 	return newEnemyIndex;
@@ -456,6 +462,10 @@ void updateEnemies(float deltaTime) {
 		if (SKIP_ENEMY_UPDATE) {
 			addEntityToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, i, curEnemyData.texture, curEnemy.animationFrame);
 			continue;
+		}
+
+		if (curEnemy.slowTime > 0) {
+			curEnemy.slowTime -= deltaTime;
 		}
 
 		if (curEnemy.invincibilityTime > 0) {
@@ -704,10 +714,19 @@ float getBossHealthPercentage(void) {
 	return (float)boss.health / (float)bossData.health;
 }
 
-int damageEnemy(int index, int damage) {
+void slowEnemy(int index, float slowTime) {
+	Enemy curEnemy = enemies[index];
+	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.slowTime > 0 || curEnemy.invincibilityTime > 0) {
+		return;
+	}
+
+	enemies[index].slowTime = slowTime;
+}
+
+bool damageEnemy(int index, int damage) {
 	Enemy curEnemy = enemies[index];
 	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.invincibilityTime > 0) {
-		return 0;
+		return false;
 	}
 
 	EnemyData curEnemyData = enemyData[curEnemy.type];
@@ -747,7 +766,7 @@ int damageEnemy(int index, int damage) {
 	}
 	
 	enemies[index] = curEnemy;
-	return 1;
+	return true;
 }
 
 void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
@@ -764,7 +783,8 @@ void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
 	}
 }
 
-int checkEnemyCollision(float x, float y, float collisionRange, int damage) {
+bool checkEnemyCollision(float x, float y, float collisionRange, int damage, float slowTime) {
+	bool collided = false; 
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy curEnemy = enemies[i];
 		if (!curEnemy.active) {
@@ -773,8 +793,11 @@ int checkEnemyCollision(float x, float y, float collisionRange, int damage) {
 
 		float distSquared = distanceSquared(x, y, curEnemy.x, curEnemy.y);
 		if (distSquared < collisionRange) {
-			return damageEnemy(i, damage);
+			if (slowTime > 0) {
+				slowEnemy(i, slowTime);
+			}
+			collided |= damageEnemy(i, damage);
 		}
 	}
-	return 0;
+	return collided;
 }

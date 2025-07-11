@@ -113,6 +113,24 @@ void initSpellData(void) {
         .speed = TARGET_FPS * 3.0f,
         .activationTime = 0.3f
     };
+    spellData[SPELL_SLOW_SHOT] = (SpellData) {
+        .pickupTexture = TEXTURES[TEXTURE_SPELL_SLOW_SHOT],
+        .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
+        .spellIcon = BITMAPS[BITMAP_SPELL_SLOW_SHOT_ICON],
+        .type = SPELL_TYPE_INSTANT,
+        .castTime = 0.4f,
+        .damage = 1,
+        .speed = TARGET_FPS * 1.0f
+    };
+    spellData[SPELL_SLOW_WAVE] = (SpellData) {
+        .pickupTexture = TEXTURES[TEXTURE_SPELL_SLOW_WAVE],
+        .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
+        .spellIcon = BITMAPS[BITMAP_SPELL_SLOW_WAVE_ICON],
+        .type = SPELL_TYPE_INSTANT,
+        .castTime = 0.4f,
+        .damage = 1,
+        .speed = TARGET_FPS * 1.0f
+    };
 }
 
 void resetSpellsToSpawn(void) {
@@ -138,9 +156,11 @@ void initSpells(void) {
     }
 
     // For testing purposes, fill the spell deck with all spells
-    for (int i = 1; i < SPELL_COUNT; i++) {
-        spellDeck[i] = (Spell)i;
-    }
+    // for (int i = 1; i < SPELL_COUNT; i++) {
+    //     spellDeck[i] = (Spell)i;
+    // }
+    spellDeck[0] = SPELL_SLOW_SHOT;
+    spellDeck[1] = SPELL_SLOW_WAVE;
 
     resetSpellsToSpawn();
 }
@@ -214,16 +234,16 @@ void activateSpellEffect(Spell spell, float angle) {
     float deltaX = cosf(angle);
     float deltaY = sinf(angle);
     if (spell == SPELL_FIREBALL) {
-        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/);
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
     } else if (spell == SPELL_TRIPLE_SHOT) {
-        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/);
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
     } else if (spell == SPELL_SHOTGUN) {
         float offsetAngle = PI / 8.0f;
-        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle), sinf(angle + offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle), sinf(angle - offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle), sinf(angle + offsetAngle), data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle), sinf(angle - offsetAngle), data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
     } else if (spell == SPELL_LASER) {
-        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 5 /*hitCount*/);
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 5 /*hitCount*/, 0 /*slowTime*/);
     } else if (spell == SPELL_ROOT_ATTACK) {
         int rootCount = 5;
         for (int root = 0; root < rootCount; root++) {
@@ -233,18 +253,28 @@ void activateSpellEffect(Spell spell, float angle) {
         }
     } else if (spell == SPELL_WAVE) {
         float offsetAngle = PI / 16.0f;
-        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle), sinf(angle + offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle * 2), sinf(angle + offsetAngle * 2), data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle), sinf(angle - offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle * 2), sinf(angle - offsetAngle * 2), data.speed, data.damage, 1 /*hitCount*/);
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle), sinf(angle + offsetAngle), data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle * 2), sinf(angle + offsetAngle * 2), data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle), sinf(angle - offsetAngle), data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle * 2), sinf(angle - offsetAngle * 2), data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
     } else if (spell == SPELL_TRIPLE_WAVE) {
         float offsetAngle = PI / 16.0f;
-        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle), sinf(angle + offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle * 2), sinf(angle + offsetAngle * 2), data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle), sinf(angle - offsetAngle), data.speed, data.damage, 1 /*hitCount*/);
-        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle * 2), sinf(angle - offsetAngle * 2), data.speed, data.damage, 1 /*hitCount*/);
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle), sinf(angle + offsetAngle), data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle * 2), sinf(angle + offsetAngle * 2), data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle), sinf(angle - offsetAngle), data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle * 2), sinf(angle - offsetAngle * 2), data.speed, data.damage, 1 /*hitCount*/, 0 /*slowTime*/);
+    } else if (spell == SPELL_SLOW_SHOT) {
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/, 1.0f /*slowTime*/);
+    } else if (spell == SPELL_SLOW_WAVE) {
+        float offsetAngle = PI / 16.0f;
+        float slowTime = 1.0f;
+        firePlayerProjectile(projectileX, projectileY, deltaX, deltaY, data.speed, data.damage, 1 /*hitCount*/, slowTime);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle), sinf(angle + offsetAngle), data.speed, data.damage, 1 /*hitCount*/, slowTime);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle + offsetAngle * 2), sinf(angle + offsetAngle * 2), data.speed, data.damage, 1 /*hitCount*/, slowTime);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle), sinf(angle - offsetAngle), data.speed, data.damage, 1 /*hitCount*/, slowTime);
+        firePlayerProjectile(projectileX, projectileY, cosf(angle - offsetAngle * 2), sinf(angle - offsetAngle * 2), data.speed, data.damage, 1 /*hitCount*/, slowTime);
     }
 }
 
