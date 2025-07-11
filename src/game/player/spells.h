@@ -36,6 +36,7 @@ typedef struct SpellData {
 void initSpellData(void);
 uint8_t* getSpellPickupTexture(Spell spell);
 LCDBitmap* getSpellIcon(Spell spell);
+Spell getRandomSpell(void);
 Spell heldSpellsFull(void);
 Spell getHeldSpell(int index);
 int getMaxHeldSpells(void);

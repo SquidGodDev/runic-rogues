@@ -73,6 +73,59 @@ int queuePeek(Queue* q, int index)
     return q->items[(q->front + index) % QUEUE_MAX_SIZE];
 }
 
+// === STACK ===
+void stackInit(Stack* s) {
+    s->top = -1;
+}
+
+void stackClear(Stack* s) {
+    s->top = -1;
+}
+
+bool stackIsEmpty(Stack* s) {
+    return s->top == -1;
+}
+
+bool stackIsFull(Stack* s) {
+    return s->top == STACK_MAX_SIZE - 1;
+}
+
+// Push an element onto the stack
+void stackPush(Stack* s, int value) {
+    if (stackIsFull(s)) {
+        return;
+    }
+    s->items[++s->top] = value;
+}
+
+int stackPop(Stack* s) {
+    if (stackIsEmpty(s)) {
+        return -1;
+    }
+    return s->items[s->top--];
+}
+
+int stackPeek(Stack* s) {
+    if (stackIsEmpty(s)) {
+        return -1;
+    }
+    return s->items[s->top];
+}
+
+void stackShuffle(Stack* s) {
+    if (stackIsEmpty(s)) {
+        return;
+    }
+
+    // Fisher-Yates shuffle
+    for (int i = s->top; i > 0; i--) {
+        int j = rand() % (i + 1);
+        int temp = s->items[i];
+        s->items[i] = s->items[j];
+        s->items[j] = temp;
+    }
+}
+
 // === SET ===
 // Hash function
 int hash(int value) {

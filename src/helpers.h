@@ -86,6 +86,23 @@ void queuePush(Queue* q, int value);
 int queuePop(Queue* q);
 int queuePeek(Queue* q, int index);
 
+// === STACK ===
+#define STACK_MAX_SIZE 30
+
+typedef struct {
+    int items[STACK_MAX_SIZE];
+    int top;
+} Stack;
+
+void stackInit(Stack* s);
+void stackClear(Stack* s);
+bool stackIsEmpty(Stack* s);
+bool stackIsFull(Stack* s);
+void stackPush(Stack* s, int value);
+int stackPop(Stack* s);
+int stackPeek(Stack* s);
+void stackShuffle(Stack* s);
+
 // === SET ===
 #define SET_SIZE 53 // Use a prime number for better distribution
 

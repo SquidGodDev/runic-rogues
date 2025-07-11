@@ -16,10 +16,13 @@
 
 #define DASH_COUNT 3
 #define MAX_HELD_SPELLS 3
+#define SPELL_DECK_MAX 30
 
 static SpellData spellData[SPELL_COUNT];
 
-Queue heldSpellsQueue;
+static Spell spellDeck[SPELL_DECK_MAX];
+static Stack spellsToSpawn;
+static Queue heldSpellsQueue;
 static Spell currentSpell;
 static float spellCastTime;
 static float spellActivationTime;
@@ -112,6 +115,15 @@ void initSpellData(void) {
     };
 }
 
+void resetSpellsToSpawn(void) {
+    stackClear(&spellsToSpawn);
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        if (spellDeck[i] != SPELL_NONE) {
+            stackPush(&spellsToSpawn, spellDeck[i]);
+        }
+    }
+}
+
 void initSpells(void) {
     queueInit(&heldSpellsQueue);
     currentSpell = SPELL_NONE;
@@ -120,6 +132,17 @@ void initSpells(void) {
     spellActivateCount = 0;
 
     utilitySpellCount = DASH_COUNT;
+
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        spellDeck[i] = SPELL_NONE;
+    }
+
+    // For testing purposes, fill the spell deck with all spells
+    for (int i = 1; i < SPELL_COUNT; i++) {
+        spellDeck[i] = (Spell)i;
+    }
+
+    resetSpellsToSpawn();
 }
 
 uint8_t* getSpellPickupTexture(Spell spell) {
@@ -128,6 +151,13 @@ uint8_t* getSpellPickupTexture(Spell spell) {
 
 LCDBitmap* getSpellIcon(Spell spell) {
     return spellData[spell].spellIcon;
+}
+
+Spell getRandomSpell(void) {
+    if (stackIsEmpty(&spellsToSpawn)) {
+        resetSpellsToSpawn();
+    }
+    return stackPop(&spellsToSpawn);
 }
 
 Spell heldSpellsFull(void) {

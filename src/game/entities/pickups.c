@@ -20,6 +20,12 @@ void initPickups(void) {
 }
 
 int otherPickupAtPosition(int mapX, int mapY) {
+    int playerMapX = playerX / CELL_SIZE;
+    int playerMapY = playerY / CELL_SIZE;
+    if (mapX == playerMapX && mapY == playerMapY) {
+        return 1;
+    }
+
     for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
         if (pickups[i].active) {
             if (pickups[i].mapX == mapX && pickups[i].mapY == mapY) {
@@ -36,8 +42,7 @@ void spawnRandomPickup(void) {
         getRandomEmptyMapPosition(&mapX, &mapY);
     } while (otherPickupAtPosition(mapX, mapY));
 
-    Spell spell = randInt(1, SPELL_COUNT - 1);
-    // Spell spell = SPELL_ROOT_ATTACK;
+    Spell spell = getRandomSpell();
     spawnPickup(mapX, mapY, spell);
 }
 
