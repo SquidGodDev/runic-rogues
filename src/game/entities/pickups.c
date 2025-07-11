@@ -37,6 +37,7 @@ void spawnRandomPickup(void) {
     } while (otherPickupAtPosition(mapX, mapY));
 
     Spell spell = randInt(1, SPELL_COUNT - 1);
+    // Spell spell = SPELL_ROOT_ATTACK;
     spawnPickup(mapX, mapY, spell);
 }
 
