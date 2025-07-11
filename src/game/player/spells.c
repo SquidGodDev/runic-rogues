@@ -176,11 +176,11 @@ void initSpells(void) {
     }
 
     // For testing purposes, fill the spell deck with all spells
-    // for (int i = 1; i < SPELL_COUNT; i++) {
-    //     spellDeck[i] = (Spell)i;
-    // }
-    spellDeck[0] = SPELL_SLOW_SHOT;
-    spellDeck[1] = SPELL_SLOW_WAVE;
+    for (int i = 1; i < SPELL_COUNT; i++) {
+        spellDeck[i] = (Spell)i;
+    }
+    // spellDeck[0] = SPELL_SLOW_SHOT;
+    // spellDeck[1] = SPELL_SLOW_WAVE;
 
     resetSpellsToSpawn();
 }
@@ -339,13 +339,13 @@ void updateSpells(float deltaTime) {
         return;
     }
 
-    SpellData data = spellData[currentSpell];
-    if (data.type == SPELL_TYPE_REPEAT) {
+    SpellData* data = &spellData[currentSpell];
+    if (data->type == SPELL_TYPE_REPEAT) {
         spellActivationTime -= deltaTime;
-        if (spellActivationTime <= 0.0f && spellActivateCount < data.repeatCount) {
-            float angle = data.useInitialCastAngle ? initialCastAngle : playerAngle;
+        if (spellActivationTime <= 0.0f && spellActivateCount < data->repeatCount) {
+            float angle = data->useInitialCastAngle ? initialCastAngle : playerAngle;
             activateSpellEffect(currentSpell, angle);
-            spellActivationTime = data.activationTime;
+            spellActivationTime = data->activationTime;
             spellActivateCount++;
         }
     }

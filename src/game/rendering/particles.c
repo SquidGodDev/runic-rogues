@@ -92,47 +92,44 @@ void spawnParticle(ParticleType type, int x, int y, ParticleType spawnOnEndParti
 
 void updateParticles(float deltaTime) {
 	for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {
-		if (!particles[i].active) {
+		Particle *curParticle = &particles[i];
+		if (!curParticle->active) {
 			continue;
 		}
 
-		Particle curParticle = particles[i];
-		ParticleData data = particleData[curParticle.type];
-		
-		curParticle.animationTime -= deltaTime;
-		if (curParticle.animationTime <= 0) {
-			curParticle.animationTime += data.animationTime;
-			curParticle.animationFrame += 1;
-			if (curParticle.animationFrame >= curParticle.frameCount) {
-				curParticle.active = 0;
-				particles[i] = curParticle;
-				if (curParticle.spawnOnEndParticleType != PARTICLE_TYPE_NONE && !isRoomCompleted()) {
-					spawnParticle(curParticle.spawnOnEndParticleType, curParticle.x, curParticle.y, PARTICLE_TYPE_NONE, curParticle.enemyParticle);
+		ParticleData *data = &particleData[curParticle->type];
+
+		curParticle->animationTime -= deltaTime;
+		if (curParticle->animationTime <= 0) {
+			curParticle->animationTime += data->animationTime;
+			curParticle->animationFrame += 1;
+			if (curParticle->animationFrame >= curParticle->frameCount) {
+				curParticle->active = 0;
+				if (curParticle->spawnOnEndParticleType != PARTICLE_TYPE_NONE && !isRoomCompleted()) {
+					spawnParticle(curParticle->spawnOnEndParticleType, curParticle->x, curParticle->y, PARTICLE_TYPE_NONE, curParticle->enemyParticle);
 				}
 				continue;
 			}
 		}
 
-		if (data.damageFrame > 0 && curParticle.animationFrame >= data.damageFrame - 1 && !curParticle.appliedDamage) {
-			curParticle.appliedDamage = true;
-			if (curParticle.enemyParticle) {
-				float distSquared = distanceSquared(curParticle.x, curParticle.y, playerX, playerY);
-				if (distSquared < data.damageRadius * data.damageRadius) {
-					damagePlayer(data.damage);
+		if (data->damageFrame > 0 && curParticle->animationFrame >= data->damageFrame - 1 && !curParticle->appliedDamage) {
+			curParticle->appliedDamage = true;
+			if (curParticle->enemyParticle) {
+				float distSquared = distanceSquared(curParticle->x, curParticle->y, playerX, playerY);
+				if (distSquared < data->damageRadius * data->damageRadius) {
+					damagePlayer(data->damage);
 				}
 			} else {
 				for (int enemyIndex = 0; enemyIndex < MAX_ENEMY_COUNT; enemyIndex++) {
 					Enemy curEnemy = enemies[enemyIndex];
-					float distSquared = distanceSquared(curParticle.x, curParticle.y, curEnemy.x, curEnemy.y);
-					if (distSquared < data.damageRadius * data.damageRadius) {
-						damageEnemy(enemyIndex, data.damage);
+					float distSquared = distanceSquared(curParticle->x, curParticle->y, curEnemy.x, curEnemy.y);
+					if (distSquared < data->damageRadius * data->damageRadius) {
+						damageEnemy(enemyIndex, data->damage);
 					}
 				}
 			}
 		}
 
-		particles[i] = curParticle;
-
-		addEntityToRenderQueue(curParticle.x, curParticle.y, PARTICLE, i, data.texture, curParticle.animationFrame);
+		addEntityToRenderQueue(curParticle->x, curParticle->y, PARTICLE, i, data->texture, curParticle->animationFrame);
 	}
 }

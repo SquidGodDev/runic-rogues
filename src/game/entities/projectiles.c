@@ -60,53 +60,51 @@ void fireEnemyProjectile(float x, float y, float deltaX, float deltaY, float spe
 
 void updateProjectiles(float deltaTime) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
-		Projectile curProjectile = projectiles[i];
-		if (!curProjectile.active) {
+		Projectile *curProjectile = &projectiles[i];
+		if (!curProjectile->active) {
 			continue;
 		}
 
-		float deltaX = curProjectile.deltaX;
-		float deltaY = curProjectile.deltaY;
+		float deltaX = curProjectile->deltaX;
+		float deltaY = curProjectile->deltaY;
 
-		int entityMapX = (int)((curProjectile.x + MAP_CHECK_OFFSET_X) / CELL_SIZE);
-		int entityMapY = (int)((curProjectile.y + MAP_CHECK_OFFSET_Y) / CELL_SIZE);
+		int entityMapX = (int)((curProjectile->x + MAP_CHECK_OFFSET_X) / CELL_SIZE);
+		int entityMapY = (int)((curProjectile->y + MAP_CHECK_OFFSET_Y) / CELL_SIZE);
 		int entityMapIndex = entityMapY * MAP_WIDTH + entityMapX;
 		if ((entityMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[entityMapIndex] != 0)) {
 			playSound(SFX_WALL_HIT);
-			curProjectile.active = 0;
-			int particleX = curProjectile.x - PARTICLE_OFFSET * deltaX;
-			int particleY = curProjectile.y - PARTICLE_OFFSET * deltaY;
-			spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile.isEnemy);
+			curProjectile->active = 0;
+			int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
+			int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
+			spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
 		} else {
 			int collided = 0;
-			if (curProjectile.isEnemy) {
-				float distSquared = distanceSquared(curProjectile.x, curProjectile.y, playerX, playerY);
+			if (curProjectile->isEnemy) {
+				float distSquared = distanceSquared(curProjectile->x, curProjectile->y, playerX, playerY);
 				if (distSquared < ENEMY_COLLISION_RANGE) {
 					collided = 1;
-					damagePlayer(curProjectile.damage);
+					damagePlayer(curProjectile->damage);
 				}
 			} else {
-				collided = checkEnemyCollision(curProjectile.x, curProjectile.y, PLAYER_COLLISION_RANGE, curProjectile.damage, curProjectile.slowTime);
+				collided = checkEnemyCollision(curProjectile->x, curProjectile->y, PLAYER_COLLISION_RANGE, curProjectile->damage, curProjectile->slowTime);
 			}
 			if (collided) {
-				curProjectile.hitCount--;
-				if (curProjectile.hitCount <= 0) {
-					curProjectile.active = 0;
-					projectiles[i] = curProjectile;
-					int particleX = curProjectile.x - PARTICLE_OFFSET * deltaX;
-					int particleY = curProjectile.y - PARTICLE_OFFSET * deltaY;
-					spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile.isEnemy);
+				curProjectile->hitCount--;
+				if (curProjectile->hitCount <= 0) {
+					curProjectile->active = 0;
+					int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
+					int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
+					spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
 					continue;
 				}
 			}
 		}
 
-		float xVelocity = deltaX * curProjectile.speed;
-		float yVelocity = deltaY * curProjectile.speed;
-		curProjectile.x += xVelocity * deltaTime;
-		curProjectile.y += yVelocity * deltaTime;
+		float xVelocity = deltaX * curProjectile->speed;
+		float yVelocity = deltaY * curProjectile->speed;
+		curProjectile->x += xVelocity * deltaTime;
+		curProjectile->y += yVelocity * deltaTime;
 
-		projectiles[i] = curProjectile;
-		addEntityToRenderQueue(curProjectile.x, curProjectile.y, PROJECTILE, i, curProjectile.texture, 0 /* animationFrame*/);
+		addEntityToRenderQueue(curProjectile->x, curProjectile->y, PROJECTILE, i, curProjectile->texture, 0 /* animationFrame*/);
 	}
 }

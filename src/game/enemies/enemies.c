@@ -291,13 +291,13 @@ void initEnemyData(void) {
 	};
 }
 
-Enemy moveEnemy(Enemy enemy, int enemyIndex, float targetX, float targetY, float moveSpeed) {
-	float dx = (targetX - enemy.x);
-	float dy = (targetY - enemy.y);
+void moveEnemy(Enemy *enemy, int enemyIndex, float targetX, float targetY, float moveSpeed) {
+	float dx = (targetX - enemy->x);
+	float dy = (targetY - enemy->y);
 	float distToTarget = sqrtf(dx*dx + dy*dy);
 
 	if (distToTarget < MIN_DIST_TO_PLAYER) {
-		return enemy;	
+		return;	
 	}
 
 	dx /= distToTarget;
@@ -308,8 +308,8 @@ Enemy moveEnemy(Enemy enemy, int enemyIndex, float targetX, float targetY, float
 		if (i == enemyIndex || !enemies[i].active) continue;
 		Enemy other = enemies[i];
 
-		float otherX = enemy.x - other.x;
-		float otherY = enemy.y - other.y;
+		float otherX = enemy->x - other.x;
+		float otherY = enemy->y - other.y;
 		float distSquared = otherX*otherX + otherY*otherY;
 
 		if (distSquared < ENEMY_SEPARATION_RADIUS * ENEMY_SEPARATION_RADIUS && distSquared > 0.01f) {
@@ -323,15 +323,15 @@ Enemy moveEnemy(Enemy enemy, int enemyIndex, float targetX, float targetY, float
 	}
 
 	// Wall avoidance
-	int frontX = (int)((enemy.x + dx * WALL_CHECK_DISTANCE) / CELL_SIZE);
-	int frontY = (int)((enemy.y + dy * WALL_CHECK_DISTANCE) / CELL_SIZE);
+	int frontX = (int)((enemy->x + dx * WALL_CHECK_DISTANCE) / CELL_SIZE);
+	int frontY = (int)((enemy->y + dy * WALL_CHECK_DISTANCE) / CELL_SIZE);
 	if (isBlocked(frontX, frontY)) {
 		dx = -dx * WALL_AVOID_FORCE;
 		dy = -dy * WALL_AVOID_FORCE;
 	}
 
 	// Apply slow
-	if (enemy.slowTime > 0) {
+	if (enemy->slowTime > 0) {
 		moveSpeed *= 0.2f;
 	}
 
@@ -343,10 +343,8 @@ Enemy moveEnemy(Enemy enemy, int enemyIndex, float targetX, float targetY, float
 	}
 
 	// Apply movement
-	enemy.x += dx;
-	enemy.y += dy;
-
-	return enemy;
+	enemy->x += dx;
+	enemy->y += dy;
 }
 
 int spawnEnemy(EnemyType enemyType, int x, int y) {
@@ -380,7 +378,7 @@ int spawnEnemy(EnemyType enemyType, int x, int y) {
 		.targetX = x,
 		.targetY = y,
 		.health = curEnemyData.health,
-		.invincibilityTime = 0.02f,
+		.invincibilityTime = 0.3f,
 		.attackCooldown = 0,
 		.hitFlashTime = 0,
 		.animationTime = randFloat(0, curEnemyData.frameTime),
@@ -452,80 +450,79 @@ int playerInAttackDistance(int enemyIndex) {
 
 void updateEnemies(float deltaTime) {
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-		if (!enemies[i].active) {
+		Enemy *curEnemy = &enemies[i];
+		if (!curEnemy->active) {
 			continue;
 		}
 
-		Enemy curEnemy = enemies[i];
-		EnemyData curEnemyData = enemyData[curEnemy.type];
+		EnemyData *curEnemyData = &enemyData[curEnemy->type];
 
 		if (SKIP_ENEMY_UPDATE) {
-			addEntityToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, i, curEnemyData.texture, curEnemy.animationFrame);
+			addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->texture, curEnemy->animationFrame);
 			continue;
 		}
 
-		if (curEnemy.slowTime > 0) {
-			curEnemy.slowTime -= deltaTime;
+		if (curEnemy->slowTime > 0) {
+			curEnemy->slowTime -= deltaTime;
 		}
 
-		if (curEnemy.invincibilityTime > 0) {
-			curEnemy.invincibilityTime -= deltaTime;
+		if (curEnemy->invincibilityTime > 0) {
+			curEnemy->invincibilityTime -= deltaTime;
 		}
 
-		curEnemy.animationTime -= deltaTime;
-		if (curEnemy.animationTime <= 0) {
-			curEnemy.animationTime = curEnemyData.frameTime;
-			curEnemy.animationFrame += 1;
-			if (curEnemy.state == ENEMY_STATE_IDLE) {
-				if (curEnemy.animationFrame >= curEnemyData.idleFrameEnd) {
-					curEnemy.animationFrame = 0;
+		curEnemy->animationTime -= deltaTime;
+		if (curEnemy->animationTime <= 0) {
+			curEnemy->animationTime = curEnemyData->frameTime;
+			curEnemy->animationFrame += 1;
+			if (curEnemy->state == ENEMY_STATE_IDLE) {
+				if (curEnemy->animationFrame >= curEnemyData->idleFrameEnd) {
+					curEnemy->animationFrame = 0;
 				}
-			} else if (curEnemy.state == ENEMY_STATE_PREP) {
-				if (curEnemy.animationFrame >= curEnemyData.prepFrameEnd) {
-					curEnemy.animationFrame = curEnemyData.prepFrameEnd - 1;
+			} else if (curEnemy->state == ENEMY_STATE_PREP) {
+				if (curEnemy->animationFrame >= curEnemyData->prepFrameEnd) {
+					curEnemy->animationFrame = curEnemyData->prepFrameEnd - 1;
 				}
-			} else if (curEnemy.state == ENEMY_STATE_ATTACK || curEnemy.state == ENEMY_STATE_ATTACK_END) {
-				if (curEnemy.animationFrame >= curEnemyData.attackFrameEnd) {
-					curEnemy.animationFrame = 0;
-					curEnemy.state = ENEMY_STATE_IDLE;
+			} else if (curEnemy->state == ENEMY_STATE_ATTACK || curEnemy->state == ENEMY_STATE_ATTACK_END) {
+				if (curEnemy->animationFrame >= curEnemyData->attackFrameEnd) {
+					curEnemy->animationFrame = 0;
+					curEnemy->state = ENEMY_STATE_IDLE;
 				}
-			} else if (curEnemy.state == ENEMY_STATE_DEAD) {
-				if (curEnemy.animationFrame >= curEnemyData.deathFrameEnd) {
+			} else if (curEnemy->state == ENEMY_STATE_DEAD) {
+				if (curEnemy->animationFrame >= curEnemyData->deathFrameEnd) {
 					enemies[i].active = 0;
 					continue;
 				}
 			}
 		}
 
-		curEnemy.hitFlashTime -= deltaTime;
-		if (curEnemy.hitFlashTime <= 0) {
-			curEnemy.hitFlashTime = 0;
+		curEnemy->hitFlashTime -= deltaTime;
+		if (curEnemy->hitFlashTime <= 0) {
+			curEnemy->hitFlashTime = 0;
 		}
 
-		if (curEnemy.state == ENEMY_STATE_DEAD) {
-			enemies[i] = curEnemy;
-			addEntityToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, i, curEnemyData.texture, curEnemy.animationFrame);
+		if (curEnemy->state == ENEMY_STATE_DEAD) {
+			addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->texture, curEnemy->animationFrame);
 			continue;
 		}
 
-		curEnemy.attackCooldown -= deltaTime;
-		if (curEnemy.attackCooldown <= 0) {
-			curEnemy.attackCooldown = 0;
+		curEnemy->attackCooldown -= deltaTime;
+		if (curEnemy->attackCooldown <= 0) {
+			curEnemy->attackCooldown = 0;
 		}
 
-		if (curEnemyData.attackPattern == ATTACK_PATTERN_WRAITH_BOSS) {
+		if (curEnemyData->attackPattern == ATTACK_PATTERN_WRAITH_BOSS) {
 			boss.stateTimer -= deltaTime;
-			if (curEnemy.attackCooldown <= 0 && playerInAttackDistance(i)) {
-				curEnemy.attackCooldown = curEnemyData.attackCooldown;
-				damagePlayer(curEnemyData.attackDamage);
+			if (curEnemy->attackCooldown <= 0 && playerInAttackDistance(i)) {
+				curEnemy->attackCooldown = curEnemyData->attackCooldown;
+				damagePlayer(curEnemyData->attackDamage);
 			}
 			if (boss.bossState == BOSS_STATE_IDLE) {
 				if (boss.stateTimer <= 0) {
 					boss.bossState = BOSS_STATE_PREPARING;
 					boss.stateTimer = WRAITH_BOSS_PREP_TIME;
-					curEnemy.state = ENEMY_STATE_PREP;
-					curEnemy.animationFrame = curEnemyData.prepFrameStart - 1;
-					curEnemy.animationTime = curEnemyData.frameTime;
+					curEnemy->state = ENEMY_STATE_PREP;
+					curEnemy->animationFrame = curEnemyData->prepFrameStart - 1;
+					curEnemy->animationTime = curEnemyData->frameTime;
 				}
 			} else if (boss.bossState == BOSS_STATE_PREPARING) {
 				if (boss.stateTimer <= 0) {
@@ -537,9 +534,9 @@ void updateEnemies(float deltaTime) {
 
 						// Project line towards player and set target to first wall hit
 						float targetX, targetY;
-						castRayToWall(curEnemy.x, curEnemy.y, playerX, playerY, &targetX, &targetY);
-						curEnemy.targetX = targetX;
-						curEnemy.targetY = targetY;
+						castRayToWall(curEnemy->x, curEnemy->y, playerX, playerY, &targetX, &targetY);
+						curEnemy->targetX = targetX;
+						curEnemy->targetY = targetY;
 
 						// Rush attack 3 times
 						if (boss.stateCount >= WRAITH_BOSS_RUSH_COUNT) {
@@ -556,56 +553,56 @@ void updateEnemies(float deltaTime) {
 						boss.bossState = BOSS_STATE_ATTACK3;
 						boss.stateTimer = WRAITH_BOSS_ATTACK3_TIME;
 						boss.nextAttackState = BOSS_STATE_ATTACK1;
-						curEnemy.animationFrame = 0;
-						curEnemy.state = ENEMY_STATE_IDLE;
-						curEnemy.targetX = MAP_WIDTH / 2 * CELL_SIZE;
-						curEnemy.targetY = MAP_HEIGHT / 2 * CELL_SIZE;
-						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy.x, curEnemy.y);
-						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy.x - CELL_SIZE, curEnemy.y);
-						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy.x + CELL_SIZE, curEnemy.y);
+						curEnemy->animationFrame = 0;
+						curEnemy->state = ENEMY_STATE_IDLE;
+						curEnemy->targetX = MAP_WIDTH / 2 * CELL_SIZE;
+						curEnemy->targetY = MAP_HEIGHT / 2 * CELL_SIZE;
+						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x, curEnemy->y);
+						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x - CELL_SIZE, curEnemy->y);
+						spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x + CELL_SIZE, curEnemy->y);
 					}
 				}
 			} else if (boss.bossState == BOSS_STATE_ATTACK1 || boss.bossState == BOSS_STATE_ATTACK2 || boss.bossState == BOSS_STATE_ATTACK3) {
 				if (boss.stateTimer <= 0) {
 					boss.bossState = BOSS_STATE_IDLE;
 					boss.stateTimer = WRAITH_BOSS_IDLE_TIME;
-					curEnemy.animationFrame = 0;
-					curEnemy.state = ENEMY_STATE_IDLE;
+					curEnemy->animationFrame = 0;
+					curEnemy->state = ENEMY_STATE_IDLE;
 				}
 				if (boss.bossState == BOSS_STATE_ATTACK1) {
-					curEnemy = moveEnemy(curEnemy, i, curEnemy.targetX, curEnemy.targetY, curEnemyData.abilityDataPrimary);
+					moveEnemy(curEnemy, i, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
 				} else if (boss.bossState == BOSS_STATE_ATTACK2) {
-					if (curEnemy.attackCooldown <= 0) {
-						curEnemy.attackCooldown = WRAITH_BOSS_PROJECTILE_COOLDOWN;
-						float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy.x, curEnemy.y));
-						float deltaX = (playerX - curEnemy.x) / distanceToPlayer;
-						float deltaY = (playerY - curEnemy.y) / distanceToPlayer;
-						float projectileSpeed = curEnemyData.abilityDataSecondary;
-						float damage = curEnemyData.attackDamage;
-						float projectileX = curEnemy.x + deltaX * PROJECTILE_OFFSET;
-						float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
+					if (curEnemy->attackCooldown <= 0) {
+						curEnemy->attackCooldown = WRAITH_BOSS_PROJECTILE_COOLDOWN;
+						float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy->x, curEnemy->y));
+						float deltaX = (playerX - curEnemy->x) / distanceToPlayer;
+						float deltaY = (playerY - curEnemy->y) / distanceToPlayer;
+						float projectileSpeed = curEnemyData->abilityDataSecondary;
+						float damage = curEnemyData->attackDamage;
+						float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+						float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
 						fireEnemyProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage);
 					}
 				} else if (boss.bossState == BOSS_STATE_ATTACK3) {
-					curEnemy = moveEnemy(curEnemy, i, curEnemy.targetX, curEnemy.targetY, curEnemyData.moveSpeed);
+					moveEnemy(curEnemy, i, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
 				}
 			}
-		} else if (curEnemyData.attackPattern == ATTACK_PATTERN_ELDER_BOSS) {
+		} else if (curEnemyData->attackPattern == ATTACK_PATTERN_ELDER_BOSS) {
 			boss.stateTimer -= deltaTime;
-			if (curEnemy.state == ENEMY_STATE_IDLE) {
+			if (curEnemy->state == ENEMY_STATE_IDLE) {
 				if (playerInAttackDetectionRange(i)) {
-					curEnemy.state = ENEMY_STATE_ATTACK;
-					curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
-					curEnemy.animationTime = curEnemyData.frameTime;
+					curEnemy->state = ENEMY_STATE_ATTACK;
+					curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
+					curEnemy->animationTime = curEnemyData->frameTime;
 				} else if (boss.stateTimer <= 0) {
 					boss.stateTimer = ELDER_BOSS_PREP_TIME;
-					curEnemy.state = ENEMY_STATE_PREP;
-					curEnemy.animationFrame = curEnemyData.prepFrameStart - 1;
-					curEnemy.animationTime = curEnemyData.frameTime;
-					
+					curEnemy->state = ENEMY_STATE_PREP;
+					curEnemy->animationFrame = curEnemyData->prepFrameStart - 1;
+					curEnemy->animationTime = curEnemyData->frameTime;
+
 					// Spawn root attacks towards player in a line
-					float dx = playerX - curEnemy.x;
-					float dy = playerY - curEnemy.y;
+					float dx = playerX - curEnemy->x;
+					float dy = playerY - curEnemy->y;
 					if (dx == 0 && dy == 0) {
 						dx = 1;
 						dy = 0;
@@ -619,77 +616,75 @@ void updateEnemies(float deltaTime) {
 					for (int root = 0; root < ELDER_BOSS_ATTACK2_COUNT; root++) {
 						float offsetX = dx * root * ELDER_BOSS_ATTACK2_SPACING;
 						float offsetY = dy * root * ELDER_BOSS_ATTACK2_SPACING;
-						spawnParticle(PARTICLE_TYPE_WARNING, curEnemy.x + offsetX, curEnemy.y + offsetY, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /* enemyParticle */);
+						spawnParticle(PARTICLE_TYPE_WARNING, curEnemy->x + offsetX, curEnemy->y + offsetY, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /* enemyParticle */);
 					}
 				} else {
-					curEnemy = moveEnemy(curEnemy, i, playerX, playerY, curEnemyData.moveSpeed);
+					moveEnemy(curEnemy, i, playerX, playerY, curEnemyData->moveSpeed);
 				}
-			} else if (curEnemy.state == ENEMY_STATE_PREP) {
+			} else if (curEnemy->state == ENEMY_STATE_PREP) {
 				if (boss.stateTimer <= 0) {
 					boss.stateTimer = ELDER_BOSS_IDLE_TIME;
-					curEnemy.state = ENEMY_STATE_IDLE;
+					curEnemy->state = ENEMY_STATE_IDLE;
 				}
-			} else if (curEnemy.state == ENEMY_STATE_ATTACK) {
-				if (curEnemy.animationFrame >= curEnemyData.attackActiveFrame) {
+			} else if (curEnemy->state == ENEMY_STATE_ATTACK) {
+				if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 					if (playerInAttackDistance(i)) {
-						damagePlayer(curEnemyData.attackDamage);
+						damagePlayer(curEnemyData->attackDamage);
 					}
-					curEnemy.state = ENEMY_STATE_ATTACK_END;
+					curEnemy->state = ENEMY_STATE_ATTACK_END;
 				}
 			}
 		} else {
 			// Non-boss enemies
-			if (curEnemy.state == ENEMY_STATE_IDLE) {
-				AttackPattern curAttackPattern = curEnemyData.attackPattern;
-				if (curEnemy.attackCooldown <= 0 && playerInAttackDetectionRange(i)) {
-					curEnemy.attackCooldown = curEnemyData.attackCooldown;
+			if (curEnemy->state == ENEMY_STATE_IDLE) {
+				AttackPattern curAttackPattern = curEnemyData->attackPattern;
+				if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(i)) {
+					curEnemy->attackCooldown = curEnemyData->attackCooldown;
 					if (curAttackPattern == ATTACK_PATTERN_MELEE || curAttackPattern == ATTACK_PATTERN_PROJECTILE) {
-						curEnemy.state = ENEMY_STATE_ATTACK;
-						curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
-						curEnemy.animationTime = curEnemyData.frameTime;
+						curEnemy->state = ENEMY_STATE_ATTACK;
+						curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
+						curEnemy->animationTime = curEnemyData->frameTime;
 					} else if (curAttackPattern == ATTACK_PATTERN_PROXIMITY) {
 						if (playerInAttackDistance(i)) {
-							damagePlayer(curEnemyData.attackDamage);
+							damagePlayer(curEnemyData->attackDamage);
 						}
-					} else if (curAttackPattern == ATTACK_PATTERN_RUSH && isClearLine(curEnemy.x, curEnemy.y, playerX, playerY)) {
-						curEnemy.state = ENEMY_STATE_ATTACK;
-						curEnemy.animationFrame = curEnemyData.attackFrameStart - 1;
-						curEnemy.animationTime = curEnemyData.frameTime;
+					} else if (curAttackPattern == ATTACK_PATTERN_RUSH && isClearLine(curEnemy->x, curEnemy->y, playerX, playerY)) {
+						curEnemy->state = ENEMY_STATE_ATTACK;
+						curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
+						curEnemy->animationTime = curEnemyData->frameTime;
 					}
 				}
 
-				curEnemy = moveEnemy(curEnemy, i, playerX, playerY, curEnemyData.moveSpeed);
-			} else if (curEnemy.state == ENEMY_STATE_ATTACK) {
-				AttackPattern curAttackPattern = curEnemyData.attackPattern;
+				moveEnemy(curEnemy, i, playerX, playerY, curEnemyData->moveSpeed);
+			} else if (curEnemy->state == ENEMY_STATE_ATTACK) {
+				AttackPattern curAttackPattern = curEnemyData->attackPattern;
 				if (curAttackPattern == ATTACK_PATTERN_RUSH) {
-					curEnemy = moveEnemy(curEnemy, i, playerX, playerY, curEnemyData.abilityDataPrimary);
+					moveEnemy(curEnemy, i, playerX, playerY, curEnemyData->abilityDataPrimary);
 					if (playerInAttackDistance(i)) {
-						damagePlayer(curEnemyData.attackDamage);
-						curEnemy.state = ENEMY_STATE_IDLE;
+						damagePlayer(curEnemyData->attackDamage);
+						curEnemy->state = ENEMY_STATE_IDLE;
 					}
-				} else if (curEnemy.animationFrame >= curEnemyData.attackActiveFrame) {
+				} else if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 					if (curAttackPattern == ATTACK_PATTERN_MELEE) {
 						if (playerInAttackDistance(i)) {
-							damagePlayer(curEnemyData.attackDamage);
+							damagePlayer(curEnemyData->attackDamage);
 						}
 					} else if (curAttackPattern == ATTACK_PATTERN_PROJECTILE) {
-						float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy.x, curEnemy.y));
-						float deltaX = (playerX - curEnemy.x) / distanceToPlayer;
-						float deltaY = (playerY - curEnemy.y) / distanceToPlayer;
-						float projectileSpeed = curEnemyData.abilityDataPrimary;
-						float damage = curEnemyData.attackDamage;
-						float projectileX = curEnemy.x + deltaX * PROJECTILE_OFFSET;
-						float projectileY = curEnemy.y + deltaY * PROJECTILE_OFFSET;
+						float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy->x, curEnemy->y));
+						float deltaX = (playerX - curEnemy->x) / distanceToPlayer;
+						float deltaY = (playerY - curEnemy->y) / distanceToPlayer;
+						float projectileSpeed = curEnemyData->abilityDataPrimary;
+						float damage = curEnemyData->attackDamage;
+						float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+						float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
 						fireEnemyProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage);
 					}
-					curEnemy.state = ENEMY_STATE_ATTACK_END;
+					curEnemy->state = ENEMY_STATE_ATTACK_END;
 				}
 			}
 		}
 
-		enemies[i] = curEnemy;
-
-		addEntityToRenderQueue(curEnemy.x, curEnemy.y, ENEMY, i, curEnemyData.texture, curEnemy.animationFrame);
+		addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->texture, curEnemy->animationFrame);
 	}
 }
 

@@ -69,26 +69,27 @@ void spawnPickup(int mapX, int mapY, Spell spell) {
 
 void updatePickups(float deltaTime) {
     for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
-        if (!pickups[i].active) {
+        Pickup *pickup = &pickups[i];
+        if (!pickup->active) {
             continue;
         }
 
-        pickups[i].animationTime -= deltaTime;
-        if (pickups[i].animationTime <= 0) {
-            pickups[i].animationTime = PICKUP_ANIM_FRAME_TIME;
-            pickups[i].animationFrame++;
-            if (pickups[i].animationFrame >= PICKUP_ANIM_FRAMES) {
-                pickups[i].animationFrame = 0;
+        pickup->animationTime -= deltaTime;
+        if (pickup->animationTime <= 0) {
+            pickup->animationTime = PICKUP_ANIM_FRAME_TIME;
+            pickup->animationFrame++;
+            if (pickup->animationFrame >= PICKUP_ANIM_FRAMES) {
+                pickup->animationFrame = 0;
             }
         }
-
-        if (!heldSpellsFull() && distanceSquared(pickups[i].x, pickups[i].y, playerX, playerY) <= PICKUP_DISTANCE) {
-            pickups[i].active = 0; // Pickup collected
+        
+        if (!heldSpellsFull() && distanceSquared(pickup->x, pickup->y, playerX, playerY) <= PICKUP_DISTANCE) {
+            pickup->active = 0; // Pickup collected
             rechargeUtilitySpell();
-            addHeldSpell(pickups[i].spell);
+            addHeldSpell(pickup->spell);
             spawnRandomPickup();
         }
 
-        addEntityToRenderQueue(pickups[i].x, pickups[i].y, PICKUP, i, pickups[i].texture, pickups[i].animationFrame);
+        addEntityToRenderQueue(pickup->x, pickup->y, PICKUP, i, pickup->texture, pickup->animationFrame);
     }
 }

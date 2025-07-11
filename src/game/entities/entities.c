@@ -63,8 +63,8 @@ void renderEntities(int *zBuffer) {
     float entityDistances[queuedEntities];
     for (int i = 0; i < queuedEntities; i++) {
         entityOrder[i] = i;
-        Entity curEntity = entities[i];
-        float entityDistance = distanceSquared(playerX, playerY, curEntity.x, curEntity.y);
+        Entity *curEntity = &entities[i];
+        float entityDistance = distanceSquared(playerX, playerY, curEntity->x, curEntity->y);
         entityDistances[i] = entityDistance;
     }
     sortEntities(entityOrder, entityDistances, queuedEntities);
@@ -76,19 +76,19 @@ void renderEntities(int *zBuffer) {
     float inverseDeterminant = 1.0f / (planeX * dirY - dirX * planeY);
     int fixedPointScreenHeight = SCREEN_HEIGHT << 7;
     for (int i = 0; i < queuedEntities; i++) {
-        Entity curEntity = entities[entityOrder[i]];
-        uint8_t *entityTexture = curEntity.texture;
+        Entity *curEntity = &entities[entityOrder[i]];
+        uint8_t *entityTexture = curEntity->texture;
         int anchorTopLeft = 0;
         int hitFlash = 0;
-        int frameOffset = curEntity.animationFrame * ENTITY_TEXTURE_SIZE * ENTITY_TEXTURE_SIZE;
-        if (curEntity.type == PROJECTILE) {
+        int frameOffset = curEntity->animationFrame * ENTITY_TEXTURE_SIZE * ENTITY_TEXTURE_SIZE;
+        if (curEntity->type == PROJECTILE) {
             anchorTopLeft = 1;
-        } else if (curEntity.type == ENEMY) {
-            hitFlash = enemies[curEntity.index].hitFlashTime > 0;
+        } else if (curEntity->type == ENEMY) {
+            hitFlash = enemies[curEntity->index].hitFlashTime > 0;
         }
 
-        float entityX = (curEntity.x - playerX) / CELL_SIZE;
-        float entityY = (curEntity.y - playerY) / CELL_SIZE;
+        float entityX = (curEntity->x - playerX) / CELL_SIZE;
+        float entityY = (curEntity->y - playerY) / CELL_SIZE;
 
         float transformY = inverseDeterminant * (-planeY * entityX + planeX * entityY);
         if (transformY > 0) {
