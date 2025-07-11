@@ -20,6 +20,10 @@ SceneManager.loadFirstScene(TitleScene)
 
 function NextLevel(playerHealth)
 	GAME_DATA.currentRoom += 1
+	if GAME_DATA.currentRoom > 10 and GAME_DATA.currentArea >= 2 then
+		SceneManager.switchScene(GameOverScene, true)
+		return
+	end
 	if GAME_DATA.currentRoom > 10 then
 		GAME_DATA.currentRoom = 1
 		GAME_DATA.currentArea += 1
@@ -29,5 +33,5 @@ function NextLevel(playerHealth)
 end
 
 function GameOver()
-	SceneManager.switchScene(GameOverScene)
+	SceneManager.switchScene(GameOverScene, false)
 end

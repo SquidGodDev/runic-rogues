@@ -2,8 +2,8 @@ local pd <const> = playdate
 local gfx <const> = pd.graphics
 
 GameOverScene = {}
-function GameOverScene:init()
-    local gameOverImage = gfx.image.new("images/title/gameEndScreen")
+function GameOverScene:init(win)
+    local gameOverImage = win and gfx.image.new("images/title/gameWonScreen") or gfx.image.new("images/title/gameEndScreen")
     local gameOverSprite = gfx.sprite.new(gameOverImage)
     gameOverSprite:setCenter(0, 0)
     gameOverSprite:moveTo(0, 0)
