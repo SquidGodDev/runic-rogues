@@ -140,6 +140,10 @@ void setInit(Set* set) {
     }
 }
 
+void setClear(Set* set) {
+    setInit(set);
+}
+
 // Add a value to the set
 void setAdd(Set* set, int value) {
     int index = hash(value);

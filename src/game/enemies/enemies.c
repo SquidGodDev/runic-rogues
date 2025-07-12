@@ -2,7 +2,6 @@
 #include "pd_api.h"
 
 #include "globals.h"
-#include "helpers.h"
 #include "game/map/map.h"
 #include "game/enemies/enemies.h"
 #include "game/player/player.h"
@@ -778,11 +777,11 @@ void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
 	}
 }
 
-bool checkEnemyCollision(float x, float y, float collisionRange, int damage, float slowTime) {
+bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime) {
 	bool collided = false; 
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy curEnemy = enemies[i];
-		if (!curEnemy.active) {
+		if (!curEnemy.active || setContains(hitEnemies, i)) {
 			continue;
 		}
 
@@ -791,7 +790,11 @@ bool checkEnemyCollision(float x, float y, float collisionRange, int damage, flo
 			if (slowTime > 0) {
 				slowEnemy(i, slowTime);
 			}
-			collided |= damageEnemy(i, damage);
+			bool enemyDamaged = damageEnemy(i, damage);
+			if (enemyDamaged) {
+				setAdd(hitEnemies, i);
+				collided = true;
+			}
 		}
 	}
 	return collided;

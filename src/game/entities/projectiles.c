@@ -26,12 +26,15 @@ Projectile projectiles[MAX_PROJECTILE_COUNT] = {0};
 void initProjectiles(void) {
     for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		projectiles[i].active = 0;
+		projectiles[i].hitEnemies = pd->system->realloc(projectiles[i].hitEnemies, sizeof(Set));
 	}
 }
 
 void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, uint8_t *texture, int isEnemy, int hitCount, float slowTime) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		if (!projectiles[i].active) {
+			Set *hitEnemies = projectiles[i].hitEnemies;
+			setClear(hitEnemies);
 			projectiles[i] = (Projectile) {
 				.x = x,
 				.y = y,
@@ -42,6 +45,7 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 				.texture = texture,
 				.isEnemy = isEnemy,
 				.hitCount = hitCount,
+				.hitEnemies = hitEnemies,
 				.slowTime = slowTime,
 				.active = 1
 			};
@@ -78,15 +82,15 @@ void updateProjectiles(float deltaTime) {
 			int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
 			spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
 		} else {
-			int collided = 0;
+			bool collided = false;
 			if (curProjectile->isEnemy) {
 				float distSquared = distanceSquared(curProjectile->x, curProjectile->y, playerX, playerY);
 				if (distSquared < ENEMY_COLLISION_RANGE) {
-					collided = 1;
+					collided = true;
 					damagePlayer(curProjectile->damage);
 				}
 			} else {
-				collided = checkEnemyCollision(curProjectile->x, curProjectile->y, PLAYER_COLLISION_RANGE, curProjectile->damage, curProjectile->slowTime);
+				collided = checkEnemyCollision(curProjectile->x, curProjectile->y, curProjectile->hitEnemies, PLAYER_COLLISION_RANGE, curProjectile->damage, curProjectile->slowTime);
 			}
 			if (collided) {
 				curProjectile->hitCount--;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "stdbool.h"
+#include "helpers.h"
 
 #define MAX_ENEMY_COUNT 25
 
@@ -55,4 +56,4 @@ void updateEnemies(float deltaTime);
 float getBossHealthPercentage(void);
 bool damageEnemy(int index, int damage);
 void damageEnemiesAtMapPosition(int mapX, int mapY, int damage);
-bool checkEnemyCollision(float x, float y, float collisionRange, int damage, float slowTime);
+bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "helpers.h"
+
 #define MAX_PROJECTILE_COUNT 20
 
 typedef struct Projectile {
@@ -10,6 +12,7 @@ typedef struct Projectile {
 	float speed;
 	int hitCount;
 	float slowTime;
+	Set *hitEnemies;
 	uint8_t damage;
 	uint8_t *texture;
 	uint16_t isEnemy;

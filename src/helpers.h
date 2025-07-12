@@ -113,6 +113,7 @@ typedef struct {
 } Set;
 
 void setInit(Set* set);
+void setClear(Set* set);
 void setAdd(Set* set, int value);
 void setRemove(Set* set, int value);
 bool setContains(Set* set, int value);
