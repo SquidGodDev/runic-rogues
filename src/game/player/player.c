@@ -32,41 +32,59 @@ float playerMana;
 int interactableIndex;
 // ========================
 
-static int playerDead;
-static float playerHitInvincibility;
+typedef struct PlayerState {
+	bool dead;
+	float hitInvincibility;
+} PlayerState;
 
-static int playerRadius;
-static float playerTurnSpeed;
-static float playerTurnAccel;
-static float playerTurnDrag;
-static float playerTurnMaxSpeed;
-static float playerTurnInitialSpeed;
+typedef struct PlayerMovementStats {
+	// Turning (Constant)
+	float turnAcceleration;
+	float turnDrag;
+	float turnMaxSpeed;
+	float turnInitialSpeed;
+	// Turning (Dynamic)
+	float turnSpeed;
 
-static float playerXVelocity, playerYVelocity;
-static float playerSpeed;
-static float playerInitialSpeed;
-static float playerAccel;
-static float playerDrag;
-static float playerStrafeSpeed;
+	// Movement speed (Constant)
+	float initialSpeed;
+	float acceleration;
+	float drag;
+	// Movement speed (Dynamic)
+	float xVelocity;
+	float yVelocity;
+	float speed;
+	float strafeSpeed;
 
-PDButtons dashMovementDir;
-static float playerDashSpeed;
-static float playerDashTime;
-static float playerCurDashTime;
+	// Dash (Constant)
+	float dashSpeed;
+	float dashTime;
+	// Dash (Dynamic)
+	PDButtons dashMovementDir;
+	float curDashTime;
+} PlayerMovementStats;
 
-static float weaponCurCooldown = 0;
-static float weaponBobCounter = 0;
-static float weaponBobSpeed = 0.15f;
-static int weaponBasePositionX = 126;
-static int weaponBasePositionY = 75;
-static int weaponXOffset = 5;
-static int weaponYOffset = 3;
-static int weaponActiveXOffset = 0;
-static int weaponActiveYOffset = -7;
-static float weaponTargetDrawX;
-static float weaponTargetDrawY;
-static float weaponDrawX;
-static float weaponDrawY;
+typedef struct WeaponAnimation {
+	// Fixed constants
+	float bobSpeed;
+	int basePositionX;
+	int basePositionY;
+	int xOffset;
+	int yOffset;
+	int activeXOffset;
+	int activeYOffset;
+	// Dynamic values
+	float curCooldown;
+	float bobCounter;
+	float drawX;
+	float drawY;
+	float targetDrawX;
+	float targetDrawY;
+} WeaponAnimation;
+
+static PlayerState playerState;
+static PlayerMovementStats movementStats;
+static WeaponAnimation weaponAnimation;
 
 static int defaultStrafeSetting = 0;
 static int toggleMovementSetting = 0;
@@ -93,41 +111,59 @@ void initPlayer(int isGameStart) {
 		playerHealth = PLAYER_STATS.maxHealth;
 	}
 	playerMana = PLAYER_STATS.maxMana;
-	playerDead = 0;
-	playerHitInvincibility = 0;
+	playerState = (PlayerState) {
+		.dead = 0,
+		.hitInvincibility = 0
+	};
 
 	Point playerSpawnMapPosition = getPlayerSpawnMapPosition();
 	playerX = playerSpawnMapPosition.x * CELL_SIZE + CELL_SIZE / 2;
 	playerY = playerSpawnMapPosition.y * CELL_SIZE + CELL_SIZE / 2;
-	playerRadius = 6;
 	playerAngle = 0;
-	playerTurnSpeed = 0;
-	playerTurnMaxSpeed = 0.04f * TARGET_FPS;
-	playerTurnInitialSpeed = 0.01f * TARGET_FPS;
-	playerTurnAccel = 0.1f * TARGET_FPS;
-	playerTurnDrag = 0.25f * TARGET_FPS;
-	playerInitialSpeed = 0.4f * TARGET_FPS;
-	playerSpeed = 0;
-	playerStrafeSpeed = 0;
-	playerAccel = 3.5f * TARGET_FPS;
-	playerDrag = 3.5f * TARGET_FPS;
-	playerXVelocity = 0;
-	playerYVelocity = 0;
 	planeX = 0;
 	planeY = -0.59f; // I think it's supposed to be -tanf(FOV_RAD / 2) ~= -0.65, but adjusted since it was off for some reason
 	dirX = 1;
 	dirY = 0;
 
-	dashMovementDir = 0;
-	playerDashSpeed = 2.5f * TARGET_FPS;
-	playerDashTime = 0.3f;
-	playerCurDashTime = 0;
+	movementStats = (PlayerMovementStats) {
+		.turnAcceleration = 0.1f * TARGET_FPS,
+		.turnDrag = 0.25f * TARGET_FPS,
+		.turnMaxSpeed = 0.04f * TARGET_FPS,
+		.turnInitialSpeed = 0.01f * TARGET_FPS,
+		.turnSpeed = 0,
+
+		.initialSpeed = 0.4f * TARGET_FPS,
+		.acceleration = 3.5f * TARGET_FPS,
+		.drag = 3.5f * TARGET_FPS,
+		.xVelocity = 0,
+		.yVelocity = 0,
+		.speed = 0,
+		.strafeSpeed = 0,
+
+		.dashSpeed = 2.5f * TARGET_FPS,
+		.dashTime = 0.3f,
+		.dashMovementDir = 0,
+		.curDashTime = 0
+	};
 
 	// Animation
-	weaponTargetDrawX = weaponBasePositionX;
-	weaponTargetDrawY = weaponBasePositionY;
-	weaponDrawX = weaponTargetDrawX;
-	weaponDrawY = weaponTargetDrawY;
+	int weaponBasePositionX = 126;
+	int weaponBasePositionY = 75;
+	weaponAnimation = (WeaponAnimation) {
+		.bobSpeed = 0.15f,
+		.basePositionX = weaponBasePositionX,
+		.basePositionY = weaponBasePositionY,
+		.xOffset = 5,
+		.yOffset = 3,
+		.activeXOffset = 0,
+		.activeYOffset = -7,
+		.curCooldown = 0,
+		.bobCounter = 0,
+		.drawX = weaponBasePositionX,
+		.drawY = weaponBasePositionY,
+		.targetDrawX = weaponBasePositionX,
+		.targetDrawY = weaponBasePositionY
+	};
 
 	// State
 	interactableIndex = -1;
@@ -152,15 +188,15 @@ void handleInput(float deltaTime)
 	PDButtons pushed;
 	pd->system->getButtonState(&current, &pushed, NULL);
 
-	if (isTransitioning() || playerDead) {
+	if (isTransitioning() || playerState.dead) {
 		// Disable inputs
 		current = 0;
 		pushed = 0;
 	}
 
-	playerCurDashTime -= deltaTime;
-	if (playerCurDashTime < 0) {
-		playerCurDashTime = 0;
+	movementStats.curDashTime -= deltaTime;
+	if (movementStats.curDashTime < 0) {
+		movementStats.curDashTime = 0;
 	}
 	if (pushed & kButtonB) {
 		castUtilitySpell();
@@ -170,7 +206,7 @@ void handleInput(float deltaTime)
 		interact(interactableIndex);
 	} else if (pushed & kButtonA) {
 		if(castHeldSpell()) {
-			weaponCurCooldown = PLAYER_STATS.weaponCooldown;
+			weaponAnimation.curCooldown = PLAYER_STATS.weaponCooldown;
 		}
 	}
 
@@ -178,7 +214,7 @@ void handleInput(float deltaTime)
 		movementToggled ^= 1;
 	}
 
-	int playerIsDashing = playerCurDashTime > 0;
+	int playerIsDashing = movementStats.curDashTime > 0;
 	int bButtonPressed = (current & kButtonB) != 0;
 	if (toggleMovementSetting) {
 		bButtonPressed = movementToggled;
@@ -188,32 +224,32 @@ void handleInput(float deltaTime)
 	float crankChange = pd->system->getCrankChange();
 
 	if ((current & kButtonLeft) && rotationEnabled) {
-		if (playerTurnSpeed > -playerTurnInitialSpeed) {
-			playerTurnSpeed = -playerTurnInitialSpeed;
+		if (movementStats.turnSpeed > -movementStats.turnInitialSpeed) {
+			movementStats.turnSpeed = -movementStats.turnInitialSpeed;
 		}
-		playerTurnSpeed -= playerTurnAccel * deltaTime; 
-		if (playerTurnSpeed < -playerTurnMaxSpeed) {
-			playerTurnSpeed = -playerTurnMaxSpeed;
+		movementStats.turnSpeed -= movementStats.turnAcceleration * deltaTime; 
+		if (movementStats.turnSpeed < -movementStats.turnMaxSpeed) {
+			movementStats.turnSpeed = -movementStats.turnMaxSpeed;
 		}
 	} else if ((current & kButtonRight) && rotationEnabled) {
-		if (playerTurnSpeed < playerTurnInitialSpeed) {
-			playerTurnSpeed = playerTurnInitialSpeed;
+		if (movementStats.turnSpeed < movementStats.turnInitialSpeed) {
+			movementStats.turnSpeed = movementStats.turnInitialSpeed;
 		}
-		playerTurnSpeed += playerTurnAccel * deltaTime; 
-		if (playerTurnSpeed > playerTurnMaxSpeed) {
-			playerTurnSpeed = playerTurnMaxSpeed;
+		movementStats.turnSpeed += movementStats.turnAcceleration * deltaTime; 
+		if (movementStats.turnSpeed > movementStats.turnMaxSpeed) {
+			movementStats.turnSpeed = movementStats.turnMaxSpeed;
 		}
 	} else {
-		if (playerTurnSpeed < 0.5f && playerTurnSpeed > -0.5f) {
-			playerTurnSpeed = 0;
-		} else if (playerTurnSpeed > 0) {
-			playerTurnSpeed -= playerTurnDrag * deltaTime;
-		} else if (playerTurnSpeed < 0) {
-			playerTurnSpeed += playerTurnDrag * deltaTime;
+		if (movementStats.turnSpeed < 0.5f && movementStats.turnSpeed > -0.5f) {
+			movementStats.turnSpeed = 0;
+		} else if (movementStats.turnSpeed > 0) {
+			movementStats.turnSpeed -= movementStats.turnDrag * deltaTime;
+		} else if (movementStats.turnSpeed < 0) {
+			movementStats.turnSpeed += movementStats.turnDrag * deltaTime;
 		}
 	}
 
-	float adjustedTurnSpeed = (playerTurnSpeed + crankChange * CRANK_SENSITIVITY) * deltaTime;
+	float adjustedTurnSpeed = (movementStats.turnSpeed + crankChange * CRANK_SENSITIVITY) * deltaTime;
 	playerAngle += adjustedTurnSpeed;
 	if (playerAngle < 0) {
 		playerAngle += 2 * PI;
@@ -228,85 +264,85 @@ void handleInput(float deltaTime)
 	planeX = planeX * cosf(adjustedTurnSpeed) - planeY * sinf(adjustedTurnSpeed);
 	planeY = oldPlaneX * sinf(adjustedTurnSpeed) + planeY * cosf(adjustedTurnSpeed);
 
-	float maxSpeed = playerIsDashing ? playerDashSpeed : PLAYER_STATS.maxSpeed;
-	PDButtons movementDir = playerIsDashing ? dashMovementDir : current;
+	float maxSpeed = playerIsDashing ? movementStats.dashSpeed : PLAYER_STATS.maxSpeed;
+	PDButtons movementDir = playerIsDashing ? movementStats.dashMovementDir : current;
 
 	if ((movementDir & kButtonRight) && strafeEnabled) {
-		if (playerStrafeSpeed < playerInitialSpeed) {
-			playerStrafeSpeed = playerInitialSpeed;
+		if (movementStats.strafeSpeed < movementStats.initialSpeed) {
+			movementStats.strafeSpeed = movementStats.initialSpeed;
 		}
-		playerStrafeSpeed += playerAccel * deltaTime;
-		if (playerStrafeSpeed > maxSpeed) {
-			playerStrafeSpeed = maxSpeed;
+		movementStats.strafeSpeed += movementStats.acceleration * deltaTime;
+		if (movementStats.strafeSpeed > maxSpeed) {
+			movementStats.strafeSpeed = maxSpeed;
 		}
 	} else if ((movementDir & kButtonLeft) && strafeEnabled) {
-		if (playerStrafeSpeed > -playerInitialSpeed) {
-			playerStrafeSpeed = -playerInitialSpeed;
+		if (movementStats.strafeSpeed > -movementStats.initialSpeed) {
+			movementStats.strafeSpeed = -movementStats.initialSpeed;
 		}
-		playerStrafeSpeed -= playerAccel * deltaTime;
-		if (playerStrafeSpeed < -maxSpeed) {
-			playerStrafeSpeed = -maxSpeed;
+		movementStats.strafeSpeed -= movementStats.acceleration * deltaTime;
+		if (movementStats.strafeSpeed < -maxSpeed) {
+			movementStats.strafeSpeed = -maxSpeed;
 		}
 	} else {
 		float dragCutoff = 0.1f * maxSpeed;
-		if (playerStrafeSpeed < dragCutoff && playerStrafeSpeed > -dragCutoff) {
-			playerStrafeSpeed = 0;
-		} else if (playerStrafeSpeed > 0) {
-			playerStrafeSpeed -= playerDrag * deltaTime;
-		} else if (playerStrafeSpeed < 0) {
-			playerStrafeSpeed += playerDrag * deltaTime;
+		if (movementStats.strafeSpeed < dragCutoff && movementStats.strafeSpeed > -dragCutoff) {
+			movementStats.strafeSpeed = 0;
+		} else if (movementStats.strafeSpeed > 0) {
+			movementStats.strafeSpeed -= movementStats.drag * deltaTime;
+		} else if (movementStats.strafeSpeed < 0) {
+			movementStats.strafeSpeed += movementStats.drag * deltaTime;
 		}
 	}
 
 	if (movementDir & kButtonUp) {
-		if (playerSpeed < playerInitialSpeed) {
-			playerSpeed = playerInitialSpeed;
+		if (movementStats.speed < movementStats.initialSpeed) {
+			movementStats.speed = movementStats.initialSpeed;
 		}
-		playerSpeed += playerAccel * deltaTime;
-		if (playerSpeed > maxSpeed) {
-			playerSpeed = maxSpeed;
+		movementStats.speed += movementStats.acceleration * deltaTime;
+		if (movementStats.speed > maxSpeed) {
+			movementStats.speed = maxSpeed;
 		}
 	} else if (movementDir & kButtonDown) {
-		if (playerSpeed > -playerInitialSpeed) {
-			playerSpeed = -playerInitialSpeed;
+		if (movementStats.speed > -movementStats.initialSpeed) {
+			movementStats.speed = -movementStats.initialSpeed;
 		}
-		playerSpeed -= playerAccel * deltaTime;
-		if (playerSpeed < -maxSpeed) {
-			playerSpeed = -maxSpeed;
+		movementStats.speed -= movementStats.acceleration * deltaTime;
+		if (movementStats.speed < -maxSpeed) {
+			movementStats.speed = -maxSpeed;
 		}
 	} else {
 		float dragCutoff = 0.1f * maxSpeed;
-		if (playerSpeed < dragCutoff && playerSpeed > -dragCutoff) {
-			playerSpeed = 0;
-		} else if (playerSpeed > 0) {
-			playerSpeed -= playerDrag * deltaTime;
-		} else if (playerSpeed < 0) {
-			playerSpeed += playerDrag * deltaTime;
+		if (movementStats.speed < dragCutoff && movementStats.speed > -dragCutoff) {
+			movementStats.speed = 0;
+		} else if (movementStats.speed > 0) {
+			movementStats.speed -= movementStats.drag * deltaTime;
+		} else if (movementStats.speed < 0) {
+			movementStats.speed += movementStats.drag * deltaTime;
 		}
 	}
 
-	float combinedMagnitude = sqrtf((playerSpeed * playerSpeed) + (playerStrafeSpeed * playerStrafeSpeed));
+	float combinedMagnitude = sqrtf((movementStats.speed * movementStats.speed) + (movementStats.strafeSpeed * movementStats.strafeSpeed));
 	float normalizedSpeed = 0;
 	float normalizedStrafeSpeed = 0;
 
 	if (combinedMagnitude != 0) {
-		normalizedSpeed = playerSpeed * (fabsf(playerSpeed) / combinedMagnitude);
-		normalizedStrafeSpeed = playerStrafeSpeed * (fabsf(playerStrafeSpeed) / combinedMagnitude);
+		normalizedSpeed = movementStats.speed * (fabsf(movementStats.speed) / combinedMagnitude);
+		normalizedStrafeSpeed = movementStats.strafeSpeed * (fabsf(movementStats.strafeSpeed) / combinedMagnitude);
 	}
 
-	playerXVelocity = cosf(playerAngle) * normalizedSpeed + cosf(playerAngle + PI / 2) * normalizedStrafeSpeed;
-	playerYVelocity = sinf(playerAngle) * normalizedSpeed + sinf(playerAngle + PI / 2) * normalizedStrafeSpeed;
+	movementStats.xVelocity = cosf(playerAngle) * normalizedSpeed + cosf(playerAngle + PI / 2) * normalizedStrafeSpeed;
+	movementStats.yVelocity = sinf(playerAngle) * normalizedSpeed + sinf(playerAngle + PI / 2) * normalizedStrafeSpeed;
 
 	int wallCollisionDist = 10;
 	int xOffset = 0;
-	if (playerXVelocity < 0) {
+	if (movementStats.xVelocity < 0) {
 		xOffset = -wallCollisionDist;
 	} else {
 		xOffset = wallCollisionDist;
 	}
 
 	int yOffset = 0;
-	if (playerYVelocity < 0) {
+	if (movementStats.yVelocity < 0) {
 		yOffset = -wallCollisionDist;
 	} else {
 		yOffset = wallCollisionDist;
@@ -319,37 +355,37 @@ void handleInput(float deltaTime)
 	int lookAheadYIndex = (playerY + yOffset) / cellSize;
 
 	if (map[yIndex * mapWidth + lookAheadXIndex] == 0) {
-		playerX += playerXVelocity * deltaTime;
+		playerX += movementStats.xVelocity * deltaTime;
 	}
 
 	if (map[lookAheadYIndex * mapWidth + xIndex] == 0) {
-		playerY += playerYVelocity * deltaTime;
+		playerY += movementStats.yVelocity * deltaTime;
 	}
 
 	// Weapon drawing
 	if (current & kButtonLeft) {
-		weaponTargetDrawX = weaponBasePositionX - weaponXOffset;
+		weaponAnimation.targetDrawX = weaponAnimation.basePositionX - weaponAnimation.xOffset;
 	} else if (current & kButtonRight) {
-		weaponTargetDrawX = weaponBasePositionX + weaponXOffset;
+		weaponAnimation.targetDrawX = weaponAnimation.basePositionX + weaponAnimation.xOffset;
 	} else {
-		weaponTargetDrawX = weaponBasePositionX;
+		weaponAnimation.targetDrawX = weaponAnimation.basePositionX;
 	}
 
 	if ((current & kButtonUp) || (current & kButtonDown)) {
-		weaponBobCounter += weaponBobSpeed;
-		if (weaponBobCounter > 2 * PI) {
-			weaponBobCounter -= 2 * PI;
+		weaponAnimation.bobCounter += weaponAnimation.bobSpeed;
+		if (weaponAnimation.bobCounter > 2 * PI) {
+			weaponAnimation.bobCounter -= 2 * PI;
 		}
 
-		weaponTargetDrawY = weaponBasePositionY - weaponYOffset * sinf(weaponBobCounter);
+		weaponAnimation.targetDrawY = weaponAnimation.basePositionY - weaponAnimation.yOffset * sinf(weaponAnimation.bobCounter);
 	} else {
-		weaponBobCounter = 0;
-		weaponTargetDrawY = weaponBasePositionY;
+		weaponAnimation.bobCounter = 0;
+		weaponAnimation.targetDrawY = weaponAnimation.basePositionY;
 	}
 
-	if (weaponCurCooldown > 0) {
-		weaponTargetDrawX = weaponBasePositionX + weaponActiveXOffset;
-		weaponTargetDrawY = weaponBasePositionY + weaponActiveYOffset;
+	if (weaponAnimation.curCooldown > 0) {
+		weaponAnimation.targetDrawX = weaponAnimation.basePositionX + weaponAnimation.activeXOffset;
+		weaponAnimation.targetDrawY = weaponAnimation.basePositionY + weaponAnimation.activeYOffset;
 	}
 }
 
@@ -369,10 +405,10 @@ void handleInteractables(void) {
 }
 
 void updatePlayer(float deltaTime) {
-	if (playerHitInvincibility > 0) {
-        playerHitInvincibility -= deltaTime;
-        if (playerHitInvincibility < 0) {
-            playerHitInvincibility = 0;
+	if (playerState.hitInvincibility > 0) {
+        playerState.hitInvincibility -= deltaTime;
+        if (playerState.hitInvincibility < 0) {
+            playerState.hitInvincibility = 0;
         }
     }
 	handleInput(deltaTime);
@@ -380,9 +416,9 @@ void updatePlayer(float deltaTime) {
 }
 
 void playerDash(void) {
-	pd->system->getButtonState(&dashMovementDir, NULL, NULL);
-	playerCurDashTime = playerDashTime;
-	playerHitInvincibility = playerDashTime * 2;
+	pd->system->getButtonState(&movementStats.dashMovementDir, NULL, NULL);
+	movementStats.curDashTime = movementStats.dashTime;
+	playerState.hitInvincibility = movementStats.dashTime * 2;
 }
 
 void healPlayer(int amount) {
@@ -393,17 +429,17 @@ void healPlayer(int amount) {
 }
 
 void damagePlayer(int amount) {
-    if (playerHitInvincibility > 0 || playerDead) {
+    if (playerState.hitInvincibility > 0 || playerState.dead) {
         return;
     }
 
 	playSound(SFX_PLAYER_HIT);
     screenShake(SCREEN_SHAKE_MEDIUM);
-    playerHitInvincibility = HIT_INVINCIBILITY_TIME;
+    playerState.hitInvincibility = HIT_INVINCIBILITY_TIME;
     playerHealth -= amount;
     if (playerHealth <= 0) {
         playerHealth = 0;
-		playerDead = 1;
+		playerState.dead = 1;
         pd->graphics->clear(kColorBlack);
         pd->lua->callFunction("GameOver", 0, NULL);
     }
@@ -411,15 +447,15 @@ void damagePlayer(int amount) {
 
 void drawWeapon(float deltaTime) {
 	float lerpSpeed = 0.2f;
-	weaponDrawX = lerp(weaponDrawX, weaponTargetDrawX, lerpSpeed);
-	weaponDrawY = lerp(weaponDrawY, weaponTargetDrawY, lerpSpeed);
-	if (weaponCurCooldown > 0) {
-		weaponCurCooldown -= deltaTime;
-		if (weaponCurCooldown <= 0) {
-			weaponCurCooldown = 0;
+	weaponAnimation.drawX = lerp(weaponAnimation.drawX, weaponAnimation.targetDrawX, lerpSpeed);
+	weaponAnimation.drawY = lerp(weaponAnimation.drawY, weaponAnimation.targetDrawY, lerpSpeed);
+	if (weaponAnimation.curCooldown > 0) {
+		weaponAnimation.curCooldown -= deltaTime;
+		if (weaponAnimation.curCooldown <= 0) {
+			weaponAnimation.curCooldown = 0;
 		}
-		pd->graphics->drawBitmap(BITMAPS[BITMAP_HAND_OPEN], weaponDrawX, weaponDrawY, kBitmapUnflipped);
+		pd->graphics->drawBitmap(BITMAPS[BITMAP_HAND_OPEN], weaponAnimation.drawX, weaponAnimation.drawY, kBitmapUnflipped);
 	} else {
-		pd->graphics->drawBitmap(BITMAPS[BITMAP_HAND], weaponDrawX, weaponDrawY, kBitmapUnflipped);
+		pd->graphics->drawBitmap(BITMAPS[BITMAP_HAND], weaponAnimation.drawX, weaponAnimation.drawY, kBitmapUnflipped);
 	}
 }
