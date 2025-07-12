@@ -135,9 +135,9 @@ void initSpellData(void) {
         .spellIcon = BITMAPS[BITMAP_SPELL_SLOW_SHOT_ICON],
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
-        .damage = 1,
+        .damage = 0,
         .hitCount = 5,
-        .slowTime = 2.0f,
+        .slowTime = 4.0f,
         .speed = TARGET_FPS * 2.0f
     };
     spellData[SPELL_SLOW_WAVE] = (SpellData) {
@@ -146,9 +146,9 @@ void initSpellData(void) {
         .spellIcon = BITMAPS[BITMAP_SPELL_SLOW_WAVE_ICON],
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
-        .damage = 1,
+        .damage = 0,
         .hitCount = 5,
-        .slowTime = 2.0f,
+        .slowTime = 4.0f,
         .speed = TARGET_FPS * 2.0f
     };
 }
