@@ -9,10 +9,9 @@ extern float dirX, dirY;
 extern int playerHealth;
 extern float playerMana;
 
-extern int interactableIndex;
-
 void initPlayer(int isGameStart);
 void updatePlayer(float deltaTime);
+int getPlayerInteractableIndex(void);
 void playerDash(void);
 void healPlayer(int amount);
 void damagePlayer(int amount);

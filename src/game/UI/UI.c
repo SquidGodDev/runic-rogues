@@ -225,11 +225,12 @@ void drawMinimap(void) {
 }
 
 void drawInteractablePrompt(void) {
-    if (interactableIndex < 0 || interactableIndex >= MAX_INTERACTABLE_COUNT) {
+    int playerInteractableIndex = getPlayerInteractableIndex();
+    if (playerInteractableIndex < 0 || playerInteractableIndex >= MAX_INTERACTABLE_COUNT) {
         return;
     }
 
-    Interactable curInteractable = INTERACTABLES[interactableIndex];
+    Interactable curInteractable = INTERACTABLES[playerInteractableIndex];
     if (!curInteractable.active) {
         return;
     }

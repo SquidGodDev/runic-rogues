@@ -28,13 +28,12 @@ float planeX, planeY;
 float dirX, dirY;
 int playerHealth;
 float playerMana;
-
-int interactableIndex;
 // ========================
 
 typedef struct PlayerState {
 	bool dead;
 	float hitInvincibility;
+	int interactableIndex;
 } PlayerState;
 
 typedef struct PlayerMovementStats {
@@ -113,7 +112,8 @@ void initPlayer(int isGameStart) {
 	playerMana = PLAYER_STATS.maxMana;
 	playerState = (PlayerState) {
 		.dead = 0,
-		.hitInvincibility = 0
+		.hitInvincibility = 0,
+		.interactableIndex = -1
 	};
 
 	Point playerSpawnMapPosition = getPlayerSpawnMapPosition();
@@ -165,9 +165,6 @@ void initPlayer(int isGameStart) {
 		.targetDrawY = weaponBasePositionY
 	};
 
-	// State
-	interactableIndex = -1;
-
 	pd->system->removeAllMenuItems();
 	const char *movementOptions[] = {"rotate", "strafe"};
 	toggleDefaultStrafeMenuItem = pd->system->addOptionsMenuItem("Default", movementOptions, 2, toggleDefaultStrafeCallback, NULL);
@@ -202,8 +199,8 @@ void handleInput(float deltaTime)
 		castUtilitySpell();
 	}
 
-	if (interactableIndex != -1 && (pushed & kButtonA)) {
-		interact(interactableIndex);
+	if (playerState.interactableIndex != -1 && (pushed & kButtonA)) {
+		interact(playerState.interactableIndex);
 	} else if (pushed & kButtonA) {
 		if(castHeldSpell()) {
 			weaponAnimation.curCooldown = PLAYER_STATS.weaponCooldown;
@@ -390,7 +387,7 @@ void handleInput(float deltaTime)
 }
 
 void handleInteractables(void) {
-	interactableIndex = -1;
+	playerState.interactableIndex = -1;
 	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
 		if (!INTERACTABLES[i].active) {
 			continue;
@@ -398,7 +395,7 @@ void handleInteractables(void) {
 
 		Interactable curInteractable = INTERACTABLES[i];
 		if (distanceSquared(playerX, playerY, curInteractable.x, curInteractable.y) <= INTERACT_DISTANCE) {
-			interactableIndex = i;
+			playerState.interactableIndex = i;
 			break;
 		}
 	}
@@ -413,6 +410,10 @@ void updatePlayer(float deltaTime) {
     }
 	handleInput(deltaTime);
 	handleInteractables();
+}
+
+int getPlayerInteractableIndex(void) {
+	return playerState.interactableIndex;
 }
 
 void playerDash(void) {
