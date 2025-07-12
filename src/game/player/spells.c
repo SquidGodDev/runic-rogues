@@ -33,18 +33,7 @@ static int utilitySpellCount;
 
 void initSpellData(void) {
     spellData[SPELL_NONE] = (SpellData) {
-        .pickupTexture = NULL,
-        .spellTexture = NULL,
         .spellIcon = BITMAPS[BITMAP_SPELL_EMPTY_ICON],
-        .type = SPELL_TYPE_INSTANT,
-        .damage = 0,
-        .repeatCount = 0,
-        .hitCount = 0,
-        .slowTime = 0,
-        .useInitialCastAngle = false,
-        .speed = 0,
-        .castTime = 0,
-        .activationTime = 0
     };
     spellData[SPELL_FIREBALL] = (SpellData) {
         .pickupTexture = TEXTURES[TEXTURE_SPELL_FIREBALL],
@@ -54,7 +43,6 @@ void initSpellData(void) {
         .castTime = 0.4f,
         .damage = 3,
         .hitCount = 1,
-        .slowTime = 0,
         .speed = TARGET_FPS * 1.5f
     };
     spellData[SPELL_TRIPLE_SHOT] = (SpellData) {
@@ -66,7 +54,6 @@ void initSpellData(void) {
         .damage = 1,
         .repeatCount = 3,
         .hitCount = 1,
-        .slowTime = 0,
         .useInitialCastAngle = false,
         .speed = TARGET_FPS * 3.0f,
         .activationTime = 0.3f
@@ -79,7 +66,6 @@ void initSpellData(void) {
         .castTime = 0.4f,
         .damage = 1,
         .hitCount = 1,
-        .slowTime = 0,
         .speed = TARGET_FPS * 2.0f
     };
     spellData[SPELL_LASER] = (SpellData) {
@@ -91,7 +77,7 @@ void initSpellData(void) {
         .activationTime = 0.1f,
         .repeatCount = 5,
         .hitCount = 3,
-        .slowTime = 0,
+        .playerSpeedModifier = -0.7f,
         .useInitialCastAngle = true,
         .speed = TARGET_FPS * 6.0f
     };
@@ -102,7 +88,6 @@ void initSpellData(void) {
         .castTime = 0.6f,
         .damage = 1,
         .hitCount = 1,
-        .slowTime = 0,
     };
     spellData[SPELL_WAVE] = (SpellData) {
         .pickupTexture = TEXTURES[TEXTURE_SPELL_WAVE],
@@ -112,7 +97,6 @@ void initSpellData(void) {
         .castTime = 0.4f,
         .damage = 1,
         .hitCount = 1,
-        .slowTime = 0,
         .speed = TARGET_FPS * 2.0f
     };
     spellData[SPELL_TRIPLE_WAVE] = (SpellData) {
@@ -124,7 +108,6 @@ void initSpellData(void) {
         .damage = 1,
         .repeatCount = 3,
         .hitCount = 1,
-        .slowTime = 0,
         .useInitialCastAngle = false,
         .speed = TARGET_FPS * 3.0f,
         .activationTime = 0.3f
@@ -179,7 +162,7 @@ void initSpells(void) {
     for (int i = 1; i < SPELL_COUNT; i++) {
         spellDeck[i] = (Spell)i;
     }
-    // spellDeck[0] = SPELL_SLOW_SHOT;
+    // spellDeck[0] = SPELL_LASER;
     // spellDeck[1] = SPELL_SLOW_WAVE;
 
     resetSpellsToSpawn();
@@ -213,6 +196,14 @@ Spell getHeldSpell(int index) {
 
 int getMaxHeldSpells(void) {
     return MAX_HELD_SPELLS;
+}
+
+float getPlayerSpeedModifier(void) {
+    if (currentSpell == SPELL_NONE) {
+        return 1.0f;
+    }
+    SpellData data = spellData[currentSpell];
+    return 1.0f + data.playerSpeedModifier;
 }
 
 float getManaPercentage(void) {

@@ -262,6 +262,7 @@ void handleInput(float deltaTime)
 	planeY = oldPlaneX * sinf(adjustedTurnSpeed) + planeY * cosf(adjustedTurnSpeed);
 
 	float maxSpeed = playerIsDashing ? movementStats.dashSpeed : PLAYER_STATS.maxSpeed;
+	maxSpeed *= getPlayerSpeedModifier();
 	PDButtons movementDir = playerIsDashing ? movementStats.dashMovementDir : current;
 
 	if ((movementDir & kButtonRight) && strafeEnabled) {

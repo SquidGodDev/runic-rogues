@@ -16,9 +16,9 @@ typedef enum Spell {
 } Spell;
 
 typedef enum SpellType {
+    SPELL_TYPE_INSTANT,
     SPELL_TYPE_REPEAT,
     SPELL_TYPE_CHANNEL,
-    SPELL_TYPE_INSTANT,
     SPELL_TYPE_COUNT
 } SpellType;
 
@@ -31,6 +31,7 @@ typedef struct SpellData {
     int repeatCount;
     int hitCount;
     float slowTime;
+    float playerSpeedModifier;
     int useInitialCastAngle;
     float speed;
     float castTime;
@@ -44,6 +45,7 @@ Spell getRandomSpell(void);
 Spell heldSpellsFull(void);
 Spell getHeldSpell(int index);
 int getMaxHeldSpells(void);
+float getPlayerSpeedModifier(void);
 float getManaPercentage(void);
 int getMaxUtilitySpells(void);
 int getUtilitySpellCount(void);
