@@ -126,21 +126,21 @@ void initPlayer(int isGameStart) {
 	dirY = 0;
 
 	movementStats = (PlayerMovementStats) {
-		.turnAcceleration = 0.1f * TARGET_FPS,
-		.turnDrag = 0.25f * TARGET_FPS,
-		.turnMaxSpeed = 0.04f * TARGET_FPS,
-		.turnInitialSpeed = 0.01f * TARGET_FPS,
+		.turnAcceleration = 5.0f,
+		.turnDrag = 12.5f,
+		.turnMaxSpeed = 2.0f,
+		.turnInitialSpeed = 0.5f,
 		.turnSpeed = 0,
 
-		.initialSpeed = 0.4f * TARGET_FPS,
-		.acceleration = 3.5f * TARGET_FPS,
-		.drag = 3.5f * TARGET_FPS,
+		.initialSpeed = 20.0f,
+		.acceleration = 175.0f,
+		.drag = 175.0f,
 		.xVelocity = 0,
 		.yVelocity = 0,
 		.speed = 0,
 		.strafeSpeed = 0,
 
-		.dashSpeed = 2.5f * TARGET_FPS,
+		.dashSpeed = 125.0f,
 		.dashTime = 0.3f,
 		.dashMovementDir = 0,
 		.curDashTime = 0

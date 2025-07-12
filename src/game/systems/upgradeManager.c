@@ -10,9 +10,9 @@
 #define BASE_MAX_HEALTH 8
 #define BASE_MAX_MANA 10
 #define BASE_MANA_REGEN_RATE 1.5f
-#define BASE_MOVE_SPEED 0.8f
+#define BASE_MOVE_SPEED 40.0f
 #define BASE_PROJECTILE_DAMAGE 1
-#define BASE_PROJECTILE_SPEED 2.0f
+#define BASE_PROJECTILE_SPEED 100.0f
 #define BASE_WEAPON_COOLDOWN 0.6f
 
 #define UPGRADE_OPTION_COUNT 3
@@ -121,7 +121,7 @@ void initUpgradeManager(void) {
         .desc_jp = "マナ回復速度の増加"
     };
     upgradeData[UPGRADE_TYPE_MOVE_SPEED] = (UpgradeData) {
-        .modifier = 0.1f,
+        .modifier = 5.0f,
         .maxUpgradeCount = 5,
         .icon = BITMAPS[BITMAP_UPGRADE_MOVE_SPEED],
         .name_en = "Speed",
@@ -139,7 +139,7 @@ void initUpgradeManager(void) {
         .desc_jp = "基本攻撃のクールダウンを短縮"
     };
     upgradeData[UPGRADE_TYPE_PROJECTILE_SPEED] = (UpgradeData) {
-        .modifier = 1.0f,
+        .modifier = 50.0f,
         .maxUpgradeCount = 5,
         .icon = BITMAPS[BITMAP_UPGRADE_PROJECTILE_SPEED],
         .name_en = "Projectile Speed",
@@ -176,9 +176,9 @@ void initUpgradeValues(int isGameStart) {
         .maxHealth = BASE_MAX_HEALTH + upgradeValues[UPGRADE_TYPE_MAX_HEALTH].value,
         .maxMana = BASE_MAX_MANA + upgradeValues[UPGRADE_TYPE_MAX_MANA].value,
         .manaRegenRate = BASE_MANA_REGEN_RATE + upgradeValues[UPGRADE_TYPE_MANA_REGEN].value,
-        .maxSpeed = TARGET_FPS * (BASE_MOVE_SPEED + upgradeValues[UPGRADE_TYPE_MOVE_SPEED].value),
+        .maxSpeed = BASE_MOVE_SPEED + upgradeValues[UPGRADE_TYPE_MOVE_SPEED].value,
         .projectileDamage = BASE_PROJECTILE_DAMAGE,
-        .projectileSpeed = TARGET_FPS * (BASE_PROJECTILE_SPEED + upgradeValues[UPGRADE_TYPE_PROJECTILE_SPEED].value),
+        .projectileSpeed = BASE_PROJECTILE_SPEED + upgradeValues[UPGRADE_TYPE_PROJECTILE_SPEED].value,
         .weaponCooldown = BASE_WEAPON_COOLDOWN * (1 - upgradeValues[UPGRADE_TYPE_ATTACK_COOLDOWN].value)
     };
 }

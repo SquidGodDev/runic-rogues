@@ -43,7 +43,7 @@ void initSpellData(void) {
         .castTime = 0.4f,
         .damage = 3,
         .hitCount = 1,
-        .speed = TARGET_FPS * 1.5f
+        .speed = 75.0f
     };
     spellData[SPELL_TRIPLE_SHOT] = (SpellData) {
         .pickupTexture = TEXTURES[TEXTURE_SPELL_TRIPLE_SHOT],
@@ -55,7 +55,7 @@ void initSpellData(void) {
         .repeatCount = 3,
         .hitCount = 1,
         .useInitialCastAngle = false,
-        .speed = TARGET_FPS * 3.0f,
+        .speed = 150.0f,
         .activationTime = 0.3f
     };
     spellData[SPELL_SHOTGUN] = (SpellData) {
@@ -66,7 +66,7 @@ void initSpellData(void) {
         .castTime = 0.4f,
         .damage = 1,
         .hitCount = 1,
-        .speed = TARGET_FPS * 2.0f
+        .speed = 100.0f
     };
     spellData[SPELL_LASER] = (SpellData) {
         .pickupTexture = TEXTURES[TEXTURE_SPELL_LASER],
@@ -79,7 +79,7 @@ void initSpellData(void) {
         .hitCount = 3,
         .playerSpeedModifier = -0.7f,
         .useInitialCastAngle = true,
-        .speed = TARGET_FPS * 6.0f
+        .speed = 300.0f
     };
     spellData[SPELL_ROOT_ATTACK] = (SpellData) {
         .pickupTexture = TEXTURES[TEXTURE_SPELL_ROOT_ATTACK],
@@ -97,7 +97,7 @@ void initSpellData(void) {
         .castTime = 0.4f,
         .damage = 1,
         .hitCount = 1,
-        .speed = TARGET_FPS * 2.0f
+        .speed = 100.0f
     };
     spellData[SPELL_TRIPLE_WAVE] = (SpellData) {
         .pickupTexture = TEXTURES[TEXTURE_SPELL_TRIPLE_WAVE],
@@ -109,7 +109,7 @@ void initSpellData(void) {
         .repeatCount = 3,
         .hitCount = 1,
         .useInitialCastAngle = false,
-        .speed = TARGET_FPS * 3.0f,
+        .speed = 150.0f,
         .activationTime = 0.3f
     };
     spellData[SPELL_SLOW_SHOT] = (SpellData) {
@@ -121,7 +121,7 @@ void initSpellData(void) {
         .damage = 0,
         .hitCount = 5,
         .slowTime = 4.0f,
-        .speed = TARGET_FPS * 2.0f
+        .speed = 100.0f
     };
     spellData[SPELL_SLOW_WAVE] = (SpellData) {
         .pickupTexture = TEXTURES[TEXTURE_SPELL_SLOW_WAVE],
@@ -132,7 +132,7 @@ void initSpellData(void) {
         .damage = 0,
         .hitCount = 5,
         .slowTime = 4.0f,
-        .speed = TARGET_FPS * 2.0f
+        .speed = 100.0f
     };
 }
 

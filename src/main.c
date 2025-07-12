@@ -106,7 +106,7 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 		pd = playdate;
 		pd->system->resetElapsedTime();
 		pd->display->setScale(400 / SCREEN_WIDTH);
-		pd->display->setRefreshRate(50);
+		pd->display->setRefreshRate(TARGET_FPS);
 
 		srand(pd->system->getSecondsSinceEpoch(NULL));
 
