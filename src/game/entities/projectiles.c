@@ -30,7 +30,7 @@ void initProjectiles(void) {
 	}
 }
 
-void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, uint8_t *texture, int isEnemy, int hitCount, float slowTime) {
+void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, int hitCount, float slowTime) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		if (!projectiles[i].active) {
 			Set *hitEnemies = projectiles[i].hitEnemies;
@@ -42,7 +42,7 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 				.deltaY = deltaY,
 				.speed = speed,
 				.damage = damage,
-				.texture = texture,
+				.textureIndex = textureIndex,
 				.isEnemy = isEnemy,
 				.hitCount = hitCount,
 				.hitEnemies = hitEnemies,
@@ -55,11 +55,11 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 }
 
 void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int hitCount, float slowTime) {
-	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURES[TEXTURE_PROJECTILE], 0 /*isEnemy*/, hitCount, slowTime);
+	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_PROJECTILE, 0 /*isEnemy*/, hitCount, slowTime);
 }
 
 void fireEnemyProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage) {
-	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURES[TEXTURE_ENEMY_PROJECTILE], 1 /*isEnemy*/, 1 /*hitCount*/, 0 /* slowTime */);
+	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_ENEMY_PROJECTILE, 1 /*isEnemy*/, 1 /*hitCount*/, 0 /* slowTime */);
 }
 
 void updateProjectiles(float deltaTime) {
@@ -109,6 +109,6 @@ void updateProjectiles(float deltaTime) {
 		curProjectile->x += xVelocity * deltaTime;
 		curProjectile->y += yVelocity * deltaTime;
 
-		addEntityToRenderQueue(curProjectile->x, curProjectile->y, PROJECTILE, i, curProjectile->texture, 0 /* animationFrame*/);
+		addEntityToRenderQueue(curProjectile->x, curProjectile->y, PROJECTILE, i, curProjectile->textureIndex, 0 /* animationFrame*/);
 	}
 }

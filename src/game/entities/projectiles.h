@@ -13,16 +13,16 @@ typedef struct Projectile {
 	int hitCount;
 	float slowTime;
 	Set *hitEnemies;
-	uint8_t damage;
-	uint8_t *texture;
-	uint16_t isEnemy;
-	uint16_t active;
+	int damage;
+	int textureIndex;
+	bool isEnemy;
+	bool active;
 } Projectile;
 
 extern Projectile projectiles[MAX_PROJECTILE_COUNT];
 
 void initProjectiles(void);
-void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, uint8_t *texture, int isEnemy, int hitCount, float slowTime);
+void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, int hitCount, float slowTime);
 void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int hitCount, float slowTime);
 void fireEnemyProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage);
 void updateProjectiles(float deltaTime);

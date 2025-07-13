@@ -5,6 +5,7 @@
 #include "game/rendering/textures.h"
 
 uint8_t* TEXTURES[TEXTURE_COUNT];
+TextureBounds* TEXTURE_BOUNDS[TEXTURE_COUNT];
 const char *texturePathStrings[] = {
 	"images/UI/minimap/minimapCampfire",
 	"images/UI/minimap/minimapEnemy",
@@ -132,33 +133,54 @@ for _, pattern in ipairs(patterns) do
 end
 */
 
-uint8_t* bitmapToTextureArray(LCDBitmap *bitmap) {
+void bitmapToTextureArray(LCDBitmap *bitmap, int textureIndex) {
 	int width, height;
 	pd->graphics->getBitmapData(bitmap, &width, &height, NULL, NULL, NULL);
 	uint8_t *textureArray = pd->system->realloc(NULL, width * height * sizeof(uint8_t));
+	int minX = width;
+	int minY = height;
+	int maxX = -1;
+	int maxY = -1;
+
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
 			LCDColor drawColor = pd->graphics->getBitmapPixel(bitmap, x, y);
 			textureArray[y * width + x] = (uint8_t)drawColor;
+			int frameX = x;
+			int frameY = y % 32;
+			if (drawColor != kColorClear) {
+                if (frameX < minX) minX = frameX;
+                if (frameX > maxX) maxX = frameX;
+                if (frameY < minY) minY = frameY;
+                if (frameY > maxY) maxY = frameY;
+            }
 		}
 	}
-	return textureArray;
+
+	TEXTURES[textureIndex] = textureArray;
+	TextureBounds *bounds = (TextureBounds *)pd->system->realloc(NULL, sizeof(TextureBounds));
+	bounds->minX = minX;
+	bounds->minY = minY;
+	bounds->maxX = maxX;
+	bounds->maxY = maxY;
+	TEXTURE_BOUNDS[textureIndex] = bounds;
 }
 
-uint8_t* loadTexture(const char *texturePath) {
+void loadTexture(int textureIndex) {
+	const char *texturePath = texturePathStrings[textureIndex];
 	const char *outErr = NULL;
 	LCDBitmap *textureBitmap = pd->graphics->loadBitmap(texturePath, &outErr);
 	if (!textureBitmap) {
 		pd->system->error(outErr);
 	}
-	return bitmapToTextureArray(textureBitmap);
+	bitmapToTextureArray(textureBitmap, textureIndex);
 }
 
 void initTextures(void)
 {
 	for (int i = 0; i < TEXTURE_COUNT; i++) {
 		if (i < TEXTURE_SPELL_NONE) {
-			TEXTURES[i] = loadTexture(texturePathStrings[i]);
+			loadTexture(i);
 		}
 	}
 
@@ -187,7 +209,8 @@ void initTextures(void)
 				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 6 + 1, kBitmapUnflipped);
 				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 7, kBitmapUnflipped);
 			pd->graphics->popContext();
-			TEXTURES[TEXTURE_SPELL_NONE + (i - BITMAP_SPELL_EMPTY_ICON)] = bitmapToTextureArray(spellBitmap);
+			int textureIndex = TEXTURE_SPELL_NONE + (i - BITMAP_SPELL_EMPTY_ICON);
+			bitmapToTextureArray(spellBitmap, textureIndex);
 		}
 	}
 

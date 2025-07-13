@@ -13,7 +13,7 @@ typedef struct Pickup {
     int active;
 	int animationFrame;
     float animationTime;
-    uint8_t *texture;
+    int textureIndex;
     Spell spell;
 } Pickup;
 

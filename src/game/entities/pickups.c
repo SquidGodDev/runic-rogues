@@ -59,7 +59,7 @@ void spawnPickup(int mapX, int mapY, Spell spell) {
                 .active = 1,
                 .animationFrame = 0,
                 .animationTime = PICKUP_ANIM_FRAME_TIME,
-                .texture = getSpellPickupTexture(spell),
+                .textureIndex = getSpellPickupTextureIndex(spell),
                 .spell = spell
             };
             return;
@@ -90,6 +90,6 @@ void updatePickups(float deltaTime) {
             spawnRandomPickup();
         }
 
-        addEntityToRenderQueue(pickup->x, pickup->y, PICKUP, i, pickup->texture, pickup->animationFrame);
+        addEntityToRenderQueue(pickup->x, pickup->y, PICKUP, i, pickup->textureIndex, pickup->animationFrame);
     }
 }

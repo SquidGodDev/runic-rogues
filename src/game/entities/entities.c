@@ -163,10 +163,11 @@ void renderEntities(int *zBuffer) {
     queuedEntities = 0;
 }
 
-void addEntityToRenderQueue(float x, float y, int type, int index, uint8_t *texture, int animationFrame) {
+void addEntityToRenderQueue(float x, float y, int type, int index, int textureIndex, int animationFrame) {
     if (queuedEntities >= MAX_ENTITY_COUNT) {
         return;
     }
+    uint8_t *texture = TEXTURES[textureIndex];
     Entity curEntity = (struct Entity){ x, y, type, index, texture, animationFrame };
     entities[queuedEntities] = curEntity;
     queuedEntities += 1;

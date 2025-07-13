@@ -17,10 +17,10 @@ typedef struct Interactable {
 	float x;
 	float y;
 	float animationTime;
-	uint16_t animationFrame;
-	uint8_t *texture;
+	int animationFrame;
+	int textureIndex;
     InteractableType type;
-	int active;
+	bool active;
 } Interactable;
 
 extern Interactable INTERACTABLES[MAX_INTERACTABLE_COUNT];

@@ -11,7 +11,7 @@
 typedef struct ParticleData {
 	int frameCount;
 	float animationTime;
-	uint8_t *texture;
+	int textureIndex;
 	int damageFrame;
 	int damage;
 	int damageRadius;
@@ -28,14 +28,14 @@ void initParticles(void) {
 	particleData[PARTICLE_TYPE_PROJECTILE_BREAK] = (ParticleData) {
 		.frameCount = 21,
 		.animationTime = 0.016f,
-		.texture = TEXTURES[TEXTURE_PARTICLE_PROJECTILE_BREAK],
+		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK,
 		.damageFrame = 0,
 	};
 
 	particleData[PARTICLE_TYPE_WARNING] = (ParticleData) {
 		.frameCount = 6,
 		.animationTime = 0.4f,
-		.texture = TEXTURES[TEXTURE_PARTICLE_WARNING],
+		.textureIndex = TEXTURE_PARTICLE_WARNING,
 		.damageFrame = 0,
 		.damage = 0,
 		.damageRadius = 0
@@ -44,7 +44,7 @@ void initParticles(void) {
 	particleData[PARTICLE_TYPE_BOSS_ROOT_ATTACK] = (ParticleData) {
 		.frameCount = 10,
 		.animationTime = 0.1f,
-		.texture = TEXTURES[TEXTURE_PARTICLE_ROOT_ATTACK],
+		.textureIndex = TEXTURE_PARTICLE_ROOT_ATTACK,
 		.damageFrame = 4,
 		.damage = 1,
 		.damageRadius = CELL_SIZE / 2
@@ -53,7 +53,7 @@ void initParticles(void) {
 	particleData[PARTICLE_TYPE_PLAYER_ROOT_ATTACK] = (ParticleData) {
 		.frameCount = 10,
 		.animationTime = 0.05f,
-		.texture = TEXTURES[TEXTURE_PARTICLE_ROOT_ATTACK],
+		.textureIndex = TEXTURE_PARTICLE_ROOT_ATTACK,
 		.damageFrame = 4,
 		.damage = 1,
 		.damageRadius = CELL_SIZE / 2
@@ -130,6 +130,6 @@ void updateParticles(float deltaTime) {
 			}
 		}
 
-		addEntityToRenderQueue(curParticle->x, curParticle->y, PARTICLE, i, data->texture, curParticle->animationFrame);
+		addEntityToRenderQueue(curParticle->x, curParticle->y, PARTICLE, i, data->textureIndex, curParticle->animationFrame);
 	}
 }

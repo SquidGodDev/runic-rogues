@@ -33,12 +33,12 @@ static int utilitySpellCount;
 
 void initSpellData(void) {
     spellData[SPELL_NONE] = (SpellData) {
-        .spellIcon = BITMAPS[BITMAP_SPELL_EMPTY_ICON],
+        .spellIconIndex = BITMAP_SPELL_EMPTY_ICON,
     };
     spellData[SPELL_FIREBALL] = (SpellData) {
-        .pickupTexture = TEXTURES[TEXTURE_SPELL_FIREBALL],
-        .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
-        .spellIcon = BITMAPS[BITMAP_SPELL_FIREBALL_ICON],
+        .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
+        .spellTextureIndex = TEXTURE_PROJECTILE,
+        .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
         .damage = 3,
@@ -46,9 +46,9 @@ void initSpellData(void) {
         .speed = 75.0f
     };
     spellData[SPELL_TRIPLE_SHOT] = (SpellData) {
-        .pickupTexture = TEXTURES[TEXTURE_SPELL_TRIPLE_SHOT],
-        .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
-        .spellIcon = BITMAPS[BITMAP_SPELL_TRIPLE_SHOT_ICON],
+        .pickupTextureIndex = TEXTURE_SPELL_TRIPLE_SHOT,
+        .spellTextureIndex = TEXTURE_PROJECTILE,
+        .spellIconIndex = BITMAP_SPELL_TRIPLE_SHOT_ICON,
         .type = SPELL_TYPE_REPEAT,
         .castTime = 1.0f,
         .damage = 1,
@@ -59,9 +59,9 @@ void initSpellData(void) {
         .activationTime = 0.3f
     };
     spellData[SPELL_SHOTGUN] = (SpellData) {
-        .pickupTexture = TEXTURES[TEXTURE_SPELL_SHOTGUN],
-        .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
-        .spellIcon = BITMAPS[BITMAP_SPELL_SHOTGUN_ICON],
+        .pickupTextureIndex = TEXTURE_SPELL_SHOTGUN,
+        .spellTextureIndex = TEXTURE_PROJECTILE,
+        .spellIconIndex = BITMAP_SPELL_SHOTGUN_ICON,
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
         .damage = 1,
@@ -69,8 +69,8 @@ void initSpellData(void) {
         .speed = 100.0f
     };
     spellData[SPELL_LASER] = (SpellData) {
-        .pickupTexture = TEXTURES[TEXTURE_SPELL_LASER],
-        .spellIcon = BITMAPS[BITMAP_SPELL_LASER_ICON],
+        .pickupTextureIndex = TEXTURE_SPELL_LASER,
+        .spellIconIndex = BITMAP_SPELL_LASER_ICON,
         .type = SPELL_TYPE_REPEAT,
         .castTime = 0.6f,
         .damage = 1,
@@ -82,17 +82,17 @@ void initSpellData(void) {
         .speed = 300.0f
     };
     spellData[SPELL_ROOT_ATTACK] = (SpellData) {
-        .pickupTexture = TEXTURES[TEXTURE_SPELL_ROOT_ATTACK],
-        .spellIcon = BITMAPS[BITMAP_SPELL_ROOT_ATTACK_ICON],
+        .pickupTextureIndex = TEXTURE_SPELL_ROOT_ATTACK,
+        .spellIconIndex = BITMAP_SPELL_ROOT_ATTACK_ICON,
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.6f,
         .damage = 1,
         .hitCount = 1,
     };
     spellData[SPELL_WAVE] = (SpellData) {
-        .pickupTexture = TEXTURES[TEXTURE_SPELL_WAVE],
-        .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
-        .spellIcon = BITMAPS[BITMAP_SPELL_WAVE_ICON],
+        .pickupTextureIndex = TEXTURE_SPELL_WAVE,
+        .spellTextureIndex = TEXTURE_PROJECTILE,
+        .spellIconIndex = BITMAP_SPELL_WAVE_ICON,
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
         .damage = 1,
@@ -100,9 +100,9 @@ void initSpellData(void) {
         .speed = 100.0f
     };
     spellData[SPELL_TRIPLE_WAVE] = (SpellData) {
-        .pickupTexture = TEXTURES[TEXTURE_SPELL_TRIPLE_WAVE],
-        .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
-        .spellIcon = BITMAPS[BITMAP_SPELL_TRIPLE_WAVE_ICON],
+        .pickupTextureIndex = TEXTURE_SPELL_TRIPLE_WAVE,
+        .spellTextureIndex = TEXTURE_PROJECTILE,
+        .spellIconIndex = BITMAP_SPELL_TRIPLE_WAVE_ICON,
         .type = SPELL_TYPE_REPEAT,
         .castTime = 1.0f,
         .damage = 1,
@@ -113,9 +113,9 @@ void initSpellData(void) {
         .activationTime = 0.3f
     };
     spellData[SPELL_SLOW_SHOT] = (SpellData) {
-        .pickupTexture = TEXTURES[TEXTURE_SPELL_SLOW_SHOT],
-        .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
-        .spellIcon = BITMAPS[BITMAP_SPELL_SLOW_SHOT_ICON],
+        .pickupTextureIndex = TEXTURE_SPELL_SLOW_SHOT,
+        .spellTextureIndex = TEXTURE_PROJECTILE,
+        .spellIconIndex = BITMAP_SPELL_SLOW_SHOT_ICON,
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
         .damage = 0,
@@ -124,9 +124,9 @@ void initSpellData(void) {
         .speed = 100.0f
     };
     spellData[SPELL_SLOW_WAVE] = (SpellData) {
-        .pickupTexture = TEXTURES[TEXTURE_SPELL_SLOW_WAVE],
-        .spellTexture = TEXTURES[TEXTURE_PROJECTILE],
-        .spellIcon = BITMAPS[BITMAP_SPELL_SLOW_WAVE_ICON],
+        .pickupTextureIndex = TEXTURE_SPELL_SLOW_WAVE,
+        .spellTextureIndex = TEXTURE_PROJECTILE,
+        .spellIconIndex = BITMAP_SPELL_SLOW_WAVE_ICON,
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
         .damage = 0,
@@ -168,12 +168,12 @@ void initSpells(void) {
     resetSpellsToSpawn();
 }
 
-uint8_t* getSpellPickupTexture(Spell spell) {
-    return spellData[spell].pickupTexture;
+int getSpellPickupTextureIndex(Spell spell) {
+    return spellData[spell].pickupTextureIndex;
 }
 
 LCDBitmap* getSpellIcon(Spell spell) {
-    return spellData[spell].spellIcon;
+    return BITMAPS[spellData[spell].spellIconIndex];
 }
 
 Spell getRandomSpell(void) {

@@ -86,7 +86,7 @@ typedef struct EnemyData {
 	float moveSpeed;
 	float abilityDataPrimary; // Flexible property for enemy-specific behaviors or traits
 	float abilityDataSecondary; // Flexible property for enemy-specific behaviors or traits
-	uint8_t* texture;
+	int textureIndex;
 	int idleFrameEnd; // Frames are 1-indexed to match Aseprite
 	int prepFrameStart;
 	int prepFrameEnd;
@@ -109,7 +109,7 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 1.0f,
 		.moveSpeed = 0.15f,
-		.texture = TEXTURES[TEXTURE_WRAITH_BOSS],
+		.textureIndex = TEXTURE_WRAITH_BOSS,
 		.idleFrameEnd = 6,
 		.deathFrameStart = 1,
 		.deathFrameEnd = 1,
@@ -124,7 +124,7 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 1.0f,
 		.moveSpeed = 0.3f,
-		.texture = TEXTURES[TEXTURE_BAT],
+		.textureIndex = TEXTURE_BAT,
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
@@ -140,7 +140,7 @@ void initEnemyData(void) {
 		.attackCooldown = 0,
 		.moveSpeed = 0.1f,
 		.abilityDataPrimary = 4, // Number of baby slimes to spawn
-		.texture = TEXTURES[TEXTURE_SLIME],
+		.textureIndex = TEXTURE_SLIME,
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
@@ -155,7 +155,7 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 0,
 		.moveSpeed = 0.35f,
-		.texture = TEXTURES[TEXTURE_BABY_SLIME],
+		.textureIndex = TEXTURE_BABY_SLIME,
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
@@ -170,7 +170,7 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 0,
 		.moveSpeed = 0.2f,
-		.texture = TEXTURES[TEXTURE_SKELETON],
+		.textureIndex = TEXTURE_SKELETON,
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
 		.attackFrameEnd = 14,
@@ -188,7 +188,7 @@ void initEnemyData(void) {
 		.attackDamage = 2,
 		.attackCooldown = 1.5f,
 		.moveSpeed = 0.2f,
-		.texture = TEXTURES[TEXTURE_ELDER_BOSS],
+		.textureIndex = TEXTURE_ELDER_BOSS,
 		.idleFrameEnd = 14,
 		.prepFrameStart = 15,
 		.prepFrameEnd = 17,
@@ -208,7 +208,7 @@ void initEnemyData(void) {
 		.attackCooldown = 8.0f,
 		.moveSpeed = 0.2f,
 		.abilityDataPrimary = 50.0f, // Projectile speed
-		.texture = TEXTURES[TEXTURE_IMP],
+		.textureIndex = TEXTURE_IMP,
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
 		.attackFrameEnd = 14,
@@ -227,7 +227,7 @@ void initEnemyData(void) {
 		.attackCooldown = 5.0f,
 		.moveSpeed = 0.2f,
 		.abilityDataPrimary = 1.2f, // Rush move speed
-		.texture = TEXTURES[TEXTURE_FLYING_TOME],
+		.textureIndex = TEXTURE_FLYING_TOME,
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
 		.attackFrameEnd = 11,
@@ -244,7 +244,7 @@ void initEnemyData(void) {
 		.attackDamage = 2,
 		.attackCooldown = 0,
 		.moveSpeed = 0.25f,
-		.texture = TEXTURES[TEXTURE_LIVING_ARMOR],
+		.textureIndex = TEXTURE_LIVING_ARMOR,
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
 		.attackFrameEnd = 16,
@@ -264,7 +264,7 @@ void initEnemyData(void) {
 		.moveSpeed = 0.25f,
 		.abilityDataPrimary = 1.2f, // Rush move speed
 		.abilityDataSecondary = 70.0f, // Projectile speed
-		.texture = TEXTURES[TEXTURE_WRAITH_BOSS],
+		.textureIndex = TEXTURE_WRAITH_BOSS,
 		.idleFrameEnd = 6,
 		.prepFrameStart = 7,
 		.prepFrameEnd = 10,
@@ -281,7 +281,7 @@ void initEnemyData(void) {
 		.attackDamage = 1,
 		.attackCooldown = 1.0f,
 		.moveSpeed = 0.6f,
-		.texture = TEXTURES[TEXTURE_WRAITH],
+		.textureIndex = TEXTURE_WRAITH,
 		.idleFrameEnd = 4,
 		.deathFrameStart = 5,
 		.deathFrameEnd = 8,
@@ -457,7 +457,7 @@ void updateEnemies(float deltaTime) {
 		EnemyData *curEnemyData = &enemyData[curEnemy->type];
 
 		if (SKIP_ENEMY_UPDATE) {
-			addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->texture, curEnemy->animationFrame);
+			addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->textureIndex, curEnemy->animationFrame);
 			continue;
 		}
 
@@ -500,7 +500,7 @@ void updateEnemies(float deltaTime) {
 		}
 
 		if (curEnemy->state == ENEMY_STATE_DEAD) {
-			addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->texture, curEnemy->animationFrame);
+			addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->textureIndex, curEnemy->animationFrame);
 			continue;
 		}
 
@@ -683,7 +683,7 @@ void updateEnemies(float deltaTime) {
 			}
 		}
 
-		addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->texture, curEnemy->animationFrame);
+		addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->textureIndex, curEnemy->animationFrame);
 	}
 }
 

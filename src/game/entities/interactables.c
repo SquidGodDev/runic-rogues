@@ -12,7 +12,7 @@
 #define CAMPFIRE_HEAL_AMOUNT 2
 
 typedef struct InteractableData {
-	uint8_t* texture;
+	int textureIndex;
 	float frameTime;
     int idleEndFrame;
 } InteractableData;
@@ -22,17 +22,17 @@ Interactable INTERACTABLES[MAX_INTERACTABLE_COUNT] = { 0 };
 InteractableData interactableData[INTERACTABLE_TYPE_COUNT];
 void initInteractablesData(void) {
     interactableData[INTERACTABLE_TYPE_EXIT] = (InteractableData){
-		.texture = TEXTURES[TEXTURE_PORTAL],
+		.textureIndex = TEXTURE_PORTAL,
         .frameTime = 0.1f,
 		.idleEndFrame = 12
     };
 	interactableData[INTERACTABLE_TYPE_CAMPFIRE] = (InteractableData){
-		.texture = TEXTURES[TEXTURE_CAMPFIRE],
+		.textureIndex = TEXTURE_CAMPFIRE,
         .frameTime = 0.15f,
 		.idleEndFrame = 5
     };
 	interactableData[INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE] = (InteractableData){
-		.texture = TEXTURES[TEXTURE_EXTINGUISHED_CAMPFIRE],
+		.textureIndex = TEXTURE_EXTINGUISHED_CAMPFIRE,
         .frameTime = 0.1f,
 		.idleEndFrame = 1
     };
@@ -42,7 +42,7 @@ void initInteractables(void) {
 	initInteractablesData();
 
 	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
-		INTERACTABLES[i].active = 0;
+		INTERACTABLES[i].active = false;
 	}
 }
 
@@ -62,7 +62,7 @@ void interact(int interactableIndex) {
 			break;
 		case INTERACTABLE_TYPE_CAMPFIRE:
 			healPlayer(CAMPFIRE_HEAL_AMOUNT);
-			INTERACTABLES[interactableIndex].active = 0;
+			INTERACTABLES[interactableIndex].active = false;
 			int campfireMapX = (INTERACTABLES[interactableIndex].x - CELL_SIZE / 2) / CELL_SIZE;
 			int campfireMapY = (INTERACTABLES[interactableIndex].y - CELL_SIZE / 2) / CELL_SIZE;
 			addInteractable(campfireMapX, campfireMapY, INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE);
@@ -91,9 +91,9 @@ void addInteractable(int mapX, int mapY, InteractableType type) {
         .y = mapY * CELL_SIZE + CELL_SIZE / 2,
         .animationFrame = 0,
         .animationTime = randFloat(0, curInteractableData.frameTime),
-        .texture = curInteractableData.texture,
+        .textureIndex = curInteractableData.textureIndex,
         .type = type,
-        .active = 1
+        .active = true
     };
 }
 
@@ -116,6 +116,6 @@ void updateInteractables(float deltaTime) {
         }
 
         INTERACTABLES[i] = curInteractable;
-        addEntityToRenderQueue(curInteractable.x, curInteractable.y, INTERACTABLE, i, curInteractableData.texture, curInteractable.animationFrame);
+        addEntityToRenderQueue(curInteractable.x, curInteractable.y, INTERACTABLE, i, curInteractableData.textureIndex, curInteractable.animationFrame);
     }
 }

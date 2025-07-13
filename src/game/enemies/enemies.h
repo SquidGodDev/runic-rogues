@@ -41,7 +41,7 @@ typedef struct Enemy {
 	float abilityCooldown;
 	float hitFlashTime;
 	float animationTime;
-	uint16_t animationFrame;
+	int animationFrame;
 	bool active;
 	int state;
 	int type;

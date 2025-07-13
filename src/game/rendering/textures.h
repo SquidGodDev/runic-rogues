@@ -52,6 +52,14 @@ typedef enum TexturePaths {
 } TexturePaths;
 extern uint8_t* TEXTURES[];
 
+typedef struct textureBounds {
+	int minX;
+	int minY;
+	int maxX;
+	int maxY;
+} TextureBounds;
+extern TextureBounds* TEXTURE_BOUNDS[];
+
 typedef enum BitmapPaths {
 	BITMAP_HAND,
 	BITMAP_HAND_OPEN,
