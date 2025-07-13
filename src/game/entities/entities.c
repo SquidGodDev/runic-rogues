@@ -20,6 +20,10 @@ typedef struct Entity {
     uint32_t type;
     uint32_t index;
     uint8_t *texture;
+    int textureMinX;
+    int textureMaxX;
+    int textureMinY;
+    int textureMaxY;    
     int animationFrame;
 } Entity;
 
@@ -136,15 +140,26 @@ void renderEntities(int *zBuffer) {
                 if (entityDistance < zBuffer[drawX]) {
                     int fogShadeBit = drawX % 8;
                     int textureX = (int)(((drawX - screenXOffset - (-(entityWidth >> 1) + entityScreenX)) << 8) * ENTITY_TEXTURE_SIZE / entityWidth) >> 8;
+                    if (textureX < curEntity->textureMinX || textureX > curEntity->textureMaxX) {
+                        continue;
+                    }
                     for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
-
                         int textureYIndex = textureYCache[drawY];
                         if (textureYIndex == -1) {
                             int d = ((drawY - screenYOffset) << 8) - fixedPointScreenHeight + fixedPointEntityHeight; // 256 and 128 factors to avoid floats
                             int textureY = ((d * ENTITY_TEXTURE_SIZE) / entityHeight) >> 8;
-                            textureYIndex = ENTITY_TEXTURE_SIZE * textureY + frameOffset;
+                            if (textureY < curEntity->textureMinY || textureY > curEntity->textureMaxY) {
+                                textureYIndex = -2; // mark to skip
+                            } else {
+                                textureYIndex = ENTITY_TEXTURE_SIZE * textureY + frameOffset;
+                            }
                             textureYCache[drawY] = textureYIndex;
                         }
+
+                        if (textureYIndex == -2) {
+                            continue;
+                        }
+
                         int fogRow = drawY % 8;
                         int fogShade = entityDistance < FOG_MIN_DIST ? 0 : fogPattern[fogRow];
                         int inFog = (fogShade >> fogShadeBit) & 1;
@@ -168,7 +183,19 @@ void addEntityToRenderQueue(float x, float y, int type, int index, int textureIn
         return;
     }
     uint8_t *texture = TEXTURES[textureIndex];
-    Entity curEntity = (struct Entity){ x, y, type, index, texture, animationFrame };
+    TextureBounds *bounds = TEXTURE_BOUNDS[textureIndex];
+    Entity curEntity = (struct Entity){ 
+        .x = x,
+        .y = y,
+        .type = type,
+        .index = index,
+        .texture = texture,
+        .textureMinX = bounds->minX,
+        .textureMaxX = bounds->maxX,
+        .textureMinY = bounds->minY,
+        .textureMaxY = bounds->maxY,
+        .animationFrame = animationFrame
+    };
     entities[queuedEntities] = curEntity;
     queuedEntities += 1;
 }
