@@ -18,8 +18,6 @@
 #define MAX_HELD_SPELLS 3
 #define SPELL_DECK_MAX 30
 
-static SpellData spellData[SPELL_COUNT];
-
 static Spell spellDeck[SPELL_DECK_MAX];
 static Stack spellsToSpawn;
 static Queue heldSpellsQueue;
@@ -31,11 +29,11 @@ static float initialCastAngle;
 
 static int utilitySpellCount;
 
-void initSpellData(void) {
-    spellData[SPELL_NONE] = (SpellData) {
+static SpellData spellData[SPELL_COUNT] = {
+    [SPELL_NONE] = {
         .spellIconIndex = BITMAP_SPELL_EMPTY_ICON,
-    };
-    spellData[SPELL_FIREBALL] = (SpellData) {
+    },
+    [SPELL_FIREBALL] = {
         .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
@@ -44,8 +42,8 @@ void initSpellData(void) {
         .damage = 3,
         .hitCount = 1,
         .speed = 75.0f
-    };
-    spellData[SPELL_TRIPLE_SHOT] = (SpellData) {
+    },
+    [SPELL_TRIPLE_SHOT] = {
         .pickupTextureIndex = TEXTURE_SPELL_TRIPLE_SHOT,
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_TRIPLE_SHOT_ICON,
@@ -57,8 +55,8 @@ void initSpellData(void) {
         .useInitialCastAngle = false,
         .speed = 150.0f,
         .activationTime = 0.3f
-    };
-    spellData[SPELL_SHOTGUN] = (SpellData) {
+    },
+    [SPELL_SHOTGUN] = {
         .pickupTextureIndex = TEXTURE_SPELL_SHOTGUN,
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_SHOTGUN_ICON,
@@ -67,8 +65,8 @@ void initSpellData(void) {
         .damage = 1,
         .hitCount = 1,
         .speed = 100.0f
-    };
-    spellData[SPELL_LASER] = (SpellData) {
+    },
+    [SPELL_LASER] = {
         .pickupTextureIndex = TEXTURE_SPELL_LASER,
         .spellIconIndex = BITMAP_SPELL_LASER_ICON,
         .type = SPELL_TYPE_REPEAT,
@@ -80,16 +78,16 @@ void initSpellData(void) {
         .playerSpeedModifier = -0.7f,
         .useInitialCastAngle = true,
         .speed = 300.0f
-    };
-    spellData[SPELL_ROOT_ATTACK] = (SpellData) {
+    },
+    [SPELL_ROOT_ATTACK] = {
         .pickupTextureIndex = TEXTURE_SPELL_ROOT_ATTACK,
         .spellIconIndex = BITMAP_SPELL_ROOT_ATTACK_ICON,
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.6f,
         .damage = 1,
         .hitCount = 1,
-    };
-    spellData[SPELL_WAVE] = (SpellData) {
+    },
+    [SPELL_WAVE] = {
         .pickupTextureIndex = TEXTURE_SPELL_WAVE,
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_WAVE_ICON,
@@ -98,8 +96,8 @@ void initSpellData(void) {
         .damage = 1,
         .hitCount = 1,
         .speed = 100.0f
-    };
-    spellData[SPELL_TRIPLE_WAVE] = (SpellData) {
+    },
+    [SPELL_TRIPLE_WAVE] = {
         .pickupTextureIndex = TEXTURE_SPELL_TRIPLE_WAVE,
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_TRIPLE_WAVE_ICON,
@@ -111,8 +109,8 @@ void initSpellData(void) {
         .useInitialCastAngle = false,
         .speed = 150.0f,
         .activationTime = 0.3f
-    };
-    spellData[SPELL_SLOW_SHOT] = (SpellData) {
+    },
+    [SPELL_SLOW_SHOT] = {
         .pickupTextureIndex = TEXTURE_SPELL_SLOW_SHOT,
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_SLOW_SHOT_ICON,
@@ -122,8 +120,8 @@ void initSpellData(void) {
         .hitCount = 5,
         .slowTime = 4.0f,
         .speed = 100.0f
-    };
-    spellData[SPELL_SLOW_WAVE] = (SpellData) {
+    },
+    [SPELL_SLOW_WAVE] = {
         .pickupTextureIndex = TEXTURE_SPELL_SLOW_WAVE,
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_SLOW_WAVE_ICON,
@@ -133,8 +131,8 @@ void initSpellData(void) {
         .hitCount = 5,
         .slowTime = 4.0f,
         .speed = 100.0f
-    };
-}
+    }
+};
 
 void resetSpellsToSpawn(void) {
     stackClear(&spellsToSpawn);

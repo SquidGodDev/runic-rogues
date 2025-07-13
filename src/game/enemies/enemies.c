@@ -99,9 +99,8 @@ typedef struct EnemyData {
 	int attackPattern;
 } EnemyData;
 
-EnemyData enemyData[ENEMY_TYPE_COUNT];
-void initEnemyData(void) {
-	enemyData[ENEMY_TYPE_TEST] = (EnemyData){
+EnemyData enemyData[ENEMY_TYPE_COUNT] = {
+	[ENEMY_TYPE_TEST] = (EnemyData){
 		.name = "Test",
 		.health = 4,
 		.attackDetectionRange = 100,
@@ -115,8 +114,8 @@ void initEnemyData(void) {
 		.deathFrameEnd = 1,
 		.frameTime = 0.15f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
-	};
-	enemyData[ENEMY_TYPE_BAT] = (EnemyData){
+	},
+	[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
 		.health = 4,
 		.attackDetectionRange = 100,
@@ -130,8 +129,8 @@ void initEnemyData(void) {
 		.deathFrameEnd = 10,
 		.frameTime = 0.12f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
-	};
-	enemyData[ENEMY_TYPE_SLIME] = (EnemyData){
+	},
+	[ENEMY_TYPE_SLIME] = (EnemyData){
 		.name = "Slime",
 		.health = 3,
 		.attackDetectionRange = 100,
@@ -146,8 +145,8 @@ void initEnemyData(void) {
 		.deathFrameEnd = 10,
 		.frameTime = 0.14f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
-	};
-	enemyData[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
+	},
+	[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
 		.name = "Baby Slime",
 		.health = 1,
 		.attackDetectionRange = 100,
@@ -161,8 +160,8 @@ void initEnemyData(void) {
 		.deathFrameEnd = 10,
 		.frameTime = 0.1f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
-	};
-	enemyData[ENEMY_TYPE_SKELETON] = (EnemyData){
+	},
+	[ENEMY_TYPE_SKELETON] = (EnemyData){
 		.name = "Skeleton",
 		.health = 4,
 		.attackDetectionRange = 350,
@@ -179,8 +178,8 @@ void initEnemyData(void) {
 		.deathFrameEnd = 19,
 		.frameTime = 0.12f,
 		.attackPattern = ATTACK_PATTERN_MELEE
-	};
-	enemyData[ENEMY_TYPE_ELDER_BOSS] = (EnemyData){
+	},
+	[ENEMY_TYPE_ELDER_BOSS] = (EnemyData){
 		.name = "Elder Boss",
 		.health = 30,
 		.attackDetectionRange = 350,
@@ -199,8 +198,8 @@ void initEnemyData(void) {
 		.deathFrameEnd = 30,
 		.frameTime = 0.15f,
 		.attackPattern = ATTACK_PATTERN_ELDER_BOSS
-	};
-	enemyData[ENEMY_TYPE_IMP] = (EnemyData){
+	},
+	[ENEMY_TYPE_IMP] = (EnemyData){
 		.name = "Imp",
 		.health = 3,
 		.attackDetectionRange = 2000,
@@ -217,8 +216,8 @@ void initEnemyData(void) {
 		.deathFrameEnd = 18,
 		.frameTime = 0.14f,
 		.attackPattern = ATTACK_PATTERN_PROJECTILE
-	};
-	enemyData[ENEMY_TYPE_FLYING_TOME] = (EnemyData){
+	},
+	[ENEMY_TYPE_FLYING_TOME] = (EnemyData){
 		.name = "Flying Tome",
 		.health = 3,
 		.attackDetectionRange = 3000,
@@ -235,8 +234,8 @@ void initEnemyData(void) {
 		.deathFrameEnd = 15,
 		.frameTime = 0.1f,
 		.attackPattern = ATTACK_PATTERN_RUSH
-	};
-	enemyData[ENEMY_TYPE_LIVING_ARMOR] = (EnemyData){
+	},
+	[ENEMY_TYPE_LIVING_ARMOR] = (EnemyData){
 		.name = "Living Armor",
 		.health = 6,
 		.attackDetectionRange = 350,
@@ -253,8 +252,8 @@ void initEnemyData(void) {
 		.deathFrameEnd = 20,
 		.frameTime = 0.15f,
 		.attackPattern = ATTACK_PATTERN_MELEE
-	};
-	enemyData[ENEMY_TYPE_WRAITH_BOSS] = (EnemyData){
+	},
+	[ENEMY_TYPE_WRAITH_BOSS] = (EnemyData){
 		.name = "Wraith Boss",
 		.health = 30,
 		.attackDetectionRange = 100,
@@ -272,8 +271,8 @@ void initEnemyData(void) {
 		.deathFrameEnd = 14,
 		.frameTime = 0.15f,
 		.attackPattern = ATTACK_PATTERN_WRAITH_BOSS
-	};
-	enemyData[ENEMY_TYPE_WRAITH] = (EnemyData){
+	},
+	[ENEMY_TYPE_WRAITH] = (EnemyData){
 		.name = "Wraith",
 		.health = 1,
 		.attackDetectionRange = 100,
@@ -287,8 +286,8 @@ void initEnemyData(void) {
 		.deathFrameEnd = 8,
 		.frameTime = 0.15f,
 		.attackPattern = ATTACK_PATTERN_PROXIMITY
-	};
-}
+	}
+};
 
 void moveEnemy(Enemy *enemy, int enemyIndex, float targetX, float targetY, float moveSpeed) {
 	float dx = (targetX - enemy->x);
@@ -403,8 +402,6 @@ void spawnRandomEnemy(int spawnX, int spawnY) {
 }
 
 void initEnemies(void) {
-	initEnemyData();
-
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		enemies[i].active = 0;
 	}

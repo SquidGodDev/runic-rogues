@@ -33,7 +33,6 @@ void initSystems(void)
 	initSettings();
 	initUpgradeManager();
 	initAudioManager();
-	initSpellData();
 }
 
 // Run at the start of every room

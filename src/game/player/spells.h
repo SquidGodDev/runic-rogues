@@ -38,7 +38,6 @@ typedef struct SpellData {
     float activationTime;
 } SpellData;
 
-void initSpellData(void);
 int getSpellPickupTextureIndex(Spell spell);
 LCDBitmap* getSpellIcon(Spell spell);
 Spell getRandomSpell(void);

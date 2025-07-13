@@ -19,28 +19,25 @@ typedef struct InteractableData {
 
 Interactable INTERACTABLES[MAX_INTERACTABLE_COUNT] = { 0 };
 
-InteractableData interactableData[INTERACTABLE_TYPE_COUNT];
-void initInteractablesData(void) {
-    interactableData[INTERACTABLE_TYPE_EXIT] = (InteractableData){
+InteractableData interactableData[INTERACTABLE_TYPE_COUNT] = {
+	[INTERACTABLE_TYPE_EXIT] = {
 		.textureIndex = TEXTURE_PORTAL,
-        .frameTime = 0.1f,
+		.frameTime = 0.1f,
 		.idleEndFrame = 12
-    };
-	interactableData[INTERACTABLE_TYPE_CAMPFIRE] = (InteractableData){
+	},
+	[INTERACTABLE_TYPE_CAMPFIRE] = {
 		.textureIndex = TEXTURE_CAMPFIRE,
-        .frameTime = 0.15f,
+		.frameTime = 0.15f,
 		.idleEndFrame = 5
-    };
-	interactableData[INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE] = (InteractableData){
+	},
+	[INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE] = {
 		.textureIndex = TEXTURE_EXTINGUISHED_CAMPFIRE,
-        .frameTime = 0.1f,
+		.frameTime = 0.1f,
 		.idleEndFrame = 1
-    };
-}
+	}
+};
 
 void initInteractables(void) {
-	initInteractablesData();
-
 	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
 		INTERACTABLES[i].active = false;
 	}
