@@ -5,7 +5,7 @@
 #define P2 PI / 2
 #define P3 3 * PI / 2
 
-#define TARGET_FPS 30
+#define TARGET_FPS 40
 #define FOV 66
 #define FOV_RAD FOV * (PI / 180.0f)
 #define SCREEN_WIDTH 200
