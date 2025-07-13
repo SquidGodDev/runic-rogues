@@ -197,7 +197,7 @@ void drawMinimap(void) {
     // Draw projectiles
     for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
         Projectile curProjectile = projectiles[i];
-        if (!curProjectile.active) {
+        if (!curProjectile.active || !curProjectile.isEnemy) {
             continue;
         }
 
