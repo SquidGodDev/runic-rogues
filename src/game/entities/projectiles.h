@@ -12,6 +12,7 @@ typedef struct Projectile {
 	float speed;
 	int hitCount;
 	float slowTime;
+	float slowAmount;
 	Set *hitEnemies;
 	int damage;
 	int textureIndex;

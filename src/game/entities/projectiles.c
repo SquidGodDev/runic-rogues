@@ -47,6 +47,7 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 				.hitCount = hitCount,
 				.hitEnemies = hitEnemies,
 				.slowTime = slowTime,
+				.slowAmount = slowAmount,
 				.active = 1
 			};
 			break;
@@ -90,7 +91,7 @@ void updateProjectiles(float deltaTime) {
 					damagePlayer(curProjectile->damage);
 				}
 			} else {
-				collided = checkEnemyCollision(curProjectile->x, curProjectile->y, curProjectile->hitEnemies, PLAYER_COLLISION_RANGE, curProjectile->damage, curProjectile->slowTime);
+				collided = checkEnemyCollision(curProjectile->x, curProjectile->y, curProjectile->hitEnemies, PLAYER_COLLISION_RANGE, curProjectile->damage, curProjectile->slowTime, curProjectile->slowAmount);
 			}
 			if (collided) {
 				curProjectile->hitCount--;

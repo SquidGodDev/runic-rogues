@@ -40,7 +40,7 @@ static SpellData spellData[SPELL_COUNT] = {
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
-        .damage = 3,
+        .damage = 4,
         .hitCount = 1,
         .speed = 75.0f
     },
@@ -133,7 +133,7 @@ static SpellData spellData[SPELL_COUNT] = {
         .castTime = 1.5f,
         .activationTime = 0.3f,
         .repeatCount = 5,
-        .damage = 1
+        .damage = 3
     },
 };
 
@@ -160,10 +160,10 @@ void initSpells(void) {
     }
 
     // For testing purposes, fill the spell deck with all spells
-    // for (int i = 1; i < SPELL_COUNT; i++) {
-    //     spellDeck[i] = (Spell)i;
-    // }
-    spellDeck[0] = SPELL_CONE_OF_ICE;
+    for (int i = 1; i < SPELL_COUNT; i++) {
+        spellDeck[i] = (Spell)i;
+    }
+    // spellDeck[0] = SPELL_CONE_OF_ICE;
     // spellDeck[1] = SPELL_SLOW_WAVE;
 
     resetSpellsToSpawn();
@@ -252,7 +252,7 @@ void activateSpellEffect(Spell spell, float angle) {
     } else if (spell == SPELL_TRIPLE_SHOT) {
         fireSpellProjectile(spell, angle);
     } else if (spell == SPELL_SHOTGUN) {
-        float offsetAngle = PI / 8.0f;
+        float offsetAngle = PI / 16.0f;
         fireSpellProjectile(spell, angle);
         fireSpellProjectile(spell, angle + offsetAngle);
         fireSpellProjectile(spell, angle - offsetAngle);

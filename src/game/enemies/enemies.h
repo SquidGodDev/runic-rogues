@@ -46,6 +46,7 @@ typedef struct Enemy {
 	int state;
 	int type;
 	float slowTime;
+	float slowAmount;
 } Enemy;
 
 extern Enemy enemies[MAX_ENEMY_COUNT];
@@ -57,4 +58,4 @@ float getBossHealthPercentage(void);
 bool damageEnemy(int index, int damage);
 void damageEnemiesAtMapPosition(int mapX, int mapY, int damage);
 void damageEnemiesInArea(float x, float y, int radiusSquared, int damage);
-bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime);
+bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime, float slowAmount);

@@ -43,7 +43,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 	},
 	[PARTICLE_TYPE_PLAYER_ROOT_ATTACK] = {
 		.frameCount = 10,
-		.animationTime = 0.05f,
+		.animationTime = 0.075f,
 		.textureIndex = TEXTURE_PARTICLE_ROOT_ATTACK,
 		.damageFrame = 4,
 		.damage = 1,

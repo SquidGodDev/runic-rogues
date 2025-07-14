@@ -117,7 +117,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
-		.health = 4,
+		.health = 8,
 		.attackDetectionRange = 100,
 		.attackDistance = 100,
 		.attackDamage = 1,
@@ -132,7 +132,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_SLIME] = (EnemyData){
 		.name = "Slime",
-		.health = 3,
+		.health = 6,
 		.attackDetectionRange = 100,
 		.attackDistance = 100,
 		.attackDamage = 1,
@@ -148,7 +148,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
 		.name = "Baby Slime",
-		.health = 1,
+		.health = 3,
 		.attackDetectionRange = 100,
 		.attackDistance = 100,
 		.attackDamage = 1,
@@ -163,7 +163,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_SKELETON] = (EnemyData){
 		.name = "Skeleton",
-		.health = 4,
+		.health = 8,
 		.attackDetectionRange = 350,
 		.attackDistance = 350,
 		.attackDamage = 1,
@@ -181,7 +181,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_ELDER_BOSS] = (EnemyData){
 		.name = "Elder Boss",
-		.health = 30,
+		.health = 80,
 		.attackDetectionRange = 350,
 		.attackDistance = 350,
 		.attackDamage = 2,
@@ -201,7 +201,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_IMP] = (EnemyData){
 		.name = "Imp",
-		.health = 3,
+		.health = 8,
 		.attackDetectionRange = 2000,
 		.attackDamage = 1,
 		.attackCooldown = 8.0f,
@@ -219,7 +219,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_FLYING_TOME] = (EnemyData){
 		.name = "Flying Tome",
-		.health = 3,
+		.health = 10,
 		.attackDetectionRange = 3000,
 		.attackDistance = 100,
 		.attackDamage = 1,
@@ -237,7 +237,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_LIVING_ARMOR] = (EnemyData){
 		.name = "Living Armor",
-		.health = 6,
+		.health = 20,
 		.attackDetectionRange = 350,
 		.attackDistance = 500,
 		.attackDamage = 2,
@@ -255,7 +255,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_WRAITH_BOSS] = (EnemyData){
 		.name = "Wraith Boss",
-		.health = 30,
+		.health = 100,
 		.attackDetectionRange = 100,
 		.attackDistance = 100,
 		.attackDamage = 2,
@@ -274,7 +274,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_WRAITH] = (EnemyData){
 		.name = "Wraith",
-		.health = 1,
+		.health = 4,
 		.attackDetectionRange = 100,
 		.attackDistance = 100,
 		.attackDamage = 1,
@@ -330,7 +330,7 @@ void moveEnemy(Enemy *enemy, int enemyIndex, float targetX, float targetY, float
 
 	// Apply slow
 	if (enemy->slowTime > 0) {
-		moveSpeed *= 0.2f;
+		moveSpeed *= 1.0f - enemy->slowAmount;
 	}
 
 	// Normalize final direction vector
@@ -376,7 +376,7 @@ int spawnEnemy(EnemyType enemyType, int x, int y) {
 		.targetX = x,
 		.targetY = y,
 		.health = curEnemyData.health,
-		.invincibilityTime = 0.3f,
+		.invincibilityTime = 0.1f,
 		.attackCooldown = 0,
 		.hitFlashTime = 0,
 		.animationTime = randFloat(0, curEnemyData.frameTime),
@@ -384,7 +384,8 @@ int spawnEnemy(EnemyType enemyType, int x, int y) {
 		.active = 1,
 		.state = ENEMY_STATE_IDLE,
 		.type = enemyType,
-		.slowTime = 0
+		.slowTime = 0,
+		.slowAmount = 0
 	};
 
 	return newEnemyIndex;
@@ -705,13 +706,14 @@ float getBossHealthPercentage(void) {
 	return (float)boss.health / (float)bossData.health;
 }
 
-void slowEnemy(int index, float slowTime) {
+void slowEnemy(int index, float slowTime, float slowAmount) {
 	Enemy curEnemy = enemies[index];
 	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.slowTime > 0 || curEnemy.invincibilityTime > 0) {
 		return;
 	}
 
 	enemies[index].slowTime = slowTime;
+	enemies[index].slowAmount = slowAmount;
 }
 
 bool damageEnemy(int index, int damage) {
@@ -787,7 +789,7 @@ void damageEnemiesInArea(float x, float y, int radiusSquared, int damage) {
 	}
 }
 
-bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime) {
+bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime, float slowAmount) {
 	bool collided = false; 
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy curEnemy = enemies[i];
@@ -798,7 +800,7 @@ bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange
 		float distSquared = distanceSquared(x, y, curEnemy.x, curEnemy.y);
 		if (distSquared < collisionRange) {
 			if (slowTime > 0) {
-				slowEnemy(i, slowTime);
+				slowEnemy(i, slowTime, slowAmount);
 			}
 			bool enemyDamaged = damageEnemy(i, damage);
 			if (enemyDamaged) {
