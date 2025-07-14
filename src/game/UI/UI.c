@@ -54,6 +54,17 @@ static int exitWorldY;
 
 static int showBossHealthBar;
 
+typedef struct SpellOverlay {
+    LCDBitmapTable *bitmapTable;
+    int drawX;
+    int drawY;
+    int currentFrame;
+    int frameCount;
+    float frameTime;
+    float currentFrameTime;
+} SpellOverlay;
+SpellOverlay currentSpellOverlay;
+
 void initUI(int isBossRoom) {
     screenShakeTime = 0;
     shakeMagnitude = 0;
@@ -61,6 +72,7 @@ void initUI(int isBossRoom) {
     pd->graphics->setBackgroundColor(kColorBlack);
 
     showBossHealthBar = isBossRoom;
+    currentSpellOverlay = (SpellOverlay) {0};
 }
 
 void drawPlayerHearts(void) {
@@ -322,6 +334,41 @@ void drawBossHealthBar(void) {
     }
 }
 
+void setSpellOverlay(int bitmapTableIndex, float frameTime, int drawX, int drawY) {
+    LCDBitmapTable *bitmapTable = BITMAP_TABLES[bitmapTableIndex];
+    int frameCount;
+    pd->graphics->getBitmapTableInfo(bitmapTable, NULL, &frameCount);
+    currentSpellOverlay.bitmapTable = bitmapTable;
+    currentSpellOverlay.frameCount = frameCount;
+    currentSpellOverlay.frameTime = frameTime;
+    currentSpellOverlay.drawX = drawX;
+    currentSpellOverlay.drawY = drawY;
+    currentSpellOverlay.currentFrame = 0;
+    currentSpellOverlay.currentFrameTime = 0.0f;
+}
+
+void clearSpellOverlay(void) {
+    currentSpellOverlay.bitmapTable = NULL;
+}
+
+void drawSpellOverlay(float deltaTime) {
+    if (currentSpellOverlay.bitmapTable == NULL) {
+        return;
+    }
+
+    currentSpellOverlay.currentFrameTime += deltaTime;
+    if (currentSpellOverlay.currentFrameTime >= currentSpellOverlay.frameTime) {
+        currentSpellOverlay.currentFrame++;
+        if (currentSpellOverlay.currentFrame >= currentSpellOverlay.frameCount) {
+            currentSpellOverlay.currentFrame = 0;
+        }
+        currentSpellOverlay.currentFrameTime = 0;
+    }
+
+    LCDBitmap *overlayBitmap = pd->graphics->getTableBitmap(currentSpellOverlay.bitmapTable, currentSpellOverlay.currentFrame);
+    pd->graphics->drawBitmap(overlayBitmap, currentSpellOverlay.drawX, currentSpellOverlay.drawY, kBitmapUnflipped);
+}
+
 void drawUI(float deltaTime) {
     if (screenShakeTime > 0) {
         screenShakeTime -= deltaTime;
@@ -338,6 +385,7 @@ void drawUI(float deltaTime) {
 
     drawPlayerHearts();
     drawMinimap();
+    drawSpellOverlay(deltaTime);
     drawWeapon(deltaTime);
     drawSpellUI();
     drawInteractablePrompt();

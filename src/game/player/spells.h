@@ -12,6 +12,7 @@ typedef enum Spell {
     SPELL_TRIPLE_WAVE,
     SPELL_SLOW_SHOT,
     SPELL_SLOW_WAVE,
+    SPELL_ARC_LIGHTNING,
     SPELL_COUNT
 } Spell;
 

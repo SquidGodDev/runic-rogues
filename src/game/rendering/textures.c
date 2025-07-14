@@ -83,12 +83,14 @@ const char *bitmapPathStrings[] = {
 	"images/spells/icons/waveIcon",
 	"images/spells/icons/tripleWaveIcon",
 	"images/spells/icons/slowShotIcon",
-	"images/spells/icons/slowWaveIcon"
+	"images/spells/icons/slowWaveIcon",
+	"images/spells/icons/arcLightningIcon"
 };
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];
 const char *bitmapTablePathStrings[] = {
 	"images/UI/prompts/exitArrow",
+	"images/spells/overlays/arcLightningOverlay",
 };
 
 LCDFont *gameFont;

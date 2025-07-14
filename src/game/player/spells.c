@@ -4,6 +4,7 @@
 #include "game/entities/projectiles.h"
 #include "game/rendering/textures.h"
 #include "game/rendering/particles.h"
+#include "game/UI/UI.h"
 #include "game/player/player.h"
 #include "game/player/spells.h"
 #include "game/systems/audioManager.h"
@@ -131,7 +132,16 @@ static SpellData spellData[SPELL_COUNT] = {
         .hitCount = 5,
         .slowTime = 4.0f,
         .speed = 100.0f
-    }
+    },
+    [SPELL_ARC_LIGHTNING] = {
+        .pickupTextureIndex = TEXTURE_SPELL_ARC_LIGHTNING,
+        .spellIconIndex = BITMAP_SPELL_ARC_LIGHTNING_ICON,
+        .type = SPELL_TYPE_REPEAT,
+        .castTime = 1.5f,
+        .activationTime = 0.3f,
+        .repeatCount = 5,
+        .damage = 1
+    },
 };
 
 void resetSpellsToSpawn(void) {
@@ -160,7 +170,7 @@ void initSpells(void) {
     for (int i = 1; i < SPELL_COUNT; i++) {
         spellDeck[i] = (Spell)i;
     }
-    // spellDeck[0] = SPELL_LASER;
+    // spellDeck[0] = SPELL_ARC_LIGHTNING;
     // spellDeck[1] = SPELL_SLOW_WAVE;
 
     resetSpellsToSpawn();
@@ -287,6 +297,11 @@ void activateSpellEffect(Spell spell, float angle) {
         fireSpellProjectile(spell, angle + offsetAngle * 2);
         fireSpellProjectile(spell, angle - offsetAngle);
         fireSpellProjectile(spell, angle - offsetAngle * 2);
+    } else if (spell == SPELL_ARC_LIGHTNING) {
+        float lightningX = playerX + cosf(angle) * FIRE_POSITION_OFFSET;
+        float lightningY = playerY + sinf(angle) * FIRE_POSITION_OFFSET;
+        int damageRadius = CELL_SIZE;
+        damageEnemiesInArea(lightningX, lightningY, damageRadius * damageRadius, spellData[spell].damage);
     }
 }
 
@@ -313,6 +328,10 @@ int castHeldSpell(void) {
         spellActivationTime = data.activationTime;
     }
 
+    if (currentSpell == SPELL_ARC_LIGHTNING) {
+        setSpellOverlay(BITMAP_TABLE_ARC_LIGHTNING_OVERLAY, 0.2f /* frameTime */, 106 /* x */, 52 /* y */);
+    }
+
     return 1;
 }
 
@@ -325,6 +344,7 @@ void updateSpells(float deltaTime) {
     if (spellCastTime <= 0.0f) {
         spellCastTime = 0.0f;
         currentSpell = SPELL_NONE;
+        clearSpellOverlay();
         return;
     }
 

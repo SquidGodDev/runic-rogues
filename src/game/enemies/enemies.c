@@ -774,6 +774,19 @@ void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
 	}
 }
 
+void damageEnemiesInArea(float x, float y, int radiusSquared, int damage) {
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		Enemy enemy = enemies[i];
+		if (!enemy.active) {
+			continue;
+		}
+		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
+		if (distSquared < radiusSquared) {
+			damageEnemy(i, damage);
+		}
+	}
+}
+
 bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime) {
 	bool collided = false; 
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
