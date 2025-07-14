@@ -10,8 +10,7 @@ typedef enum Spell {
     SPELL_ROOT_ATTACK,
     SPELL_WAVE,
     SPELL_TRIPLE_WAVE,
-    SPELL_SLOW_SHOT,
-    SPELL_SLOW_WAVE,
+    SPELL_CONE_OF_ICE,
     SPELL_ARC_LIGHTNING,
     SPELL_COUNT
 } Spell;
@@ -32,6 +31,7 @@ typedef struct SpellData {
     int repeatCount;
     int hitCount;
     float slowTime;
+    float slowAmount;
     float playerSpeedModifier;
     int useInitialCastAngle;
     float speed;

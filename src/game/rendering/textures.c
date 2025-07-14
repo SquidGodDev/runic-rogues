@@ -82,8 +82,7 @@ const char *bitmapPathStrings[] = {
 	"images/spells/icons/rootAttackIcon",
 	"images/spells/icons/waveIcon",
 	"images/spells/icons/tripleWaveIcon",
-	"images/spells/icons/slowShotIcon",
-	"images/spells/icons/slowWaveIcon",
+	"images/spells/icons/coneOfIceIcon",
 	"images/spells/icons/arcLightningIcon"
 };
 

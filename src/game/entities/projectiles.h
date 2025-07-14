@@ -22,7 +22,7 @@ typedef struct Projectile {
 extern Projectile projectiles[MAX_PROJECTILE_COUNT];
 
 void initProjectiles(void);
-void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, int hitCount, float slowTime);
-void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int hitCount, float slowTime);
+void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, int hitCount, float slowTime, float slowAmount);
+void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int hitCount, float slowTime, float slowAmount);
 void fireEnemyProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage);
 void updateProjectiles(float deltaTime);

@@ -111,27 +111,20 @@ static SpellData spellData[SPELL_COUNT] = {
         .speed = 150.0f,
         .activationTime = 0.3f
     },
-    [SPELL_SLOW_SHOT] = {
-        .pickupTextureIndex = TEXTURE_SPELL_SLOW_SHOT,
+    [SPELL_CONE_OF_ICE] = {
+        .pickupTextureIndex = TEXTURE_SPELL_CONE_OF_ICE,
         .spellTextureIndex = TEXTURE_PROJECTILE,
-        .spellIconIndex = BITMAP_SPELL_SLOW_SHOT_ICON,
-        .type = SPELL_TYPE_INSTANT,
-        .castTime = 0.4f,
-        .damage = 0,
+        .spellIconIndex = BITMAP_SPELL_CONE_OF_ICE_ICON,
+        .type = SPELL_TYPE_REPEAT,
+        .castTime = 1.0f,
+        .damage = 1,
+        .repeatCount = 3,
         .hitCount = 5,
-        .slowTime = 4.0f,
-        .speed = 100.0f
-    },
-    [SPELL_SLOW_WAVE] = {
-        .pickupTextureIndex = TEXTURE_SPELL_SLOW_WAVE,
-        .spellTextureIndex = TEXTURE_PROJECTILE,
-        .spellIconIndex = BITMAP_SPELL_SLOW_WAVE_ICON,
-        .type = SPELL_TYPE_INSTANT,
-        .castTime = 0.4f,
-        .damage = 0,
-        .hitCount = 5,
-        .slowTime = 4.0f,
-        .speed = 100.0f
+        .slowTime = 2.0f,
+        .slowAmount = 0.8f,
+        .useInitialCastAngle = false,
+        .speed = 200.0f,
+        .activationTime = 0.1f
     },
     [SPELL_ARC_LIGHTNING] = {
         .pickupTextureIndex = TEXTURE_SPELL_ARC_LIGHTNING,
@@ -167,10 +160,10 @@ void initSpells(void) {
     }
 
     // For testing purposes, fill the spell deck with all spells
-    for (int i = 1; i < SPELL_COUNT; i++) {
-        spellDeck[i] = (Spell)i;
-    }
-    // spellDeck[0] = SPELL_ARC_LIGHTNING;
+    // for (int i = 1; i < SPELL_COUNT; i++) {
+    //     spellDeck[i] = (Spell)i;
+    // }
+    spellDeck[0] = SPELL_CONE_OF_ICE;
     // spellDeck[1] = SPELL_SLOW_WAVE;
 
     resetSpellsToSpawn();
@@ -250,7 +243,7 @@ void fireSpellProjectile(Spell spell, float angle) {
     SpellData data = spellData[spell];
     float projectileX = playerX + cosf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
     float projectileY = playerY + sinf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-    firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data.speed, data.damage, data.hitCount, data.slowTime);
+    firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data.speed, data.damage, data.hitCount, data.slowTime, data.slowAmount);
 }
 
 void activateSpellEffect(Spell spell, float angle) {
@@ -288,15 +281,11 @@ void activateSpellEffect(Spell spell, float angle) {
         fireSpellProjectile(spell, angle + offsetAngle * 2);
         fireSpellProjectile(spell, angle - offsetAngle);
         fireSpellProjectile(spell, angle - offsetAngle * 2);
-    } else if (spell == SPELL_SLOW_SHOT) {
-        fireSpellProjectile(spell, angle);
-    } else if (spell == SPELL_SLOW_WAVE) {
-        float offsetAngle = PI / 16.0f;
+    } else if (spell == SPELL_CONE_OF_ICE) {
+        float offsetAngle = PI / 32.0f;
         fireSpellProjectile(spell, angle);
         fireSpellProjectile(spell, angle + offsetAngle);
-        fireSpellProjectile(spell, angle + offsetAngle * 2);
         fireSpellProjectile(spell, angle - offsetAngle);
-        fireSpellProjectile(spell, angle - offsetAngle * 2);
     } else if (spell == SPELL_ARC_LIGHTNING) {
         float lightningX = playerX + cosf(angle) * FIRE_POSITION_OFFSET;
         float lightningY = playerY + sinf(angle) * FIRE_POSITION_OFFSET;

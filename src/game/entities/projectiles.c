@@ -30,7 +30,7 @@ void initProjectiles(void) {
 	}
 }
 
-void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, int hitCount, float slowTime) {
+void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, int hitCount, float slowTime, float slowAmount) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		if (!projectiles[i].active) {
 			Set *hitEnemies = projectiles[i].hitEnemies;
@@ -54,12 +54,12 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 	}
 }
 
-void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int hitCount, float slowTime) {
-	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_PROJECTILE, 0 /*isEnemy*/, hitCount, slowTime);
+void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int hitCount, float slowTime, float slowAmount) {
+	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_PROJECTILE, 0 /*isEnemy*/, hitCount, slowTime, slowAmount);
 }
 
 void fireEnemyProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage) {
-	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_ENEMY_PROJECTILE, 1 /*isEnemy*/, 1 /*hitCount*/, 0 /* slowTime */);
+	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_ENEMY_PROJECTILE, 1 /*isEnemy*/, 1 /*hitCount*/, 0 /* slowTime */, 0 /* slowAmount */);
 }
 
 void updateProjectiles(float deltaTime) {
