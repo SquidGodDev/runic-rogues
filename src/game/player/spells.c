@@ -3,7 +3,6 @@
 
 #include "game/entities/projectiles.h"
 #include "game/rendering/textures.h"
-#include "game/rendering/particles.h"
 #include "game/UI/UI.h"
 #include "game/player/player.h"
 #include "game/player/spells.h"
@@ -154,6 +153,18 @@ static SpellData spellData[SPELL_COUNT] = {
             .repeatCount = 5
         }
     },
+    [SPELL_EXPLOSIVE_SHOT] = {
+        .pickupTextureIndex = TEXTURE_SPELL_EXPLOSIVE_SHOT,
+        .spellTextureIndex = TEXTURE_PROJECTILE,
+        .spellIconIndex = BITMAP_SPELL_EXPLOSIVE_SHOT_ICON,
+        .type = SPELL_TYPE_INSTANT,
+        .castTime = 0.4f,
+        .damage = 2,
+        .projectileData = (SpellProjectileData) {
+            .speed = 70.0f,
+            .hitParticle = PARTICLE_TYPE_EXPLOSION
+        }
+    }
 };
 
 void resetSpellsToSpawn(void) {
@@ -179,10 +190,10 @@ void initSpells(void) {
     }
 
     // For testing purposes, fill the spell deck with all spells
-    for (int i = 1; i < SPELL_COUNT; i++) {
-        spellDeck[i] = (Spell)i;
-    }
-    // spellDeck[0] = SPELL_CONE_OF_ICE;
+    // for (int i = 1; i < SPELL_COUNT; i++) {
+    //     spellDeck[i] = (Spell)i;
+    // }
+    spellDeck[0] = SPELL_EXPLOSIVE_SHOT;
     // spellDeck[1] = SPELL_ROOT_ATTACK;
 
     resetSpellsToSpawn();
@@ -262,7 +273,7 @@ void fireSpellProjectile(Spell spell, float angle) {
     SpellData data = spellData[spell];
     float projectileX = playerX + cosf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
     float projectileY = playerY + sinf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-    firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data.damage, &data.projectileData);
+    firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data.damage, data.projectileData);
 }
 
 void activateSpellEffect(Spell spell, float angle) {
@@ -305,6 +316,8 @@ void activateSpellEffect(Spell spell, float angle) {
         float lightningY = playerY + sinf(angle) * FIRE_POSITION_OFFSET;
         int damageRadius = CELL_SIZE;
         damageEnemiesInArea(lightningX, lightningY, damageRadius * damageRadius, spellData[spell].damage);
+    } else if (spell == SPELL_EXPLOSIVE_SHOT) {
+        fireSpellProjectile(spell, angle);
     }
 
     spellActivateCount++;

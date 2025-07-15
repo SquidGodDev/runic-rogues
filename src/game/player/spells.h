@@ -1,6 +1,8 @@
 #pragma once
 #include "pd_api.h"
 
+#include "game/rendering/particles.h"
+
 typedef enum Spell {
     SPELL_NONE,
     SPELL_FIREBALL,
@@ -12,6 +14,7 @@ typedef enum Spell {
     SPELL_TRIPLE_WAVE,
     SPELL_CONE_OF_ICE,
     SPELL_ARC_LIGHTNING,
+    SPELL_EXPLOSIVE_SHOT,
     SPELL_COUNT
 } Spell;
 
@@ -32,6 +35,7 @@ typedef struct SpellProjectileData {
     float slowTime;
     float slowAmount;
     float speed;
+    ParticleType hitParticle;
 } SpellProjectileData;
 
 typedef struct SpellData {

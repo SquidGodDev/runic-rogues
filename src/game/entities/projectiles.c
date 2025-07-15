@@ -30,11 +30,14 @@ void initProjectiles(void) {
 	}
 }
 
-void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, SpellProjectileData *spellProjectileData) {
+void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, SpellProjectileData spellProjectileData) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		if (!projectiles[i].active) {
 			Set *hitEnemies = projectiles[i].hitEnemies;
 			setClear(hitEnemies);
+			if (spellProjectileData.hitParticle == PARTICLE_TYPE_NONE) {
+				spellProjectileData.hitParticle = PARTICLE_TYPE_PROJECTILE_BREAK;
+			}
 			projectiles[i] = (Projectile) {
 				.x = x,
 				.y = y,
@@ -45,7 +48,7 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 				.spellProjectileData = spellProjectileData,
 				.textureIndex = textureIndex,
 				.isEnemy = isEnemy,
-				.hitCount = spellProjectileData ? spellProjectileData->hitCount : 1,
+				.hitCount = spellProjectileData.hitCount,
 				.hitEnemies = hitEnemies,
 				.active = 1
 			};
@@ -54,12 +57,12 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 	}
 }
 
-void firePlayerProjectile(float x, float y, float deltaX, float deltaY, int damage, SpellProjectileData *spellProjectileData) {
-	fireProjectile(x, y, deltaX, deltaY, spellProjectileData->speed, damage, TEXTURE_PROJECTILE, 0 /*isEnemy*/, spellProjectileData);
+void firePlayerProjectile(float x, float y, float deltaX, float deltaY, int damage, SpellProjectileData spellProjectileData) {
+	fireProjectile(x, y, deltaX, deltaY, spellProjectileData.speed, damage, TEXTURE_PROJECTILE, 0 /*isEnemy*/, spellProjectileData);
 }
 
 void fireEnemyProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage) {
-	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_ENEMY_PROJECTILE, 1 /*isEnemy*/, NULL /*spellProjectileData*/);
+	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_ENEMY_PROJECTILE, 1 /*isEnemy*/, (SpellProjectileData){0});
 }
 
 void updateProjectiles(float deltaTime) {
@@ -80,7 +83,8 @@ void updateProjectiles(float deltaTime) {
 			curProjectile->active = 0;
 			int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
 			int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
-			spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
+			ParticleType hitParticle = curProjectile->spellProjectileData.hitParticle;
+			spawnParticle(hitParticle, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
 		} else {
 			bool collided = false;
 			if (curProjectile->isEnemy) {
@@ -96,8 +100,8 @@ void updateProjectiles(float deltaTime) {
 					curProjectile->hitEnemies, 
 					PLAYER_PROJECTILE_COLLISION_RANGE, 
 					curProjectile->damage, 
-					curProjectile->spellProjectileData->slowTime, 
-					curProjectile->spellProjectileData->slowAmount
+					curProjectile->spellProjectileData.slowTime, 
+					curProjectile->spellProjectileData.slowAmount
 				);
 			}
 			if (collided) {
@@ -106,7 +110,8 @@ void updateProjectiles(float deltaTime) {
 					curProjectile->active = 0;
 					int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
 					int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
-					spawnParticle(PARTICLE_TYPE_PROJECTILE_BREAK, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
+					ParticleType hitParticle = curProjectile->spellProjectileData.hitParticle;
+					spawnParticle(hitParticle, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
 					continue;
 				}
 			}

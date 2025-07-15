@@ -48,7 +48,15 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damageFrame = 4,
 		.damage = 1,
 		.damageRadius = CELL_SIZE
-	}
+	},
+	[PARTICLE_TYPE_EXPLOSION] = {
+		.frameCount = 39,
+		.animationTime = 0.03f,
+		.textureIndex = TEXTURE_PARTICLE_EXPLOSION,
+		.damageFrame = 20,
+		.damage = 4,
+		.damageRadius = CELL_SIZE
+	},
 };
 
 void initParticles(void) {
