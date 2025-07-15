@@ -15,6 +15,7 @@ typedef enum Spell {
     SPELL_CONE_OF_ICE,
     SPELL_ARC_LIGHTNING,
     SPELL_EXPLOSIVE_SHOT,
+    SPELL_BOMBER,
     SPELL_COUNT
 } Spell;
 

@@ -162,9 +162,15 @@ static SpellData spellData[SPELL_COUNT] = {
         .damage = 2,
         .projectileData = (SpellProjectileData) {
             .speed = 70.0f,
-            .hitParticle = PARTICLE_TYPE_EXPLOSION
+            .hitParticle = PARTICLE_TYPE_BOMB
         }
-    }
+    },
+    [SPELL_BOMBER] = {
+        .pickupTextureIndex = TEXTURE_SPELL_BOMBER,
+        .spellIconIndex = BITMAP_SPELL_BOMBER_ICON,
+        .type = SPELL_TYPE_INSTANT,
+        .castTime = 0.3f,
+    },
 };
 
 void resetSpellsToSpawn(void) {
@@ -193,8 +199,8 @@ void initSpells(void) {
     // for (int i = 1; i < SPELL_COUNT; i++) {
     //     spellDeck[i] = (Spell)i;
     // }
-    spellDeck[0] = SPELL_EXPLOSIVE_SHOT;
-    // spellDeck[1] = SPELL_ROOT_ATTACK;
+    spellDeck[0] = SPELL_BOMBER;
+    spellDeck[1] = SPELL_EXPLOSIVE_SHOT;
 
     resetSpellsToSpawn();
 }
@@ -318,6 +324,10 @@ void activateSpellEffect(Spell spell, float angle) {
         damageEnemiesInArea(lightningX, lightningY, damageRadius * damageRadius, spellData[spell].damage);
     } else if (spell == SPELL_EXPLOSIVE_SHOT) {
         fireSpellProjectile(spell, angle);
+    } else if (spell == SPELL_BOMBER) {
+        float offsetX = cosf(angle) * CELL_SIZE / 2;
+        float offsetY = sinf(angle) * CELL_SIZE / 2;
+        spawnParticle(PARTICLE_TYPE_BOMB, playerX + offsetX, playerY + offsetY, PARTICLE_TYPE_NONE, false /* enemyParticle */);
     }
 
     spellActivateCount++;

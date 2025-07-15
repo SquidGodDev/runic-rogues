@@ -49,11 +49,11 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damage = 1,
 		.damageRadius = CELL_SIZE
 	},
-	[PARTICLE_TYPE_EXPLOSION] = {
-		.frameCount = 39,
+	[PARTICLE_TYPE_BOMB] = {
+		.frameCount = 66,
 		.animationTime = 0.03f,
-		.textureIndex = TEXTURE_PARTICLE_EXPLOSION,
-		.damageFrame = 20,
+		.textureIndex = TEXTURE_PARTICLE_BOMB,
+		.damageFrame = 47,
 		.damage = 4,
 		.damageRadius = CELL_SIZE
 	},

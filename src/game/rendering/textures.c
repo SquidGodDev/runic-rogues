@@ -26,7 +26,7 @@ const char *texturePathStrings[] = {
 	"images/particles/projectileBreak",
 	"images/particles/warning",
 	"images/particles/rootAttack",
-	"images/particles/explosion",
+	"images/particles/bomb",
 	"images/enemies/enemyProjectile",
 	"images/enemies/bat",
 	"images/enemies/slime",
@@ -85,7 +85,8 @@ const char *bitmapPathStrings[] = {
 	"images/spells/icons/tripleWaveIcon",
 	"images/spells/icons/coneOfIceIcon",
 	"images/spells/icons/arcLightningIcon",
-	"images/spells/icons/explosiveShotIcon"
+	"images/spells/icons/explosiveShotIcon",
+	"images/spells/icons/bomberIcon"
 };
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];
