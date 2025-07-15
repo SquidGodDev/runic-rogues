@@ -17,8 +17,8 @@
 #define MAP_CHECK_OFFSET_X cosf(FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET / 4
 #define MAP_CHECK_OFFSET_Y sinf(FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET / 4
 
-#define PLAYER_COLLISION_RANGE 30
-#define ENEMY_COLLISION_RANGE 15
+#define PLAYER_PROJECTILE_COLLISION_RANGE 30
+#define ENEMY_PROJECTILE_COLLISION_RANGE 15
 #define PARTICLE_OFFSET CELL_SIZE / 2
 
 Projectile projectiles[MAX_PROJECTILE_COUNT] = {0};
@@ -30,7 +30,7 @@ void initProjectiles(void) {
 	}
 }
 
-void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, int hitCount, float slowTime, float slowAmount) {
+void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, SpellProjectileData *spellProjectileData) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		if (!projectiles[i].active) {
 			Set *hitEnemies = projectiles[i].hitEnemies;
@@ -42,12 +42,11 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 				.deltaY = deltaY,
 				.speed = speed,
 				.damage = damage,
+				.spellProjectileData = spellProjectileData,
 				.textureIndex = textureIndex,
 				.isEnemy = isEnemy,
-				.hitCount = hitCount,
+				.hitCount = spellProjectileData ? spellProjectileData->hitCount : 1,
 				.hitEnemies = hitEnemies,
-				.slowTime = slowTime,
-				.slowAmount = slowAmount,
 				.active = 1
 			};
 			break;
@@ -55,12 +54,12 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 	}
 }
 
-void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int hitCount, float slowTime, float slowAmount) {
-	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_PROJECTILE, 0 /*isEnemy*/, hitCount, slowTime, slowAmount);
+void firePlayerProjectile(float x, float y, float deltaX, float deltaY, int damage, SpellProjectileData *spellProjectileData) {
+	fireProjectile(x, y, deltaX, deltaY, spellProjectileData->speed, damage, TEXTURE_PROJECTILE, 0 /*isEnemy*/, spellProjectileData);
 }
 
 void fireEnemyProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage) {
-	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_ENEMY_PROJECTILE, 1 /*isEnemy*/, 1 /*hitCount*/, 0 /* slowTime */, 0 /* slowAmount */);
+	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_ENEMY_PROJECTILE, 1 /*isEnemy*/, NULL /*spellProjectileData*/);
 }
 
 void updateProjectiles(float deltaTime) {
@@ -86,12 +85,20 @@ void updateProjectiles(float deltaTime) {
 			bool collided = false;
 			if (curProjectile->isEnemy) {
 				float distSquared = distanceSquared(curProjectile->x, curProjectile->y, playerX, playerY);
-				if (distSquared < ENEMY_COLLISION_RANGE) {
+				if (distSquared < ENEMY_PROJECTILE_COLLISION_RANGE) {
 					collided = true;
 					damagePlayer(curProjectile->damage);
 				}
 			} else {
-				collided = checkEnemyCollision(curProjectile->x, curProjectile->y, curProjectile->hitEnemies, PLAYER_COLLISION_RANGE, curProjectile->damage, curProjectile->slowTime, curProjectile->slowAmount);
+				collided = checkEnemyCollision(
+					curProjectile->x, 
+					curProjectile->y, 
+					curProjectile->hitEnemies, 
+					PLAYER_PROJECTILE_COLLISION_RANGE, 
+					curProjectile->damage, 
+					curProjectile->spellProjectileData->slowTime, 
+					curProjectile->spellProjectileData->slowAmount
+				);
 			}
 			if (collided) {
 				curProjectile->hitCount--;

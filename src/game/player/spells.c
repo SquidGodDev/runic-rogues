@@ -41,7 +41,9 @@ static SpellData spellData[SPELL_COUNT] = {
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
         .damage = 4,
-        .speed = 75.0f
+        .projectileData = (SpellProjectileData) {
+            .speed = 75.0f
+        }
     },
     [SPELL_TRIPLE_SHOT] = {
         .pickupTextureIndex = TEXTURE_SPELL_TRIPLE_SHOT,
@@ -50,10 +52,13 @@ static SpellData spellData[SPELL_COUNT] = {
         .type = SPELL_TYPE_REPEAT,
         .castTime = 1.0f,
         .damage = 1,
-        .repeatCount = 3,
-        .useInitialCastAngle = false,
-        .speed = 150.0f,
-        .activationTime = 0.3f
+        .repeatData = (RepeatData){
+            .repeatCount = 3,
+            .activationTime = 0.3f
+        },
+        .projectileData = (SpellProjectileData){
+            .speed = 150.0f,
+        }
     },
     [SPELL_SHOTGUN] = {
         .pickupTextureIndex = TEXTURE_SPELL_SHOTGUN,
@@ -62,7 +67,9 @@ static SpellData spellData[SPELL_COUNT] = {
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
         .damage = 1,
-        .speed = 100.0f
+        .projectileData = (SpellProjectileData){
+            .speed = 100.0f
+        }
     },
     [SPELL_LASER] = {
         .pickupTextureIndex = TEXTURE_SPELL_LASER,
@@ -70,12 +77,16 @@ static SpellData spellData[SPELL_COUNT] = {
         .type = SPELL_TYPE_REPEAT,
         .castTime = 0.6f,
         .damage = 1,
-        .activationTime = 0.1f,
-        .repeatCount = 5,
-        .hitCount = 3,
         .playerSpeedModifier = -0.7f,
         .useInitialCastAngle = true,
-        .speed = 300.0f
+        .repeatData = (RepeatData){
+            .activationTime = 0.1f,
+            .repeatCount = 5
+        },
+        .projectileData = (SpellProjectileData) {
+            .hitCount = 3,
+            .speed = 300.0f
+        }
     },
     [SPELL_ROOT_ATTACK] = {
         .pickupTextureIndex = TEXTURE_SPELL_ROOT_ATTACK,
@@ -83,10 +94,12 @@ static SpellData spellData[SPELL_COUNT] = {
         .type = SPELL_TYPE_REPEAT,
         .castTime = 1.0f,
         .damage = 4,
-        .activationTime = 0.2f,
-        .repeatCount = 5,
         .playerSpeedModifier = -0.5f,
         .useInitialCastAngle = true,
+        .repeatData = (RepeatData){
+            .activationTime = 0.2f,
+            .repeatCount = 5
+        }
     },
     [SPELL_WAVE] = {
         .pickupTextureIndex = TEXTURE_SPELL_WAVE,
@@ -95,7 +108,9 @@ static SpellData spellData[SPELL_COUNT] = {
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
         .damage = 1,
-        .speed = 100.0f
+        .projectileData = (SpellProjectileData) {
+            .speed = 100.0f
+        }
     },
     [SPELL_TRIPLE_WAVE] = {
         .pickupTextureIndex = TEXTURE_SPELL_TRIPLE_WAVE,
@@ -104,10 +119,14 @@ static SpellData spellData[SPELL_COUNT] = {
         .type = SPELL_TYPE_REPEAT,
         .castTime = 1.0f,
         .damage = 1,
-        .repeatCount = 3,
         .useInitialCastAngle = false,
-        .speed = 150.0f,
-        .activationTime = 0.3f
+        .repeatData = (RepeatData){
+            .activationTime = 0.3f,
+            .repeatCount = 3
+        },
+        .projectileData = (SpellProjectileData) {
+            .speed = 150.0f
+        }
     },
     [SPELL_CONE_OF_ICE] = {
         .pickupTextureIndex = TEXTURE_SPELL_CONE_OF_ICE,
@@ -116,20 +135,24 @@ static SpellData spellData[SPELL_COUNT] = {
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
         .damage = 1,
-        .hitCount = 5,
-        .slowTime = 2.0f,
-        .slowAmount = 0.8f,
         .useInitialCastAngle = false,
-        .speed = 100.0f
+        .projectileData = (SpellProjectileData) {
+            .hitCount = 5,
+            .slowTime = 2.0f,
+            .slowAmount = 0.8f,
+            .speed = 100.0f
+        }
     },
     [SPELL_ARC_LIGHTNING] = {
         .pickupTextureIndex = TEXTURE_SPELL_ARC_LIGHTNING,
         .spellIconIndex = BITMAP_SPELL_ARC_LIGHTNING_ICON,
         .type = SPELL_TYPE_REPEAT,
         .castTime = 1.5f,
-        .activationTime = 0.3f,
-        .repeatCount = 5,
-        .damage = 3
+        .damage = 3,
+        .repeatData = (RepeatData){
+            .activationTime = 0.3f,
+            .repeatCount = 5
+        }
     },
 };
 
@@ -239,7 +262,7 @@ void fireSpellProjectile(Spell spell, float angle) {
     SpellData data = spellData[spell];
     float projectileX = playerX + cosf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
     float projectileY = playerY + sinf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-    firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data.speed, data.damage, data.hitCount, data.slowTime, data.slowAmount);
+    firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data.damage, &data.projectileData);
 }
 
 void activateSpellEffect(Spell spell, float angle) {
@@ -307,7 +330,7 @@ int castHeldSpell(void) {
     } else if (data.type == SPELL_TYPE_REPEAT) {
         initialCastAngle = playerAngle;
         activateSpellEffect(currentSpell, playerAngle);
-        spellActivationTime = data.activationTime;
+        spellActivationTime = data.repeatData.activationTime;
     }
 
     if (currentSpell == SPELL_ARC_LIGHTNING) {
@@ -333,10 +356,10 @@ void updateSpells(float deltaTime) {
     SpellData* data = &spellData[currentSpell];
     if (data->type == SPELL_TYPE_REPEAT) {
         spellActivationTime -= deltaTime;
-        if (spellActivationTime <= 0.0f && spellActivateCount < data->repeatCount) {
+        if (spellActivationTime <= 0.0f && spellActivateCount < data->repeatData.repeatCount) {
             float angle = data->useInitialCastAngle ? initialCastAngle : playerAngle;
             activateSpellEffect(currentSpell, angle);
-            spellActivationTime = data->activationTime;
+            spellActivationTime = data->repeatData.activationTime;
         }
     }
 }

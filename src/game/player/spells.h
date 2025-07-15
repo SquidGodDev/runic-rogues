@@ -22,21 +22,29 @@ typedef enum SpellType {
     SPELL_TYPE_COUNT
 } SpellType;
 
+typedef struct RepeatData {
+    int repeatCount;
+    float activationTime;
+} RepeatData;
+
+typedef struct SpellProjectileData {
+    int hitCount;
+    float slowTime;
+    float slowAmount;
+    float speed;
+} SpellProjectileData;
+
 typedef struct SpellData {
     int pickupTextureIndex;
     int spellTextureIndex;
     int spellIconIndex;
     SpellType type;
-    int damage;
-    int repeatCount;
-    int hitCount;
-    float slowTime;
-    float slowAmount;
-    float playerSpeedModifier;
-    int useInitialCastAngle;
-    float speed;
     float castTime;
-    float activationTime;
+    int damage;
+    bool useInitialCastAngle;
+    float playerSpeedModifier;
+    RepeatData repeatData;
+    SpellProjectileData projectileData;
 } SpellData;
 
 int getSpellPickupTextureIndex(Spell spell);
