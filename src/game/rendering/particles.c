@@ -43,11 +43,11 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 	},
 	[PARTICLE_TYPE_PLAYER_ROOT_ATTACK] = {
 		.frameCount = 10,
-		.animationTime = 0.075f,
+		.animationTime = 0.03f,
 		.textureIndex = TEXTURE_PARTICLE_ROOT_ATTACK,
 		.damageFrame = 4,
 		.damage = 1,
-		.damageRadius = CELL_SIZE / 2
+		.damageRadius = CELL_SIZE
 	}
 };
 

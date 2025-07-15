@@ -117,7 +117,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
-		.health = 8,
+		.health = 6,
 		.attackDetectionRange = 100,
 		.attackDistance = 100,
 		.attackDamage = 1,
