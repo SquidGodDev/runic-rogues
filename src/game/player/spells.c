@@ -196,11 +196,11 @@ void initSpells(void) {
     }
 
     // For testing purposes, fill the spell deck with all spells
-    // for (int i = 1; i < SPELL_COUNT; i++) {
-    //     spellDeck[i] = (Spell)i;
-    // }
-    spellDeck[0] = SPELL_BOMBER;
-    spellDeck[1] = SPELL_EXPLOSIVE_SHOT;
+    for (int i = 1; i < SPELL_COUNT; i++) {
+        spellDeck[i] = (Spell)i;
+    }
+    // spellDeck[0] = SPELL_BOMBER;
+    // spellDeck[1] = SPELL_EXPLOSIVE_SHOT;
 
     resetSpellsToSpawn();
 }
