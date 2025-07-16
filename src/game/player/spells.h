@@ -9,7 +9,7 @@ typedef enum Spell {
     SPELL_TRIPLE_SHOT,
     SPELL_SHOTGUN,
     SPELL_LASER,
-    SPELL_ROOT_ATTACK,
+    SPELL_ROOT_SURGE,
     SPELL_WAVE,
     SPELL_TRIPLE_WAVE,
     SPELL_CONE_OF_ICE,
@@ -40,6 +40,10 @@ typedef struct SpellProjectileData {
 } SpellProjectileData;
 
 typedef struct SpellData {
+    char* name;
+    char* name_jp;
+    char* description;
+    char* description_jp;
     int pickupTextureIndex;
     int spellTextureIndex;
     int spellIconIndex;
