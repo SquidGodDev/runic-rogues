@@ -209,8 +209,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDetectionRange = 2000,
 		.attackDamage = 1,
 		.attackCooldown = 8.0f,
-		.moveSpeed = 0.2f,
+		.moveSpeed = 0.4f,
 		.abilityDataPrimary = 50.0f, // Projectile speed
+		.abilityDataSecondary = 1.0f, // Random movement cooldown
 		.textureIndex = TEXTURE_IMP,
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
@@ -666,7 +667,21 @@ void updateEnemies(float deltaTime) {
 					}
 				}
 
-				moveEnemy(curEnemy, i, playerX, playerY, curEnemyData->moveSpeed);
+				if (curAttackPattern == ATTACK_PATTERN_PROJECTILE) {
+					if (curEnemy->abilityCooldown <= 0) {
+						if (randInt(0, 100) < 33) {
+							curEnemy->targetX = playerX;
+							curEnemy->targetY = playerY;
+						} else {
+							curEnemy->targetX = curEnemy->x + randInt(-1, 1) * CELL_SIZE;
+							curEnemy->targetY = curEnemy->y + randInt(-1, 1) * CELL_SIZE;
+						}
+						curEnemy->abilityCooldown = curEnemyData->abilityDataSecondary;
+					}
+					moveEnemy(curEnemy, i, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
+				} else {
+					moveEnemy(curEnemy, i, playerX, playerY, curEnemyData->moveSpeed);
+				}
 			} else if (curEnemy->state == ENEMY_STATE_ATTACK) {
 				AttackPattern curAttackPattern = curEnemyData->attackPattern;
 				if (curAttackPattern == ATTACK_PATTERN_RUSH) {
