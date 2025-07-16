@@ -118,17 +118,21 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
 		.health = 6,
-		.attackDetectionRange = 100,
+		.attackDetectionRange = 3000,
 		.attackDistance = 100,
 		.attackDamage = 1,
-		.attackCooldown = 1.0f,
+		.attackCooldown = 4.0f,
 		.moveSpeed = 0.3f,
+		.abilityDataPrimary = 0.7f, // Rush move speed
+		.abilityDataSecondary = 4.0f, // Rush duration
 		.textureIndex = TEXTURE_BAT,
 		.idleFrameEnd = 6,
+		.attackFrameStart = 1,
+		.attackFrameEnd = 6,
 		.deathFrameStart = 7,
 		.deathFrameEnd = 10,
 		.frameTime = 0.12f,
-		.attackPattern = ATTACK_PATTERN_PROXIMITY
+		.attackPattern = ATTACK_PATTERN_RUSH
 	},
 	[ENEMY_TYPE_SLIME] = (EnemyData){
 		.name = "Slime",
@@ -482,7 +486,9 @@ void updateEnemies(float deltaTime) {
 			} else if (curEnemy->state == ENEMY_STATE_ATTACK || curEnemy->state == ENEMY_STATE_ATTACK_END) {
 				if (curEnemy->animationFrame >= curEnemyData->attackFrameEnd) {
 					curEnemy->animationFrame = 0;
-					curEnemy->state = ENEMY_STATE_IDLE;
+					if (curEnemyData->attackPattern != ATTACK_PATTERN_RUSH) {
+						curEnemy->state = ENEMY_STATE_IDLE;
+					}
 				}
 			} else if (curEnemy->state == ENEMY_STATE_DEAD) {
 				if (curEnemy->animationFrame >= curEnemyData->deathFrameEnd) {
@@ -502,9 +508,12 @@ void updateEnemies(float deltaTime) {
 			continue;
 		}
 
-		curEnemy->attackCooldown -= deltaTime;
-		if (curEnemy->attackCooldown <= 0) {
-			curEnemy->attackCooldown = 0;
+		if (curEnemy->attackCooldown > 0) {
+			curEnemy->attackCooldown -= deltaTime;
+		}
+
+		if (curEnemy->abilityCooldown > 0) {
+			curEnemy->abilityCooldown -= deltaTime;
 		}
 
 		if (curEnemyData->attackPattern == ATTACK_PATTERN_ELDER_BOSS) {
@@ -645,10 +654,15 @@ void updateEnemies(float deltaTime) {
 						if (playerInAttackDistance(i)) {
 							damagePlayer(curEnemyData->attackDamage);
 						}
-					} else if (curAttackPattern == ATTACK_PATTERN_RUSH && isClearLine(curEnemy->x, curEnemy->y, playerX, playerY)) {
+					} else if (curAttackPattern == ATTACK_PATTERN_RUSH) {
+						float targetX, targetY;
+						castRayToWall(curEnemy->x, curEnemy->y, playerX, playerY, &targetX, &targetY);
+						curEnemy->targetX = targetX;
+						curEnemy->targetY = targetY;
 						curEnemy->state = ENEMY_STATE_ATTACK;
 						curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
 						curEnemy->animationTime = curEnemyData->frameTime;
+						curEnemy->abilityCooldown = curEnemyData->abilityDataSecondary;
 					}
 				}
 
@@ -656,10 +670,14 @@ void updateEnemies(float deltaTime) {
 			} else if (curEnemy->state == ENEMY_STATE_ATTACK) {
 				AttackPattern curAttackPattern = curEnemyData->attackPattern;
 				if (curAttackPattern == ATTACK_PATTERN_RUSH) {
-					moveEnemy(curEnemy, i, playerX, playerY, curEnemyData->abilityDataPrimary);
+					moveEnemy(curEnemy, i, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
 					if (playerInAttackDistance(i)) {
 						damagePlayer(curEnemyData->attackDamage);
+					}
+					if (curEnemy->abilityCooldown <= 0) {
+						curEnemy->attackCooldown = curEnemyData->attackCooldown;
 						curEnemy->state = ENEMY_STATE_IDLE;
+						curEnemy->animationFrame = 0;
 					}
 				} else if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 					if (curAttackPattern == ATTACK_PATTERN_MELEE) {
