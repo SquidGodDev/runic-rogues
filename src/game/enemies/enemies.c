@@ -157,7 +157,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDistance = 100,
 		.attackDamage = 1,
 		.attackCooldown = 0,
-		.moveSpeed = 0.35f,
+		.moveSpeed = 0.5f,
 		.textureIndex = TEXTURE_BABY_SLIME,
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
@@ -708,8 +708,12 @@ void enemyDeathEffect(int index) {
 	EnemyType enemyType = curEnemy.type;
 	if (enemyType == ENEMY_TYPE_SLIME) {
 		int slimeSpawnCount = enemyData[enemyType].abilityDataPrimary;
+		int offsetMax = CELL_SIZE / 4;
+		int offsetMin = -offsetMax;
 		for (int i = 0; i < slimeSpawnCount; i++) {
-			spawnEnemy(ENEMY_TYPE_BABY_SLIME, curEnemy.x, curEnemy.y);
+			int xOffset = randInt(offsetMin, offsetMax);
+			int yOffset = randInt(offsetMin, offsetMax);
+			spawnEnemy(ENEMY_TYPE_BABY_SLIME, curEnemy.x + xOffset, curEnemy.y + yOffset);
 		}
 	}
 }
