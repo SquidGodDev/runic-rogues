@@ -507,7 +507,54 @@ void updateEnemies(float deltaTime) {
 			curEnemy->attackCooldown = 0;
 		}
 
-		if (curEnemyData->attackPattern == ATTACK_PATTERN_WRAITH_BOSS) {
+		if (curEnemyData->attackPattern == ATTACK_PATTERN_ELDER_BOSS) {
+			boss.stateTimer -= deltaTime;
+			if (curEnemy->state == ENEMY_STATE_IDLE) {
+				if (playerInAttackDetectionRange(i)) {
+					curEnemy->state = ENEMY_STATE_ATTACK;
+					curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
+					curEnemy->animationTime = curEnemyData->frameTime;
+				} else if (boss.stateTimer <= 0) {
+					boss.stateTimer = ELDER_BOSS_PREP_TIME;
+					curEnemy->state = ENEMY_STATE_PREP;
+					curEnemy->animationFrame = curEnemyData->prepFrameStart - 1;
+					curEnemy->animationTime = curEnemyData->frameTime;
+
+					// Spawn root attacks towards player in a line
+					float dx = playerX - curEnemy->x;
+					float dy = playerY - curEnemy->y;
+					if (dx == 0 && dy == 0) {
+						dx = 1;
+						dy = 0;
+					}
+					float length = sqrtf(dx * dx + dy * dy);
+					if (length > 0) {
+						dx /= length;
+						dy /= length;
+					}
+
+					for (int root = 0; root < ELDER_BOSS_ATTACK2_COUNT; root++) {
+						float offsetX = dx * root * ELDER_BOSS_ATTACK2_SPACING;
+						float offsetY = dy * root * ELDER_BOSS_ATTACK2_SPACING;
+						spawnParticle(PARTICLE_TYPE_WARNING, curEnemy->x + offsetX, curEnemy->y + offsetY, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /* enemyParticle */);
+					}
+				} else {
+					moveEnemy(curEnemy, i, playerX, playerY, curEnemyData->moveSpeed);
+				}
+			} else if (curEnemy->state == ENEMY_STATE_PREP) {
+				if (boss.stateTimer <= 0) {
+					boss.stateTimer = ELDER_BOSS_IDLE_TIME;
+					curEnemy->state = ENEMY_STATE_IDLE;
+				}
+			} else if (curEnemy->state == ENEMY_STATE_ATTACK) {
+				if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+					if (playerInAttackDistance(i)) {
+						damagePlayer(curEnemyData->attackDamage);
+					}
+					curEnemy->state = ENEMY_STATE_ATTACK_END;
+				}
+			}
+		} else if (curEnemyData->attackPattern == ATTACK_PATTERN_WRAITH_BOSS) {
 			boss.stateTimer -= deltaTime;
 			if (curEnemy->attackCooldown <= 0 && playerInAttackDistance(i)) {
 				curEnemy->attackCooldown = curEnemyData->attackCooldown;
@@ -582,53 +629,6 @@ void updateEnemies(float deltaTime) {
 					}
 				} else if (boss.bossState == BOSS_STATE_ATTACK3) {
 					moveEnemy(curEnemy, i, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
-				}
-			}
-		} else if (curEnemyData->attackPattern == ATTACK_PATTERN_ELDER_BOSS) {
-			boss.stateTimer -= deltaTime;
-			if (curEnemy->state == ENEMY_STATE_IDLE) {
-				if (playerInAttackDetectionRange(i)) {
-					curEnemy->state = ENEMY_STATE_ATTACK;
-					curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
-					curEnemy->animationTime = curEnemyData->frameTime;
-				} else if (boss.stateTimer <= 0) {
-					boss.stateTimer = ELDER_BOSS_PREP_TIME;
-					curEnemy->state = ENEMY_STATE_PREP;
-					curEnemy->animationFrame = curEnemyData->prepFrameStart - 1;
-					curEnemy->animationTime = curEnemyData->frameTime;
-
-					// Spawn root attacks towards player in a line
-					float dx = playerX - curEnemy->x;
-					float dy = playerY - curEnemy->y;
-					if (dx == 0 && dy == 0) {
-						dx = 1;
-						dy = 0;
-					}
-					float length = sqrtf(dx * dx + dy * dy);
-					if (length > 0) {
-						dx /= length;
-						dy /= length;
-					}
-
-					for (int root = 0; root < ELDER_BOSS_ATTACK2_COUNT; root++) {
-						float offsetX = dx * root * ELDER_BOSS_ATTACK2_SPACING;
-						float offsetY = dy * root * ELDER_BOSS_ATTACK2_SPACING;
-						spawnParticle(PARTICLE_TYPE_WARNING, curEnemy->x + offsetX, curEnemy->y + offsetY, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /* enemyParticle */);
-					}
-				} else {
-					moveEnemy(curEnemy, i, playerX, playerY, curEnemyData->moveSpeed);
-				}
-			} else if (curEnemy->state == ENEMY_STATE_PREP) {
-				if (boss.stateTimer <= 0) {
-					boss.stateTimer = ELDER_BOSS_IDLE_TIME;
-					curEnemy->state = ENEMY_STATE_IDLE;
-				}
-			} else if (curEnemy->state == ENEMY_STATE_ATTACK) {
-				if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
-					if (playerInAttackDistance(i)) {
-						damagePlayer(curEnemyData->attackDamage);
-					}
-					curEnemy->state = ENEMY_STATE_ATTACK_END;
 				}
 			}
 		} else {
