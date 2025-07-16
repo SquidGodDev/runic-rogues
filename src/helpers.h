@@ -102,6 +102,7 @@ void stackPush(Stack* s, int value);
 int stackPop(Stack* s);
 int stackPeek(Stack* s);
 void stackShuffle(Stack* s);
+void stackPrint(Stack* s);
 
 // === SET ===
 #define SET_SIZE 53 // Use a prime number for better distribution

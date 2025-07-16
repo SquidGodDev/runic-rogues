@@ -31,4 +31,5 @@ typedef struct UpgradeValue {
 void initUpgradeManager(void);
 float getUpgradeValue(UpgradeType upgradeType);
 void addUpgrade(UpgradeType upgradeType);
-void initUpgradeValues(int isGameStart);
+void initGameStartUpgradeValues(void);
+void initUpgradeValues(void);

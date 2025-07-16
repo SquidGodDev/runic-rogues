@@ -9,7 +9,8 @@ extern float dirX, dirY;
 extern int playerHealth;
 extern float playerMana;
 
-void initPlayer(int isGameStart);
+void initPlayerRunStartStats(void);
+void initPlayer(void);
 void updatePlayer(float deltaTime);
 int getPlayerInteractableIndex(void);
 void playerDash(void);

@@ -103,12 +103,11 @@ void toggleMovementCallback(void* userdata) {
 	movementToggled = 0;
 }
 
-void initPlayer(int isGameStart) {
-    // Player starting values
-	if (isGameStart || playerHealth == 0) {
-		// Reset player health on game start or when testing (i.e. playerHealth is 0)
-		playerHealth = PLAYER_STATS.maxHealth;
-	}
+void initPlayerRunStartStats(void) {
+	playerHealth = PLAYER_STATS.maxHealth;
+}
+
+void initPlayer(void) {
 	playerMana = PLAYER_STATS.maxMana;
 	playerState = (PlayerState) {
 		.dead = 0,

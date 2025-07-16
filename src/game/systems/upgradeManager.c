@@ -39,7 +39,7 @@ float getUpgradeValue(UpgradeType upgradeType) {
 
 void addUpgrade(UpgradeType upgradeType) {
     upgradeValues[upgradeType].count += 1;
-    initUpgradeValues(0);
+    initUpgradeValues();
     if (upgradeType == UPGRADE_TYPE_MAX_HEALTH) {
         healPlayer(upgradeData[upgradeType].modifier);
     }
@@ -158,16 +158,17 @@ void initUpgradeManager(void) {
     };
 }
 
-void initUpgradeValues(int isGameStart) {
-    if (isGameStart) {
-        for (int i = 0; i < UPGRADE_TYPE_COUNT; i++) {
-            upgradeValues[i] = (UpgradeValue) {
-                .count = 0,
-                .value = 0
-            };
-        }
+void initGameStartUpgradeValues(void) {
+    for (int i = 0; i < UPGRADE_TYPE_COUNT; i++) {
+        upgradeValues[i] = (UpgradeValue) {
+            .count = 0,
+            .value = 0
+        };
     }
+    initUpgradeValues();
+}
 
+void initUpgradeValues(void) {
     for (int i = 0; i < UPGRADE_TYPE_COUNT; i++) {
         upgradeValues[i].value = upgradeValues[i].count * upgradeData[i].modifier;
     }

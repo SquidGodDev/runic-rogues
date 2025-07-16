@@ -68,8 +68,7 @@ int isRoomCompleted(void) {
 
 void nextRoom(void) {
     transitioning = 1;
-    pd->lua->pushInt(playerHealth);
-    pd->lua->callFunction("NextLevel", 1, NULL);
+    pd->lua->callFunction("NextLevel", 0, NULL);
 }
 
 int isTransitioning(void) {

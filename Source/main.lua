@@ -11,6 +11,7 @@ import "scripts/systems/gameManager"
 import "scripts/systems/settingsManager"
 import "scripts/roomSelect/roomSelectScene"
 import "scripts/roomSelect/upgradeSelectScene"
+import "scripts/roomSelect/shopScene"
 import "scripts/title/titleScene"
 import "scripts/title/gameOverScene"
 
@@ -18,7 +19,7 @@ AudioManager.init()
 
 SceneManager.loadFirstScene(TitleScene)
 
-function NextLevel(playerHealth)
+function NextLevel()
 	GAME_DATA.currentRoom += 1
 	if GAME_DATA.currentRoom > 10 and GAME_DATA.currentArea >= 2 then
 		SceneManager.switchScene(GameOverScene, true)
@@ -28,7 +29,6 @@ function NextLevel(playerHealth)
 		GAME_DATA.currentRoom = 1
 		GAME_DATA.currentArea += 1
 	end
-	GAME_DATA.playerHealth = playerHealth
 	SceneManager.switchScene(RoomSelectScene)
 end
 

@@ -21,6 +21,7 @@
 #include "game/map/map.h"
 #include "game/systems/audioManager.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/shopManager.h"
 #include "game/systems/upgradeManager.h"
 #include "game/settings/settings.h"
 
@@ -33,6 +34,14 @@ void initSystems(void)
 	initSettings();
 	initUpgradeManager();
 	initAudioManager();
+	initShopManager();
+}
+
+// Run at the start of every new run
+void initRunStart(void) {
+	initDeck();
+	initGameStartUpgradeValues();
+	initPlayerRunStartStats();
 }
 
 // Run at the start of every room
@@ -44,11 +53,10 @@ int initGameScene(lua_State* L)
 	int currentArea = pd->lua->getArgInt(2) - 1;
 	int currentRoom = pd->lua->getArgInt(3) - 1;
 	RoomType roomType = pd->lua->getArgInt(4);
-	int isGameStart = currentArea == 0 && currentRoom == 0;
-	int isBossRoom = roomType == ROOM_TYPE_BOSS;
+	bool isBossRoom = roomType == ROOM_TYPE_BOSS;
 
 	// Upgrades
-	initUpgradeValues(isGameStart);
+	initUpgradeValues();
 
 	// Progression
 	initProgressionManager(currentArea, currentRoom);
@@ -73,7 +81,7 @@ int initGameScene(lua_State* L)
 	initUI(isBossRoom);
 
 	// Player
-	initPlayer(isGameStart);
+	initPlayer();
 
 	return 0;
 }
@@ -110,6 +118,7 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 		srand(pd->system->getSecondsSinceEpoch(NULL));
 
 		initSystems();
+		initRunStart();
 		pd->lua->addFunction(updateGameScene, "GameScene.update", NULL);
 		pd->lua->addFunction(initGameScene, "GameScene.init", NULL);
 	}

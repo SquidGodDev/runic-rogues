@@ -315,7 +315,11 @@ function RoomSelectScene:update()
     if self.cursorTargetX then
         if pd.buttonJustPressed(pd.kButtonA) and not SceneManager.isTransitioning() then
             GAME_DATA.visitedRooms[GAME_DATA.currentRoom] = self.selectedPath
-            SceneManager.switchScene(GameScene, GAME_DATA.currentArea, GAME_DATA.currentRoom, self:getSelectedRoomType())
+            if (self:getSelectedRoomType() == ROOM_TYPE.SHOP) then
+                SceneManager.switchScene(ShopScene)
+            else
+                SceneManager.switchScene(GameScene, GAME_DATA.currentArea, GAME_DATA.currentRoom, self:getSelectedRoomType())
+            end
         end
 
         local currentX = cursorTopSprite.x

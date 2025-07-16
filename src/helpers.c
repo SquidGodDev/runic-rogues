@@ -126,6 +126,17 @@ void stackShuffle(Stack* s) {
     }
 }
 
+void stackPrint(Stack* s) {
+    if (stackIsEmpty(s)) {
+        pd->system->logToConsole("Stack is empty");
+        return;
+    }
+    pd->system->logToConsole("Stack contents:");
+    for (int i = 0; i <= s->top; i++) {
+        pd->system->logToConsole("%d", s->items[i]);
+    }
+}
+
 // === SET ===
 // Hash function
 int hash(int value) {
