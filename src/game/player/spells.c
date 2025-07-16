@@ -91,13 +91,13 @@ static SpellData spellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_ROOT_ATTACK,
         .spellIconIndex = BITMAP_SPELL_ROOT_ATTACK_ICON,
         .type = SPELL_TYPE_REPEAT,
-        .castTime = 1.0f,
+        .castTime = 2.0f,
         .damage = 4,
-        .playerSpeedModifier = -0.5f,
+        .playerSpeedModifier = -0.3f,
         .useInitialCastAngle = true,
         .repeatData = (RepeatData){
             .activationTime = 0.2f,
-            .repeatCount = 5
+            .repeatCount = 10
         }
     },
     [SPELL_WAVE] = {
@@ -196,10 +196,10 @@ void initSpells(void) {
     }
 
     // For testing purposes, fill the spell deck with all spells
-    for (int i = 1; i < SPELL_COUNT; i++) {
-        spellDeck[i] = (Spell)i;
-    }
-    // spellDeck[0] = SPELL_BOMBER;
+    // for (int i = 1; i < SPELL_COUNT; i++) {
+    //     spellDeck[i] = (Spell)i;
+    // }
+    spellDeck[0] = SPELL_ROOT_ATTACK;
     // spellDeck[1] = SPELL_EXPLOSIVE_SHOT;
 
     resetSpellsToSpawn();
@@ -295,8 +295,8 @@ void activateSpellEffect(Spell spell, float angle) {
     } else if (spell == SPELL_LASER) {
         fireSpellProjectile(spell, angle);
     } else if (spell == SPELL_ROOT_ATTACK) {
-        float offsetX = cosf(angle) * (spellActivateCount + 1) * CELL_SIZE;
-        float offsetY = sinf(angle) * (spellActivateCount + 1) * CELL_SIZE;
+        float offsetX = cosf(angle) * (spellActivateCount % 5 + 1) * CELL_SIZE;
+        float offsetY = sinf(angle) * (spellActivateCount % 5 + 1) * CELL_SIZE;
         spawnParticle(PARTICLE_TYPE_PLAYER_ROOT_ATTACK, playerX + offsetX, playerY + offsetY, PARTICLE_TYPE_NONE, false /* enemyParticle */);
     } else if (spell == SPELL_WAVE) {
         float offsetAngle = PI / 16.0f;
