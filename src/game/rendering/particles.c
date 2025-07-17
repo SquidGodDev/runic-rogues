@@ -26,8 +26,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damageFrame = 0,
 	},
 	[PARTICLE_TYPE_WARNING] = {
-		.frameCount = 6,
-		.animationTime = 0.4f,
+		.frameCount = 4,
+		.animationTime = 0.3f,
 		.textureIndex = TEXTURE_PARTICLE_WARNING,
 		.damageFrame = 0,
 		.damage = 0,
@@ -39,7 +39,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_ROOT_ATTACK,
 		.damageFrame = 4,
 		.damage = 1,
-		.damageRadius = CELL_SIZE / 2
+		.damageRadius = CELL_SIZE
 	},
 	[PARTICLE_TYPE_PLAYER_ROOT_ATTACK] = {
 		.frameCount = 10,

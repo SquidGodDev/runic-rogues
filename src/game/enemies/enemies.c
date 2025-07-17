@@ -185,7 +185,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_ELDER_BOSS] = (EnemyData){
 		.name = "Elder Boss",
-		.health = 80,
+		.health = 65,
 		.attackDetectionRange = 350,
 		.attackDistance = 350,
 		.attackDamage = 2,
@@ -261,7 +261,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_WRAITH_BOSS] = (EnemyData){
 		.name = "Wraith Boss",
-		.health = 100,
+		.health = 90,
 		.attackDetectionRange = 100,
 		.attackDistance = 100,
 		.attackDamage = 2,
