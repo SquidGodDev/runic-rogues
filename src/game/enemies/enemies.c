@@ -26,7 +26,7 @@
 
 #define MIN_DIST_TO_PLAYER 5
 #define ENEMY_SEPARATION_RADIUS 20
-#define ENEMY_SEPARATION_FORCE 0.1f
+#define ENEMY_SEPARATION_FORCE 0.3f
 #define WALL_CHECK_DISTANCE 4
 #define WALL_AVOID_FORCE 0.1f
 
@@ -168,11 +168,11 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_SKELETON] = (EnemyData){
 		.name = "Skeleton",
 		.health = 7,
-		.attackDetectionRange = 350,
+		.attackDetectionRange = 200,
 		.attackDistance = 350,
 		.attackDamage = 1,
 		.attackCooldown = 0,
-		.moveSpeed = 0.2f,
+		.moveSpeed = 0.4f,
 		.textureIndex = TEXTURE_SKELETON,
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
