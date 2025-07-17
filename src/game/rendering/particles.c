@@ -39,7 +39,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_ROOT_ATTACK,
 		.damageFrame = 4,
 		.damage = 1,
-		.damageRadius = CELL_SIZE
+		.damageRadius = CELL_SIZE / 2
 	},
 	[PARTICLE_TYPE_PLAYER_ROOT_ATTACK] = {
 		.frameCount = 10,
@@ -65,7 +65,7 @@ void initParticles(void) {
 	}
 }
 
-void spawnParticle(ParticleType type, int x, int y, ParticleType spawnOnEndParticleType, bool enemyParticle) {
+void spawnParticle(ParticleType type, float x, float y, ParticleType spawnOnEndParticleType, bool enemyParticle) {
 	int newParticleIndex = -1;
 	for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {
 		if (!particles[i].active) {

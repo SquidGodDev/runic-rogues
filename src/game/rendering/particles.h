@@ -4,7 +4,7 @@
 #include "helpers.h"
 #include "stdbool.h"
 
-#define MAX_PARTICLE_COUNT 8
+#define MAX_PARTICLE_COUNT 60
 
 typedef enum ParticleType {
 	PARTICLE_TYPE_NONE,
@@ -32,5 +32,5 @@ typedef struct Particle {
 extern Particle particles[MAX_PARTICLE_COUNT];
 
 void initParticles(void);
-void spawnParticle(ParticleType type, int x, int y, ParticleType spawnOnEndParticleType, bool enemyParticle);
+void spawnParticle(ParticleType type, float x, float y, ParticleType spawnOnEndParticleType, bool enemyParticle);
 void updateParticles(float deltaTime);

@@ -45,7 +45,7 @@ void initDeck(void) {
     // for (int i = 1; i < SPELL_COUNT; i++) {
     //     spellDeck[i] = (Spell)i;
     // }
-    spellDeck[0] = SPELL_ROOT_SURGE;
+    spellDeck[0] = SPELL_FIREBALL;
     spellDeck[1] = SPELL_SHOTGUN;
     spellDeck[2] = SPELL_TRIPLE_SHOT;
     // spellDeck[0] = SPELL_EXPLOSIVE_SHOT;

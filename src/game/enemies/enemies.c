@@ -190,7 +190,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDistance = 350,
 		.attackDamage = 2,
 		.attackCooldown = 1.5f,
-		.moveSpeed = 0.2f,
+		.moveSpeed = 0.4f,
 		.textureIndex = TEXTURE_ELDER_BOSS,
 		.idleFrameEnd = 14,
 		.prepFrameStart = 15,
@@ -531,24 +531,17 @@ void updateEnemies(float deltaTime) {
 					curEnemy->animationFrame = curEnemyData->prepFrameStart - 1;
 					curEnemy->animationTime = curEnemyData->frameTime;
 
-					// Spawn root attacks towards player in a line
-					float dx = playerX - curEnemy->x;
-					float dy = playerY - curEnemy->y;
-					if (dx == 0 && dy == 0) {
-						dx = 1;
-						dy = 0;
-					}
-					float length = sqrtf(dx * dx + dy * dy);
-					if (length > 0) {
-						dx /= length;
-						dy /= length;
+					for (int dir = 0; dir < 8; dir++) {
+						float angle = dir * (PI / 4);
+						float dx = cosf(angle);
+						float dy = sinf(angle);
+						for (int root = 1; root <= ELDER_BOSS_ATTACK2_COUNT; root++) {
+							float offsetX = dx * (float)(root * ELDER_BOSS_ATTACK2_SPACING);
+							float offsetY = dy * (float)(root * ELDER_BOSS_ATTACK2_SPACING);
+							spawnParticle(PARTICLE_TYPE_WARNING, curEnemy->x + offsetX, curEnemy->y + offsetY, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /* enemyParticle */);
+						}
 					}
 
-					for (int root = 0; root < ELDER_BOSS_ATTACK2_COUNT; root++) {
-						float offsetX = dx * root * ELDER_BOSS_ATTACK2_SPACING;
-						float offsetY = dy * root * ELDER_BOSS_ATTACK2_SPACING;
-						spawnParticle(PARTICLE_TYPE_WARNING, curEnemy->x + offsetX, curEnemy->y + offsetY, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /* enemyParticle */);
-					}
 				} else {
 					moveEnemy(curEnemy, i, playerX, playerY, curEnemyData->moveSpeed);
 				}
