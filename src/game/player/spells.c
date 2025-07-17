@@ -45,7 +45,7 @@ void initDeck(void) {
     // for (int i = 1; i < SPELL_COUNT; i++) {
     //     spellDeck[i] = (Spell)i;
     // }
-    spellDeck[0] = SPELL_FIREBALL;
+    spellDeck[0] = SPELL_ROOT_SURGE;
     spellDeck[1] = SPELL_SHOTGUN;
     spellDeck[2] = SPELL_TRIPLE_SHOT;
     // spellDeck[0] = SPELL_EXPLOSIVE_SHOT;
@@ -178,8 +178,8 @@ void activateSpellEffect(Spell spell, float angle) {
     } else if (spell == SPELL_LASER) {
         fireSpellProjectile(spell, angle);
     } else if (spell == SPELL_ROOT_SURGE) {
-        float offsetX = cosf(angle) * (spellActivateCount % 5 + 1) * CELL_SIZE;
-        float offsetY = sinf(angle) * (spellActivateCount % 5 + 1) * CELL_SIZE;
+        float offsetX = cosf(angle) * (spellActivateCount % 3 + 1) * CELL_SIZE;
+        float offsetY = sinf(angle) * (spellActivateCount % 3 + 1) * CELL_SIZE;
         spawnParticle(PARTICLE_TYPE_PLAYER_ROOT_ATTACK, playerX + offsetX, playerY + offsetY, PARTICLE_TYPE_NONE, false /* enemyParticle */);
     } else if (spell == SPELL_WAVE) {
         float offsetAngle = PI / 16.0f;

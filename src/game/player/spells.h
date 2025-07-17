@@ -160,13 +160,13 @@ static SpellData spellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_ROOT_SURGE,
         .spellIconIndex = BITMAP_SPELL_ROOT_SURGE_ICON,
         .type = SPELL_TYPE_REPEAT,
-        .castTime = 2.0f,
+        .castTime = 1.2f,
         .damage = 4,
         .playerSpeedModifier = -0.3f,
         .useInitialCastAngle = true,
         .repeatData = (RepeatData){
             .activationTime = 0.2f,
-            .repeatCount = 10
+            .repeatCount = 6
         }
     },
     [SPELL_WAVE] = {
