@@ -302,6 +302,9 @@ void drawSpellUI(void) {
         pd->graphics->drawBitmap(spellIcon, spellIconBaseX + i * spellIconGap, spellIconBaseY, kBitmapUnflipped);
     }
 
+    int selectedSpellIndex = getSelectedSpellIndex();
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_SELECTED_SPELL_CURSOR], spellIconBaseX + selectedSpellIndex * spellIconGap - 2, spellIconBaseY - 2, kBitmapUnflipped);
+
     int utilityIconBaseX = 6, utilityIconBaseY = 83;
     int utilityIconGap = 8;
     for (int i = 0; i < getMaxUtilitySpells(); i++) {

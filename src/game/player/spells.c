@@ -25,6 +25,8 @@ static float spellCastTime;
 static float spellActivationTime;
 static int spellActivateCount;
 static float initialCastAngle;
+static int selectedSpellIndex;
+static int maxHeldSpells;
 
 static int utilitySpellCount;
 
@@ -60,7 +62,29 @@ void initSpells(void) {
 
     utilitySpellCount = DASH_COUNT;
 
+    selectedSpellIndex = 0;
+
+    maxHeldSpells = 0;
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        if (spellDeck[i] == SPELL_NONE) {
+            continue;
+        }
+        queuePush(&heldSpellsQueue, spellDeck[i]);
+        maxHeldSpells += 1;
+    }
+
     resetSpellsToSpawn();
+}
+
+int getSelectedSpellIndex(void) {
+    return selectedSpellIndex;
+}
+
+void selectNextSpell(void) {
+    selectedSpellIndex += 1;
+    if (selectedSpellIndex >= maxHeldSpells) {
+        selectedSpellIndex = 0;
+    }
 }
 
 Spell *getSpellDeck(void) {
@@ -115,7 +139,7 @@ Spell getHeldSpell(int index) {
 }
 
 int getMaxHeldSpells(void) {
-    return MAX_HELD_SPELLS;
+    return maxHeldSpells;
 }
 
 float getPlayerSpeedModifier(void) {
@@ -226,7 +250,7 @@ int castHeldSpell(void) {
     }
 
     spellActivateCount = 0;
-    currentSpell = queuePop(&heldSpellsQueue);
+    currentSpell = queuePeek(&heldSpellsQueue, selectedSpellIndex);
 
     playSound(SFX_SHOOT);
     SpellData data = spellData[currentSpell];
