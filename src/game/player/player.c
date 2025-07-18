@@ -195,8 +195,7 @@ void handleInput(float deltaTime)
 		movementStats.curDashTime = 0;
 	}
 	if (pushed & kButtonB) {
-		// castUtilitySpell();
-		selectNextSpell();
+		castUtilitySpell();
 	}
 
 	if (playerState.interactableIndex != -1 && (pushed & kButtonA)) {

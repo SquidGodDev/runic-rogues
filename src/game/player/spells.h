@@ -59,8 +59,6 @@ typedef struct SpellData {
 
 void initDeck(void);
 void initSpells(void);
-int getSelectedSpellIndex(void);
-void selectNextSpell(void);
 Spell *getSpellDeck(void);
 bool spellInDeck(Spell spell);
 void addSpellToDeck(Spell spell);
