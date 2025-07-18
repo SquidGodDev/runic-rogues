@@ -5,6 +5,7 @@
 #include "game/entities/interactables.h"
 #include "game/systems/progressionManager.h"
 #include "game/entities/pickups.h"
+#include "game/UI/UI.h"
 
 #define PLAYDATE_SDK 1
 
