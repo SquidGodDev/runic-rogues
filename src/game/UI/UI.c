@@ -288,21 +288,30 @@ void drawExitArrow(void) {
     drawCenteredBitmap(pd->graphics->getTableBitmap(BITMAP_TABLES[BITMAP_TABLE_EXIT_ARROW], rotationTableIndex), EXIT_ARROW_X, EXIT_ARROW_Y);
 }
 
+int spellDrawX[SPELL_DECK_MAX] = {22, 6, 22, 38, 22};
+int spellDrawY[SPELL_DECK_MAX] = {71, 71, 53, 71, 89};
 void drawSpellUI(void) {
     int manaBarX = 5, manaBarY = 108;
     pd->graphics->drawBitmap(BITMAPS[BITMAP_MANA_BAR], manaBarX, manaBarY, kBitmapUnflipped);
     int manaBarWidth = getManaPercentage() * 65;
     pd->graphics->fillRect(manaBarX + 2, manaBarY + 2, manaBarWidth, 6, kColorWhite);
 
-    int spellIconBaseX = 6, spellIconBaseY = 91;
-    int spellIconGap = 14;
+    int spellIconHeight = 14;
+    int spellIconWidth = 10;
     for (int i = 0; i < getMaxHeldSpells(); i++) {
         Spell heldSpell = getHeldSpell(i);
         LCDBitmap *spellIcon = getSpellIcon(heldSpell);
-        pd->graphics->drawBitmap(spellIcon, spellIconBaseX + i * spellIconGap, spellIconBaseY, kBitmapUnflipped);
+        int drawX = spellDrawX[i];
+        int drawY = spellDrawY[i];
+        pd->graphics->drawBitmap(spellIcon, drawX, drawY, kBitmapUnflipped);
+        float cooldownPercentage = getSpellCooldownPercentage(i);
+        if (cooldownPercentage > 0.0f) {
+            int cooldownCoverHeight = cooldownPercentage * spellIconHeight;
+            pd->graphics->fillRect(drawX + 1, drawY + 1, spellIconWidth, cooldownCoverHeight, kColorBlack);
+        }
     }
 
-    int utilityIconBaseX = 6, utilityIconBaseY = 83;
+    int utilityIconBaseX = 39, utilityIconBaseY = 98;
     int utilityIconGap = 8;
     for (int i = 0; i < getMaxUtilitySpells(); i++) {
         LCDBitmap *utilitySpellBitmap = i < getUtilitySpellCount() ? BITMAPS[BITMAP_DASH_INDICATOR_FULL] : BITMAPS[BITMAP_DASH_INDICATOR_EMPTY];

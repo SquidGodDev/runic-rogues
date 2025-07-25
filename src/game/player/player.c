@@ -194,24 +194,44 @@ void handleInput(float deltaTime)
 	if (movementStats.curDashTime < 0) {
 		movementStats.curDashTime = 0;
 	}
-	if (pushed & kButtonB) {
-		castUtilitySpell();
-	}
+	// if (pushed & kButtonB) {
+	// 	castUtilitySpell();
+	// }
 
 	if (playerState.interactableIndex != -1 && (pushed & kButtonA)) {
 		interact(playerState.interactableIndex);
 	} else if (pushed & kButtonA) {
-		if(castHeldSpell()) {
+		if(castSpell(0)) {
 			weaponAnimation.curCooldown = PLAYER_STATS.weaponCooldown;
 		}
 	}
 
-	if (pushed & kButtonB) {
-		movementToggled ^= 1;
+	// if (pushed & kButtonB) {
+	// 	movementToggled ^= 1;
+	// }
+
+	if (current & kButtonB) {
+		int spellIndex = 0;
+		if (pushed & kButtonLeft) {
+			spellIndex = 1;
+		} else if (pushed & kButtonUp) {
+			spellIndex = 2;
+		} else if (pushed & kButtonRight) {
+			spellIndex = 3;
+		} else if (pushed & kButtonDown) {
+			spellIndex = 4;
+		}
+		if (spellIndex > 0) {
+			if (castSpell(spellIndex)) {
+				weaponAnimation.curCooldown = PLAYER_STATS.weaponCooldown;
+			}
+		}
+		current = 0;
+		pushed = 0;
 	}
 
 	int playerIsDashing = movementStats.curDashTime > 0;
-	int bButtonPressed = (current & kButtonB) != 0;
+	int bButtonPressed = 0;
 	if (toggleMovementSetting) {
 		bButtonPressed = movementToggled;
 	}

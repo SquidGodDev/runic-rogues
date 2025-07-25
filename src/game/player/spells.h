@@ -4,6 +4,8 @@
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
 
+#define SPELL_DECK_MAX 5
+
 typedef enum Spell {
     SPELL_NONE,
     SPELL_FIREBALL,
@@ -68,6 +70,7 @@ Spell getRandomSpell(void);
 Spell heldSpellsFull(void);
 Spell getHeldSpell(int index);
 int getMaxHeldSpells(void);
+float getSpellCooldownPercentage(int index);
 float getPlayerSpeedModifier(void);
 float getManaPercentage(void);
 int getMaxUtilitySpells(void);
@@ -76,6 +79,7 @@ void rechargeUtilitySpell(void);
 void castUtilitySpell(void);
 void addHeldSpell(Spell spell);
 int castHeldSpell(void);
+int castSpell(int index);
 void updateSpells(float deltaTime);
 
 extern SpellData spellData[SPELL_COUNT];

@@ -134,10 +134,6 @@ void generateSquareDungeon(void) {
         spawnExit();
     } else if (curRoomType == ROOM_TYPE_SHOP) {
         spawnExit();
-    } else {
-        spawnRandomPickup();
-        spawnRandomPickup();
-        spawnRandomPickup();
     }
 }
 

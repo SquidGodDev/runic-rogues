@@ -14,10 +14,10 @@
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
 #define DASH_COUNT 3
-#define MAX_HELD_SPELLS 3
-#define SPELL_DECK_MAX 30
+#define MAX_HELD_SPELLS 5
 
 static Spell spellDeck[SPELL_DECK_MAX] = { 0 };
+static float spellCooldowns[SPELL_DECK_MAX];
 static Stack spellsToSpawn;
 static Queue heldSpellsQueue;
 static Spell currentSpell;
@@ -234,8 +234,10 @@ void initDeck(void) {
     //     spellDeck[i] = (Spell)i;
     // }
     spellDeck[0] = SPELL_FIREBALL;
-    spellDeck[1] = SPELL_SHOTGUN;
-    spellDeck[2] = SPELL_TRIPLE_SHOT;
+    spellDeck[1] = SPELL_LASER;
+    spellDeck[2] = SPELL_ARC_LIGHTNING;
+    spellDeck[3] = SPELL_CONE_OF_ICE;
+    spellDeck[4] = SPELL_NONE;
     // spellDeck[0] = SPELL_EXPLOSIVE_SHOT;
 }
 
@@ -249,6 +251,10 @@ void initSpells(void) {
     utilitySpellCount = DASH_COUNT;
 
     resetSpellsToSpawn();
+
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        spellCooldowns[i] = 0.0f;
+    }
 }
 
 Spell *getSpellDeck(void) {
@@ -296,14 +302,20 @@ Spell heldSpellsFull(void) {
 }
 
 Spell getHeldSpell(int index) {
-    if (index >= queueCount(&heldSpellsQueue)) {
-        return SPELL_NONE;
-    }
-    return queuePeek(&heldSpellsQueue, index);
+    return spellDeck[index];
 }
 
 int getMaxHeldSpells(void) {
     return MAX_HELD_SPELLS;
+}
+
+float getSpellCooldownPercentage(int index) {
+    if (spellCooldowns[index] <= 0.0f) {
+        return 0.0f;
+    }
+
+    float cooldown = index == 0 ? 0.5f : 6.0f;
+    return spellCooldowns[index] / cooldown;
 }
 
 float getPlayerSpeedModifier(void) {
@@ -434,7 +446,49 @@ int castHeldSpell(void) {
     return 1;
 }
 
+int castSpell(int index) {
+    if (spellCooldowns[index] > 0.0f) {
+        return 0;
+    }
+
+    if (spellDeck[index] == SPELL_NONE) {
+        return 0;
+    }
+
+    currentSpell = spellDeck[index];
+
+    spellActivateCount = 0;
+    if (index == 0) {
+        spellCooldowns[index] = 0.5f;
+    } else {
+        spellCooldowns[index] = 6.0f;
+    }
+
+    playSound(SFX_SHOOT);
+    SpellData data = spellData[currentSpell];
+    spellCastTime = data.castTime;
+    if (data.type == SPELL_TYPE_INSTANT) {
+        activateSpellEffect(currentSpell, playerAngle);
+    } else if (data.type == SPELL_TYPE_REPEAT) {
+        initialCastAngle = playerAngle;
+        activateSpellEffect(currentSpell, playerAngle);
+        spellActivationTime = data.repeatData.activationTime;
+    }
+
+    if (currentSpell == SPELL_ARC_LIGHTNING) {
+        setSpellOverlay(BITMAP_TABLE_ARC_LIGHTNING_OVERLAY, 0.2f /* frameTime */, 106 /* x */, 52 /* y */);
+    }
+
+    return 1;
+}
+
 void updateSpells(float deltaTime) {
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        if (spellCooldowns[i] > 0.0f) {
+            spellCooldowns[i] -= deltaTime;
+        }
+    }
+
     if (currentSpell == SPELL_NONE) {
         return;
     }
