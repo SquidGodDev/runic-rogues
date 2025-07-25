@@ -29,7 +29,12 @@ function NextLevel()
 		GAME_DATA.currentRoom = 1
 		GAME_DATA.currentArea += 1
 	end
-	SceneManager.switchScene(RoomSelectScene)
+	local roomType = GAME_DATA.areaRooms[GAME_DATA.currentRoom]
+	if roomType == ROOM_TYPE.SHOP then
+		SceneManager.switchScene(ShopScene, GAME_DATA.currentArea, GAME_DATA.currentRoom)
+	else
+		SceneManager.switchScene(GameScene, GAME_DATA.currentArea, GAME_DATA.currentRoom, roomType)
+	end
 end
 
 function GameOver()

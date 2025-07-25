@@ -19,6 +19,7 @@ typedef enum Spell {
     SPELL_ARC_LIGHTNING,
     SPELL_EXPLOSIVE_SHOT,
     SPELL_BOMBER,
+    SPELL_MELEE,
     SPELL_COUNT
 } Spell;
 
@@ -53,6 +54,8 @@ typedef struct SpellData {
     SpellType type;
     float castTime;
     int damage;
+    float knockbackTime;
+    float knockbackAmount;
     bool useInitialCastAngle;
     float playerSpeedModifier;
     RepeatData repeatData;

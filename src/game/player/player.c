@@ -212,13 +212,13 @@ void handleInput(float deltaTime)
 
 	if (current & kButtonB) {
 		int spellIndex = 0;
-		if (pushed & kButtonLeft) {
+		if (current & kButtonLeft) {
 			spellIndex = 1;
-		} else if (pushed & kButtonUp) {
+		} else if (current & kButtonUp) {
 			spellIndex = 2;
-		} else if (pushed & kButtonRight) {
+		} else if (current & kButtonRight) {
 			spellIndex = 3;
-		} else if (pushed & kButtonDown) {
+		} else if (current & kButtonDown) {
 			spellIndex = 4;
 		}
 		if (spellIndex > 0) {

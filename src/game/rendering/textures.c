@@ -86,7 +86,8 @@ const char *bitmapPathStrings[] = {
 	"images/spells/icons/coneOfIceIcon",
 	"images/spells/icons/arcLightningIcon",
 	"images/spells/icons/explosiveShotIcon",
-	"images/spells/icons/bomberIcon"
+	"images/spells/icons/bomberIcon",
+	"images/spells/icons/meleeIcon"
 };
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];

@@ -214,6 +214,19 @@ SpellData spellData[SPELL_COUNT] = {
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.3f,
     },
+    [SPELL_MELEE] = {
+        .name = "Melee",
+        .name_jp = "近接攻撃",
+        .description = "Perform a melee attack that deals damage to nearby enemies",
+        .description_jp = "近くの敵にダメージを与える近接攻撃を行う",
+        .pickupTextureIndex = TEXTURE_SPELL_MELEE,
+        .spellIconIndex = BITMAP_SPELL_MELEE_ICON,
+        .type = SPELL_TYPE_INSTANT,
+        .castTime = 0.2f,
+        .damage = 1,
+        .knockbackTime = 0.5f,
+        .knockbackAmount = 8.0f
+    }
 };
 
 void resetSpellsToSpawn(void) {
@@ -233,10 +246,10 @@ void initDeck(void) {
     // for (int i = 1; i < SPELL_COUNT; i++) {
     //     spellDeck[i] = (Spell)i;
     // }
-    spellDeck[0] = SPELL_FIREBALL;
-    spellDeck[1] = SPELL_LASER;
-    spellDeck[2] = SPELL_ARC_LIGHTNING;
-    spellDeck[3] = SPELL_CONE_OF_ICE;
+    spellDeck[0] = SPELL_MELEE;
+    spellDeck[1] = SPELL_NONE;
+    spellDeck[2] = SPELL_NONE;
+    spellDeck[3] = SPELL_NONE;
     spellDeck[4] = SPELL_NONE;
     // spellDeck[0] = SPELL_EXPLOSIVE_SHOT;
 }
@@ -404,13 +417,26 @@ void activateSpellEffect(Spell spell, float angle) {
         float lightningX = playerX + cosf(angle) * FIRE_POSITION_OFFSET;
         float lightningY = playerY + sinf(angle) * FIRE_POSITION_OFFSET;
         int damageRadius = CELL_SIZE;
-        damageEnemiesInArea(lightningX, lightningY, damageRadius * damageRadius, spellData[spell].damage);
+        SpellData *data = &spellData[spell];
+        int damage = data->damage;
+        float knockbackTime = data->knockbackTime;
+        float knockbackAmount = data->knockbackAmount;
+        damageEnemiesInArea(lightningX, lightningY, damageRadius * damageRadius, damage, knockbackTime, knockbackAmount);
     } else if (spell == SPELL_EXPLOSIVE_SHOT) {
         fireSpellProjectile(spell, angle);
     } else if (spell == SPELL_BOMBER) {
         float offsetX = cosf(angle) * CELL_SIZE / 2;
         float offsetY = sinf(angle) * CELL_SIZE / 2;
         spawnParticle(PARTICLE_TYPE_BOMB, playerX + offsetX, playerY + offsetY, PARTICLE_TYPE_NONE, false /* enemyParticle */);
+    } else if (spell == SPELL_MELEE) {
+        float meleeX = playerX + cosf(angle) * CELL_SIZE / 2;
+        float meleeY = playerY + sinf(angle) * CELL_SIZE / 2;
+        int damageRadius = CELL_SIZE;
+        SpellData *data = &spellData[spell];
+        int damage = data->damage;
+        float knockbackTime = data->knockbackTime;
+        float knockbackAmount = data->knockbackAmount;
+        damageEnemiesInArea(meleeX, meleeY, damageRadius * damageRadius, damage, knockbackTime, knockbackAmount);
     }
 
     spellActivateCount++;

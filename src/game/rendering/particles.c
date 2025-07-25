@@ -125,13 +125,7 @@ void updateParticles(float deltaTime) {
 					damagePlayer(data->damage);
 				}
 			} else {
-				for (int enemyIndex = 0; enemyIndex < MAX_ENEMY_COUNT; enemyIndex++) {
-					Enemy curEnemy = enemies[enemyIndex];
-					float distSquared = distanceSquared(curParticle->x, curParticle->y, curEnemy.x, curEnemy.y);
-					if (distSquared < data->damageRadius * data->damageRadius) {
-						damageEnemy(enemyIndex, data->damage);
-					}
-				}
+				damageEnemiesInArea(curParticle->x, curParticle->y, data->damageRadius * data->damageRadius, data->damage, 0, 0);
 			}
 		}
 

@@ -97,6 +97,7 @@ typedef struct EnemyData {
 	int deathFrameEnd;
 	float frameTime;
 	int attackPattern;
+	bool knockbackResistant;
 } EnemyData;
 
 EnemyData enemyData[ENEMY_TYPE_COUNT] = {
@@ -201,7 +202,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameStart = 27,
 		.deathFrameEnd = 30,
 		.frameTime = 0.15f,
-		.attackPattern = ATTACK_PATTERN_ELDER_BOSS
+		.attackPattern = ATTACK_PATTERN_ELDER_BOSS,
+		.knockbackResistant = true
 	},
 	[ENEMY_TYPE_IMP] = (EnemyData){
 		.name = "Imp",
@@ -257,7 +259,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameStart = 17,
 		.deathFrameEnd = 20,
 		.frameTime = 0.1f,
-		.attackPattern = ATTACK_PATTERN_MELEE
+		.attackPattern = ATTACK_PATTERN_MELEE,
+		.knockbackResistant = true
 	},
 	[ENEMY_TYPE_WRAITH_BOSS] = (EnemyData){
 		.name = "Wraith Boss",
@@ -276,7 +279,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameStart = 11,
 		.deathFrameEnd = 14,
 		.frameTime = 0.15f,
-		.attackPattern = ATTACK_PATTERN_WRAITH_BOSS
+		.attackPattern = ATTACK_PATTERN_WRAITH_BOSS,
+		.knockbackResistant = true
 	},
 	[ENEMY_TYPE_WRAITH] = (EnemyData){
 		.name = "Wraith",
@@ -318,11 +322,13 @@ void moveEnemy(Enemy *enemy, int enemyIndex, float targetX, float targetY, float
 
 		if (distSquared < ENEMY_SEPARATION_RADIUS * ENEMY_SEPARATION_RADIUS && distSquared > 0.01f) {
 			float dist = sqrtf(distSquared);
-			otherX /= dist;
-			otherY /= dist;
-			float force = ENEMY_SEPARATION_FORCE * (1.0f - dist / ENEMY_SEPARATION_RADIUS);
-			dx += otherX * force;
-			dy += otherY * force;
+			if (dist > 0.01f) {
+				otherX /= dist;
+				otherY /= dist;
+				float force = ENEMY_SEPARATION_FORCE * (1.0f - dist / ENEMY_SEPARATION_RADIUS);
+				dx += otherX * force;
+				dy += otherY * force;
+			}
 		}
 	}
 
@@ -337,6 +343,20 @@ void moveEnemy(Enemy *enemy, int enemyIndex, float targetX, float targetY, float
 	// Apply slow
 	if (enemy->slowTime > 0) {
 		moveSpeed *= 1.0f - enemy->slowAmount;
+	}
+
+	// Apply knockback force away from player
+	if (enemy->knockbackTime > 0) {
+		float knockbackFactor = enemy->knockbackTime / enemy->knockbackMaxTime;
+		float knockbackX = enemy->x - playerX;
+		float knockbackY = enemy->y - playerY;
+		float knockbackDist = sqrtf(knockbackX*knockbackX + knockbackY*knockbackY);
+		if (knockbackDist > 0.01f) {
+			knockbackX /= knockbackDist;
+			knockbackY /= knockbackDist;
+			dx += knockbackX * enemy->knockbackAmount * knockbackFactor;
+			dy += knockbackY * enemy->knockbackAmount * knockbackFactor;
+		}
 	}
 
 	// Normalize final direction vector
@@ -467,6 +487,10 @@ void updateEnemies(float deltaTime) {
 
 		if (curEnemy->slowTime > 0) {
 			curEnemy->slowTime -= deltaTime;
+		}
+
+		if (curEnemy->knockbackTime > 0) {
+			curEnemy->knockbackTime -= deltaTime;
 		}
 
 		if (curEnemy->invincibilityTime > 0) {
@@ -747,7 +771,7 @@ void slowEnemy(int index, float slowTime, float slowAmount) {
 	enemies[index].slowAmount = slowAmount;
 }
 
-bool damageEnemy(int index, int damage) {
+bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmount) {
 	Enemy curEnemy = enemies[index];
 	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.invincibilityTime > 0) {
 		return false;
@@ -756,6 +780,11 @@ bool damageEnemy(int index, int damage) {
 	EnemyData curEnemyData = enemyData[curEnemy.type];
 	curEnemy.hitFlashTime = HIT_FLASH_TIME;
 	curEnemy.health -= damage;
+	if (!curEnemyData.knockbackResistant) {
+		curEnemy.knockbackMaxTime = knockbackTime;
+		curEnemy.knockbackTime = knockbackTime;
+		curEnemy.knockbackAmount = knockbackAmount;
+	}
 	playSound(SFX_ENEMY_HIT);
 
 	if (curEnemy.health <= 0) {
@@ -802,12 +831,12 @@ void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
 		int enemyMapX = (int)enemy.x / CELL_SIZE;
 		int enemyMapY = (int)enemy.y / CELL_SIZE;
 		if (enemyMapX == mapX && enemyMapY == mapY) {
-			damageEnemy(i, damage);
+			damageEnemy(i, damage, 0, 0);
 		}
 	}
 }
 
-void damageEnemiesInArea(float x, float y, int radiusSquared, int damage) {
+void damageEnemiesInArea(float x, float y, int radiusSquared, int damage, float knockbackTime, float knockbackAmount) {
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy enemy = enemies[i];
 		if (!enemy.active) {
@@ -815,7 +844,7 @@ void damageEnemiesInArea(float x, float y, int radiusSquared, int damage) {
 		}
 		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
 		if (distSquared < radiusSquared) {
-			damageEnemy(i, damage);
+			damageEnemy(i, damage, knockbackTime, knockbackAmount);
 		}
 	}
 }
@@ -833,7 +862,7 @@ bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange
 			if (slowTime > 0) {
 				slowEnemy(i, slowTime, slowAmount);
 			}
-			bool enemyDamaged = damageEnemy(i, damage);
+			bool enemyDamaged = damageEnemy(i, damage, 0, 0);
 			if (enemyDamaged) {
 				setAdd(hitEnemies, i);
 				collided = true;
