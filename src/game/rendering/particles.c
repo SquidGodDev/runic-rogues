@@ -25,6 +25,12 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK,
 		.damageFrame = 0,
 	},
+	[PARTICLE_TYPE_PROJECTILE_SHRINK] = {
+		.frameCount = 3,
+		.animationTime = 0.05f,
+		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_SHRINK,
+		.damageFrame = 0,
+	},
 	[PARTICLE_TYPE_WARNING] = {
 		.frameCount = 4,
 		.animationTime = 0.3f,

@@ -226,6 +226,23 @@ SpellData spellData[SPELL_COUNT] = {
         .damage = 1,
         .knockbackTime = 0.5f,
         .knockbackAmount = 8.0f
+    },
+    [SPELL_PEA_SHOT] = {
+        .name = "Pea Shot",
+        .name_jp = "ピースショット",
+        .description = "Shoot a pea-sized projectile that deals low damage to enemies",
+        .description_jp = "敵に低ダメージを与えるエンドウ豆サイズの弾を発射する",
+        .pickupTextureIndex = TEXTURE_SPELL_PEA_SHOT,
+        .spellTextureIndex = TEXTURE_PROJECTILE,
+        .spellIconIndex = BITMAP_SPELL_PEA_SHOT_ICON,
+        .type = SPELL_TYPE_INSTANT,
+        .castTime = 0.2f,
+        .damage = 1,
+        .projectileData = (SpellProjectileData) {
+            .speed = 150.0f,
+            .activeTime = 0.3f,
+            .timeoutParticle = PARTICLE_TYPE_PROJECTILE_SHRINK
+        }
     }
 };
 
@@ -246,7 +263,7 @@ void initDeck(void) {
     // for (int i = 1; i < SPELL_COUNT; i++) {
     //     spellDeck[i] = (Spell)i;
     // }
-    spellDeck[0] = SPELL_MELEE;
+    spellDeck[0] = SPELL_PEA_SHOT;
     spellDeck[1] = SPELL_NONE;
     spellDeck[2] = SPELL_NONE;
     spellDeck[3] = SPELL_NONE;
@@ -437,6 +454,8 @@ void activateSpellEffect(Spell spell, float angle) {
         float knockbackTime = data->knockbackTime;
         float knockbackAmount = data->knockbackAmount;
         damageEnemiesInArea(meleeX, meleeY, damageRadius * damageRadius, damage, knockbackTime, knockbackAmount);
+    } else if (spell == SPELL_PEA_SHOT) {
+        fireSpellProjectile(spell, angle);
     }
 
     spellActivateCount++;

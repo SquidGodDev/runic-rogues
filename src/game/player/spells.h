@@ -20,6 +20,7 @@ typedef enum Spell {
     SPELL_EXPLOSIVE_SHOT,
     SPELL_BOMBER,
     SPELL_MELEE,
+    SPELL_PEA_SHOT,
     SPELL_COUNT
 } Spell;
 
@@ -40,7 +41,9 @@ typedef struct SpellProjectileData {
     float slowTime;
     float slowAmount;
     float speed;
+    float activeTime;
     ParticleType hitParticle;
+    ParticleType timeoutParticle;
 } SpellProjectileData;
 
 typedef struct SpellData {

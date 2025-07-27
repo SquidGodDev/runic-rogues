@@ -17,6 +17,7 @@ typedef struct Projectile {
 	int textureIndex;
 	bool isEnemy;
 	int hitCount;
+	float activeTime;
 	bool active;
 } Projectile;
 

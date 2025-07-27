@@ -50,6 +50,7 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 				.isEnemy = isEnemy,
 				.hitCount = spellProjectileData.hitCount,
 				.hitEnemies = hitEnemies,
+				.activeTime = spellProjectileData.activeTime,
 				.active = 1
 			};
 			break;
@@ -74,6 +75,19 @@ void updateProjectiles(float deltaTime) {
 
 		float deltaX = curProjectile->deltaX;
 		float deltaY = curProjectile->deltaY;
+		if (curProjectile->activeTime > 0) {
+			curProjectile->activeTime -= deltaTime;
+			if (curProjectile->activeTime <= 0) {
+				curProjectile->active = 0;
+				int particleX = curProjectile->x;
+				int particleY = curProjectile->y;
+				ParticleType timeoutParticle = curProjectile->spellProjectileData.timeoutParticle;
+				if (timeoutParticle != PARTICLE_TYPE_NONE) {
+					spawnParticle(timeoutParticle, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
+				}
+				continue;
+			}
+		}
 
 		int entityMapX = (int)((curProjectile->x + MAP_CHECK_OFFSET_X) / CELL_SIZE);
 		int entityMapY = (int)((curProjectile->y + MAP_CHECK_OFFSET_Y) / CELL_SIZE);

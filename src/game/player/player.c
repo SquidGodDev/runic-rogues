@@ -200,7 +200,7 @@ void handleInput(float deltaTime)
 
 	if (playerState.interactableIndex != -1 && (pushed & kButtonA)) {
 		interact(playerState.interactableIndex);
-	} else if (pushed & kButtonA) {
+	} else if (current & kButtonA) {
 		if(castSpell(0)) {
 			weaponAnimation.curCooldown = PLAYER_STATS.weaponCooldown;
 		}
