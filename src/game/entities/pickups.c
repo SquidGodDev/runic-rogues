@@ -36,37 +36,6 @@ int otherPickupAtPosition(int mapX, int mapY) {
     return 0;
 }
 
-void spawnRandomPickup(void) {
-    int mapX, mapY;
-    do {
-        getRandomEmptyMapPosition(&mapX, &mapY);
-    } while (otherPickupAtPosition(mapX, mapY));
-
-    Spell spell = getRandomSpell();
-    spawnPickup(mapX, mapY, spell);
-}
-
-void spawnPickup(int mapX, int mapY, Spell spell) {
-    float x = mapX * CELL_SIZE + CELL_SIZE / 2;
-    float y = mapY * CELL_SIZE + CELL_SIZE / 2;
-    for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
-        if (!pickups[i].active) {
-            pickups[i] = (Pickup) {
-                .x = x,
-                .y = y,
-                .mapX = mapX,
-                .mapY = mapY,
-                .active = 1,
-                .animationFrame = 0,
-                .animationTime = PICKUP_ANIM_FRAME_TIME,
-                .textureIndex = getSpellPickupTextureIndex(spell),
-                .spell = spell
-            };
-            return;
-        }
-    }
-}
-
 void updatePickups(float deltaTime) {
     for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
         Pickup *pickup = &pickups[i];
@@ -83,11 +52,8 @@ void updatePickups(float deltaTime) {
             }
         }
         
-        if (!heldSpellsFull() && distanceSquared(pickup->x, pickup->y, playerX, playerY) <= PICKUP_DISTANCE) {
+        if (distanceSquared(pickup->x, pickup->y, playerX, playerY) <= PICKUP_DISTANCE) {
             pickup->active = 0; // Pickup collected
-            rechargeUtilitySpell();
-            addHeldSpell(pickup->spell);
-            spawnRandomPickup();
         }
 
         addEntityToRenderQueue(pickup->x, pickup->y, PICKUP, i, pickup->textureIndex, pickup->animationFrame);

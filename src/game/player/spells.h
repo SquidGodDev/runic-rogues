@@ -55,6 +55,7 @@ typedef struct SpellData {
     int spellTextureIndex;
     int spellIconIndex;
     SpellType type;
+    float cooldown;
     float castTime;
     int damage;
     float knockbackTime;
@@ -72,19 +73,14 @@ bool spellInDeck(Spell spell);
 void addSpellToDeck(Spell spell);
 int getSpellPickupTextureIndex(Spell spell);
 LCDBitmap* getSpellIcon(Spell spell);
-Spell getRandomSpell(void);
-Spell heldSpellsFull(void);
-Spell getHeldSpell(int index);
+Spell getDeckSpell(int index);
 int getMaxHeldSpells(void);
 float getSpellCooldownPercentage(int index);
 float getPlayerSpeedModifier(void);
-float getManaPercentage(void);
 int getMaxUtilitySpells(void);
 int getUtilitySpellCount(void);
 void rechargeUtilitySpell(void);
 void castUtilitySpell(void);
-void addHeldSpell(Spell spell);
-int castHeldSpell(void);
 int castSpell(int index);
 void updateSpells(float deltaTime);
 

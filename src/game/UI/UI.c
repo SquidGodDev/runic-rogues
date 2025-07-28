@@ -63,7 +63,7 @@ typedef struct SpellOverlay {
     float frameTime;
     float currentFrameTime;
 } SpellOverlay;
-SpellOverlay currentSpellOverlay;
+SpellOverlay spellOverlays[SPELL_DECK_MAX];
 
 void initUI(int isBossRoom) {
     screenShakeTime = 0;
@@ -72,7 +72,17 @@ void initUI(int isBossRoom) {
     pd->graphics->setBackgroundColor(kColorBlack);
 
     showBossHealthBar = isBossRoom;
-    currentSpellOverlay = (SpellOverlay) {0};
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        spellOverlays[i] = (SpellOverlay) {
+            .bitmapTable = NULL,
+            .drawX = 0,
+            .drawY = 0,
+            .currentFrame = 0,
+            .frameCount = 0,
+            .frameTime = 0.0f,
+            .currentFrameTime = 0.0f
+        };
+    }
 }
 
 void drawPlayerHearts(void) {
@@ -291,15 +301,10 @@ void drawExitArrow(void) {
 int spellDrawX[SPELL_DECK_MAX] = {22, 6, 22, 38, 22};
 int spellDrawY[SPELL_DECK_MAX] = {71, 71, 53, 71, 89};
 void drawSpellUI(void) {
-    int manaBarX = 5, manaBarY = 108;
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_MANA_BAR], manaBarX, manaBarY, kBitmapUnflipped);
-    int manaBarWidth = getManaPercentage() * 65;
-    pd->graphics->fillRect(manaBarX + 2, manaBarY + 2, manaBarWidth, 6, kColorWhite);
-
     int spellIconHeight = 14;
     int spellIconWidth = 10;
-    for (int i = 0; i < getMaxHeldSpells(); i++) {
-        Spell heldSpell = getHeldSpell(i);
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        Spell heldSpell = getDeckSpell(i);
         LCDBitmap *spellIcon = getSpellIcon(heldSpell);
         int drawX = spellDrawX[i];
         int drawY = spellDrawY[i];
@@ -343,39 +348,45 @@ void drawBossHealthBar(void) {
     }
 }
 
-void setSpellOverlay(int bitmapTableIndex, float frameTime, int drawX, int drawY) {
+void setSpellOverlay(int index, int bitmapTableIndex, float frameTime, int drawX, int drawY) {
     LCDBitmapTable *bitmapTable = BITMAP_TABLES[bitmapTableIndex];
     int frameCount;
     pd->graphics->getBitmapTableInfo(bitmapTable, NULL, &frameCount);
-    currentSpellOverlay.bitmapTable = bitmapTable;
-    currentSpellOverlay.frameCount = frameCount;
-    currentSpellOverlay.frameTime = frameTime;
-    currentSpellOverlay.drawX = drawX;
-    currentSpellOverlay.drawY = drawY;
-    currentSpellOverlay.currentFrame = 0;
-    currentSpellOverlay.currentFrameTime = 0.0f;
+
+    spellOverlays[index] = (SpellOverlay) {
+        .bitmapTable = bitmapTable,
+        .drawX = drawX,
+        .drawY = drawY,
+        .currentFrame = 0,
+        .frameCount = frameCount,
+        .frameTime = frameTime,
+        .currentFrameTime = 0.0f
+    };
 }
 
-void clearSpellOverlay(void) {
-    currentSpellOverlay.bitmapTable = NULL;
+void clearSpellOverlay(int index) {
+    spellOverlays[index].bitmapTable = NULL;
 }
 
 void drawSpellOverlay(float deltaTime) {
-    if (currentSpellOverlay.bitmapTable == NULL) {
-        return;
-    }
-
-    currentSpellOverlay.currentFrameTime += deltaTime;
-    if (currentSpellOverlay.currentFrameTime >= currentSpellOverlay.frameTime) {
-        currentSpellOverlay.currentFrame++;
-        if (currentSpellOverlay.currentFrame >= currentSpellOverlay.frameCount) {
-            currentSpellOverlay.currentFrame = 0;
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        SpellOverlay *overlay = &spellOverlays[i];
+        if (overlay->bitmapTable == NULL) {
+            continue;
         }
-        currentSpellOverlay.currentFrameTime = 0;
-    }
 
-    LCDBitmap *overlayBitmap = pd->graphics->getTableBitmap(currentSpellOverlay.bitmapTable, currentSpellOverlay.currentFrame);
-    pd->graphics->drawBitmap(overlayBitmap, currentSpellOverlay.drawX, currentSpellOverlay.drawY, kBitmapUnflipped);
+        overlay->currentFrameTime += deltaTime;
+        if (overlay->currentFrameTime >= overlay->frameTime) {
+            overlay->currentFrame++;
+            if (overlay->currentFrame >= overlay->frameCount) {
+                overlay->currentFrame = 0;
+            }
+            overlay->currentFrameTime = 0;
+        }
+
+        LCDBitmap *overlayBitmap = pd->graphics->getTableBitmap(overlay->bitmapTable, overlay->currentFrame);
+        pd->graphics->drawBitmap(overlayBitmap, overlay->drawX, overlay->drawY, kBitmapUnflipped);
+    }
 }
 
 void drawUI(float deltaTime) {

@@ -14,18 +14,18 @@
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
 #define DASH_COUNT 3
-#define MAX_HELD_SPELLS 5
 
-static Spell spellDeck[SPELL_DECK_MAX] = { 0 };
-static float spellCooldowns[SPELL_DECK_MAX];
-static Stack spellsToSpawn;
-static Queue heldSpellsQueue;
-static Spell currentSpell;
-static float spellCastTime;
-static float spellActivationTime;
-static int spellActivateCount;
-static float initialCastAngle;
+typedef struct SpellCastData {
+    Spell spell;
+    float castTime;
+    float activationTime;
+    int activationCount;
+    float initialCastAngle;
+} SpellCastData;
 
+static Spell spellDeck[SPELL_DECK_MAX];
+static SpellCastData spellCastData[SPELL_DECK_MAX];
+float spellCooldowns[SPELL_DECK_MAX];
 static int utilitySpellCount;
 
 SpellData spellData[SPELL_COUNT] = {
@@ -41,6 +41,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .type = SPELL_TYPE_INSTANT,
+        .cooldown = 3.0f,
         .castTime = 0.4f,
         .damage = 4,
         .projectileData = (SpellProjectileData) {
@@ -56,6 +57,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_TRIPLE_SHOT_ICON,
         .type = SPELL_TYPE_REPEAT,
+        .cooldown = 3.0f,
         .castTime = 1.0f,
         .damage = 1,
         .repeatData = (RepeatData){
@@ -75,6 +77,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_SHOTGUN_ICON,
         .type = SPELL_TYPE_INSTANT,
+        .cooldown = 3.0f,
         .castTime = 0.4f,
         .damage = 1,
         .projectileData = (SpellProjectileData){
@@ -89,6 +92,7 @@ SpellData spellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_LASER,
         .spellIconIndex = BITMAP_SPELL_LASER_ICON,
         .type = SPELL_TYPE_REPEAT,
+        .cooldown = 4.0f,
         .castTime = 0.6f,
         .damage = 1,
         .playerSpeedModifier = -0.7f,
@@ -110,6 +114,7 @@ SpellData spellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_ROOT_SURGE,
         .spellIconIndex = BITMAP_SPELL_ROOT_SURGE_ICON,
         .type = SPELL_TYPE_REPEAT,
+        .cooldown = 3.0f,
         .castTime = 1.2f,
         .damage = 4,
         .playerSpeedModifier = -0.3f,
@@ -128,6 +133,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_WAVE_ICON,
         .type = SPELL_TYPE_INSTANT,
+        .cooldown = 3.0f,
         .castTime = 0.4f,
         .damage = 1,
         .projectileData = (SpellProjectileData) {
@@ -144,6 +150,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellIconIndex = BITMAP_SPELL_TRIPLE_WAVE_ICON,
         .type = SPELL_TYPE_REPEAT,
         .castTime = 1.0f,
+        .cooldown = 3.0f,
         .damage = 1,
         .useInitialCastAngle = false,
         .repeatData = (RepeatData){
@@ -164,6 +171,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellIconIndex = BITMAP_SPELL_CONE_OF_ICE_ICON,
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
+        .cooldown = 3.0f,
         .damage = 1,
         .useInitialCastAngle = false,
         .projectileData = (SpellProjectileData) {
@@ -181,6 +189,7 @@ SpellData spellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_ARC_LIGHTNING,
         .spellIconIndex = BITMAP_SPELL_ARC_LIGHTNING_ICON,
         .type = SPELL_TYPE_REPEAT,
+        .cooldown = 3.0f,
         .castTime = 1.5f,
         .damage = 3,
         .repeatData = (RepeatData){
@@ -197,6 +206,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_EXPLOSIVE_SHOT_ICON,
         .type = SPELL_TYPE_INSTANT,
+        .cooldown = 3.0f,
         .castTime = 0.4f,
         .damage = 2,
         .projectileData = (SpellProjectileData) {
@@ -212,20 +222,8 @@ SpellData spellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_BOMBER,
         .spellIconIndex = BITMAP_SPELL_BOMBER_ICON,
         .type = SPELL_TYPE_INSTANT,
+        .cooldown = 3.0f,
         .castTime = 0.3f,
-    },
-    [SPELL_MELEE] = {
-        .name = "Melee",
-        .name_jp = "近接攻撃",
-        .description = "Perform a melee attack that deals damage to nearby enemies",
-        .description_jp = "近くの敵にダメージを与える近接攻撃を行う",
-        .pickupTextureIndex = TEXTURE_SPELL_MELEE,
-        .spellIconIndex = BITMAP_SPELL_MELEE_ICON,
-        .type = SPELL_TYPE_INSTANT,
-        .castTime = 0.2f,
-        .damage = 1,
-        .knockbackTime = 0.5f,
-        .knockbackAmount = 8.0f
     },
     [SPELL_PEA_SHOT] = {
         .name = "Pea Shot",
@@ -236,6 +234,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_PEA_SHOT_ICON,
         .type = SPELL_TYPE_INSTANT,
+        .cooldown = 0.5f,
         .castTime = 0.2f,
         .damage = 1,
         .projectileData = (SpellProjectileData) {
@@ -246,45 +245,34 @@ SpellData spellData[SPELL_COUNT] = {
     }
 };
 
-void resetSpellsToSpawn(void) {
-    stackClear(&spellsToSpawn);
-    for (int i = 0; i < SPELL_DECK_MAX; i++) {
-        if (spellDeck[i] != SPELL_NONE) {
-            stackPush(&spellsToSpawn, spellDeck[i]);
-        }
-    }
-}
-
 void initDeck(void) {
     for (int i = 0; i < SPELL_DECK_MAX; i++) {
         spellDeck[i] = SPELL_NONE;
     }
-    // For testing purposes, fill the spell deck with all spells
-    // for (int i = 1; i < SPELL_COUNT; i++) {
-    //     spellDeck[i] = (Spell)i;
-    // }
+
     spellDeck[0] = SPELL_PEA_SHOT;
-    spellDeck[1] = SPELL_NONE;
-    spellDeck[2] = SPELL_NONE;
-    spellDeck[3] = SPELL_NONE;
-    spellDeck[4] = SPELL_NONE;
-    // spellDeck[0] = SPELL_EXPLOSIVE_SHOT;
+    spellDeck[1] = SPELL_ARC_LIGHTNING;
+    spellDeck[2] = SPELL_LASER;
+    spellDeck[3] = SPELL_TRIPLE_SHOT;
+    spellDeck[4] = SPELL_TRIPLE_WAVE;
 }
 
 void initSpells(void) {
-    queueInit(&heldSpellsQueue);
-    currentSpell = SPELL_NONE;
-    spellCastTime = 0.0f;
-    spellActivationTime = 0.0f;
-    spellActivateCount = 0;
-
-    utilitySpellCount = DASH_COUNT;
-
-    resetSpellsToSpawn();
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        spellCastData[i] = (SpellCastData) {
+            .spell = SPELL_NONE,
+            .castTime = 0.0f,
+            .activationTime = 0.0f,
+            .activationCount = 0,
+            .initialCastAngle = 0.0f
+        };
+    };
 
     for (int i = 0; i < SPELL_DECK_MAX; i++) {
         spellCooldowns[i] = 0.0f;
     }
+
+    utilitySpellCount = DASH_COUNT;
 }
 
 Spell *getSpellDeck(void) {
@@ -320,23 +308,8 @@ LCDBitmap* getSpellIcon(Spell spell) {
     return BITMAPS[spellData[spell].spellIconIndex];
 }
 
-Spell getRandomSpell(void) {
-    if (stackIsEmpty(&spellsToSpawn)) {
-        resetSpellsToSpawn();
-    }
-    return stackPop(&spellsToSpawn);
-}
-
-Spell heldSpellsFull(void) {
-    return queueCount(&heldSpellsQueue) >= MAX_HELD_SPELLS;
-}
-
-Spell getHeldSpell(int index) {
+Spell getDeckSpell(int index) {
     return spellDeck[index];
-}
-
-int getMaxHeldSpells(void) {
-    return MAX_HELD_SPELLS;
 }
 
 float getSpellCooldownPercentage(int index) {
@@ -344,29 +317,25 @@ float getSpellCooldownPercentage(int index) {
         return 0.0f;
     }
 
-    float cooldown = index == 0 ? 0.5f : 6.0f;
-    return spellCooldowns[index] / cooldown;
+    SpellData data = spellData[spellDeck[index]];
+    return spellCooldowns[index] / data.cooldown;
 }
 
 float getPlayerSpeedModifier(void) {
-    if (currentSpell == SPELL_NONE) {
-        return 1.0f;
-    }
-    SpellData data = spellData[currentSpell];
-    return 1.0f + data.playerSpeedModifier;
-}
-
-float getManaPercentage(void) {
-    if (currentSpell == SPELL_NONE) {
-        if (queueCount(&heldSpellsQueue) == 0) {
-            return 0.0f;
-        } else {
-            return 1.0f;
+    float totalSpeedModifier = 1.0f;
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        SpellCastData *castData = &spellCastData[i];
+        Spell spell = castData->spell;
+        if (spell == SPELL_NONE) {
+            continue;
         }
-    } else {
-        SpellData data = spellData[currentSpell];
-        return 1.0f - (data.castTime - spellCastTime) / data.castTime;
+        SpellData *data = &spellData[spell];
+        float speedModifier = data->playerSpeedModifier;
+        if (speedModifier != 0) {
+            totalSpeedModifier *= 1.0f + speedModifier;
+        }
     }
+    return totalSpeedModifier;
 }
 
 int getMaxUtilitySpells(void) {
@@ -395,7 +364,9 @@ void fireSpellProjectile(Spell spell, float angle) {
     firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data.damage, data.projectileData);
 }
 
-void activateSpellEffect(Spell spell, float angle) {
+void activateSpellEffect(int index, float angle) {
+    SpellCastData *castData = &spellCastData[index];
+    Spell spell = castData->spell;
     if (spell == SPELL_FIREBALL) {
         fireSpellProjectile(spell, angle);
     } else if (spell == SPELL_TRIPLE_SHOT) {
@@ -408,8 +379,8 @@ void activateSpellEffect(Spell spell, float angle) {
     } else if (spell == SPELL_LASER) {
         fireSpellProjectile(spell, angle);
     } else if (spell == SPELL_ROOT_SURGE) {
-        float offsetX = cosf(angle) * (spellActivateCount % 3 + 1) * CELL_SIZE;
-        float offsetY = sinf(angle) * (spellActivateCount % 3 + 1) * CELL_SIZE;
+        float offsetX = cosf(angle) * (castData->activationCount % 3 + 1) * CELL_SIZE;
+        float offsetY = sinf(angle) * (castData->activationCount % 3 + 1) * CELL_SIZE;
         spawnParticle(PARTICLE_TYPE_PLAYER_ROOT_ATTACK, playerX + offsetX, playerY + offsetY, PARTICLE_TYPE_NONE, false /* enemyParticle */);
     } else if (spell == SPELL_WAVE) {
         float offsetAngle = PI / 16.0f;
@@ -458,37 +429,7 @@ void activateSpellEffect(Spell spell, float angle) {
         fireSpellProjectile(spell, angle);
     }
 
-    spellActivateCount++;
-}
-
-void addHeldSpell(Spell spell) {
-    queuePush(&heldSpellsQueue, spell);
-}
-
-int castHeldSpell(void) {
-    if (queueIsEmpty(&heldSpellsQueue) || spellCastTime > 0) {
-        return 0;
-    }
-
-    spellActivateCount = 0;
-    currentSpell = queuePop(&heldSpellsQueue);
-
-    playSound(SFX_SHOOT);
-    SpellData data = spellData[currentSpell];
-    spellCastTime = data.castTime;
-    if (data.type == SPELL_TYPE_INSTANT) {
-        activateSpellEffect(currentSpell, playerAngle);
-    } else if (data.type == SPELL_TYPE_REPEAT) {
-        initialCastAngle = playerAngle;
-        activateSpellEffect(currentSpell, playerAngle);
-        spellActivationTime = data.repeatData.activationTime;
-    }
-
-    if (currentSpell == SPELL_ARC_LIGHTNING) {
-        setSpellOverlay(BITMAP_TABLE_ARC_LIGHTNING_OVERLAY, 0.2f /* frameTime */, 106 /* x */, 52 /* y */);
-    }
-
-    return 1;
+    castData->activationCount++;
 }
 
 int castSpell(int index) {
@@ -496,32 +437,34 @@ int castSpell(int index) {
         return 0;
     }
 
-    if (spellDeck[index] == SPELL_NONE) {
+    Spell spell = spellDeck[index];
+    if (spell == SPELL_NONE) {
         return 0;
     }
 
-    currentSpell = spellDeck[index];
-
-    spellActivateCount = 0;
-    if (index == 0) {
-        spellCooldowns[index] = 0.5f;
+    SpellData *data = &spellData[spell];
+    spellCooldowns[index] = data->cooldown;
+    if (data->type == SPELL_TYPE_REPEAT) {
+        spellCastData[index] = (SpellCastData) {
+            .spell = spell,
+            .castTime = data->castTime,
+            .activationTime = data->repeatData.activationTime,
+            .activationCount = 0,
+            .initialCastAngle = playerAngle
+        };
     } else {
-        spellCooldowns[index] = 6.0f;
+        spellCastData[index].spell = SPELL_NONE;
     }
 
     playSound(SFX_SHOOT);
-    SpellData data = spellData[currentSpell];
-    spellCastTime = data.castTime;
-    if (data.type == SPELL_TYPE_INSTANT) {
-        activateSpellEffect(currentSpell, playerAngle);
-    } else if (data.type == SPELL_TYPE_REPEAT) {
-        initialCastAngle = playerAngle;
-        activateSpellEffect(currentSpell, playerAngle);
-        spellActivationTime = data.repeatData.activationTime;
+    if (data->type == SPELL_TYPE_INSTANT) {
+        activateSpellEffect(index, playerAngle);
+    } else if (data->type == SPELL_TYPE_REPEAT) {
+        activateSpellEffect(index, playerAngle);
     }
 
-    if (currentSpell == SPELL_ARC_LIGHTNING) {
-        setSpellOverlay(BITMAP_TABLE_ARC_LIGHTNING_OVERLAY, 0.2f /* frameTime */, 106 /* x */, 52 /* y */);
+    if (spell == SPELL_ARC_LIGHTNING) {
+        setSpellOverlay(index, BITMAP_TABLE_ARC_LIGHTNING_OVERLAY, 0.2f /* frameTime */, 106 /* x */, 52 /* y */);
     }
 
     return 1;
@@ -531,28 +474,34 @@ void updateSpells(float deltaTime) {
     for (int i = 0; i < SPELL_DECK_MAX; i++) {
         if (spellCooldowns[i] > 0.0f) {
             spellCooldowns[i] -= deltaTime;
+            if (spellCooldowns[i] < 0.0f) {
+                spellCooldowns[i] = 0.0f;
+            }
         }
-    }
 
-    if (currentSpell == SPELL_NONE) {
-        return;
-    }
-
-    spellCastTime -= deltaTime;
-    if (spellCastTime <= 0.0f) {
-        spellCastTime = 0.0f;
-        currentSpell = SPELL_NONE;
-        clearSpellOverlay();
-        return;
-    }
-
-    SpellData* data = &spellData[currentSpell];
-    if (data->type == SPELL_TYPE_REPEAT) {
-        spellActivationTime -= deltaTime;
-        if (spellActivationTime <= 0.0f && spellActivateCount < data->repeatData.repeatCount) {
-            float angle = data->useInitialCastAngle ? initialCastAngle : playerAngle;
-            activateSpellEffect(currentSpell, angle);
-            spellActivationTime = data->repeatData.activationTime;
+        SpellCastData *castData = &spellCastData[i];
+        if (castData->spell == SPELL_NONE) {
+            continue;
         }
-    }
+
+        if (castData->castTime > 0.0f) {
+            castData->castTime -= deltaTime;
+            if (castData->castTime <= 0.0f) {
+                castData->castTime = 0.0f;
+                castData->spell = SPELL_NONE;
+                clearSpellOverlay(i);
+                continue;   
+            }
+        }
+
+        SpellData *data = &spellData[castData->spell];
+        if (data->type == SPELL_TYPE_REPEAT) {
+            castData->activationTime -= deltaTime;
+            if (castData->activationTime <= 0.0f && castData->activationCount < data->repeatData.repeatCount) {
+                float angle = data->useInitialCastAngle ? castData->initialCastAngle : playerAngle;
+                activateSpellEffect(i, angle);
+                castData->activationTime = data->repeatData.activationTime;
+            }
+        }
+    }    
 }
