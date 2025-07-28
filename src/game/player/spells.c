@@ -365,8 +365,8 @@ void fireSpellProjectile(Spell spell, float angle) {
 }
 
 void activateSpellEffect(int index, float angle) {
+    Spell spell = spellDeck[index];
     SpellCastData *castData = &spellCastData[index];
-    Spell spell = castData->spell;
     if (spell == SPELL_FIREBALL) {
         fireSpellProjectile(spell, angle);
     } else if (spell == SPELL_TRIPLE_SHOT) {
