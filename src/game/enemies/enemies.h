@@ -25,8 +25,9 @@ typedef enum EnemyState
 {
 	ENEMY_STATE_IDLE,
 	ENEMY_STATE_PREP,
-	ENEMY_STATE_ATTACK,
-	ENEMY_STATE_ATTACK_END,
+	ENEMY_STATE_ATTACK_1,
+	ENEMY_STATE_ATTACK_2,
+	ENEMY_STATE_ATTACK_3,
 	ENEMY_STATE_DEAD
 } EnemyState;
 
@@ -44,7 +45,11 @@ typedef struct Enemy {
 	int animationFrame;
 	bool active;
 	int state;
+	int stateCount;
+	float stateTimer;
+	EnemyState nextState;
 	int type;
+	bool attackedPlayer;
 	float slowTime;
 	float slowAmount;
 	float knockbackMaxTime;
