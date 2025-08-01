@@ -251,10 +251,10 @@ void initDeck(void) {
     }
 
     spellDeck[0] = SPELL_PEA_SHOT;
-    spellDeck[1] = SPELL_ARC_LIGHTNING;
-    spellDeck[2] = SPELL_LASER;
-    spellDeck[3] = SPELL_TRIPLE_SHOT;
-    spellDeck[4] = SPELL_TRIPLE_WAVE;
+    spellDeck[1] = SPELL_NONE;
+    spellDeck[2] = SPELL_NONE;
+    spellDeck[3] = SPELL_NONE;
+    spellDeck[4] = SPELL_NONE;
 }
 
 void initSpells(void) {

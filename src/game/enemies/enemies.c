@@ -49,6 +49,7 @@ typedef enum AttackPattern
 	ATTACK_PATTERN_MELEE,
 	ATTACK_PATTERN_PROJECTILE,
 	ATTACK_PATTERN_RUSH,
+	ATTACK_PATTERN_TURRET,
 	ATTACK_PATTERN_ELDER_BOSS,
 	ATTACK_PATTERN_WRAITH_BOSS
 } AttackPattern;
@@ -84,8 +85,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_TEST] = (EnemyData){
 		.name = "Test",
 		.health = 4,
-		.attackDetectionRange = 100,
-		.attackDistance = 100,
+		.attackDetectionRange = 10,
+		.attackDistance = 10,
 		.attackDamage = 1,
 		.attackCooldown = 1.0f,
 		.moveSpeed = 0.15f,
@@ -99,8 +100,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
 		.health = 5,
-		.attackDetectionRange = 3000,
-		.attackDistance = 100,
+		.attackDetectionRange = 55,
+		.attackDistance = 10,
 		.attackDamage = 1,
 		.attackCooldown = 4.0f,
 		.moveSpeed = 0.3f,
@@ -118,8 +119,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_SLIME] = (EnemyData){
 		.name = "Slime",
 		.health = 5,
-		.attackDetectionRange = 100,
-		.attackDistance = 100,
+		.attackDetectionRange = 10,
+		.attackDistance = 10,
 		.attackDamage = 1,
 		.attackCooldown = 0,
 		.moveSpeed = 0.1f,
@@ -134,8 +135,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
 		.name = "Baby Slime",
 		.health = 1,
-		.attackDetectionRange = 100,
-		.attackDistance = 100,
+		.attackDetectionRange = 10,
+		.attackDistance = 10,
 		.attackDamage = 1,
 		.attackCooldown = 0,
 		.moveSpeed = 0.5f,
@@ -149,8 +150,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_SKELETON] = (EnemyData){
 		.name = "Skeleton",
 		.health = 7,
-		.attackDetectionRange = 200,
-		.attackDistance = 350,
+		.attackDetectionRange = 15,
+		.attackDistance = 20,
 		.attackDamage = 1,
 		.attackCooldown = 0,
 		.moveSpeed = 0.4f,
@@ -164,11 +165,27 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.frameTime = 0.12f,
 		.attackPattern = ATTACK_PATTERN_MELEE
 	},
+	[ENEMY_TYPE_TURRET] = (EnemyData){
+		.name = "Turret",
+		.health = 10,
+		.attackDetectionRange = 150,
+		.attackDamage = 1,
+		.attackCooldown = 0.5f,
+		.moveSpeed = 0.0f,
+		.abilityDataPrimary = 8, // Firing angles
+		.abilityDataSecondary = 40.0f, // Projectile speed
+		.textureIndex = TEXTURE_TURRET,
+		.idleFrameEnd = 1,
+		.deathFrameStart = 1,
+		.deathFrameEnd = 11,
+		.frameTime = 0.1f,
+		.attackPattern = ATTACK_PATTERN_TURRET
+	},
 	[ENEMY_TYPE_ELDER_BOSS] = (EnemyData){
 		.name = "Elder Boss",
 		.health = 65,
-		.attackDetectionRange = 350,
-		.attackDistance = 350,
+		.attackDetectionRange = 20,
+		.attackDistance = 20,
 		.attackDamage = 2,
 		.attackCooldown = 1.5f,
 		.moveSpeed = 0.4f,
@@ -188,7 +205,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_IMP] = (EnemyData){
 		.name = "Imp",
 		.health = 8,
-		.attackDetectionRange = 2000,
+		.attackDetectionRange = 45,
 		.attackDamage = 1,
 		.attackCooldown = 8.0f,
 		.moveSpeed = 0.4f,
@@ -207,8 +224,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_FLYING_TOME] = (EnemyData){
 		.name = "Flying Tome",
 		.health = 10,
-		.attackDetectionRange = 3000,
-		.attackDistance = 100,
+		.attackDetectionRange = 55,
+		.attackDistance = 10,
 		.attackDamage = 1,
 		.attackCooldown = 5.0f,
 		.moveSpeed = 0.2f,
@@ -226,8 +243,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_LIVING_ARMOR] = (EnemyData){
 		.name = "Living Armor",
 		.health = 20,
-		.attackDetectionRange = 500,
-		.attackDistance = 600,
+		.attackDetectionRange = 22,
+		.attackDistance = 25,
 		.attackDamage = 2,
 		.attackCooldown = 0,
 		.moveSpeed = 0.4f,
@@ -245,8 +262,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_WRAITH_BOSS] = (EnemyData){
 		.name = "Wraith Boss",
 		.health = 90,
-		.attackDetectionRange = 100,
-		.attackDistance = 100,
+		.attackDetectionRange = 10,
+		.attackDistance = 10,
 		.attackDamage = 2,
 		.attackCooldown = 1.5f,
 		.moveSpeed = 0.25f,
@@ -267,8 +284,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_WRAITH] = (EnemyData){
 		.name = "Wraith",
 		.health = 4,
-		.attackDetectionRange = 100,
-		.attackDistance = 100,
+		.attackDetectionRange = 10,
+		.attackDistance = 10,
 		.attackDamage = 1,
 		.attackCooldown = 1.0f,
 		.moveSpeed = 0.6f,
@@ -443,13 +460,13 @@ void spawnEnemies(int currentArea, RoomType roomType) {
 int playerInAttackDetectionRange(int enemyIndex) {
 	Enemy curEnemy = enemies[enemyIndex];
 	EnemyData curEnemyData = enemyData[curEnemy.type];
-	return distanceSquared(curEnemy.x, curEnemy.y, playerX, playerY) <= curEnemyData.attackDetectionRange;
+	return distanceSquared(curEnemy.x, curEnemy.y, playerX, playerY) <= curEnemyData.attackDetectionRange * curEnemyData.attackDetectionRange;
 }
 
 int playerInAttackDistance(int enemyIndex) {
 	Enemy curEnemy = enemies[enemyIndex];
 	EnemyData curEnemyData = enemyData[curEnemy.type];
-	return distanceSquared(curEnemy.x, curEnemy.y, playerX, playerY) <= curEnemyData.attackDistance;
+	return distanceSquared(curEnemy.x, curEnemy.y, playerX, playerY) <= curEnemyData.attackDistance * curEnemyData.attackDistance;
 }
 
 void transitionToState(Enemy *enemy, EnemyState newState) {
@@ -581,6 +598,29 @@ void rushEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
 
 		// Move towards target position at rush speed
 		moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
+	}
+}
+
+void turretEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		// Start attacking if player is in range
+		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			
+			float angle = curEnemy->stateCount * (PI * 2 / curEnemyData->abilityDataPrimary);
+			float deltaX = cosf(angle);
+			float deltaY = sinf(angle);
+			float projectileSpeed = curEnemyData->abilityDataSecondary;
+			float damage = curEnemyData->attackDamage;
+			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+			fireEnemyProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage);
+
+			curEnemy->stateCount += 1;
+			if (curEnemy->stateCount >= curEnemyData->abilityDataPrimary) {
+				curEnemy->stateCount = 0;
+			}
+		}
 	}
 }
 
@@ -786,6 +826,8 @@ void updateEnemies(float deltaTime) {
 			projectileEnemyUpdate(curEnemy, curEnemyData, i, attackAnimationReset);
 		} else if (curAttackPattern == ATTACK_PATTERN_RUSH) {
 			rushEnemyUpdate(curEnemy, curEnemyData, i);
+		} else if (curAttackPattern == ATTACK_PATTERN_TURRET) {
+			turretEnemyUpdate(curEnemy, curEnemyData, i);
 		} else if (curAttackPattern == ATTACK_PATTERN_ELDER_BOSS) {
 			elderBossUpdate(curEnemy, curEnemyData, i, attackAnimationReset);
 		} else if (curAttackPattern == ATTACK_PATTERN_WRAITH_BOSS) {

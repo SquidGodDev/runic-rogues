@@ -5,7 +5,7 @@
 #include "game/enemies/enemies.h"
 
 #define MAX_ROOM_COUNT 10
-#define ENEMY_TYPES_PER_AREA 3
+#define ENEMY_TYPES_PER_AREA 4
 
 typedef enum Area
 {
