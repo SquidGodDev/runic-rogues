@@ -3,9 +3,6 @@
 typedef struct PlayerStats {
 	int maxHealth;
     int maxMana;
-    int maxShield;
-    float shieldRegenRate;
-    float shieldRefreshCooldown;
     float manaRegenRate;
 	float maxSpeed;
 	int projectileDamage;

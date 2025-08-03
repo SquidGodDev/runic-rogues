@@ -114,41 +114,6 @@ void drawPlayerHearts(void) {
     }
 }
 
-void drawPlayerShields(void) {
-    int fullShieldCount = playerShield / 2;
-    int hasHalfShield = playerShield % 2;
-    int maxShieldSlots = PLAYER_STATS.maxShield / 2;
-    int hasHalfContainer = PLAYER_STATS.maxShield % 2;
-
-    int drawX = 2;
-    int drawY = 16;
-
-    for (int i = 0; i < maxShieldSlots; i++) {
-        if (i < fullShieldCount) {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_FULL_SHIELD], drawX, drawY, kBitmapUnflipped);
-        } else if (hasHalfShield && i == fullShieldCount) {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_HALF_SHIELD], drawX, drawY, kBitmapUnflipped);
-        } else {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_EMPTY_SHIELD], drawX, drawY, kBitmapUnflipped);
-        }
-        drawX += 16;
-    }
-
-    if (hasHalfContainer) {
-        if (hasHalfShield && playerShield == PLAYER_STATS.maxShield) {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_HALF_FULL_SHIELD], drawX, drawY, kBitmapUnflipped);
-        } else {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_HALF_EMPTY_SHIELD], drawX, drawY, kBitmapUnflipped);
-        }
-        drawX += 12;
-    }
-
-    int shieldLoadBarHeight = 9;
-    int shieldLoadBarProgress = (int)(getShieldRegenPercentage() * shieldLoadBarHeight);
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_LOAD_BAR_SHIELD], drawX, drawY, kBitmapUnflipped);
-    pd->graphics->fillRect(drawX + 2, drawY + 2 + shieldLoadBarHeight - shieldLoadBarProgress, 3, shieldLoadBarProgress, kColorWhite);
-}
-
 void drawEntityToMinimap(float entityX, float entityY, uint8_t *texture, float playerAngleCos, float playerAngleSin) {
     uint8_t* frameBuffer = pd->graphics->getFrame();
     float distSquaredToPlayer = distanceSquared(playerX, playerY, entityX, entityY);
@@ -439,7 +404,6 @@ void drawUI(float deltaTime) {
     }
 
     drawPlayerHearts();
-    drawPlayerShields();
     drawMinimap();
     drawSpellOverlay(deltaTime);
     drawWeapon(deltaTime);

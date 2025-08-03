@@ -27,15 +27,12 @@ float playerAngle;
 float planeX, planeY;
 float dirX, dirY;
 int playerHealth;
-int playerShield;
 float playerMana;
 // ========================
 
 typedef struct PlayerState {
 	bool dead;
 	float hitInvincibility;
-	float shieldRefreshCooldown;
-	float shieldRegenPercentage;
 	int interactableIndex;
 } PlayerState;
 
@@ -112,12 +109,9 @@ void initPlayerRunStartStats(void) {
 
 void initPlayer(void) {
 	playerMana = PLAYER_STATS.maxMana;
-	playerShield = PLAYER_STATS.maxShield;
 	playerState = (PlayerState) {
 		.dead = 0,
 		.hitInvincibility = 0,
-		.shieldRefreshCooldown = 0,
-		.shieldRegenPercentage = 0,
 		.interactableIndex = -1
 	};
 
@@ -427,23 +421,6 @@ void handleInteractables(void) {
 	}
 }
 
-void updateShield(float deltaTime) {
-	if (playerState.shieldRefreshCooldown > 0) {
-		playerState.shieldRefreshCooldown -= deltaTime;
-		if (playerState.shieldRefreshCooldown < 0) {
-			playerState.shieldRefreshCooldown = 0;
-		}
-	}
-
-	if (playerShield < PLAYER_STATS.maxShield && playerState.shieldRefreshCooldown <= 0) {
-		playerState.shieldRegenPercentage += PLAYER_STATS.shieldRegenRate * deltaTime;
-		if (playerState.shieldRegenPercentage >= 1.0f) {
-			playerState.shieldRegenPercentage = 0;
-			playerShield++;
-		}
-	}
-}
-
 void updatePlayer(float deltaTime) {
 	if (playerState.hitInvincibility > 0) {
         playerState.hitInvincibility -= deltaTime;
@@ -451,14 +428,8 @@ void updatePlayer(float deltaTime) {
             playerState.hitInvincibility = 0;
         }
     }
-	
-	updateShield(deltaTime);
 	handleInput(deltaTime);
 	handleInteractables();
-}
-
-float getShieldRegenPercentage(void) {
-	return playerState.shieldRegenPercentage;
 }
 
 int getPlayerInteractableIndex(void) {
@@ -483,29 +454,12 @@ void damagePlayer(int amount) {
         return;
     }
 
-	playerState.shieldRefreshCooldown = PLAYER_STATS.shieldRefreshCooldown;
-	playerState.shieldRegenPercentage = 0;
-
 	playSound(SFX_PLAYER_HIT);
     screenShake(SCREEN_SHAKE_MEDIUM);
     playerState.hitInvincibility = HIT_INVINCIBILITY_TIME;
-
-	int excessDamage = 0;
-	if (playerShield > 0) {
-		playerShield -= amount;
-		if (playerShield < 0) {
-			excessDamage = -playerShield; // Remaining damage after shield is depleted
-			playerShield = 0;
-		} else {
-			return; // No damage to health if shield is still active
-		}
-	} else {
-		excessDamage = amount;
-	}
-
-	playerHealth -= excessDamage;
-	if (playerHealth <= 0) {
-		playerHealth = 0;
+    playerHealth -= amount;
+    if (playerHealth <= 0) {
+        playerHealth = 0;
 		playerState.dead = 1;
         pd->graphics->clear(kColorBlack);
         pd->lua->callFunction("GameOver", 0, NULL);
