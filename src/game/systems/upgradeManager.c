@@ -8,6 +8,9 @@
 #include "game/player/player.h"
 
 #define BASE_MAX_HEALTH 8
+#define BASE_MAX_SHIELD 6
+#define BASE_SHIELD_REGEN_RATE 0.3f
+#define BASE_SHIELD_REFRESH_COOLDOWN 4.0f
 #define BASE_MAX_MANA 10
 #define BASE_MANA_REGEN_RATE 1.5f
 #define BASE_MOVE_SPEED 40.0f
@@ -176,6 +179,9 @@ void initUpgradeValues(void) {
     PLAYER_STATS = (PlayerStats) {
         .maxHealth = BASE_MAX_HEALTH + upgradeValues[UPGRADE_TYPE_MAX_HEALTH].value,
         .maxMana = BASE_MAX_MANA + upgradeValues[UPGRADE_TYPE_MAX_MANA].value,
+        .maxShield = BASE_MAX_SHIELD,
+        .shieldRegenRate = BASE_SHIELD_REGEN_RATE,
+        .shieldRefreshCooldown = BASE_SHIELD_REFRESH_COOLDOWN,
         .manaRegenRate = BASE_MANA_REGEN_RATE + upgradeValues[UPGRADE_TYPE_MANA_REGEN].value,
         .maxSpeed = BASE_MOVE_SPEED + upgradeValues[UPGRADE_TYPE_MOVE_SPEED].value,
         .projectileDamage = BASE_PROJECTILE_DAMAGE,
