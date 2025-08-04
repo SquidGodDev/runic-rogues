@@ -30,6 +30,9 @@ static int utilitySpellCount;
 
 SpellData spellData[SPELL_COUNT] = {
     [SPELL_NONE] = {
+        .name = "None",
+        .name_jp = "なし",
+        .description = "Empty",
         .spellIconIndex = BITMAP_SPELL_EMPTY_ICON,
     },
     [SPELL_FIREBALL] = {
@@ -41,9 +44,9 @@ SpellData spellData[SPELL_COUNT] = {
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .type = SPELL_TYPE_INSTANT,
-        .cooldown = 3.0f,
+        .cooldown = 0.5f,
         .castTime = 0.4f,
-        .damage = 4,
+        .damage = 1,
         .projectileData = (SpellProjectileData) {
             .speed = 75.0f
         }
@@ -250,11 +253,11 @@ void initDeck(void) {
         spellDeck[i] = SPELL_NONE;
     }
 
-    spellDeck[0] = SPELL_PEA_SHOT;
-    spellDeck[1] = SPELL_NONE;
-    spellDeck[2] = SPELL_NONE;
-    spellDeck[3] = SPELL_NONE;
-    spellDeck[4] = SPELL_NONE;
+    spellDeck[0] = SPELL_FIREBALL;
+    spellDeck[1] = SPELL_CONE_OF_ICE;
+    spellDeck[2] = SPELL_SHOTGUN;
+    spellDeck[3] = SPELL_ARC_LIGHTNING;
+    spellDeck[4] = SPELL_LASER;
 }
 
 void initSpells(void) {
@@ -416,15 +419,6 @@ void activateSpellEffect(int index, float angle) {
         float offsetX = cosf(angle) * CELL_SIZE / 2;
         float offsetY = sinf(angle) * CELL_SIZE / 2;
         spawnParticle(PARTICLE_TYPE_BOMB, playerX + offsetX, playerY + offsetY, PARTICLE_TYPE_NONE, false /* enemyParticle */);
-    } else if (spell == SPELL_MELEE) {
-        float meleeX = playerX + cosf(angle) * CELL_SIZE / 2;
-        float meleeY = playerY + sinf(angle) * CELL_SIZE / 2;
-        int damageRadius = CELL_SIZE;
-        SpellData *data = &spellData[spell];
-        int damage = data->damage;
-        float knockbackTime = data->knockbackTime;
-        float knockbackAmount = data->knockbackAmount;
-        damageEnemiesInArea(meleeX, meleeY, damageRadius * damageRadius, damage, knockbackTime, knockbackAmount);
     } else if (spell == SPELL_PEA_SHOT) {
         fireSpellProjectile(spell, angle);
     }
