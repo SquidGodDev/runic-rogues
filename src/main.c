@@ -23,6 +23,7 @@
 #include "game/systems/progressionManager.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/upgradeManager.h"
+#include "game/systems/waveManager.h"
 #include "game/settings/settings.h"
 
 PlaydateAPI *pd = NULL;
@@ -77,6 +78,9 @@ int initGameScene(lua_State* L)
 	initRaycasting();
 	spawnEnemies(currentArea, roomType);
 
+	// Wave Manager
+	initWaveManager();
+
 	// UI
 	initUI(isBossRoom);
 
@@ -98,6 +102,7 @@ int updateGameScene(lua_State* L)
 	updateProjectiles(deltaTime);
 	updateParticles(deltaTime);
 	updateInteractables(deltaTime);
+	updateWaveManager(deltaTime);
 	renderScene();
 	drawUI(deltaTime);
 

@@ -137,7 +137,7 @@ function RoomSelectScene:init()
     mapSprite:moveTo(MAP_BASE_X, MAP_BASE_Y)
     mapSprite:add()
 
-    local isFirstRoom = GAME_DATA.currentRoom == 1
+    local isFirstRoom = false -- GAME_DATA.currentRoom == 1
 
     local delayTime = 450
     local additionalDelay = 500

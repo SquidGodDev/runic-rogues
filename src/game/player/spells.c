@@ -95,7 +95,7 @@ SpellData spellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_LASER,
         .spellIconIndex = BITMAP_SPELL_LASER_ICON,
         .type = SPELL_TYPE_REPEAT,
-        .cooldown = 4.0f,
+        .cooldown = 7.0f,
         .castTime = 0.6f,
         .damage = 1,
         .playerSpeedModifier = -0.7f,
@@ -117,7 +117,7 @@ SpellData spellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_ROOT_SURGE,
         .spellIconIndex = BITMAP_SPELL_ROOT_SURGE_ICON,
         .type = SPELL_TYPE_REPEAT,
-        .cooldown = 3.0f,
+        .cooldown = 6.0f,
         .castTime = 1.2f,
         .damage = 4,
         .playerSpeedModifier = -0.3f,
@@ -136,7 +136,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_WAVE_ICON,
         .type = SPELL_TYPE_INSTANT,
-        .cooldown = 3.0f,
+        .cooldown = 6.0f,
         .castTime = 0.4f,
         .damage = 1,
         .projectileData = (SpellProjectileData) {
@@ -153,7 +153,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellIconIndex = BITMAP_SPELL_TRIPLE_WAVE_ICON,
         .type = SPELL_TYPE_REPEAT,
         .castTime = 1.0f,
-        .cooldown = 3.0f,
+        .cooldown = 6.0f,
         .damage = 1,
         .useInitialCastAngle = false,
         .repeatData = (RepeatData){
@@ -174,7 +174,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellIconIndex = BITMAP_SPELL_CONE_OF_ICE_ICON,
         .type = SPELL_TYPE_INSTANT,
         .castTime = 0.4f,
-        .cooldown = 3.0f,
+        .cooldown = 6.0f,
         .damage = 1,
         .useInitialCastAngle = false,
         .projectileData = (SpellProjectileData) {
@@ -192,7 +192,7 @@ SpellData spellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_ARC_LIGHTNING,
         .spellIconIndex = BITMAP_SPELL_ARC_LIGHTNING_ICON,
         .type = SPELL_TYPE_REPEAT,
-        .cooldown = 3.0f,
+        .cooldown = 6.0f,
         .castTime = 1.5f,
         .damage = 3,
         .repeatData = (RepeatData){
@@ -209,7 +209,7 @@ SpellData spellData[SPELL_COUNT] = {
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_EXPLOSIVE_SHOT_ICON,
         .type = SPELL_TYPE_INSTANT,
-        .cooldown = 3.0f,
+        .cooldown = 6.0f,
         .castTime = 0.4f,
         .damage = 2,
         .projectileData = (SpellProjectileData) {
@@ -225,26 +225,8 @@ SpellData spellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_BOMBER,
         .spellIconIndex = BITMAP_SPELL_BOMBER_ICON,
         .type = SPELL_TYPE_INSTANT,
-        .cooldown = 3.0f,
+        .cooldown = 6.0f,
         .castTime = 0.3f,
-    },
-    [SPELL_PEA_SHOT] = {
-        .name = "Pea Shot",
-        .name_jp = "ピースショット",
-        .description = "Shoot a pea-sized projectile that deals low damage to enemies",
-        .description_jp = "敵に低ダメージを与えるエンドウ豆サイズの弾を発射する",
-        .pickupTextureIndex = TEXTURE_SPELL_PEA_SHOT,
-        .spellTextureIndex = TEXTURE_PROJECTILE,
-        .spellIconIndex = BITMAP_SPELL_PEA_SHOT_ICON,
-        .type = SPELL_TYPE_INSTANT,
-        .cooldown = 0.5f,
-        .castTime = 0.2f,
-        .damage = 1,
-        .projectileData = (SpellProjectileData) {
-            .speed = 150.0f,
-            .activeTime = 0.3f,
-            .timeoutParticle = PARTICLE_TYPE_PROJECTILE_SHRINK
-        }
     }
 };
 
@@ -254,10 +236,10 @@ void initDeck(void) {
     }
 
     spellDeck[0] = SPELL_FIREBALL;
-    spellDeck[1] = SPELL_CONE_OF_ICE;
-    spellDeck[2] = SPELL_SHOTGUN;
-    spellDeck[3] = SPELL_ARC_LIGHTNING;
-    spellDeck[4] = SPELL_LASER;
+    spellDeck[1] = SPELL_LASER;
+    spellDeck[2] = SPELL_NONE;
+    spellDeck[3] = SPELL_NONE;
+    spellDeck[4] = SPELL_NONE;
 }
 
 void initSpells(void) {
@@ -419,8 +401,6 @@ void activateSpellEffect(int index, float angle) {
         float offsetX = cosf(angle) * CELL_SIZE / 2;
         float offsetY = sinf(angle) * CELL_SIZE / 2;
         spawnParticle(PARTICLE_TYPE_BOMB, playerX + offsetX, playerY + offsetY, PARTICLE_TYPE_NONE, false /* enemyParticle */);
-    } else if (spell == SPELL_PEA_SHOT) {
-        fireSpellProjectile(spell, angle);
     }
 
     castData->activationCount++;

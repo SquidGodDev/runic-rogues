@@ -12,6 +12,7 @@
 #include "game/systems/audioManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/upgradeManager.h"
+#include "game/systems/waveManager.h"
 
 #define SPAWN_TEST_ENEMY 0
 
@@ -104,8 +105,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDistance = 10,
 		.attackDamage = 1,
 		.attackCooldown = 4.0f,
-		.moveSpeed = 0.3f,
-		.abilityDataPrimary = 0.7f, // Rush move speed
+		.moveSpeed = 0.15f,
+		.abilityDataPrimary = 0.4f, // Rush move speed
 		.abilityDataSecondary = 4.0f, // Rush duration
 		.textureIndex = TEXTURE_BAT,
 		.idleFrameEnd = 6,
@@ -122,8 +123,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDetectionRange = 10,
 		.attackDistance = 10,
 		.attackDamage = 1,
-		.attackCooldown = 0,
-		.moveSpeed = 0.1f,
+		.attackCooldown = 3.0f,
+		.moveSpeed = 0.05f,
 		.abilityDataPrimary = 4, // Number of baby slimes to spawn
 		.textureIndex = TEXTURE_SLIME,
 		.idleFrameEnd = 6,
@@ -134,12 +135,12 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
 		.name = "Baby Slime",
-		.health = 1,
+		.health = 3,
 		.attackDetectionRange = 10,
 		.attackDistance = 10,
 		.attackDamage = 1,
-		.attackCooldown = 0,
-		.moveSpeed = 0.5f,
+		.attackCooldown = 3.0f,
+		.moveSpeed = 0.2f,
 		.textureIndex = TEXTURE_BABY_SLIME,
 		.idleFrameEnd = 6,
 		.deathFrameStart = 7,
@@ -154,7 +155,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDistance = 20,
 		.attackDamage = 1,
 		.attackCooldown = 0,
-		.moveSpeed = 0.4f,
+		.moveSpeed = 0.2f,
 		.textureIndex = TEXTURE_SKELETON,
 		.idleFrameEnd = 6,
 		.attackFrameStart = 7,
@@ -432,27 +433,22 @@ void initEnemies(void) {
 	}
 }
 
+int getActiveEnemyCount(void) {
+	int count = 0;
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		if (enemies[i].active) {
+			count++;
+		}
+	}
+	return count;
+}
+
 void spawnEnemies(int currentArea, RoomType roomType) {
 	if (roomType == ROOM_TYPE_BOSS) {
 		if (currentArea == AREA_ECHOING_CAVERNS) {
 			bossIndex = spawnEnemy(ENEMY_TYPE_ELDER_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE);	
 		} else if (currentArea == AREA_LOST_ARCHIVES) {
 			bossIndex = spawnEnemy(ENEMY_TYPE_WRAITH_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE);
-		}
-	} else if (roomType == ROOM_TYPE_ENEMY || roomType == ROOM_TYPE_ELITE) {
-		int enemiesSpawned = getCurrentRoom() + 2;
-		for (int i = 0; i < enemiesSpawned; i++) {
-			int randMapX = randInt(ENEMY_SPAWN_MIN_X, ENEMY_SPAWN_MAX_X);
-			int randMapY = randInt(ENEMY_SPAWN_MIN_Y, ENEMY_SPAWN_MAX_Y);
-
-			while (map[randMapY * MAP_WIDTH + randMapX] != 0) {
-				randMapX = randInt(ENEMY_SPAWN_MIN_X, ENEMY_SPAWN_MAX_X);
-				randMapY = randInt(ENEMY_SPAWN_MIN_Y, ENEMY_SPAWN_MAX_Y);
-			}
-
-			int spawnX = randMapX * CELL_SIZE + CELL_SIZE / 2;
-			int spawnY = randMapY * CELL_SIZE + CELL_SIZE / 2;
-			spawnRandomEnemy(spawnX, spawnY);
 		}
 	}
 }
@@ -486,9 +482,13 @@ void transitionToState(Enemy *enemy, EnemyState newState) {
 
 void proximityEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
 	// Constantly attack nearby player
-	if (curEnemy->attackCooldown <= 0 && playerInAttackDistance(index)) {
+	if (playerInAttackDetectionRange(index)) {
+		if (curEnemy->attackCooldown <= 0) {
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			damagePlayer(curEnemyData->attackDamage);
+		}
+	} else {
 		curEnemy->attackCooldown = curEnemyData->attackCooldown;
-		damagePlayer(curEnemyData->attackDamage);
 	}
 
 	// Constantly move towards player
@@ -903,20 +903,22 @@ bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmou
 		curEnemy.animationTime = curEnemyData.frameTime;
 		curEnemy.hitFlashTime = 0;
 
-		int allEnemiesDead = 1;
-		for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-			if (i == index) {
-				continue;
+		if (allEnemiesSpawned()) { 
+			int allEnemiesDead = 1;
+			for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+				if (i == index) {
+					continue;
+				}
+	
+				if (enemies[i].active && enemies[i].state != ENEMY_STATE_DEAD) {
+					allEnemiesDead = 0;
+					break;
+				}
 			}
-
-			if (enemies[i].active && enemies[i].state != ENEMY_STATE_DEAD) {
-				allEnemiesDead = 0;
-				break;
+	
+			if (allEnemiesDead) {
+				setRoomCompleted(1);
 			}
-		}
-
-		if (allEnemiesDead) {
-			setRoomCompleted(1);
 		}
 	}
 	

@@ -117,6 +117,27 @@ Point getExitMapPosition(void) {
     return roomLayouts[curRoomType].exitMapPosition;
 }
 
+Point getRandomEnemySpawnMapPosition(void) {
+    int mapX, mapY;
+    int randNum = randInt(0, 3);
+    int width = roomLayouts[curRoomType].mapWidth;
+    int height = roomLayouts[curRoomType].mapHeight;
+    if (randNum == 0) {
+        mapX = 2;
+        mapY = height - 2;
+    } else if (randNum == 1) {
+        mapX = width - 2;
+        mapY = height - 2;
+    } else if (randNum == 2) {
+        mapX = 2;
+        mapY = 2;
+    } else {
+        mapX = width - 2;
+        mapY = 2;
+    }
+    return (Point){.x = mapX, .y = mapY};
+}
+
 void spawnExit(void) {
     Point exitMapPosition = getExitMapPosition();
     addInteractable(exitMapPosition.x, exitMapPosition.y, INTERACTABLE_TYPE_EXIT);

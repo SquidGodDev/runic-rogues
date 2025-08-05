@@ -3,7 +3,7 @@
 #include "stdbool.h"
 #include "helpers.h"
 
-#define MAX_ENEMY_COUNT 25
+#define MAX_ENEMY_COUNT 50
 
 typedef enum EnemyType
 {
@@ -61,6 +61,9 @@ typedef struct Enemy {
 extern Enemy enemies[MAX_ENEMY_COUNT];
 
 void initEnemies(void);
+int getActiveEnemyCount(void);
+int spawnEnemy(EnemyType enemyType, int x, int y);
+void spawnRandomEnemy(int spawnX, int spawnY);
 void spawnEnemies(int currentArea, RoomType roomType);
 void updateEnemies(float deltaTime);
 float getBossHealthPercentage(void);

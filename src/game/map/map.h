@@ -7,6 +7,7 @@ extern int map[MAP_WIDTH * MAP_HEIGHT];
 
 Point getPlayerSpawnMapPosition(void);
 Point getExitMapPosition(void);
+Point getRandomEnemySpawnMapPosition(void);
 void spawnExit(void);
 void getRandomEmptyMapPosition(int *mapX, int *mapY);
 void initMap(RoomType roomType);
