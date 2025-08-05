@@ -99,13 +99,31 @@ void setCell(int x, int y, int value) {
 }
 
 void encloseMapInWalls(int width, int height) {
-    for (int x = 0; x < width; x++) {
-        setCell(x, 0, WALL); // Top row
-        setCell(x, height - 1, WALL); // Bottom row
+    for (int x = 1; x < width - 1; x++) {
+        if (x == width / 2) {
+            setCell(x, 0, WALL);
+            setCell(x, height - 1, WALL);
+            setCell(x - 1, 0, WALL);
+            setCell(x - 1, height - 1, WALL);
+            setCell(x + 1, 0, WALL);
+            setCell(x + 1, height - 1, WALL);
+        } else {
+            setCell(x, 1, WALL); // Top row
+            setCell(x, height - 2, WALL); // Bottom row
+        }
     }
-    for (int y = 0; y < height; y++) {
-        setCell(0, y, WALL); // Left column
-        setCell(width - 1, y, WALL); // Right column
+    for (int y = 1; y < height - 1; y++) {
+        if (y == height / 2) {
+            setCell(0, y, WALL);
+            setCell(width - 1, y, WALL);
+            setCell(0, y - 1, WALL);
+            setCell(width - 1, y - 1, WALL);
+            setCell(0, y + 1, WALL);
+            setCell(width - 1, y + 1, WALL);
+        } else {
+            setCell(1, y, WALL); // Left column
+            setCell(width - 2, y, WALL); // Right column
+        }
     }
 }
 
@@ -123,17 +141,17 @@ Point getRandomEnemySpawnMapPosition(void) {
     int width = roomLayouts[curRoomType].mapWidth;
     int height = roomLayouts[curRoomType].mapHeight;
     if (randNum == 0) {
-        mapX = 2;
-        mapY = height - 2;
+        mapX = 1;
+        mapY = height / 2;
     } else if (randNum == 1) {
-        mapX = width - 2;
-        mapY = height - 2;
+        mapX = width / 2;
+        mapY = 1;
     } else if (randNum == 2) {
-        mapX = 2;
-        mapY = 2;
-    } else {
         mapX = width - 2;
-        mapY = 2;
+        mapY = height / 2;
+    } else {
+        mapX = width / 2;
+        mapY = height - 2;
     }
     return (Point){.x = mapX, .y = mapY};
 }
