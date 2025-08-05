@@ -106,7 +106,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDamage = 1,
 		.attackCooldown = 4.0f,
 		.moveSpeed = 0.15f,
-		.abilityDataPrimary = 0.4f, // Rush move speed
+		.abilityDataPrimary = 0.35f, // Rush move speed
 		.abilityDataSecondary = 4.0f, // Rush duration
 		.textureIndex = TEXTURE_BAT,
 		.idleFrameEnd = 6,
@@ -119,12 +119,12 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_SLIME] = (EnemyData){
 		.name = "Slime",
-		.health = 5,
+		.health = 6,
 		.attackDetectionRange = 10,
 		.attackDistance = 10,
 		.attackDamage = 1,
-		.attackCooldown = 3.0f,
-		.moveSpeed = 0.05f,
+		.attackCooldown = 2.0f,
+		.moveSpeed = 0.25f,
 		.abilityDataPrimary = 4, // Number of baby slimes to spawn
 		.textureIndex = TEXTURE_SLIME,
 		.idleFrameEnd = 6,
@@ -135,11 +135,11 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
 		.name = "Baby Slime",
-		.health = 3,
+		.health = 2,
 		.attackDetectionRange = 10,
 		.attackDistance = 10,
 		.attackDamage = 1,
-		.attackCooldown = 3.0f,
+		.attackCooldown = 2.0f,
 		.moveSpeed = 0.2f,
 		.textureIndex = TEXTURE_BABY_SLIME,
 		.idleFrameEnd = 6,
@@ -154,7 +154,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDetectionRange = 15,
 		.attackDistance = 20,
 		.attackDamage = 1,
-		.attackCooldown = 0,
+		.attackCooldown = 1.0f,
 		.moveSpeed = 0.2f,
 		.textureIndex = TEXTURE_SKELETON,
 		.idleFrameEnd = 6,
@@ -498,9 +498,13 @@ void proximityEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
 void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		// Start attacking if player is in range
-		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
+		if (playerInAttackDetectionRange(index)) {
+			if (curEnemy->attackCooldown <= 0) {
+				curEnemy->attackCooldown = curEnemyData->attackCooldown;
+				transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+			}
+		} else {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
-			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
 		}
 
 		// Move towards player
@@ -517,12 +521,8 @@ void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		// Transition back to idle state after attack animation ends
 		if (attackAnimationReset) {
 			curEnemy->attackedPlayer = false;
-			if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
-				curEnemy->attackCooldown = curEnemyData->attackCooldown;
-				transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
-			} else {
-				transitionToState(curEnemy, ENEMY_STATE_IDLE);
-			}
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
 		}
 	}
 }
