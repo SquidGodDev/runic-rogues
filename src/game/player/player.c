@@ -21,6 +21,8 @@
 
 #define HIT_INVINCIBILITY_TIME 0.5f // Seconds
 
+#define DOUBLE_TAP_TIME 0.3f // Seconds
+
 // === Extern variables ===
 float playerX, playerY;
 float playerAngle;
@@ -59,6 +61,8 @@ typedef struct PlayerMovementStats {
 	float dashSpeed;
 	float dashTime;
 	// Dash (Dynamic)
+	float dashAngle;
+	float dashDoubleTapTime;
 	PDButtons dashMovementDir;
 	float curDashTime;
 } PlayerMovementStats;
@@ -138,8 +142,7 @@ void initPlayer(void) {
 		.yVelocity = 0,
 		.speed = 0,
 		.strafeSpeed = 0,
-
-		.dashSpeed = 125.0f,
+		.dashSpeed = 100.0f,
 		.dashTime = 0.3f,
 		.dashMovementDir = 0,
 		.curDashTime = 0
@@ -194,15 +197,28 @@ void handleInput(float deltaTime)
 	if (movementStats.curDashTime < 0) {
 		movementStats.curDashTime = 0;
 	}
-	// if (pushed & kButtonB) {
-	// 	castUtilitySpell();
-	// }
 
 	if (playerState.interactableIndex != -1 && (pushed & kButtonA)) {
 		interact(playerState.interactableIndex);
 	} else if (current & kButtonA) {
 		if(castSpell(0)) {
 			weaponAnimation.curCooldown = PLAYER_STATS.weaponCooldown;
+		}
+	}
+
+	// Check for double-tap of d-pad direction to dash
+	if (movementStats.dashDoubleTapTime > 0) {
+		movementStats.dashDoubleTapTime -= deltaTime;
+	}
+
+	PDButtons pressedDirection = pushed & (kButtonLeft | kButtonRight | kButtonUp | kButtonDown);
+	if (pressedDirection) {
+		if (movementStats.dashDoubleTapTime > 0 && (movementStats.dashMovementDir & pressedDirection)) {
+			movementStats.dashDoubleTapTime = 0;
+			castUtilitySpell();
+		} else {
+			movementStats.dashDoubleTapTime = DOUBLE_TAP_TIME;
+			movementStats.dashMovementDir = pushed & (kButtonLeft | kButtonRight | kButtonUp | kButtonDown);
 		}
 	}
 
@@ -280,33 +296,46 @@ void handleInput(float deltaTime)
 	planeX = planeX * cosf(adjustedTurnSpeed) - planeY * sinf(adjustedTurnSpeed);
 	planeY = oldPlaneX * sinf(adjustedTurnSpeed) + planeY * cosf(adjustedTurnSpeed);
 
-	float maxSpeed = playerIsDashing ? movementStats.dashSpeed : PLAYER_STATS.maxSpeed;
+	float maxSpeed = PLAYER_STATS.maxSpeed;
 	maxSpeed *= getPlayerSpeedModifier();
+	float acceleration = movementStats.acceleration;
 	PDButtons movementDir = playerIsDashing ? movementStats.dashMovementDir : current;
 
 	if ((movementDir & kButtonRight) && strafeEnabled) {
 		if (movementStats.strafeSpeed < movementStats.initialSpeed) {
 			movementStats.strafeSpeed = movementStats.initialSpeed;
 		}
-		movementStats.strafeSpeed += movementStats.acceleration * deltaTime;
+		movementStats.strafeSpeed += acceleration * deltaTime;
 		if (movementStats.strafeSpeed > maxSpeed) {
 			movementStats.strafeSpeed = maxSpeed;
+		}
+		if (playerIsDashing) {
+			movementStats.strafeSpeed = movementStats.dashSpeed;
 		}
 	} else if ((movementDir & kButtonLeft) && strafeEnabled) {
 		if (movementStats.strafeSpeed > -movementStats.initialSpeed) {
 			movementStats.strafeSpeed = -movementStats.initialSpeed;
 		}
-		movementStats.strafeSpeed -= movementStats.acceleration * deltaTime;
+		movementStats.strafeSpeed -= acceleration * deltaTime;
 		if (movementStats.strafeSpeed < -maxSpeed) {
 			movementStats.strafeSpeed = -maxSpeed;
+		}
+		if (playerIsDashing) {
+			movementStats.strafeSpeed = -movementStats.dashSpeed;
 		}
 	} else {
 		float dragCutoff = 0.1f * maxSpeed;
 		if (movementStats.strafeSpeed < dragCutoff && movementStats.strafeSpeed > -dragCutoff) {
 			movementStats.strafeSpeed = 0;
 		} else if (movementStats.strafeSpeed > 0) {
+			if (movementStats.strafeSpeed > maxSpeed) {
+				movementStats.strafeSpeed = maxSpeed;
+			}
 			movementStats.strafeSpeed -= movementStats.drag * deltaTime;
 		} else if (movementStats.strafeSpeed < 0) {
+			if (movementStats.strafeSpeed < -maxSpeed) {
+				movementStats.strafeSpeed = -maxSpeed;
+			}
 			movementStats.strafeSpeed += movementStats.drag * deltaTime;
 		}
 	}
@@ -315,25 +344,37 @@ void handleInput(float deltaTime)
 		if (movementStats.speed < movementStats.initialSpeed) {
 			movementStats.speed = movementStats.initialSpeed;
 		}
-		movementStats.speed += movementStats.acceleration * deltaTime;
+		movementStats.speed += acceleration * deltaTime;
 		if (movementStats.speed > maxSpeed) {
 			movementStats.speed = maxSpeed;
+		}
+		if (playerIsDashing) {
+			movementStats.speed = movementStats.dashSpeed;
 		}
 	} else if (movementDir & kButtonDown) {
 		if (movementStats.speed > -movementStats.initialSpeed) {
 			movementStats.speed = -movementStats.initialSpeed;
 		}
-		movementStats.speed -= movementStats.acceleration * deltaTime;
+		movementStats.speed -= acceleration * deltaTime;
 		if (movementStats.speed < -maxSpeed) {
 			movementStats.speed = -maxSpeed;
+		}
+		if (playerIsDashing) {
+			movementStats.speed = -movementStats.dashSpeed;
 		}
 	} else {
 		float dragCutoff = 0.1f * maxSpeed;
 		if (movementStats.speed < dragCutoff && movementStats.speed > -dragCutoff) {
 			movementStats.speed = 0;
 		} else if (movementStats.speed > 0) {
+			if (movementStats.speed > maxSpeed) {
+				movementStats.speed = maxSpeed;
+			}
 			movementStats.speed -= movementStats.drag * deltaTime;
 		} else if (movementStats.speed < 0) {
+			if (movementStats.speed < -maxSpeed) {
+				movementStats.speed = -maxSpeed;
+			}
 			movementStats.speed += movementStats.drag * deltaTime;
 		}
 	}
@@ -347,8 +388,9 @@ void handleInput(float deltaTime)
 		normalizedStrafeSpeed = movementStats.strafeSpeed * (fabsf(movementStats.strafeSpeed) / combinedMagnitude);
 	}
 
-	movementStats.xVelocity = cosf(playerAngle) * normalizedSpeed + cosf(playerAngle + PI / 2) * normalizedStrafeSpeed;
-	movementStats.yVelocity = sinf(playerAngle) * normalizedSpeed + sinf(playerAngle + PI / 2) * normalizedStrafeSpeed;
+	float angle = playerIsDashing ? movementStats.dashAngle : playerAngle;
+	movementStats.xVelocity = cosf(angle) * normalizedSpeed + cosf(angle + PI / 2) * normalizedStrafeSpeed;
+	movementStats.yVelocity = sinf(angle) * normalizedSpeed + sinf(angle + PI / 2) * normalizedStrafeSpeed;
 
 	int wallCollisionDist = 10;
 	int xOffset = 0;
@@ -437,7 +479,7 @@ int getPlayerInteractableIndex(void) {
 }
 
 void playerDash(void) {
-	pd->system->getButtonState(&movementStats.dashMovementDir, NULL, NULL);
+	movementStats.dashAngle = playerAngle;
 	movementStats.curDashTime = movementStats.dashTime;
 	playerState.hitInvincibility = movementStats.dashTime * 2;
 }
