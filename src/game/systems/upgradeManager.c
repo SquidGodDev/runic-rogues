@@ -10,6 +10,7 @@
 #define BASE_MAX_HEALTH 8
 #define BASE_MAX_MANA 10
 #define BASE_MANA_REGEN_RATE 1.5f
+#define BASE_UTILITY_SPELL_CHARGE_RATE 0.2f
 #define BASE_MOVE_SPEED 40.0f
 #define BASE_PROJECTILE_DAMAGE 1
 #define BASE_PROJECTILE_SPEED 100.0f
@@ -177,6 +178,7 @@ void initUpgradeValues(void) {
         .maxHealth = BASE_MAX_HEALTH + upgradeValues[UPGRADE_TYPE_MAX_HEALTH].value,
         .maxMana = BASE_MAX_MANA + upgradeValues[UPGRADE_TYPE_MAX_MANA].value,
         .manaRegenRate = BASE_MANA_REGEN_RATE + upgradeValues[UPGRADE_TYPE_MANA_REGEN].value,
+        .utilitySpellChargeRate = BASE_UTILITY_SPELL_CHARGE_RATE,
         .maxSpeed = BASE_MOVE_SPEED + upgradeValues[UPGRADE_TYPE_MOVE_SPEED].value,
         .projectileDamage = BASE_PROJECTILE_DAMAGE,
         .projectileSpeed = BASE_PROJECTILE_SPEED + upgradeValues[UPGRADE_TYPE_PROJECTILE_SPEED].value,

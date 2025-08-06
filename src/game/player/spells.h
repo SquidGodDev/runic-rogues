@@ -77,7 +77,7 @@ float getSpellCooldownPercentage(int index);
 float getPlayerSpeedModifier(void);
 int getMaxUtilitySpells(void);
 int getUtilitySpellCount(void);
-void rechargeUtilitySpell(void);
+float getUtilitySpellCharge(void);
 void castUtilitySpell(void);
 int castSpell(int index);
 void updateSpells(float deltaTime);

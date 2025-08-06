@@ -322,6 +322,17 @@ void drawSpellUI(void) {
         LCDBitmap *utilitySpellBitmap = i < getUtilitySpellCount() ? BITMAPS[BITMAP_DASH_INDICATOR_FULL] : BITMAPS[BITMAP_DASH_INDICATOR_EMPTY];
         pd->graphics->drawBitmap(utilitySpellBitmap, utilityIconBaseX + i * utilityIconGap, utilityIconBaseY, kBitmapUnflipped);
     }
+
+    int utilitySpellChargeBarX = utilityIconBaseX + getMaxUtilitySpells() * utilityIconGap;
+    int utilitySpellChargeBarY = utilityIconBaseY;
+    int utilitySpellChargeBarWidth = 2;
+    int utilityChargeBarHeight = 5;
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_UTILITY_CHARGE_BAR], utilitySpellChargeBarX, utilitySpellChargeBarY, kBitmapUnflipped);
+    if (getUtilitySpellCharge() > 0.0f) {
+        int chargeBarHeight = getUtilitySpellCharge() * utilityChargeBarHeight + 1;
+        int utilityChargeBarDrawY = utilitySpellChargeBarY + utilityChargeBarHeight - chargeBarHeight + 1;
+        pd->graphics->fillRect(utilitySpellChargeBarX + 1, utilityChargeBarDrawY, utilitySpellChargeBarWidth, chargeBarHeight, kColorWhite);
+    }
 }
 
 void drawBossHealthBar(void) {

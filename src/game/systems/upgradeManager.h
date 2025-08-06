@@ -4,6 +4,7 @@ typedef struct PlayerStats {
 	int maxHealth;
     int maxMana;
     float manaRegenRate;
+    float utilitySpellChargeRate;
 	float maxSpeed;
 	int projectileDamage;
 	float projectileSpeed;

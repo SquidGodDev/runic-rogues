@@ -6,6 +6,7 @@
 #include "game/player/player.h"
 #include "game/player/spells.h"
 #include "game/systems/audioManager.h"
+#include "game/systems/upgradeManager.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
 
@@ -13,7 +14,7 @@
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
-#define DASH_COUNT 3
+#define UTILITY_SPELL_COUNT 3
 
 typedef struct SpellCastData {
     Spell spell;
@@ -27,6 +28,7 @@ static Spell spellDeck[SPELL_DECK_MAX];
 static SpellCastData spellCastData[SPELL_DECK_MAX];
 float spellCooldowns[SPELL_DECK_MAX];
 static int utilitySpellCount;
+static float utilitySpellCharge;
 
 SpellData spellData[SPELL_COUNT] = {
     [SPELL_NONE] = {
@@ -257,7 +259,8 @@ void initSpells(void) {
         spellCooldowns[i] = 0.0f;
     }
 
-    utilitySpellCount = DASH_COUNT;
+    utilitySpellCount = UTILITY_SPELL_COUNT;
+    utilitySpellCharge = 0.0f;
 }
 
 Spell *getSpellDeck(void) {
@@ -324,15 +327,15 @@ float getPlayerSpeedModifier(void) {
 }
 
 int getMaxUtilitySpells(void) {
-    return DASH_COUNT;
+    return UTILITY_SPELL_COUNT;
 }
 
 int getUtilitySpellCount(void) {
     return utilitySpellCount;
 }
 
-void rechargeUtilitySpell(void) {
-    utilitySpellCount = DASH_COUNT;
+float getUtilitySpellCharge(void) {
+    return utilitySpellCharge;
 }
 
 void castUtilitySpell(void) {
@@ -445,6 +448,14 @@ int castSpell(int index) {
 }
 
 void updateSpells(float deltaTime) {
+    if (utilitySpellCount < UTILITY_SPELL_COUNT) {
+        utilitySpellCharge += PLAYER_STATS.utilitySpellChargeRate * deltaTime;
+        if (utilitySpellCharge > 1.0f) {
+            utilitySpellCharge = 0.0f;
+            utilitySpellCount++;
+        }
+    }
+
     for (int i = 0; i < SPELL_DECK_MAX; i++) {
         if (spellCooldowns[i] > 0.0f) {
             spellCooldowns[i] -= deltaTime;

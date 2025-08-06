@@ -57,6 +57,7 @@ const char *bitmapPathStrings[] = {
 	"images/UI/mana/manaBar",
 	"images/spells/icons/dashIndicatorEmpty",
 	"images/spells/icons/dashIndicatorFull",
+	"images/spells/utility/utilityChargeBar",
 	"images/UI/minimap/minimapWall",
 	"images/UI/minimap/minimapBorder",
 	"images/UI/minimap/minimapMask",
