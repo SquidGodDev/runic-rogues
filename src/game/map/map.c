@@ -26,13 +26,13 @@ RoomLayout roomLayouts[ROOM_TYPE_COUNT] = {
     [ROOM_TYPE_ENEMY] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = (Point){.x = 2, .y = MAP_HEIGHT / 2},
+        .playerSpawnMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
         .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
     },
     [ROOM_TYPE_ELITE] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = (Point){.x = 2, .y = MAP_HEIGHT / 2},
+        .playerSpawnMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
         .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
     },
     [ROOM_TYPE_SHOP] = (RoomLayout){
