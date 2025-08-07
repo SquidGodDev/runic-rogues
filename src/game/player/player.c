@@ -14,7 +14,7 @@
 #include "game/systems/progressionManager.h"
 #include "game/systems/upgradeManager.h"
 
-#define CRANK_SENSITIVITY 0.3f
+#define CRANK_SENSITIVITY 0.0075f
 // Spawn the projectile slightly to the right to match hand
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
@@ -127,6 +127,19 @@ void initPlayer(void) {
 	planeY = -0.59f; // I think it's supposed to be -tanf(FOV_RAD / 2) ~= -0.65, but adjusted since it was off for some reason
 	dirX = 1;
 	dirY = 0;
+
+	playerAngle = pd->system->getCrankAngle() * CRANK_SENSITIVITY;
+	if (playerAngle < 0) {
+		playerAngle += 2 * PI;
+	} else if (playerAngle >= 2 * PI) {
+		playerAngle -= 2 * PI;
+	}
+	float oldDirX = dirX;
+	dirX = dirX * cosf(playerAngle) - dirY * sinf(playerAngle);
+	dirY = oldDirX * sinf(playerAngle) + dirY * cosf(playerAngle);
+	float oldPlaneX = planeX;
+	planeX = planeX * cosf(playerAngle) - planeY * sinf(playerAngle);
+	planeY = oldPlaneX * sinf(playerAngle) + planeY * cosf(playerAngle);
 
 	movementStats = (PlayerMovementStats) {
 		.turnAcceleration = 5.0f,
@@ -281,7 +294,7 @@ void handleInput(float deltaTime)
 		}
 	}
 
-	float adjustedTurnSpeed = (movementStats.turnSpeed + crankChange * CRANK_SENSITIVITY) * deltaTime;
+	float adjustedTurnSpeed = movementStats.turnSpeed * deltaTime + crankChange * CRANK_SENSITIVITY;
 	playerAngle += adjustedTurnSpeed;
 	if (playerAngle < 0) {
 		playerAngle += 2 * PI;
