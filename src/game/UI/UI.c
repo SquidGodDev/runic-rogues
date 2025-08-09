@@ -17,6 +17,7 @@
 #include "game/settings/settings.h"
 #include "game/systems/upgradeManager.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/waveManager.h"
 
 #define drawPixel(frameBuffer, x, y) (frameBuffer[y * LCD_ROWSIZE + (x >> 3)] |= (1 << (7 - (x & 7))))
 
@@ -364,6 +365,16 @@ void drawBossHealthBar(void) {
     }
 }
 
+void drawWaveProgressBar(void) {
+    float wavePercentage = getWavePercentage();
+    int waveBarWidth = wavePercentage * 68;
+
+    int progressBarX = 64;
+    int progressBarY = 20;
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_BOSS_HEALTH_BAR], progressBarX, progressBarY, kBitmapUnflipped);
+    pd->graphics->fillRect(progressBarX + 2, progressBarY + 2, waveBarWidth, 4, kColorWhite);
+}
+
 void setSpellOverlay(int index, int bitmapTableIndex, float frameTime, int drawX, int drawY) {
     LCDBitmapTable *bitmapTable = BITMAP_TABLES[bitmapTableIndex];
     int frameCount;
@@ -427,8 +438,12 @@ void drawUI(float deltaTime) {
     drawInteractablePrompt();
     drawExitArrow();
 
-    if (showBossHealthBar && !isRoomCompleted()) {
-        drawBossHealthBar();
+    if (!isRoomCompleted()) {
+        if (showBossHealthBar) {
+            drawBossHealthBar();
+        } else {
+            drawWaveProgressBar();
+        }
     }
 }
 

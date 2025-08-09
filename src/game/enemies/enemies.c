@@ -57,6 +57,7 @@ typedef enum AttackPattern
 
 Enemy enemies[MAX_ENEMY_COUNT] = {0};
 static int bossIndex;
+static int enemiesDefeated;
 
 typedef struct EnemyData {
 	char* name;
@@ -428,9 +429,15 @@ void spawnRandomEnemy(int spawnX, int spawnY) {
 }
 
 void initEnemies(void) {
+	bossIndex = -1;
+	enemiesDefeated = 0;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		enemies[i].active = 0;
 	}
+}
+
+int getEnemiesDefeated(void) {
+	return enemiesDefeated;
 }
 
 int getActiveEnemyCount(void) {
@@ -854,6 +861,10 @@ void enemyDeathEffect(int index) {
 }
 
 float getBossHealthPercentage(void) {
+	if (bossIndex == -1) {
+		return 0;
+	}
+
 	Enemy boss = enemies[bossIndex];
 	if (boss.state == ENEMY_STATE_DEAD) {
 		return 0;
@@ -902,6 +913,10 @@ bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmou
 		curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
 		curEnemy.animationTime = curEnemyData.frameTime;
 		curEnemy.hitFlashTime = 0;
+
+		if (index != bossIndex) {
+			enemiesDefeated++;
+		}
 
 		if (allEnemiesSpawned()) { 
 			int allEnemiesDead = 1;

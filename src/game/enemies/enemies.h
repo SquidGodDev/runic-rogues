@@ -61,6 +61,7 @@ typedef struct Enemy {
 extern Enemy enemies[MAX_ENEMY_COUNT];
 
 void initEnemies(void);
+int getEnemiesDefeated(void);
 int getActiveEnemyCount(void);
 int spawnEnemy(EnemyType enemyType, int x, int y);
 void spawnRandomEnemy(int spawnX, int spawnY);

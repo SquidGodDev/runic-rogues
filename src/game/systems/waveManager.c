@@ -58,6 +58,10 @@ bool allEnemiesSpawned(void) {
     return spawnedEnemies >= enemySpawnCount;
 }
 
+float getWavePercentage(void) {
+    return (float)getEnemiesDefeated() / enemySpawnCount;
+}
+
 void updateWaveManager(float deltaTime) {
     spawnTimer += deltaTime;
     if (spawnTimer >= WAVE_SPAWN_INTERVAL) {
