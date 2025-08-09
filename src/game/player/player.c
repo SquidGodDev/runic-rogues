@@ -235,7 +235,7 @@ void handleInput(float deltaTime)
 	}
 
 	PDButtons pressedDirection = pushed & (kButtonLeft | kButtonRight | kButtonUp | kButtonDown);
-	if (pressedDirection) {
+	if (pressedDirection && !(current & kButtonB)) {
 		if (movementStats.dashDoubleTapTime > 0 && (movementStats.dashMovementDir & pressedDirection)) {
 			movementStats.dashDoubleTapTime = 0;
 			castUtilitySpell();
