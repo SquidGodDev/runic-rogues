@@ -372,7 +372,7 @@ void moveEnemy(Enemy *enemy, int enemyIndex, float targetX, float targetY, float
 	enemy->y += dy;
 }
 
-int spawnEnemy(EnemyType enemyType, int x, int y) {
+int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 	int newEnemyIndex = -1;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		if (!enemies[i].active) {
@@ -403,6 +403,7 @@ int spawnEnemy(EnemyType enemyType, int x, int y) {
 		.stateTimer = 0,
 		.nextState = ENEMY_STATE_ATTACK_1,
 		.type = enemyType,
+		.isMinion = isMinion,
 		.attackedPlayer = false,
 		.slowTime = 0,
 		.slowAmount = 0
@@ -425,7 +426,7 @@ void spawnRandomEnemy(int spawnX, int spawnY) {
 		enemyType = ENEMY_TYPE_TEST;
 	}
 
-	spawnEnemy(enemyType, spawnX, spawnY);
+	spawnEnemy(enemyType, spawnX, spawnY, false /*isMinion*/);
 }
 
 void initEnemies(void) {
@@ -453,9 +454,9 @@ int getActiveEnemyCount(void) {
 void spawnEnemies(int currentArea, RoomType roomType) {
 	if (roomType == ROOM_TYPE_BOSS) {
 		if (currentArea == AREA_ECHOING_CAVERNS) {
-			bossIndex = spawnEnemy(ENEMY_TYPE_ELDER_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE);	
+			bossIndex = spawnEnemy(ENEMY_TYPE_ELDER_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE, false /*isMinion*/);	
 		} else if (currentArea == AREA_LOST_ARCHIVES) {
-			bossIndex = spawnEnemy(ENEMY_TYPE_WRAITH_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE);
+			bossIndex = spawnEnemy(ENEMY_TYPE_WRAITH_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE, false /*isMinion*/);
 		}
 	}
 }
@@ -719,9 +720,9 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				curEnemy->nextState = ENEMY_STATE_ATTACK_1;
 				curEnemy->targetX = MAP_WIDTH / 2 * CELL_SIZE;
 				curEnemy->targetY = MAP_HEIGHT / 2 * CELL_SIZE;
-				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x, curEnemy->y);
-				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x - CELL_SIZE, curEnemy->y);
-				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x + CELL_SIZE, curEnemy->y);
+				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x, curEnemy->y, true /*isMinion*/);
+				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x - CELL_SIZE, curEnemy->y, true /*isMinion*/);
+				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x + CELL_SIZE, curEnemy->y, true /*isMinion*/);
 			}
 		}
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1 || curEnemy->state == ENEMY_STATE_ATTACK_2 || curEnemy->state == ENEMY_STATE_ATTACK_3) {
@@ -855,7 +856,7 @@ void enemyDeathEffect(int index) {
 		for (int i = 0; i < slimeSpawnCount; i++) {
 			int xOffset = randInt(offsetMin, offsetMax);
 			int yOffset = randInt(offsetMin, offsetMax);
-			spawnEnemy(ENEMY_TYPE_BABY_SLIME, curEnemy.x + xOffset, curEnemy.y + yOffset);
+			spawnEnemy(ENEMY_TYPE_BABY_SLIME, curEnemy.x + xOffset, curEnemy.y + yOffset, true /*isMinion*/);
 		}
 	}
 }
@@ -914,7 +915,7 @@ bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmou
 		curEnemy.animationTime = curEnemyData.frameTime;
 		curEnemy.hitFlashTime = 0;
 
-		if (index != bossIndex) {
+		if (index != bossIndex && !curEnemy.isMinion) {
 			enemiesDefeated++;
 		}
 

@@ -73,7 +73,7 @@ void updateWaveManager(float deltaTime) {
                 enemyType = enemySpawnData[getCurrentArea()].eliteEnemyTypes[currentEliteIndex];
                 currentEliteIndex = (currentEliteIndex + 1) % eliteTypeCount;
             }
-            spawnEnemy(enemyType, spawnPosition.x * CELL_SIZE + CELL_SIZE / 2, spawnPosition.y * CELL_SIZE + CELL_SIZE / 2);
+            spawnEnemy(enemyType, spawnPosition.x * CELL_SIZE + CELL_SIZE / 2, spawnPosition.y * CELL_SIZE + CELL_SIZE / 2, false /*isMinion*/);
             spawnedEnemies++;
         } else {
             spawnTimer = WAVE_SPAWN_INTERVAL;

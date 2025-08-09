@@ -50,6 +50,7 @@ typedef struct Enemy {
 	float stateTimer;
 	EnemyState nextState;
 	int type;
+	bool isMinion;
 	bool attackedPlayer;
 	float slowTime;
 	float slowAmount;
@@ -63,7 +64,7 @@ extern Enemy enemies[MAX_ENEMY_COUNT];
 void initEnemies(void);
 int getEnemiesDefeated(void);
 int getActiveEnemyCount(void);
-int spawnEnemy(EnemyType enemyType, int x, int y);
+int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion);
 void spawnRandomEnemy(int spawnX, int spawnY);
 void spawnEnemies(int currentArea, RoomType roomType);
 void updateEnemies(float deltaTime);
