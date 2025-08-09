@@ -8,8 +8,11 @@
 #include "game/rendering/textures.h"
 #include "game/entities/entities.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/shopManager.h"
 
 #define CAMPFIRE_HEAL_AMOUNT 2
+#define INTERACT_DISTANCE 500
+#define SHOP_INTERACT_DISTANCE 100
 
 typedef struct InteractableData {
 	int textureIndex;
@@ -34,6 +37,10 @@ InteractableData interactableData[INTERACTABLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_EXTINGUISHED_CAMPFIRE,
 		.frameTime = 0.1f,
 		.idleEndFrame = 1
+	},
+	[INTERACTABLE_TYPE_SHOP_ITEM] = {
+		.frameTime = 0.1f,
+		.idleEndFrame = 8
 	}
 };
 
@@ -41,6 +48,21 @@ void initInteractables(void) {
 	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
 		INTERACTABLES[i].active = false;
 	}
+}
+
+int getInteractableIndexAtPosition(float x, float y) {
+	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
+		if (!INTERACTABLES[i].active) {
+			continue;
+		}
+
+		Interactable curInteractable = INTERACTABLES[i];
+		int interactDistance = curInteractable.type == INTERACTABLE_TYPE_SHOP_ITEM ? SHOP_INTERACT_DISTANCE : INTERACT_DISTANCE;
+		if (distanceSquared(x, y, curInteractable.x, curInteractable.y) <= interactDistance) {
+			return i;
+		}
+	}
+	return -1;
 }
 
 void interact(int interactableIndex) {
@@ -63,12 +85,24 @@ void interact(int interactableIndex) {
 			int campfireMapX = (INTERACTABLES[interactableIndex].x - CELL_SIZE / 2) / CELL_SIZE;
 			int campfireMapY = (INTERACTABLES[interactableIndex].y - CELL_SIZE / 2) / CELL_SIZE;
 			addInteractable(campfireMapX, campfireMapY, INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE);
+		case INTERACTABLE_TYPE_SHOP_ITEM:
+			selectShopItem(curInteractable.shopItem);
 		default:
 			break;
 	}
 }
 
-void addInteractable(int mapX, int mapY, InteractableType type) {
+int addShopInteractable(int mapX, int mapY, ShopItem shopItem) {
+	int interactableIndex = addInteractable(mapX, mapY, INTERACTABLE_TYPE_SHOP_ITEM);
+	if (interactableIndex < 0) {
+		return -1;
+	}
+	INTERACTABLES[interactableIndex].shopItem = shopItem;
+	INTERACTABLES[interactableIndex].textureIndex = getSpellPickupTextureIndex(shopItem.spell);
+	return interactableIndex;
+}
+
+int addInteractable(int mapX, int mapY, InteractableType type) {
     int newInteractableIndex = -1;
 	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
 		if (!INTERACTABLES[i].active) {
@@ -78,20 +112,23 @@ void addInteractable(int mapX, int mapY, InteractableType type) {
 	}
 
 	if (newInteractableIndex == -1) {
-		return;
+		return -1;
 	}
 
 	InteractableData curInteractableData = interactableData[type];
+	int textureIndex = curInteractableData.textureIndex;
 
 	INTERACTABLES[newInteractableIndex] = (struct Interactable) {
         .x = mapX * CELL_SIZE + CELL_SIZE / 2,
         .y = mapY * CELL_SIZE + CELL_SIZE / 2,
-        .animationFrame = 0,
+        .animationFrame = randInt(0, curInteractableData.idleEndFrame - 1),
         .animationTime = randFloat(0, curInteractableData.frameTime),
-        .textureIndex = curInteractableData.textureIndex,
+        .textureIndex = textureIndex,
         .type = type,
         .active = true
     };
+
+	return newInteractableIndex;
 }
 
 void updateInteractables(float deltaTime) {
@@ -113,6 +150,6 @@ void updateInteractables(float deltaTime) {
         }
 
         INTERACTABLES[i] = curInteractable;
-        addEntityToRenderQueue(curInteractable.x, curInteractable.y, INTERACTABLE, i, curInteractableData.textureIndex, curInteractable.animationFrame);
+        addEntityToRenderQueue(curInteractable.x, curInteractable.y, INTERACTABLE, i, curInteractable.textureIndex, curInteractable.animationFrame);
     }
 }

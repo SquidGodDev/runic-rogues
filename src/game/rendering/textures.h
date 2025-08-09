@@ -85,6 +85,7 @@ typedef enum BitmapPaths {
 	BITMAP_PROMPT_EXIT_JP,
 	BITMAP_PROMPT_REST,
 	BITMAP_PROMPT_REST_JP,
+	BITMAP_SHOP_POPUP_BACKGROUND,
 	BITMAP_BOSS_HEALTH_BAR,
 	BITMAP_ELDER_BOSS_TITLE,
 	BITMAP_ELDER_BOSS_TITLE_JP,
@@ -122,7 +123,10 @@ typedef enum BitmapTablePaths {
 } BitmapTablePaths;
 extern LCDBitmapTable* BITMAP_TABLES[];
 
-extern LCDFont *gameFont;
+extern LCDFont *fontTitleEN;
+extern LCDFont *fontTitleJP;
+extern LCDFont *fontSubEN;
+extern LCDFont *fontSubJP;
 
 extern uint8_t fogPatterns[FOG_LEVELS][8];
 

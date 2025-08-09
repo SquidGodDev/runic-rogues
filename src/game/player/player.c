@@ -462,18 +462,7 @@ void handleInput(float deltaTime)
 }
 
 void handleInteractables(void) {
-	playerState.interactableIndex = -1;
-	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
-		if (!INTERACTABLES[i].active) {
-			continue;
-		}
-
-		Interactable curInteractable = INTERACTABLES[i];
-		if (distanceSquared(playerX, playerY, curInteractable.x, curInteractable.y) <= INTERACT_DISTANCE) {
-			playerState.interactableIndex = i;
-			break;
-		}
-	}
+	playerState.interactableIndex = getInteractableIndexAtPosition(playerX, playerY);
 }
 
 void updatePlayer(float deltaTime) {

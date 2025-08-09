@@ -66,6 +66,7 @@ const char *bitmapPathStrings[] = {
 	"images/UI/prompts/exitPrompt_JP",
 	"images/UI/prompts/restPrompt",
 	"images/UI/prompts/restPrompt_JP",
+	"images/shop/shopPopupBackground",
 	"images/UI/prompts/bossHealthBar",
 	"images/UI/prompts/elderBossTitle",
 	"images/UI/prompts/elderBossTitle_JP",
@@ -98,7 +99,10 @@ const char *bitmapTablePathStrings[] = {
 	"images/spells/overlays/arcLightningOverlay",
 };
 
-LCDFont *gameFont;
+LCDFont *fontTitleEN;
+LCDFont *fontTitleJP;
+LCDFont *fontSubEN;
+LCDFont *fontSubJP;
 
 uint8_t fogPatterns[FOG_LEVELS][8] = {{0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x00},
 								  {0x55, 0x00, 0x44, 0x00, 0x55, 0x00, 0x44, 0x00},
@@ -229,6 +233,8 @@ void initTextures(void)
 		}
 	}
 
-	gameFont = pd->graphics->loadFont("fonts/m5x7-12-outlined", NULL);
-	pd->graphics->setFont(gameFont);
+	fontTitleEN = pd->graphics->loadFont("fonts/m6x11-12", NULL);
+	fontTitleJP = pd->graphics->loadFont("fonts/KH-Dot-Kabutochou-16", NULL);
+	fontSubEN = pd->graphics->loadFont("fonts/m5x7-12", NULL);
+	fontSubJP = pd->graphics->loadFont("fonts/KH-Dot-Kodenmachou-12", NULL);
 }

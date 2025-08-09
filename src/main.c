@@ -35,7 +35,6 @@ void initSystems(void)
 	initSettings();
 	initUpgradeManager();
 	initAudioManager();
-	initShopManager();
 }
 
 // Run at the start of every new run

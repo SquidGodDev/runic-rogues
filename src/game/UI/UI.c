@@ -27,6 +27,7 @@
 #define INTERACTABLE_PROMPT_LABEL_Y 60
 #define INTERACTABLE_BUTTON_PROMPT_X 100
 #define INTERACTABLE_BUTTON_PROMPT_Y 80
+#define SHOP_NAME_DESC_PADDING 4
 
 #define EXIT_ARROW_X 100
 #define EXIT_ARROW_Y 30
@@ -257,25 +258,26 @@ void drawInteractablePrompt(void) {
         return;
     }
 
-    switch (curInteractable.type) {
-        case INTERACTABLE_TYPE_EXIT:
-            if (SETTINGS.language == LANGUAGE_JP) {
-                drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_EXIT_JP], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
-            } else {
-                drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_EXIT], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
-            }
-            drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_A_BUTTON], INTERACTABLE_BUTTON_PROMPT_X, INTERACTABLE_BUTTON_PROMPT_Y);
-            break;
-        case INTERACTABLE_TYPE_CAMPFIRE:
-            if (SETTINGS.language == LANGUAGE_JP) {
-                drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_REST_JP], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
-            } else {
-                drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_REST], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
-            }
-            drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_A_BUTTON], INTERACTABLE_BUTTON_PROMPT_X, INTERACTABLE_BUTTON_PROMPT_Y);
-            break;
-        default:
-            break;
+    if (curInteractable.type == INTERACTABLE_TYPE_EXIT) {
+        if (SETTINGS.language == LANGUAGE_JP) {
+            drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_EXIT_JP], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
+        } else {
+            drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_EXIT], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
+        }
+        drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_A_BUTTON], INTERACTABLE_BUTTON_PROMPT_X, INTERACTABLE_BUTTON_PROMPT_Y);
+    } else if (curInteractable.type == INTERACTABLE_TYPE_CAMPFIRE) {
+        if (SETTINGS.language == LANGUAGE_JP) {
+            drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_REST_JP], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
+        } else {
+            drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_REST], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
+        }
+        drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_A_BUTTON], INTERACTABLE_BUTTON_PROMPT_X, INTERACTABLE_BUTTON_PROMPT_Y);
+    } else if (curInteractable.type == INTERACTABLE_TYPE_SHOP_ITEM) {
+        if (SETTINGS.language == LANGUAGE_JP) {
+            drawCenteredBitmap(curInteractable.shopItem.shopPageBitmapJP, INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
+        } else {
+            drawCenteredBitmap(curInteractable.shopItem.shopPageBitmapEN, INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
+        }
     }
 }
 

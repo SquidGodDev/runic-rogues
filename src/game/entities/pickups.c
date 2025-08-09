@@ -15,7 +15,27 @@ Pickup pickups[MAX_PICKUP_COUNT];
 
 void initPickups(void) {
     for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
-        pickups[i].active = 0;
+        pickups[i].active = false;
+    }
+}
+
+void spawnPickup(int mapX, int mapY, PickupType type) {
+    float x = mapX * CELL_SIZE + CELL_SIZE / 2;
+    float y = mapY * CELL_SIZE + CELL_SIZE / 2;
+    for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
+        if (!pickups[i].active) {
+            pickups[i] = (Pickup) {
+                .x = x,
+                .y = y,
+                .mapX = mapX,
+                .mapY = mapY,
+                .active = 1,
+                .animationFrame = 0,
+                .animationTime = PICKUP_ANIM_FRAME_TIME,
+                .textureIndex = TEXTURE_CAMPFIRE // CHANGE TO COIN TEXTURE
+            };
+            return;
+        }
     }
 }
 
@@ -53,7 +73,7 @@ void updatePickups(float deltaTime) {
         }
         
         if (distanceSquared(pickup->x, pickup->y, playerX, playerY) <= PICKUP_DISTANCE) {
-            pickup->active = 0; // Pickup collected
+            pickup->active = false; // Pickup collected
         }
 
         addEntityToRenderQueue(pickup->x, pickup->y, PICKUP, i, pickup->textureIndex, pickup->animationFrame);
