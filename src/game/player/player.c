@@ -36,6 +36,7 @@ typedef struct PlayerState {
 	bool dead;
 	float hitInvincibility;
 	int interactableIndex;
+	bool interactedOnPress;
 } PlayerState;
 
 typedef struct PlayerMovementStats {
@@ -116,7 +117,8 @@ void initPlayer(void) {
 	playerState = (PlayerState) {
 		.dead = 0,
 		.hitInvincibility = 0,
-		.interactableIndex = -1
+		.interactableIndex = -1,
+		.interactedOnPress = false
 	};
 
 	Point playerSpawnMapPosition = getPlayerSpawnMapPosition();
@@ -198,7 +200,8 @@ void handleInput(float deltaTime)
 
 	PDButtons current;
 	PDButtons pushed;
-	pd->system->getButtonState(&current, &pushed, NULL);
+	PDButtons released;
+	pd->system->getButtonState(&current, &pushed, &released);
 
 	if (isTransitioning() || playerState.dead) {
 		// Disable inputs
@@ -211,9 +214,16 @@ void handleInput(float deltaTime)
 		movementStats.curDashTime = 0;
 	}
 
-	if (playerState.interactableIndex != -1 && (pushed & kButtonA)) {
-		interact(playerState.interactableIndex);
-	} else if (current & kButtonA) {
+	if (released & kButtonA) {
+		playerState.interactedOnPress = false;
+	}
+
+	if (playerState.interactableIndex != -1) {
+		if (pushed & kButtonA) {
+			interact(playerState.interactableIndex);
+			playerState.interactedOnPress = true;
+		}
+	} else if ((current & kButtonA) && !playerState.interactedOnPress) {
 		if(castSpell(0)) {
 			weaponAnimation.curCooldown = PLAYER_STATS.weaponCooldown;
 		}
