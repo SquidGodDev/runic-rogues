@@ -50,6 +50,7 @@
 static float screenShakeTime;
 static int shakeMagnitude;
 
+static bool exitActive;
 static int exitWorldX;
 static int exitWorldY;
 
@@ -72,6 +73,7 @@ void initUI(int isBossRoom) {
     pd->display->setOffset(0, 0);
     pd->graphics->setBackgroundColor(kColorBlack);
 
+    exitActive = false;
     showBossHealthBar = isBossRoom;
     for (int i = 0; i < SPELL_DECK_MAX; i++) {
         spellOverlays[i] = (SpellOverlay) {
@@ -282,12 +284,13 @@ void drawInteractablePrompt(void) {
 }
 
 void setExitArrowPosition(int worldX, int worldY) {
+    exitActive = true;
     exitWorldX = worldX;
     exitWorldY = worldY;
 }
 
 void drawExitArrow(void) {
-    if (!isRoomCompleted()) {
+    if (!exitActive) {
         return;
     }
 

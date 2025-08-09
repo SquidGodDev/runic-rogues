@@ -917,6 +917,7 @@ bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmou
 			}
 	
 			if (allEnemiesDead) {
+				setRoomCompleted(true);
 				createShopInteractables();
 			}
 		}

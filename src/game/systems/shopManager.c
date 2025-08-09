@@ -111,5 +111,5 @@ void selectShopItem(ShopItem shopItem) {
 
     addSpellToDeck(shopItem.spell);
 
-    setRoomCompleted(true);
+    spawnExit();
 }

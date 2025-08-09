@@ -59,9 +59,6 @@ int getCurrentRoom(void) {
 
 void setRoomCompleted(bool completed) {
     roomCompleted = completed;
-    if (completed) {
-        spawnExit();
-    }
 }
 
 bool isRoomCompleted(void) {
