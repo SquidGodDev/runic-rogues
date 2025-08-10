@@ -98,6 +98,8 @@ const char *bitmapPathStrings[] = {
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];
 const char *bitmapTablePathStrings[] = {
 	"images/UI/prompts/exitArrow",
+	"images/UI/popups/roomClearedEN",
+	"images/UI/popups/roomClearedJP",
 	"images/spells/overlays/arcLightningOverlay",
 };
 

@@ -62,6 +62,9 @@ int getCurrentRoom(void) {
 
 void setRoomCompleted(bool completed) {
     roomCompleted = completed;
+    if (completed) {
+        showRoomClearedPopup();
+    }
 }
 
 bool isRoomCompleted(void) {

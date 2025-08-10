@@ -57,6 +57,12 @@ static int exitWorldY;
 
 static int showBossHealthBar;
 
+static int popupImagetableIndex;
+static int popupFrame;
+static int popupMaxFrame;
+static float popupCurFrameTime;
+static float popupFrameTime;
+
 typedef struct SpellOverlay {
     LCDBitmapTable *bitmapTable;
     int drawX;
@@ -76,6 +82,9 @@ void initUI(int isBossRoom) {
 
     exitActive = false;
     showBossHealthBar = isBossRoom;
+
+    popupImagetableIndex = -1;
+
     for (int i = 0; i < SPELL_DECK_MAX; i++) {
         spellOverlays[i] = (SpellOverlay) {
             .bitmapTable = NULL,
@@ -416,6 +425,35 @@ void drawSpellOverlay(float deltaTime) {
     }
 }
 
+void showRoomClearedPopup(void) {
+    if (SETTINGS.language == LANGUAGE_EN) {
+        popupImagetableIndex = BITMAP_TABLE_ROOM_CLEARED_POPUP_EN;
+    } else if (SETTINGS.language == LANGUAGE_JP) {
+        popupImagetableIndex = BITMAP_TABLE_ROOM_CLEARED_POPUP_JP;
+    }
+    popupMaxFrame = 30;
+    popupFrame = 0;
+    popupCurFrameTime = 0;
+    popupFrameTime = 0.05f;
+}
+
+void drawPopup(float deltaTime) {
+    if (popupImagetableIndex != -1) {
+        popupCurFrameTime += deltaTime;
+        if (popupCurFrameTime >= popupFrameTime) {
+            popupCurFrameTime = 0;
+            popupFrame++;
+            if (popupFrame >= popupMaxFrame) {
+                popupImagetableIndex = -1;
+                return;
+            }
+        }
+
+        LCDBitmap *popupBitmap = pd->graphics->getTableBitmap(BITMAP_TABLES[popupImagetableIndex], popupFrame);
+        drawCenteredBitmap(popupBitmap, 100, 60);
+    }
+}
+
 void drawUI(float deltaTime) {
     if (screenShakeTime > 0) {
         screenShakeTime -= deltaTime;
@@ -436,6 +474,7 @@ void drawUI(float deltaTime) {
     drawWeapon(deltaTime);
     drawSpellUI();
     drawExitArrow();
+    drawPopup(deltaTime);
     drawInteractablePrompt();
 
     if (!isRoomCompleted()) {
