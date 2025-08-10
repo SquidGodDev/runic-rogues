@@ -435,8 +435,8 @@ void drawUI(float deltaTime) {
     drawSpellOverlay(deltaTime);
     drawWeapon(deltaTime);
     drawSpellUI();
-    drawInteractablePrompt();
     drawExitArrow();
+    drawInteractablePrompt();
 
     if (!isRoomCompleted()) {
         if (showBossHealthBar) {

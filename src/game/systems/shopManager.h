@@ -10,5 +10,5 @@ typedef struct ShopItem {
     int price;
 } ShopItem;
 
-void createShopInteractables(void);
+void initShop(void);
 void selectShopItem(ShopItem shopItem);

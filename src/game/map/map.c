@@ -19,19 +19,20 @@ typedef struct RoomLayout {
 
 #define CAMPFIRE_ROOM_WIDTH MAP_WIDTH / 2
 #define CAMPFIRE_ROOM_HEIGHT MAP_HEIGHT / 2
+#define MAP_PADDING 4
 
 RoomLayout roomLayouts[ROOM_TYPE_COUNT] = {
     [ROOM_TYPE_ENEMY] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
         .playerSpawnMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
-        .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
+        .exitMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
     },
     [ROOM_TYPE_ELITE] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
         .playerSpawnMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
-        .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
+        .exitMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
     },
     [ROOM_TYPE_SHOP] = (RoomLayout){
         .mapWidth = 10,
@@ -49,7 +50,7 @@ RoomLayout roomLayouts[ROOM_TYPE_COUNT] = {
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
         .playerSpawnMapPosition = (Point){.x = 2, .y = MAP_HEIGHT / 2},
-        .exitMapPosition = (Point){.x = MAP_WIDTH * 3 / 4, .y = MAP_HEIGHT / 2}
+        .exitMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
     }
 };
 
@@ -97,22 +98,22 @@ void setCell(int x, int y, int value) {
 }
 
 void encloseMapInWalls(int width, int height) {
-    for (int x = 1; x < width - 1; x++) {
+    for (int x = MAP_PADDING; x < width - MAP_PADDING; x++) {
         if (x == width / 2) {
-            setCell(x, 1, MAP_GATE); // Top row
-            setCell(x, height - 2, MAP_GATE); // Bottom row
+            setCell(x, MAP_PADDING, MAP_GATE); // Top row
+            setCell(x, height - MAP_PADDING - 1, MAP_GATE); // Bottom row
         } else {
-            setCell(x, 1, MAP_WALL); // Top row
-            setCell(x, height - 2, MAP_WALL); // Bottom row
+            setCell(x, MAP_PADDING, MAP_WALL); // Top row
+            setCell(x, height - MAP_PADDING - 1, MAP_WALL); // Bottom row
         }
     }
-    for (int y = 1; y < height - 1; y++) {
+    for (int y = MAP_PADDING; y < height - MAP_PADDING; y++) {
         if (y == height / 2) {
-            setCell(1, y, MAP_GATE); // Left column
-            setCell(width - 2  , y, MAP_GATE); // Right column
+            setCell(MAP_PADDING, y, MAP_GATE); // Left column
+            setCell(width - MAP_PADDING - 1, y, MAP_GATE); // Right column
         } else {
-            setCell(1, y, MAP_WALL); // Left column
-            setCell(width - 2, y, MAP_WALL); // Right column
+            setCell(MAP_PADDING, y, MAP_WALL); // Left column
+            setCell(width - MAP_PADDING - 1, y, MAP_WALL); // Right column
         }
     }
 }
@@ -131,25 +132,45 @@ Point getRandomEnemySpawnPosition(void) {
     int width = roomLayouts[curRoomType].mapWidth;
     int height = roomLayouts[curRoomType].mapHeight;
     if (randNum == 0) {
-        x = 2 * CELL_SIZE;
+        x = (MAP_PADDING + 1) * CELL_SIZE;
         y = (height / 2) * CELL_SIZE + CELL_SIZE / 2;
     } else if (randNum == 1) {
         x = (width / 2) * CELL_SIZE + CELL_SIZE / 2;
-        y = 2 * CELL_SIZE;
+        y = (MAP_PADDING + 1) * CELL_SIZE;
     } else if (randNum == 2) {
-        x = (width - 2) * CELL_SIZE;
+        x = (width - MAP_PADDING - 1) * CELL_SIZE;
         y = (height / 2) * CELL_SIZE + CELL_SIZE / 2;
     } else {
         x = (width / 2) * CELL_SIZE + CELL_SIZE / 2;
-        y = (height - 2) * CELL_SIZE;
+        y = (height - MAP_PADDING - 1) * CELL_SIZE;
     }
     return (Point){.x = x, .y = y};
+}
+
+Point getShopMapPosition(void) {
+    return (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 1};
+}
+
+void carveOutShopArea(void) {
+    setCell(MAP_WIDTH / 2, MAP_PADDING, MAP_FLOOR);
+    setCell(MAP_WIDTH / 2 - 1, MAP_PADDING, MAP_FLOOR);
+    setCell(MAP_WIDTH / 2 + 1, MAP_PADDING, MAP_FLOOR);
+    setCell(MAP_WIDTH / 2 - 2, MAP_PADDING - 1, MAP_WALL);
+    setCell(MAP_WIDTH / 2 - 2, MAP_PADDING - 2, MAP_WALL);
+    setCell(MAP_WIDTH / 2 - 2, MAP_PADDING - 3, MAP_WALL);
+    setCell(MAP_WIDTH / 2 - 1, MAP_PADDING - 3, MAP_WALL);
+    setCell(MAP_WIDTH / 2 - 1, MAP_PADDING - 4, MAP_WALL);
+    setCell(MAP_WIDTH / 2 + 2, MAP_PADDING - 1, MAP_WALL);
+    setCell(MAP_WIDTH / 2 + 2, MAP_PADDING - 2, MAP_WALL);
+    setCell(MAP_WIDTH / 2 + 2, MAP_PADDING - 3, MAP_WALL);
+    setCell(MAP_WIDTH / 2 + 1, MAP_PADDING - 3, MAP_WALL);
+    setCell(MAP_WIDTH / 2 + 1, MAP_PADDING - 4, MAP_WALL);
+    setCell(MAP_WIDTH / 2, MAP_PADDING - 4, MAP_WALL);
 }
 
 void spawnExit(void) {
     Point exitMapPosition = getExitMapPosition();
     addInteractable(exitMapPosition.x, exitMapPosition.y, INTERACTABLE_TYPE_EXIT);
-    setExitArrowPosition(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);
 }
 
 void generateSquareDungeon(void) {

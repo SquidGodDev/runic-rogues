@@ -9,6 +9,7 @@
 #include "game/rendering/textures.h"
 #include "game/entities/interactables.h"
 #include "game/player/spells.h"
+#include "game/map/map.h"
 
 #define SHOP_OPTION_COUNT 3
 
@@ -77,14 +78,15 @@ void createShopInteractables(void) {
     }
     stackShuffle(&spellOptionsStack);
 
+    Point shopMapPosition = getShopMapPosition();
     for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
         Spell spell = SPELL_FIREBALL; // Default spell if no options available
         if (!stackIsEmpty(&spellOptionsStack)) {
             spell = (Spell)stackPop(&spellOptionsStack);
         }
 
-        int mapX = MAP_WIDTH / 2;
-        int mapY = MAP_HEIGHT / 2 - SHOP_ITEM_SPACING + (i * SHOP_ITEM_SPACING);
+        int mapX = shopMapPosition.x - SHOP_ITEM_SPACING + (i * SHOP_ITEM_SPACING);
+        int mapY = shopMapPosition.y;
 
         LCDBitmap *shopPageBitmapEN = createShopPage(spell, LANGUAGE_EN);
         LCDBitmap *shopPageBitmapJP = createShopPage(spell, LANGUAGE_JP);
@@ -98,6 +100,13 @@ void createShopInteractables(void) {
         int interactableIndex = addShopInteractable(mapX, mapY, shopItem);
         shopInteractableIndexes[i] = interactableIndex;
     }
+}
+
+void initShop(void) {
+    createShopInteractables();
+    carveOutShopArea();
+    Point exitMapPosition = getExitMapPosition();
+    setExitArrowPosition(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);
 }
 
 void selectShopItem(ShopItem shopItem) {
