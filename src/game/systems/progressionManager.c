@@ -31,17 +31,20 @@ void initProgressionManager(int area, int room) {
     areaData[AREA_ECHOING_CAVERNS] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_CEILING],
-        .floorTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_FLOOR]
+        .floorTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_FLOOR],
+        .gateTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_GATE]
     };
     areaData[AREA_LOST_ARCHIVES] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_CEILING],
-        .floorTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_FLOOR]
+        .floorTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_FLOOR],
+        .gateTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_GATE]
     };
     areaData[AREA_TEST] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_TEST_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_TEST_CEILING],
-        .floorTexture = TEXTURES[TEXTURE_TEST_FLOOR]
+        .floorTexture = TEXTURES[TEXTURE_TEST_FLOOR],
+        .gateTexture = TEXTURES[TEXTURE_TEST_WALL]
     };
 }
 

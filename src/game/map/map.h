@@ -3,11 +3,15 @@
 #include "globals.h"
 #include "game/systems/progressionManager.h"
 
+#define MAP_FLOOR 0
+#define MAP_WALL 1
+#define MAP_GATE 2
+
 extern int map[MAP_WIDTH * MAP_HEIGHT];
 
 Point getPlayerSpawnMapPosition(void);
 Point getExitMapPosition(void);
-Point getRandomEnemySpawnMapPosition(void);
+Point getRandomEnemySpawnPosition(void);
 void spawnExit(void);
 void getRandomEmptyMapPosition(int *mapX, int *mapY);
 void initMap(RoomType roomType);

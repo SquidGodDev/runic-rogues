@@ -2,15 +2,13 @@
 #include "pd_api.h"
 
 #include "helpers.h"
+#include "game/map/map.h"
 #include "game/entities/interactables.h"
 #include "game/systems/progressionManager.h"
 #include "game/entities/pickups.h"
 #include "game/UI/UI.h"
 
 #define PLAYDATE_SDK 1
-
-#define WALL 1
-#define FLOOR 0
 
 typedef struct RoomLayout {
     int mapWidth;
@@ -101,28 +99,20 @@ void setCell(int x, int y, int value) {
 void encloseMapInWalls(int width, int height) {
     for (int x = 1; x < width - 1; x++) {
         if (x == width / 2) {
-            setCell(x, 0, WALL);
-            setCell(x, height - 1, WALL);
-            setCell(x - 1, 0, WALL);
-            setCell(x - 1, height - 1, WALL);
-            setCell(x + 1, 0, WALL);
-            setCell(x + 1, height - 1, WALL);
+            setCell(x, 1, MAP_GATE); // Top row
+            setCell(x, height - 2, MAP_GATE); // Bottom row
         } else {
-            setCell(x, 1, WALL); // Top row
-            setCell(x, height - 2, WALL); // Bottom row
+            setCell(x, 1, MAP_WALL); // Top row
+            setCell(x, height - 2, MAP_WALL); // Bottom row
         }
     }
     for (int y = 1; y < height - 1; y++) {
         if (y == height / 2) {
-            setCell(0, y, WALL);
-            setCell(width - 1, y, WALL);
-            setCell(0, y - 1, WALL);
-            setCell(width - 1, y - 1, WALL);
-            setCell(0, y + 1, WALL);
-            setCell(width - 1, y + 1, WALL);
+            setCell(1, y, MAP_GATE); // Left column
+            setCell(width - 2  , y, MAP_GATE); // Right column
         } else {
-            setCell(1, y, WALL); // Left column
-            setCell(width - 2, y, WALL); // Right column
+            setCell(1, y, MAP_WALL); // Left column
+            setCell(width - 2, y, MAP_WALL); // Right column
         }
     }
 }
@@ -135,25 +125,25 @@ Point getExitMapPosition(void) {
     return roomLayouts[curRoomType].exitMapPosition;
 }
 
-Point getRandomEnemySpawnMapPosition(void) {
-    int mapX, mapY;
+Point getRandomEnemySpawnPosition(void) {
+    int x, y;
     int randNum = randInt(0, 3);
     int width = roomLayouts[curRoomType].mapWidth;
     int height = roomLayouts[curRoomType].mapHeight;
     if (randNum == 0) {
-        mapX = 1;
-        mapY = height / 2;
+        x = 2 * CELL_SIZE;
+        y = (height / 2) * CELL_SIZE + CELL_SIZE / 2;
     } else if (randNum == 1) {
-        mapX = width / 2;
-        mapY = 1;
+        x = (width / 2) * CELL_SIZE + CELL_SIZE / 2;
+        y = 2 * CELL_SIZE;
     } else if (randNum == 2) {
-        mapX = width - 2;
-        mapY = height / 2;
+        x = (width - 2) * CELL_SIZE;
+        y = (height / 2) * CELL_SIZE + CELL_SIZE / 2;
     } else {
-        mapX = width / 2;
-        mapY = height - 2;
+        x = (width / 2) * CELL_SIZE + CELL_SIZE / 2;
+        y = (height - 2) * CELL_SIZE;
     }
-    return (Point){.x = mapX, .y = mapY};
+    return (Point){.x = x, .y = y};
 }
 
 void spawnExit(void) {
@@ -163,7 +153,7 @@ void spawnExit(void) {
 }
 
 void generateSquareDungeon(void) {
-    fillMap(FLOOR);
+    fillMap(MAP_FLOOR);
     int width = roomLayouts[curRoomType].mapWidth;
     int height = roomLayouts[curRoomType].mapHeight;
     encloseMapInWalls(width, height);
@@ -180,7 +170,7 @@ void getRandomEmptyMapPosition(int *mapX, int *mapY) {
     do {
         *mapX = randInt(2, MAP_WIDTH - 3);
         *mapY = randInt(2, MAP_HEIGHT - 3);
-    } while (map[*mapY * MAP_WIDTH + *mapX] != FLOOR);
+    } while (map[*mapY * MAP_WIDTH + *mapX] != MAP_FLOOR);
 }
 
 void initMap(RoomType roomType) {

@@ -18,12 +18,14 @@
 static uint8_t *wallTexture;
 static uint8_t *ceilingTexture;
 static uint8_t *floorTexture;
+static uint8_t *gateTexture;
 
 // Cacheline is 32 bytes (256 bits)
 typedef struct LineData {
 	uint16_t lineHeight;
 	uint16_t textureX;
 	uint32_t lineOffset;
+	uint8_t *wallTexture;
 	float textureYStep; // 32 bits
 	float textureYModifier; // 32 bits
 	float ceilingXModifier;
@@ -35,6 +37,7 @@ void initRaycasting(void) {
 	wallTexture = curAreaData.wallTexture;
 	ceilingTexture = curAreaData.ceilingTexture;
 	floorTexture = curAreaData.floorTexture;
+	gateTexture = curAreaData.gateTexture;
 }
 
 void renderScene(void)
@@ -92,7 +95,7 @@ void renderScene(void)
 			int mapX = (int)rayX >> cellSizeBit;
 			int mapY = (int)rayY >> cellSizeBit;
 			int mapIndex = (mapY * MAP_WIDTH) + mapX;
-			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] == 1) {
+			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] > 0) {
 				// Hit wall
 				depthOfField = MAX_FIELD_DEPTH;
 				horizontalDistance = distanceSquared(playerX, playerY, rayX, rayY);
@@ -134,7 +137,7 @@ void renderScene(void)
 			int mapX = (int)rayX >> cellSizeBit;
 			int mapY = (int)rayY >> cellSizeBit;
 			int mapIndex = (mapY * MAP_WIDTH) + mapX;
-			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] == 1) {
+			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] > 0) {
 				depthOfField = MAX_FIELD_DEPTH; // Hit wall
 				verticalDistance = distanceSquared(playerX, playerY, rayX, rayY);
 				verticalRayX = rayX;
@@ -158,6 +161,20 @@ void renderScene(void)
 			rayY = horizontalRayY;
 			rayDistance = fastSqrt(horizontalDistance);
 			isShaded = 1;
+		}
+
+		int wallType = MAP_WALL;
+		int mapX = (int)rayX >> cellSizeBit;
+		int mapY = (int)rayY >> cellSizeBit;
+		int mapIndex = (mapY * MAP_WIDTH) + mapX;
+		if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] > 0) {
+			wallType = map[mapIndex];
+		}
+
+		if (wallType == MAP_GATE) {
+			curLineData.wallTexture = gateTexture;
+		} else if (wallType == MAP_WALL) {
+			curLineData.wallTexture = wallTexture;
 		}
 
 		// Fix fisheye
@@ -260,6 +277,7 @@ void renderScene(void)
 				LineData *curLineData = &lineData[drawX];
 				int lineHeight = curLineData->lineHeight;
 				int lineOffset = curLineData->lineOffset;
+				uint8_t *curWallTexture = curLineData->wallTexture;
 
 				float textureYModifier = curLineData->textureYModifier;
 				textureYModifier = textureYModifier > ENVIRONMENT_TEXTURE_SIZE - 1 ? ENVIRONMENT_TEXTURE_SIZE - 1 : textureYModifier;
@@ -302,7 +320,7 @@ void renderScene(void)
 					}
 	
 					uint32_t textureY = (int)(textureYModifier + 0.5f);
-					drawColor = wallTexture[textureX + (textureY << 4)];
+					drawColor = curWallTexture[textureX + (textureY << 4)];
 
 					uint32_t fogShade = wallDistance < FOG_MIN_DIST ? 0 : fogPatterns[((int)wallDistance - FOG_MIN_DIST) / FOG_STEP][fogRow];
 					if ((fogShade >> fogShadeBit) & 1) {

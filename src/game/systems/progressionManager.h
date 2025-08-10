@@ -19,6 +19,7 @@ typedef struct AreaData {
     uint8_t *wallTexture;
     uint8_t *ceilingTexture;
     uint8_t *floorTexture;
+    uint8_t *gateTexture;
 } AreaData;
 
 void initProgressionManager(int area, int room);
