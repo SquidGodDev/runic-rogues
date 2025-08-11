@@ -20,14 +20,14 @@ int shopInteractableIndexes[SHOP_OPTION_COUNT];
 #define DESC_MAX_WIDTH 150
 #define DESC_MAX_HEIGHT 50
 
-#define SHOP_PAGE_ICON_X 6
-#define SHOP_PAGE_ICON_Y 6
-#define SHOP_PAGE_TITLE_X 35
-#define SHOP_PAGE_TITLE_Y 8
-#define SHOP_PAGE_TYPE_X 36
-#define SHOP_PAGE_TYPE_Y 26
-#define SHOP_PAGE_DESC_X 8
-#define SHOP_PAGE_DESC_Y 45
+#define SHOP_PAGE_ICON_X 12
+#define SHOP_PAGE_ICON_Y 10
+#define SHOP_PAGE_TITLE_X 40
+#define SHOP_PAGE_TITLE_Y 12
+#define SHOP_PAGE_TYPE_X 41
+#define SHOP_PAGE_TYPE_Y 30
+#define SHOP_PAGE_DESC_X 10
+#define SHOP_PAGE_DESC_Y 48
 
 LCDBitmap *createShopPage(Spell spell, Language language) {
     SpellData curSpellData = spellData[spell];
@@ -37,6 +37,7 @@ LCDBitmap *createShopPage(Spell spell, Language language) {
     LCDFont *fontTitle = fontTitleEN;
     LCDFont *fontSub = fontSubEN;
     LCDBitmapDrawMode drawMode = kDrawModeCopy;
+    int titleTracking = -1;
     int tracking = -2;
     int leading = 0;
     if (language == LANGUAGE_JP) {
@@ -56,6 +57,7 @@ LCDBitmap *createShopPage(Spell spell, Language language) {
         pd->graphics->drawScaledBitmap(spellIcon, SHOP_PAGE_ICON_X, SHOP_PAGE_ICON_Y, 2.0f, 2.0f);
         pd->graphics->setDrawMode(drawMode);
         pd->graphics->setFont(fontTitle);
+        pd->graphics->setTextTracking(titleTracking);
         pd->graphics->drawText(name, strlen(name), kUTF8Encoding, SHOP_PAGE_TITLE_X, SHOP_PAGE_TITLE_Y);
         pd->graphics->setFont(fontSub);
         pd->graphics->setTextTracking(tracking);
