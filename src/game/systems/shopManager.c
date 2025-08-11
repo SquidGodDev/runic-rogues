@@ -27,7 +27,7 @@ int shopInteractableIndexes[SHOP_OPTION_COUNT];
 #define SHOP_PAGE_TYPE_X 41
 #define SHOP_PAGE_TYPE_Y 30
 #define SHOP_PAGE_DESC_X 10
-#define SHOP_PAGE_DESC_Y 48
+#define SHOP_PAGE_DESC_Y 49
 
 LCDBitmap *createShopPage(Spell spell, Language language) {
     SpellData curSpellData = spellData[spell];

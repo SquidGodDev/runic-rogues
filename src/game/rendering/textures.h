@@ -43,7 +43,7 @@ typedef enum TexturePaths {
 	TEXTURE_PORTAL,
 	TEXTURE_CAMPFIRE,
 	TEXTURE_EXTINGUISHED_CAMPFIRE,
-	// Bottom reserved for spells (auto generated textures from bitmap)
+	// Bottom reserved for pickups (auto generated textures from bitmap)
 	TEXTURE_SPELL_NONE,
 	TEXTURE_SPELL_FIREBALL,
 	TEXTURE_SPELL_TRIPLE_SHOT,
@@ -56,6 +56,11 @@ typedef enum TexturePaths {
 	TEXTURE_SPELL_ARC_LIGHTNING,
 	TEXTURE_SPELL_EXPLOSIVE_SHOT,
 	TEXTURE_SPELL_BOMBER,
+	TEXTURE_RUNE_VAMPIRISM,
+	TEXTURE_RUNE_WINGED_BOOTS,
+	TEXTURE_RUNE_HEALTHY,
+	TEXTURE_RUNE_SWIFT,
+	TEXTURE_RUNE_THORNS,
 	TEXTURE_COUNT
 } TexturePaths;
 extern uint8_t* TEXTURES[];
@@ -101,7 +106,7 @@ typedef enum BitmapPaths {
 	BITMAP_UPGRADE_MOVE_SPEED,
 	BITMAP_UPGRADE_PROJECTILE_SPEED,
 	BITMAP_UPGRADE_VAMPIRISM,
-	// Bottom reserved for spells (auto generated textures from bitmap)
+	// Bottom reserved for pickups (auto generated textures from bitmap)
 	BITMAP_SPELL_EMPTY_ICON,
 	BITMAP_SPELL_FIREBALL_ICON,
 	BITMAP_SPELL_TRIPLE_SHOT_ICON,
@@ -114,6 +119,11 @@ typedef enum BitmapPaths {
 	BITMAP_SPELL_ARC_LIGHTNING_ICON,
 	BITMAP_SPELL_EXPLOSIVE_SHOT_ICON,
 	BITMAP_SPELL_BOMBER_ICON,
+	BITMAP_RUNE_VAMPIRISM,
+	BITMAP_RUNE_WINGED_BOOTS,
+	BITMAP_RUNE_HEALTHY,
+	BITMAP_RUNE_SWIFT,
+	BITMAP_RUNE_THORNS,
 	BITMAP_PATHS_COUNT
 } BitmapPaths;
 extern LCDBitmap* BITMAPS[];

@@ -29,7 +29,7 @@ static EnemySpawnData enemySpawnData[AREA_COUNT] = {
 };
 
 #define MAX_BASE_ACTIVE_ENEMIES 20
-#define BASE_TOTAL_ENEMIES 40
+#define BASE_TOTAL_ENEMIES 1 // 40
 #define TOTAL_ENEMY_INCREMENT 10
 #define WAVE_SPAWN_INTERVAL 1.0f
 #define ELITE_BASE_SPAWN_CHANCE 0

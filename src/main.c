@@ -21,6 +21,7 @@
 #include "game/map/map.h"
 #include "game/systems/audioManager.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/runeManager.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/upgradeManager.h"
 #include "game/systems/waveManager.h"
@@ -40,6 +41,7 @@ void initSystems(void)
 // Run at the start of every new run
 void initRunStart(void) {
 	initDeck();
+	initRunes();
 	initGameStartUpgradeValues();
 	initPlayerRunStartStats();
 }
