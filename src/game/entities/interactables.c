@@ -98,7 +98,7 @@ int addShopInteractable(int mapX, int mapY, ShopItem shopItem) {
 		return -1;
 	}
 	INTERACTABLES[interactableIndex].shopItem = shopItem;
-	INTERACTABLES[interactableIndex].textureIndex = getSpellPickupTextureIndex(shopItem.spell);
+	INTERACTABLES[interactableIndex].textureIndex = shopItem.textureIndex;
 	return interactableIndex;
 }
 

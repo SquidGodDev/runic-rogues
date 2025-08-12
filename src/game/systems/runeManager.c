@@ -3,6 +3,7 @@
 
 #include "game/systems/runeManager.h"
 #include "game/rendering/textures.h"
+#include "game/settings/settings.h"
 
 typedef struct RuneData {
     char *nameEN;
@@ -72,4 +73,40 @@ void initRunes(void) {
     for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
         runes[i].owned = false;
     }
+}
+
+bool runeIsOwned(RuneType type) {
+    return runes[type].owned;
+}
+
+void addRune(RuneType type) {
+    runes[type].owned = true;
+}
+
+char *getRuneName(RuneType type, Language language) {
+    if (language == LANGUAGE_EN) {
+        return RUNE_DATA[type].nameEN;
+    } else {
+        return RUNE_DATA[type].nameJP;
+    }
+}
+
+char *getRuneDescription(RuneType type, Language language) {
+    if (language == LANGUAGE_EN) {
+        return RUNE_DATA[type].descriptionEN;
+    } else {
+        return RUNE_DATA[type].descriptionJP;
+    }
+}
+
+int getRuneIconIndex(RuneType type) {
+    return RUNE_DATA[type].iconIndex;
+}
+
+int getRuneTextureIndex(RuneType type) {
+    return RUNE_DATA[type].textureIndex;
+}
+
+float getRunePrimaryValue(RuneType type) {
+    return RUNE_DATA[type].primaryValue;
 }

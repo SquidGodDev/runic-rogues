@@ -5,6 +5,7 @@
 #include "helpers.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/runeManager.h"
 #include "game/settings/settings.h"
 #include "game/rendering/textures.h"
 #include "game/entities/interactables.h"
@@ -29,11 +30,7 @@ int shopInteractableIndexes[SHOP_OPTION_COUNT];
 #define SHOP_PAGE_DESC_X 10
 #define SHOP_PAGE_DESC_Y 49
 
-LCDBitmap *createShopPage(Spell spell, Language language) {
-    SpellData curSpellData = spellData[spell];
-    char *name = curSpellData.name;
-    char *desc = curSpellData.description;
-    char *type = "Spell";
+LCDBitmap *createShopPage(char *name, char *desc, char* type, LCDBitmap *icon, Language language) {
     LCDFont *fontTitle = fontTitleEN;
     LCDFont *fontSub = fontSubEN;
     LCDBitmapDrawMode drawMode = kDrawModeCopy;
@@ -41,9 +38,6 @@ LCDBitmap *createShopPage(Spell spell, Language language) {
     int tracking = -2;
     int leading = 0;
     if (language == LANGUAGE_JP) {
-        name = curSpellData.name_jp;
-        desc = curSpellData.description_jp;
-        type = "スペル";
         fontTitle = fontTitleJP;
         fontSub = fontSubJP;
         drawMode = kDrawModeFillWhite;
@@ -52,9 +46,8 @@ LCDBitmap *createShopPage(Spell spell, Language language) {
     }
 
     LCDBitmap *shopPageBitmap = pd->graphics->copyBitmap(BITMAPS[BITMAP_SHOP_POPUP_BACKGROUND]);
-    LCDBitmap *spellIcon = BITMAPS[curSpellData.spellIconIndex];
     pd->graphics->pushContext(shopPageBitmap);
-        pd->graphics->drawScaledBitmap(spellIcon, SHOP_PAGE_ICON_X, SHOP_PAGE_ICON_Y, 2.0f, 2.0f);
+        pd->graphics->drawScaledBitmap(icon, SHOP_PAGE_ICON_X, SHOP_PAGE_ICON_Y, 2.0f, 2.0f);
         pd->graphics->setDrawMode(drawMode);
         pd->graphics->setFont(fontTitle);
         pd->graphics->setTextTracking(titleTracking);
@@ -69,34 +62,81 @@ LCDBitmap *createShopPage(Spell spell, Language language) {
     return shopPageBitmap;
 }
 
-void createShopInteractables(void) {
-    Stack spellOptionsStack;
-    stackInit(&spellOptionsStack);
-    for (int i = 1; i < SPELL_COUNT; i++) {
-        if (spellInDeck((Spell)i)) {
-            continue;
-        }
-        stackPush(&spellOptionsStack, i);
+LCDBitmap *createSpellShopPage(Spell spell, Language language) {
+    SpellData curSpellData = spellData[spell];
+    char *name = curSpellData.name;
+    char *desc = curSpellData.description;
+    char *type = "Spell";
+    if (language == LANGUAGE_JP) {
+        name = curSpellData.name_jp;
+        desc = curSpellData.description_jp;
+        type = "スペル";
     }
-    stackShuffle(&spellOptionsStack);
+    return createShopPage(name, desc, type, BITMAPS[curSpellData.spellIconIndex], language);
+}
+
+LCDBitmap *createRuneShopPage(RuneType runeType, Language language) {
+    char *name = getRuneName(runeType, language);
+    char *desc = getRuneDescription(runeType, language);
+    char *type = language == LANGUAGE_JP ? "ルーン" : "Rune";
+    return createShopPage(name, desc, type, BITMAPS[getRuneIconIndex(runeType)], language);
+}
+
+void createShopInteractables(void) {
+    Stack optionsStack;
+    stackInit(&optionsStack);
+    bool isSpellShop = getCurrentRoom() % 2 == 1;
+    if (isSpellShop) {
+        for (int i = SPELL_NONE + 1; i < SPELL_COUNT; i++) {
+            if (spellInDeck((Spell)i)) {
+                continue;
+            }
+            stackPush(&optionsStack, i);
+        }
+    } else {
+        for (int i = RUNE_TYPE_NONE + 1; i < RUNE_TYPE_COUNT; i++) {
+            if (runeIsOwned((RuneType)i)) {
+                continue;
+            }
+            stackPush(&optionsStack, i);
+        }
+    }
+    stackShuffle(&optionsStack);
 
     Point shopMapPosition = getShopMapPosition();
     for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
-        Spell spell = SPELL_FIREBALL; // Default spell if no options available
-        if (!stackIsEmpty(&spellOptionsStack)) {
-            spell = (Spell)stackPop(&spellOptionsStack);
+        LCDBitmap *shopPageBitmapEN;
+        LCDBitmap *shopPageBitmapJP;
+        Spell shopSpell = SPELL_NONE;
+        RuneType shopRune = RUNE_TYPE_NONE;
+        int textureIndex = 0;
+        
+        if (isSpellShop) {
+            shopSpell = SPELL_FIREBALL; // Default spell if no options available
+            if (!stackIsEmpty(&optionsStack)) {
+                shopSpell = (Spell)stackPop(&optionsStack);
+            }
+            shopPageBitmapEN = createSpellShopPage(shopSpell, LANGUAGE_EN);
+            shopPageBitmapJP = createSpellShopPage(shopSpell, LANGUAGE_JP);
+            textureIndex = getSpellPickupTextureIndex(shopSpell);
+        } else {
+            shopRune = RUNE_TYPE_VAMPIRISM; // Default rune if no options available
+            if (!stackIsEmpty(&optionsStack)) {
+                shopRune = (RuneType)stackPop(&optionsStack);
+            }
+            shopPageBitmapEN = createRuneShopPage(shopRune, LANGUAGE_EN);
+            shopPageBitmapJP = createRuneShopPage(shopRune, LANGUAGE_JP);
+            textureIndex = getRuneTextureIndex(shopRune);
         }
-
+        
         int mapX = shopMapPosition.x - SHOP_ITEM_SPACING + (i * SHOP_ITEM_SPACING);
         int mapY = shopMapPosition.y;
-
-        LCDBitmap *shopPageBitmapEN = createShopPage(spell, LANGUAGE_EN);
-        LCDBitmap *shopPageBitmapJP = createShopPage(spell, LANGUAGE_JP);
-
         ShopItem shopItem = {
             .shopPageBitmapEN = shopPageBitmapEN,
             .shopPageBitmapJP = shopPageBitmapJP,
-            .spell = spell,
+            .textureIndex = textureIndex,
+            .spell = shopSpell,
+            .runeType = shopRune,
             .price = 20
         };
         int interactableIndex = addShopInteractable(mapX, mapY, shopItem);
@@ -120,7 +160,11 @@ void selectShopItem(ShopItem shopItem) {
         interactable->active = false;
     }
 
-    addSpellToDeck(shopItem.spell);
+    if (shopItem.spell != SPELL_NONE) {
+        addSpellToDeck(shopItem.spell);
+    } else if (shopItem.runeType != RUNE_TYPE_NONE) {
+        addRune(shopItem.runeType);
+    }
 
     spawnExit();
 }
