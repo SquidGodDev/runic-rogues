@@ -98,33 +98,21 @@ void initUI(int isBossRoom) {
     }
 }
 
-void drawPlayerHearts(void) {
-    int fullHeartCount = playerHealth / 2;
-    int hasHalfHeart = playerHealth % 2;
-    int maxHeartSlots = PLAYER_STATS.maxHealth / 2;
-    int hasHalfContainer = PLAYER_STATS.maxHealth % 2;
-    
-    int drawX = 2;
-    int drawY = 2;
-
-    for (int i = 0; i < maxHeartSlots; i++) {
-        if (i < fullHeartCount) {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_FULL_HEART], drawX, drawY, kBitmapUnflipped);
-        } else if (hasHalfHeart && i == fullHeartCount) {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_HALF_HEART], drawX, drawY, kBitmapUnflipped);
-        } else {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_EMPTY_HEART], drawX, drawY, kBitmapUnflipped);
-        }
-        drawX += 16;
-    }
-
-    if (hasHalfContainer) {
-        if (hasHalfHeart && playerHealth == PLAYER_STATS.maxHealth) {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_HALF_CONTAINER_FULL_HEART], drawX, drawY, kBitmapUnflipped);
-        } else {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_HALF_CONTAINER_EMPTY_HEART], drawX, drawY, kBitmapUnflipped);
-        }
-    }
+void drawHealth(void) {
+    int healthBarWidth = 67;
+    int healthBarHeight = 5;
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_HEALTH_BAR], 10, 4, kBitmapUnflipped);
+    pd->graphics->fillRect(12, 6, healthBarWidth * ((float)playerHealth / PLAYER_STATS.maxHealth), healthBarHeight, kColorWhite);
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_HEART], 2, 2, kBitmapUnflipped);
+    char *healthString;
+    pd->system->formatString(&healthString, "%d", playerHealth);
+    pd->graphics->pushContext(NULL);
+        pd->graphics->setFont(fontSubEN);
+        int tracking = -1;
+        pd->graphics->setTextTracking(tracking);
+        int textWidth = pd->graphics->getTextWidth(fontSubEN, healthString, strlen(healthString), kUTF8Encoding, tracking);
+        pd->graphics->drawText(healthString, strlen(healthString), kUTF8Encoding, 45 - textWidth / 2, 4);
+    pd->graphics->popContext();
 }
 
 void drawEntityToMinimap(float entityX, float entityY, uint8_t *texture, float playerAngleCos, float playerAngleSin) {
@@ -470,7 +458,7 @@ void drawUI(float deltaTime) {
         }
     }
 
-    drawPlayerHearts();
+    drawHealth();
     drawMinimap();
     drawSpellOverlay(deltaTime);
     drawWeapon(deltaTime);

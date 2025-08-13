@@ -7,7 +7,7 @@
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
 
-#define BASE_MAX_HEALTH 8
+#define BASE_MAX_HEALTH 100
 #define BASE_MAX_MANA 10
 #define BASE_MANA_REGEN_RATE 1.5f
 #define BASE_UTILITY_SPELL_CHARGE_RATE 0.2f

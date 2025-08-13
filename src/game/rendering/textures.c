@@ -52,11 +52,8 @@ LCDBitmap* BITMAPS[BITMAP_PATHS_COUNT];
 const char *bitmapPathStrings[] = {
 	"images/player/hand",
 	"images/player/handOpen",
-	"images/UI/hearts/full",
-	"images/UI/hearts/half",
-	"images/UI/hearts/empty",
-	"images/UI/hearts/halfContainerEmpty",
-	"images/UI/hearts/halfContainerFull",
+	"images/UI/health/heart",
+	"images/UI/health/healthBar",
 	"images/UI/mana/manaBar",
 	"images/spells/icons/dashIndicatorEmpty",
 	"images/spells/icons/dashIndicatorFull",
