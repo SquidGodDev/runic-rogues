@@ -44,7 +44,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.animationTime = 0.1f,
 		.textureIndex = TEXTURE_PARTICLE_ROOT_ATTACK,
 		.damageFrame = 4,
-		.damage = 1,
+		.damage = 10,
 		.damageRadius = CELL_SIZE / 2
 	},
 	[PARTICLE_TYPE_PLAYER_ROOT_ATTACK] = {
@@ -52,7 +52,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.animationTime = 0.03f,
 		.textureIndex = TEXTURE_PARTICLE_ROOT_ATTACK,
 		.damageFrame = 4,
-		.damage = 1,
+		.damage = 10,
 		.damageRadius = CELL_SIZE
 	},
 	[PARTICLE_TYPE_BOMB] = {
@@ -60,7 +60,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.animationTime = 0.03f,
 		.textureIndex = TEXTURE_PARTICLE_BOMB,
 		.damageFrame = 47,
-		.damage = 4,
+		.damage = 40,
 		.damageRadius = CELL_SIZE
 	},
 };
