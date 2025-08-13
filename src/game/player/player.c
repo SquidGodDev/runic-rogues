@@ -4,6 +4,7 @@
 #include "globals.h"
 #include "helpers.h"
 #include "game/player/player.h"
+#include "game/player/playerStats.h"
 #include "game/player/spells.h"
 #include "game/UI/UI.h"
 #include "game/entities/projectiles.h"
@@ -12,7 +13,6 @@
 #include "game/map/map.h"
 #include "game/systems/audioManager.h"
 #include "game/systems/progressionManager.h"
-#include "game/systems/upgradeManager.h"
 
 #define CRANK_SENSITIVITY 0.0075f
 // Spawn the projectile slightly to the right to match hand
@@ -22,6 +22,8 @@
 #define HIT_INVINCIBILITY_TIME 0.5f // Seconds
 
 #define DOUBLE_TAP_TIME 0.3f // Seconds
+
+#define WEAPON_ANIM_COOLDOWN 0.6f
 
 // === Extern variables ===
 float playerX, playerY;
@@ -109,11 +111,11 @@ void toggleMovementCallback(void* userdata) {
 }
 
 void initPlayerRunStartStats(void) {
-	playerHealth = PLAYER_STATS.maxHealth;
+	playerHealth = getPlayerMaxHealth();
 }
 
 void initPlayer(void) {
-	playerMana = PLAYER_STATS.maxMana;
+	playerMana = getPlayerMaxMana();
 	playerState = (PlayerState) {
 		.dead = 0,
 		.hitInvincibility = 0,
@@ -225,7 +227,7 @@ void handleInput(float deltaTime)
 		}
 	} else if ((current & kButtonA) && !playerState.interactedOnPress) {
 		if(castSpell(0)) {
-			weaponAnimation.curCooldown = PLAYER_STATS.weaponCooldown;
+			weaponAnimation.curCooldown = WEAPON_ANIM_COOLDOWN;
 		}
 	}
 
@@ -262,7 +264,7 @@ void handleInput(float deltaTime)
 		}
 		if (spellIndex > 0) {
 			if (castSpell(spellIndex)) {
-				weaponAnimation.curCooldown = PLAYER_STATS.weaponCooldown;
+				weaponAnimation.curCooldown = WEAPON_ANIM_COOLDOWN;
 			}
 		}
 		current = 0;
@@ -319,7 +321,7 @@ void handleInput(float deltaTime)
 	planeX = planeX * cosf(adjustedTurnSpeed) - planeY * sinf(adjustedTurnSpeed);
 	planeY = oldPlaneX * sinf(adjustedTurnSpeed) + planeY * cosf(adjustedTurnSpeed);
 
-	float maxSpeed = PLAYER_STATS.maxSpeed;
+	float maxSpeed = getPlayerMoveSpeed();
 	maxSpeed *= getPlayerSpeedModifier();
 	float acceleration = movementStats.acceleration;
 	PDButtons movementDir = playerIsDashing ? movementStats.dashMovementDir : current;
@@ -498,8 +500,8 @@ void playerDash(void) {
 
 void healPlayer(int amount) {
 	playerHealth += amount;
-	if (playerHealth >= PLAYER_STATS.maxHealth) {
-		playerHealth = PLAYER_STATS.maxHealth;
+	if (playerHealth >= getPlayerMaxHealth()) {
+		playerHealth = getPlayerMaxHealth();
 	}
 }
 

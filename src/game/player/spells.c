@@ -4,9 +4,9 @@
 #include "game/entities/projectiles.h"
 #include "game/UI/UI.h"
 #include "game/player/player.h"
+#include "game/player/playerStats.h"
 #include "game/player/spells.h"
 #include "game/systems/audioManager.h"
-#include "game/systems/upgradeManager.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
 
@@ -449,7 +449,7 @@ int castSpell(int index) {
 
 void updateSpells(float deltaTime) {
     if (utilitySpellCount < UTILITY_SPELL_COUNT) {
-        utilitySpellCharge += PLAYER_STATS.utilitySpellChargeRate * deltaTime;
+        utilitySpellCharge += getPlayerUtilitySpellChargeRate() * deltaTime;
         if (utilitySpellCharge > 1.0f) {
             utilitySpellCharge = 0.0f;
             utilitySpellCount++;

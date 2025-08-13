@@ -11,7 +11,6 @@
 #include "game/rendering/particles.h"
 #include "game/systems/audioManager.h"
 #include "game/systems/progressionManager.h"
-#include "game/systems/upgradeManager.h"
 #include "game/systems/waveManager.h"
 
 #define SPAWN_TEST_ENEMY 0
@@ -904,11 +903,6 @@ bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmou
 	if (curEnemy.health <= 0) {
 		playSound(SFX_ENEMY_DEATH);
 		enemyDeathEffect(index);
-
-		// Check for vampirism upgrade
-		if (randInt(0, 100) < getUpgradeValue(UPGRADE_TYPE_VAMPIRISM) * 100) {
-			healPlayer(1);
-		}
 
 		curEnemy.state = ENEMY_STATE_DEAD;
 		curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;

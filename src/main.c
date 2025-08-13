@@ -23,7 +23,6 @@
 #include "game/systems/progressionManager.h"
 #include "game/systems/runeManager.h"
 #include "game/systems/shopManager.h"
-#include "game/systems/upgradeManager.h"
 #include "game/systems/waveManager.h"
 #include "game/settings/settings.h"
 
@@ -34,7 +33,6 @@ void initSystems(void)
 {
 	initTextures();
 	initSettings();
-	initUpgradeManager();
 	initAudioManager();
 }
 
@@ -42,7 +40,6 @@ void initSystems(void)
 void initRunStart(void) {
 	initDeck();
 	initRunes();
-	initGameStartUpgradeValues();
 	initPlayerRunStartStats();
 }
 
@@ -56,9 +53,6 @@ int initGameScene(lua_State* L)
 	int currentRoom = pd->lua->getArgInt(3) - 1;
 	RoomType roomType = pd->lua->getArgInt(4);
 	bool isBossRoom = roomType == ROOM_TYPE_BOSS;
-
-	// Upgrades
-	initUpgradeValues();
 
 	// Progression
 	initProgressionManager(currentArea, currentRoom);

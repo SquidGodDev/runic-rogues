@@ -5,6 +5,7 @@
 #include "helpers.h"
 #include "game/UI/UI.h"
 #include "game/player/player.h"
+#include "game/player/playerStats.h"
 #include "game/player/spells.h"
 #include "game/rendering/textures.h"
 #include "game/rendering/particles.h"
@@ -15,7 +16,6 @@
 #include "game/entities/projectiles.h"
 #include "game/entities/interactables.h"
 #include "game/settings/settings.h"
-#include "game/systems/upgradeManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/waveManager.h"
 
@@ -102,7 +102,7 @@ void drawHealth(void) {
     int healthBarWidth = 67;
     int healthBarHeight = 5;
     pd->graphics->drawBitmap(BITMAPS[BITMAP_HEALTH_BAR], 10, 4, kBitmapUnflipped);
-    pd->graphics->fillRect(12, 6, healthBarWidth * ((float)playerHealth / PLAYER_STATS.maxHealth), healthBarHeight, kColorWhite);
+    pd->graphics->fillRect(12, 6, healthBarWidth * ((float)playerHealth / getPlayerMaxHealth()), healthBarHeight, kColorWhite);
     pd->graphics->drawBitmap(BITMAPS[BITMAP_HEART], 2, 2, kBitmapUnflipped);
     char *healthString;
     pd->system->formatString(&healthString, "%d", playerHealth);
