@@ -110,11 +110,8 @@ void toggleMovementCallback(void* userdata) {
 	movementToggled = 0;
 }
 
-void initPlayerRunStartStats(void) {
-	playerHealth = getPlayerMaxHealth();
-}
-
 void initPlayer(void) {
+	playerHealth = getPlayerMaxHealth();
 	playerMana = getPlayerMaxMana();
 	playerState = (PlayerState) {
 		.dead = 0,

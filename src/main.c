@@ -40,7 +40,6 @@ void initSystems(void)
 void initRunStart(void) {
 	initDeck();
 	initRunes();
-	initPlayerRunStartStats();
 }
 
 // Run at the start of every room
