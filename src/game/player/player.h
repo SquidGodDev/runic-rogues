@@ -12,6 +12,7 @@ extern float playerMana;
 void initPlayer(void);
 int getPlayerInteractableIndex(void);
 void playerDash(void);
+float getPlayerMana(void);
 void healPlayer(float amount);
 void damagePlayer(float amount);
 void drawWeapon(float deltaTime);

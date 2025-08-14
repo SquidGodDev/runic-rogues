@@ -484,6 +484,17 @@ void playerDash(void) {
 	playerState.hitInvincibility = movementStats.dashTime * 2;
 }
 
+float getPlayerMana(void) {
+	return playerMana;
+}
+
+void addMana(float amount) {
+	playerMana += amount;
+	if (playerMana >= getPlayerMaxMana()) {
+		playerMana = getPlayerMaxMana();
+	}
+}
+
 void healPlayer(float amount) {
 	playerHealth += amount;
 	if (playerHealth >= getPlayerMaxHealth()) {
@@ -533,4 +544,5 @@ void updatePlayer(float deltaTime) {
 	handleInput(deltaTime);
 	handleInteractables();
 	healPlayer(getPlayerHealthRegenRate() * deltaTime);
+	addMana(getPlayerManaRegenRate() * deltaTime);
 }
