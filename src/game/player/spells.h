@@ -54,6 +54,7 @@ typedef struct SpellData {
     int spellIconIndex;
     SpellType type;
     float cooldown;
+    float manaCost;
     float castTime;
     int damage;
     float knockbackTime;
@@ -79,7 +80,9 @@ int getMaxUtilitySpells(void);
 int getUtilitySpellCount(void);
 float getUtilitySpellCharge(void);
 void castUtilitySpell(void);
-int castSpell(int index);
+bool hasActiveChanneledSpell(void);
+void clearAllChannelledSpells(void);
+bool castSpell(int index);
 void updateSpells(float deltaTime);
 
 extern SpellData spellData[SPELL_COUNT];

@@ -248,6 +248,10 @@ void handleInput(float deltaTime)
 	// 	movementToggled ^= 1;
 	// }
 
+	if (pushed & kButtonB) {
+		clearAllChannelledSpells();
+	}
+
 	if (current & kButtonB) {
 		int spellIndex = 0;
 		if (current & kButtonLeft) {
@@ -495,6 +499,14 @@ void addMana(float amount) {
 	}
 }
 
+bool spendMana(float amount) {
+	if (playerMana >= amount) {
+		playerMana -= amount;
+		return true;
+	}
+	return false;
+}
+
 void healPlayer(float amount) {
 	playerHealth += amount;
 	if (playerHealth >= getPlayerMaxHealth()) {
@@ -544,5 +556,7 @@ void updatePlayer(float deltaTime) {
 	handleInput(deltaTime);
 	handleInteractables();
 	healPlayer(getPlayerHealthRegenRate() * deltaTime);
-	addMana(getPlayerManaRegenRate() * deltaTime);
+	if (!hasActiveChanneledSpell()) {
+		addMana(getPlayerManaRegenRate() * deltaTime);
+	}
 }

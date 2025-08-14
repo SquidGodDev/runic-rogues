@@ -191,13 +191,12 @@ SpellData spellData[SPELL_COUNT] = {
         .description_jp = "前方の敵に直接ダメージを与える稲妻を手から放つ。",
         .pickupTextureIndex = TEXTURE_SPELL_ARC_LIGHTNING,
         .spellIconIndex = BITMAP_SPELL_ARC_LIGHTNING_ICON,
-        .type = SPELL_TYPE_REPEAT,
-        .cooldown = 6.0f,
-        .castTime = 1.5f,
+        .type = SPELL_TYPE_CHANNEL,
+        .cooldown = 3.0f,
+        .manaCost = 10.0f,
         .damage = 30,
         .repeatData = (RepeatData){
-            .activationTime = 0.3f,
-            .repeatCount = 5
+            .activationTime = 0.3f
         }
     },
     [SPELL_EXPLOSIVE_SHOT] = {
@@ -237,7 +236,7 @@ void initDeck(void) {
 
     spellDeck[0] = SPELL_FIREBALL;
     spellDeck[1] = SPELL_LASER;
-    spellDeck[2] = SPELL_NONE;
+    spellDeck[2] = SPELL_ARC_LIGHTNING;
     spellDeck[3] = SPELL_NONE;
     spellDeck[4] = SPELL_NONE;
 }
@@ -407,17 +406,51 @@ void activateSpellEffect(int index, float angle) {
     castData->activationCount++;
 }
 
-int castSpell(int index) {
+bool hasActiveChanneledSpell(void) {
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        SpellCastData *castData = &spellCastData[i];
+        if (castData->spell == SPELL_NONE) {
+            continue;
+        }
+
+        SpellData *data = &spellData[castData->spell];
+        if (data->type == SPELL_TYPE_CHANNEL) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void clearAllChannelledSpells(void) {
+    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+        SpellCastData *castData = &spellCastData[i];
+        if (castData->spell == SPELL_NONE) {
+            continue;
+        }
+
+        SpellData *data = &spellData[castData->spell];
+        if (data->type == SPELL_TYPE_CHANNEL) {
+            castData->spell = SPELL_NONE;
+            clearSpellOverlay(i);
+        }
+    }
+}
+
+bool castSpell(int index) {
     if (spellCooldowns[index] > 0.0f) {
-        return 0;
+        return false;
     }
 
     Spell spell = spellDeck[index];
     if (spell == SPELL_NONE) {
-        return 0;
+        return false;
     }
 
     SpellData *data = &spellData[spell];
+    if (!spendMana(data->manaCost)) {
+        return false;
+    }
+
     spellCooldowns[index] = data->cooldown;
     if (data->type == SPELL_TYPE_REPEAT) {
         spellCastData[index] = (SpellCastData) {
@@ -427,22 +460,24 @@ int castSpell(int index) {
             .activationCount = 0,
             .initialCastAngle = playerAngle
         };
+    } else if (data->type == SPELL_TYPE_CHANNEL) {
+        spellCastData[index] = (SpellCastData) {
+            .spell = spell,
+            .activationTime = data->repeatData.activationTime,
+            .initialCastAngle = playerAngle
+        };
     } else {
         spellCastData[index].spell = SPELL_NONE;
     }
 
     playSound(SFX_SHOOT);
-    if (data->type == SPELL_TYPE_INSTANT) {
-        activateSpellEffect(index, playerAngle);
-    } else if (data->type == SPELL_TYPE_REPEAT) {
-        activateSpellEffect(index, playerAngle);
-    }
+    activateSpellEffect(index, playerAngle);
 
     if (spell == SPELL_ARC_LIGHTNING) {
         setSpellOverlay(index, BITMAP_TABLE_ARC_LIGHTNING_OVERLAY, 0.2f /* frameTime */, 106 /* x */, 52 /* y */);
     }
 
-    return 1;
+    return true;
 }
 
 void updateSpells(float deltaTime) {
@@ -467,24 +502,40 @@ void updateSpells(float deltaTime) {
             continue;
         }
 
-        if (castData->castTime > 0.0f) {
-            castData->castTime -= deltaTime;
-            if (castData->castTime <= 0.0f) {
-                castData->castTime = 0.0f;
-                castData->spell = SPELL_NONE;
-                clearSpellOverlay(i);
-                continue;   
-            }
-        }
-
         SpellData *data = &spellData[castData->spell];
         if (data->type == SPELL_TYPE_REPEAT) {
+            if (castData->castTime > 0.0f) {
+                castData->castTime -= deltaTime;
+                if (castData->castTime <= 0.0f) {
+                    castData->castTime = 0.0f;
+                    castData->spell = SPELL_NONE;
+                    clearSpellOverlay(i);
+                    continue;   
+                }
+            }
+
             castData->activationTime -= deltaTime;
             if (castData->activationTime <= 0.0f && castData->activationCount < data->repeatData.repeatCount) {
                 float angle = data->useInitialCastAngle ? castData->initialCastAngle : playerAngle;
                 activateSpellEffect(i, angle);
                 castData->activationTime = data->repeatData.activationTime;
             }
+        } else if (data->type == SPELL_TYPE_CHANNEL) {
+            castData->activationTime -= deltaTime;
+            if (castData->activationTime <= 0.0f) {
+                bool sufficientMana = spendMana(data->manaCost);
+                if (!sufficientMana) {
+                    castData->spell = SPELL_NONE;
+                    clearSpellOverlay(i);
+                } else {
+                    float angle = data->useInitialCastAngle ? castData->initialCastAngle : playerAngle;
+                    activateSpellEffect(i, angle);
+                    castData->activationTime = data->repeatData.activationTime;
+                }
+            }
+        } else {
+            castData->spell = SPELL_NONE;
+            clearSpellOverlay(i);
         }
     }    
 }
