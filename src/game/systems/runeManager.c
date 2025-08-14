@@ -53,15 +53,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .iconIndex = BITMAP_RUNE_SWIFT,
         .textureIndex = TEXTURE_RUNE_SWIFT,
         .primaryValue = 0.3f // Increases move speed by 30%
-    },
-    [RUNE_TYPE_THORNS] = {
-        .nameEN = "Thorns",
-        .nameJP = "ソーン",
-        .descriptionEN = "Reflects damage back to enemies.",
-        .descriptionJP = "敵にダメージを反射する。",
-        .iconIndex = BITMAP_RUNE_THORNS,
-        .textureIndex = TEXTURE_RUNE_THORNS,
-        .primaryValue = 5 // Deal 5 damage back to enemies when attacked
     }
 };
 
