@@ -30,7 +30,7 @@ float playerX, playerY;
 float playerAngle;
 float planeX, planeY;
 float dirX, dirY;
-int playerHealth;
+float playerHealth;
 float playerMana;
 // ========================
 
@@ -474,17 +474,6 @@ void handleInteractables(void) {
 	playerState.interactableIndex = getInteractableIndexAtPosition(playerX, playerY);
 }
 
-void updatePlayer(float deltaTime) {
-	if (playerState.hitInvincibility > 0) {
-        playerState.hitInvincibility -= deltaTime;
-        if (playerState.hitInvincibility < 0) {
-            playerState.hitInvincibility = 0;
-        }
-    }
-	handleInput(deltaTime);
-	handleInteractables();
-}
-
 int getPlayerInteractableIndex(void) {
 	return playerState.interactableIndex;
 }
@@ -495,14 +484,14 @@ void playerDash(void) {
 	playerState.hitInvincibility = movementStats.dashTime * 2;
 }
 
-void healPlayer(int amount) {
+void healPlayer(float amount) {
 	playerHealth += amount;
 	if (playerHealth >= getPlayerMaxHealth()) {
 		playerHealth = getPlayerMaxHealth();
 	}
 }
 
-void damagePlayer(int amount) {
+void damagePlayer(float amount) {
     if (playerState.hitInvincibility > 0 || playerState.dead) {
         return;
     }
@@ -532,4 +521,16 @@ void drawWeapon(float deltaTime) {
 	} else {
 		pd->graphics->drawBitmap(BITMAPS[BITMAP_HAND], weaponAnimation.drawX, weaponAnimation.drawY, kBitmapUnflipped);
 	}
+}
+
+void updatePlayer(float deltaTime) {
+	if (playerState.hitInvincibility > 0) {
+        playerState.hitInvincibility -= deltaTime;
+        if (playerState.hitInvincibility < 0) {
+            playerState.hitInvincibility = 0;
+        }
+    }
+	handleInput(deltaTime);
+	handleInteractables();
+	healPlayer(getPlayerHealthRegenRate() * deltaTime);
 }

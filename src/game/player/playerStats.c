@@ -2,6 +2,7 @@
 #include "game/systems/runeManager.h"
 
 #define BASE_MAX_HEALTH 100
+#define BASE_HEALTH_REGEN_RATE 1.0f
 #define BASE_MAX_MANA 10
 #define BASE_MANA_REGEN_RATE 1.5f
 #define BASE_UTILITY_SPELL_COUNT 3
@@ -14,6 +15,10 @@ int getPlayerMaxHealth(void) {
         maxHealth += getRunePrimaryValue(RUNE_TYPE_HEALTHY);
     }
     return maxHealth;
+}
+
+float getPlayerHealthRegenRate(void) {
+    return BASE_HEALTH_REGEN_RATE;
 }
 
 int getPlayerMaxMana(void) {

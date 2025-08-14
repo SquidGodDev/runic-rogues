@@ -102,10 +102,10 @@ void drawHealth(void) {
     int healthBarWidth = 67;
     int healthBarHeight = 5;
     pd->graphics->drawBitmap(BITMAPS[BITMAP_HEALTH_BAR], 10, 4, kBitmapUnflipped);
-    pd->graphics->fillRect(12, 6, healthBarWidth * ((float)playerHealth / getPlayerMaxHealth()), healthBarHeight, kColorWhite);
+    pd->graphics->fillRect(12, 6, healthBarWidth * (playerHealth / getPlayerMaxHealth()), healthBarHeight, kColorWhite);
     pd->graphics->drawBitmap(BITMAPS[BITMAP_HEART], 2, 2, kBitmapUnflipped);
     char *healthString;
-    pd->system->formatString(&healthString, "%d", playerHealth);
+    pd->system->formatString(&healthString, "%d", (int)playerHealth);
     pd->graphics->pushContext(NULL);
         pd->graphics->setFont(fontSubEN);
         int tracking = -1;
