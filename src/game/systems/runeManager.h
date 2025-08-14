@@ -1,4 +1,5 @@
 #pragma once
+#include "pd_api.h"
 
 #include "game/settings/settings.h"
 
@@ -20,3 +21,4 @@ char *getRuneDescription(RuneType type, Language language);
 int getRuneIconIndex(RuneType type);
 int getRuneTextureIndex(RuneType type);
 float getRunePrimaryValue(RuneType type);
+float getRuneSecondaryValue(RuneType type);

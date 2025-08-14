@@ -13,26 +13,28 @@ typedef struct RuneData {
     int iconIndex;
     int textureIndex;
     float primaryValue;
+    float secondaryValue;
 } RuneData;
 
 RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_VAMPIRISM] = {
         .nameEN = "Vampirism",
         .nameJP = "ヴァンパイリズム",
-        .descriptionEN = "Gain health when damaging enemies.",
-        .descriptionJP = "敵にダメージを与えると体力を回復する。",
+        .descriptionEN = "Gain health when an enemy is defeated.",
+        .descriptionJP = "敵を倒すと体力を回復する。",
         .iconIndex = BITMAP_RUNE_VAMPIRISM,
         .textureIndex = TEXTURE_RUNE_VAMPIRISM,
-        .primaryValue = 0.2f
+        .primaryValue = 2 // Heal for 2 hp when defeating enemies
     },
     [RUNE_TYPE_WINGED_BOOTS] = {
         .nameEN = "Winged Boots",
         .nameJP = "ウィングブーツ",
-        .descriptionEN = "Lowers dash cooldown.",
-        .descriptionJP = "移動速度が増加する。",
+        .descriptionEN = "Increase number of dashes and lowers dash cooldown.",
+        .descriptionJP = "ダッシュの回数を増やし、ダッシュのクールダウン時間を短縮する。",
         .iconIndex = BITMAP_RUNE_WINGED_BOOTS,
         .textureIndex = TEXTURE_RUNE_WINGED_BOOTS,
-        .primaryValue = 0.3f
+        .primaryValue = 0.5f, // Increases dash charge rate by 50%,
+        .secondaryValue = 1 // Increases number of dashes by 1
     },
     [RUNE_TYPE_HEALTHY] = {
         .nameEN = "Healthy",
@@ -41,7 +43,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "最大体力が増加する。",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 2.0f
+        .primaryValue = 20 // Increases max health by 20
     },
     [RUNE_TYPE_SWIFT] = {
         .nameEN = "Swift",
@@ -50,7 +52,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "移動速度が増加する。",
         .iconIndex = BITMAP_RUNE_SWIFT,
         .textureIndex = TEXTURE_RUNE_SWIFT,
-        .primaryValue = 0.2f
+        .primaryValue = 0.3f // Increases move speed by 30%
     },
     [RUNE_TYPE_THORNS] = {
         .nameEN = "Thorns",
@@ -59,7 +61,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "敵にダメージを反射する。",
         .iconIndex = BITMAP_RUNE_THORNS,
         .textureIndex = TEXTURE_RUNE_THORNS,
-        .primaryValue = 0.1f
+        .primaryValue = 5 // Deal 5 damage back to enemies when attacked
     }
 };
 
@@ -109,4 +111,8 @@ int getRuneTextureIndex(RuneType type) {
 
 float getRunePrimaryValue(RuneType type) {
     return RUNE_DATA[type].primaryValue;
+}
+
+float getRuneSecondaryValue(RuneType type) {
+    return RUNE_DATA[type].secondaryValue;
 }

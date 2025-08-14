@@ -14,8 +14,6 @@
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
-#define UTILITY_SPELL_COUNT 3
-
 typedef struct SpellCastData {
     Spell spell;
     float castTime;
@@ -259,7 +257,7 @@ void initSpells(void) {
         spellCooldowns[i] = 0.0f;
     }
 
-    utilitySpellCount = UTILITY_SPELL_COUNT;
+    utilitySpellCount = getPlayerUtilitySpellCount();
     utilitySpellCharge = 0.0f;
 }
 
@@ -327,7 +325,7 @@ float getPlayerSpeedModifier(void) {
 }
 
 int getMaxUtilitySpells(void) {
-    return UTILITY_SPELL_COUNT;
+    return getPlayerUtilitySpellCount();
 }
 
 int getUtilitySpellCount(void) {
@@ -448,7 +446,7 @@ int castSpell(int index) {
 }
 
 void updateSpells(float deltaTime) {
-    if (utilitySpellCount < UTILITY_SPELL_COUNT) {
+    if (utilitySpellCount < getPlayerUtilitySpellCount()) {
         utilitySpellCharge += getPlayerUtilitySpellChargeRate() * deltaTime;
         if (utilitySpellCharge > 1.0f) {
             utilitySpellCharge = 0.0f;

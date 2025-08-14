@@ -10,6 +10,7 @@
 #include "game/rendering/textures.h"
 #include "game/rendering/particles.h"
 #include "game/systems/audioManager.h"
+#include "game/systems/runeManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/waveManager.h"
 
@@ -893,7 +894,7 @@ bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmou
 	EnemyData curEnemyData = enemyData[curEnemy.type];
 	curEnemy.hitFlashTime = HIT_FLASH_TIME;
 	curEnemy.health -= damage;
-	if (!curEnemyData.knockbackResistant) {
+	if (!curEnemyData.knockbackResistant && knockbackTime > 0 && knockbackAmount > 0) {
 		curEnemy.knockbackMaxTime = knockbackTime;
 		curEnemy.knockbackTime = knockbackTime;
 		curEnemy.knockbackAmount = knockbackAmount;
@@ -911,6 +912,10 @@ bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmou
 
 		if (index != bossIndex && !curEnemy.isMinion) {
 			enemiesDefeated++;
+		}
+
+		if (runeIsOwned(RUNE_TYPE_VAMPIRISM)) {
+			healPlayer(getRunePrimaryValue(RUNE_TYPE_VAMPIRISM));
 		}
 
 		if (allEnemiesSpawned()) { 
