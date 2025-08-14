@@ -12,7 +12,7 @@
 
 #define CAMPFIRE_HEAL_AMOUNT 2
 #define INTERACT_DISTANCE 500
-#define SHOP_INTERACT_DISTANCE 200
+#define SHOP_INTERACT_DISTANCE 150
 
 typedef struct InteractableData {
 	int textureIndex;
