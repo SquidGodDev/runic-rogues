@@ -195,6 +195,7 @@ SpellData spellData[SPELL_COUNT] = {
         .cooldown = 3.0f,
         .manaCost = 10.0f,
         .damage = 30,
+        .playerSpeedModifier = -0.5f,
         .repeatData = (RepeatData){
             .activationTime = 0.3f
         }
