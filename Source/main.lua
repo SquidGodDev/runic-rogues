@@ -10,7 +10,6 @@ import "scripts/systems/audioManager"
 import "scripts/systems/gameManager"
 import "scripts/systems/settingsManager"
 import "scripts/roomSelect/roomSelectScene"
-import "scripts/roomSelect/shopScene"
 import "scripts/title/titleScene"
 import "scripts/title/gameOverScene"
 
@@ -29,11 +28,7 @@ function NextLevel()
 		GAME_DATA.currentArea += 1
 	end
 	local roomType = GAME_DATA.areaRooms[GAME_DATA.currentRoom]
-	if roomType == ROOM_TYPE.SHOP then
-		SceneManager.switchScene(ShopScene, GAME_DATA.currentArea, GAME_DATA.currentRoom)
-	else
-		SceneManager.switchScene(GameScene, GAME_DATA.currentArea, GAME_DATA.currentRoom, roomType)
-	end
+	SceneManager.switchScene(GameScene, GAME_DATA.currentArea, GAME_DATA.currentRoom, roomType)
 end
 
 function GameOver()

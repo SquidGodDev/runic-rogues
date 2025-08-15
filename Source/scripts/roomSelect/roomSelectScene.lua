@@ -3,13 +3,11 @@ local gfx <const> = playdate.graphics
 
 local enemyIcon <const> = gfx.image.new("images/roomSelect/mapIcons/enemyIcon")
 local eliteIcon <const> = gfx.image.new("images/roomSelect/mapIcons/eliteIcon")
-local shopIcon <const> = gfx.image.new("images/roomSelect/mapIcons/shopIcon")
 local campfireIcon <const> = gfx.image.new("images/roomSelect/mapIcons/campfireIcon")
 local bossIcon <const> = gfx.image.new("images/roomSelect/mapIcons/bossIcon")
 
 local enemyTile <const> = gfx.image.new("images/roomSelect/tiles/enemyTile")
 local eliteTile <const> = gfx.image.new("images/roomSelect/tiles/eliteTile")
-local shopTile <const> = gfx.image.new("images/roomSelect/tiles/shopTile")
 local campfireTile <const> = gfx.image.new("images/roomSelect/tiles/campfireTile")
 local bossTile <const> = gfx.image.new("images/roomSelect/tiles/bossTile")
 
@@ -19,15 +17,13 @@ local theLostArchivesTitleEN <const> = gfx.image.new("images/roomSelect/titles/t
 ROOM_TYPE = {
     ENEMY = 0,
     ELITE = 1,
-    SHOP = 2,
-    CAMPFIRE = 3,
-    BOSS = 4
+    CAMPFIRE = 2,
+    BOSS = 3
 }
 
 local roomTypeMapIcons = {
     [ROOM_TYPE.ENEMY] = enemyIcon,
     [ROOM_TYPE.ELITE] = eliteIcon,
-    [ROOM_TYPE.SHOP] = shopIcon,
     [ROOM_TYPE.CAMPFIRE] = campfireIcon,
     [ROOM_TYPE.BOSS] = bossIcon
 }
@@ -35,7 +31,6 @@ local roomTypeMapIcons = {
 local roomTypeTiles = {
     [ROOM_TYPE.ENEMY] = enemyTile,
     [ROOM_TYPE.ELITE] = eliteTile,
-    [ROOM_TYPE.SHOP] = shopTile,
     [ROOM_TYPE.CAMPFIRE] = campfireTile,
     [ROOM_TYPE.BOSS] = bossTile
 }
@@ -315,11 +310,7 @@ function RoomSelectScene:update()
     if self.cursorTargetX then
         if pd.buttonJustPressed(pd.kButtonA) and not SceneManager.isTransitioning() then
             GAME_DATA.visitedRooms[GAME_DATA.currentRoom] = self.selectedPath
-            if (self:getSelectedRoomType() == ROOM_TYPE.SHOP) then
-                SceneManager.switchScene(ShopScene)
-            else
-                SceneManager.switchScene(GameScene, GAME_DATA.currentArea, GAME_DATA.currentRoom, self:getSelectedRoomType())
-            end
+            SceneManager.switchScene(GameScene, GAME_DATA.currentArea, GAME_DATA.currentRoom, self:getSelectedRoomType())
         end
 
         local currentX = cursorTopSprite.x

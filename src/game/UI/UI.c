@@ -99,10 +99,10 @@ void initUI(int isBossRoom) {
 }
 
 void drawHealth(void) {
-    int healthBarWidth = 67;
-    int healthBarHeight = 5;
+    int healthBarWidth = 66;
+    int healthBarHeight = 3;
     pd->graphics->drawBitmap(BITMAPS[BITMAP_HEALTH_BAR], 10, 4, kBitmapUnflipped);
-    pd->graphics->fillRect(12, 6, healthBarWidth * (playerHealth / getPlayerMaxHealth()), healthBarHeight, kColorWhite);
+    pd->graphics->fillRect(12, 7, healthBarWidth * (playerHealth / getPlayerMaxHealth()), healthBarHeight, kColorWhite);
     pd->graphics->drawBitmap(BITMAPS[BITMAP_HEART], 2, 2, kBitmapUnflipped);
     char *healthString;
     pd->system->formatString(&healthString, "%d", (int)playerHealth);
@@ -339,10 +339,10 @@ void drawSpellUI(void) {
         pd->graphics->fillRect(utilitySpellChargeBarX + 1, utilityChargeBarDrawY, utilitySpellChargeBarWidth, chargeBarHeight, kColorWhite);
     }
 
-    int manaBarX = 5, manaBarY = 108;
+    int manaBarX = 2, manaBarY = 106;
     pd->graphics->drawBitmap(BITMAPS[BITMAP_MANA_BAR], manaBarX, manaBarY, kBitmapUnflipped);
-    int manaBarWidth = (getPlayerMana() / getPlayerMaxMana()) * 65;
-    pd->graphics->fillRect(manaBarX + 2, manaBarY + 2, manaBarWidth, 6, kColorWhite);
+    int manaBarWidth = (getPlayerMana() / getPlayerMaxMana()) * 61;
+    pd->graphics->fillRect(manaBarX + 10, manaBarY + 6, manaBarWidth, 3, kColorWhite);
 }
 
 void drawBossHealthBar(void) {
