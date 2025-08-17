@@ -55,6 +55,14 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damage = 10,
 		.damageRadius = CELL_SIZE
 	},
+	[PARTICLE_TYPE_SERPENT_TAIL] = {
+		.frameCount = 7,
+		.animationTime = 0.06f,
+		.textureIndex = TEXTURE_PARTICLE_SERPENT_TAIL,
+		.damageFrame = 3,
+		.damage = 10,
+		.damageRadius = CELL_SIZE / 2
+	},
 	[PARTICLE_TYPE_BOMB] = {
 		.frameCount = 66,
 		.animationTime = 0.03f,

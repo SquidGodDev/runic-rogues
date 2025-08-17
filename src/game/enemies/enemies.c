@@ -50,6 +50,7 @@ typedef enum AttackPattern
 	ATTACK_PATTERN_MELEE,
 	ATTACK_PATTERN_PROJECTILE,
 	ATTACK_PATTERN_RUSH,
+	ATTACK_PATTERN_CUSTOM_ATTACK,
 	ATTACK_PATTERN_TURRET,
 	ATTACK_PATTERN_ELDER_BOSS,
 	ATTACK_PATTERN_WRAITH_BOSS
@@ -166,6 +167,25 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameEnd = 19,
 		.frameTime = 0.12f,
 		.attackPattern = ATTACK_PATTERN_MELEE
+	},
+	[ENEMY_TYPE_SERPENT] = (EnemyData){
+		.name = "Serpent",
+		.health = 40,
+		.attackDetectionRange = 35,
+		.attackDamage = 10,
+		.attackCooldown = 8.0f,
+		.moveSpeed = 0.3f,
+		.abilityDataPrimary = 4, // Tail attack count
+		.abilityDataSecondary = 0.3f, // Tail attack interval
+		.textureIndex = TEXTURE_SERPENT,
+		.idleFrameEnd = 12,
+		.attackFrameStart = 14,
+		.attackFrameEnd = 41,
+		.attackActiveFrame = 19,
+		.deathFrameStart = 42,
+		.deathFrameEnd = 45,
+		.frameTime = 0.08f,
+		.attackPattern = ATTACK_PATTERN_CUSTOM_ATTACK
 	},
 	[ENEMY_TYPE_TURRET] = (EnemyData){
 		.name = "Turret",
@@ -609,6 +629,55 @@ void rushEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
 	}
 }
 
+void customAttackEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		// Start custom attack if player is in range
+		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+		}
+
+		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		// Fire custom attack towards player if attack animation passes active frame
+		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			if (!curEnemy->attackedPlayer) {
+				curEnemy->attackedPlayer = true;
+				curEnemy->targetX = playerX;
+				curEnemy->targetY = playerY;
+			}
+			int attackCount = curEnemy->stateCount;
+			int maxAttackCount = curEnemyData->abilityDataPrimary;
+			if (curEnemy->stateTimer <= 0 && attackCount < maxAttackCount) {
+				float dx = curEnemy->targetX - curEnemy->x;
+				float dy = curEnemy->targetY - curEnemy->y;
+				if (dx == 0 && dy == 0) {
+					dx = 1;
+					dy = 0;
+				}
+				float length = sqrtf(dx * dx + dy * dy);
+				if (length > 0) {
+					dx /= length;
+					dy /= length;
+				}
+				float offsetX = dx * (curEnemy->stateCount + 1) * CELL_SIZE / 2;
+				float offsetY = dy * (curEnemy->stateCount + 1) * CELL_SIZE / 2;
+				spawnParticle(PARTICLE_TYPE_SERPENT_TAIL, curEnemy->x + offsetX, curEnemy->y + offsetY, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+				curEnemy->stateCount++;
+				curEnemy->stateTimer = curEnemyData->abilityDataSecondary;
+			}
+		}
+
+		// Transition back to idle state after attack animation ends
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			curEnemy->stateTimer = 0;
+			curEnemy->stateCount = 0;
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
 void turretEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		// Start attacking if player is in range
@@ -834,6 +903,8 @@ void updateEnemies(float deltaTime) {
 			projectileEnemyUpdate(curEnemy, curEnemyData, i, attackAnimationReset);
 		} else if (curAttackPattern == ATTACK_PATTERN_RUSH) {
 			rushEnemyUpdate(curEnemy, curEnemyData, i);
+		} else if (curAttackPattern == ATTACK_PATTERN_CUSTOM_ATTACK) {
+			customAttackEnemyUpdate(curEnemy, curEnemyData, i, attackAnimationReset);
 		} else if (curAttackPattern == ATTACK_PATTERN_TURRET) {
 			turretEnemyUpdate(curEnemy, curEnemyData, i);
 		} else if (curAttackPattern == ATTACK_PATTERN_ELDER_BOSS) {
