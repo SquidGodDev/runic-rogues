@@ -284,22 +284,20 @@ void renderScene(void)
 				lineData[drawX].textureYModifier += curLineData->textureYStep;
 
 				if (drawY < lineOffset) {
-					if (skipCeilingFloor || (inFog & ((fogShade >> fogShadeBit) & 1))) {
-						drawColor = 0;
-					} else {
-						float textureCoordX = playerX - curLineData->ceilingXModifier * invDy;
-						float textureCoordY = playerY - curLineData->ceilingYModifier * invDy;
+					int fogReject = skipCeilingFloor | ((fogShade >> fogShadeBit) & inFog);
+					float textureCoordX = playerX - curLineData->ceilingXModifier * invDy;
+					float textureCoordY = playerY - curLineData->ceilingYModifier * invDy;
 
-						uint32_t textureX = (uint32_t)(textureCoordX) & (CELL_SIZE - 1);
-						uint32_t textureY = (uint32_t)(textureCoordY) & (CELL_SIZE - 1);
-	
-						// Draw ceiling
-						uint32_t textureIndex = textureX + (textureY << 4);
-						drawColor = ceilingTexture[textureIndex];
-	
-						// Draw floor
-						curFloorDrawInt |= floorTexture[textureIndex] << (31 - (drawBit & 31));
-					}
+					uint32_t textureX = (uint32_t)(textureCoordX) & (CELL_SIZE - 1);
+					uint32_t textureY = (uint32_t)(textureCoordY) & (CELL_SIZE - 1);
+
+					// Draw ceiling
+					uint32_t textureIndex = textureX + (textureY << 4);
+					drawColor = ceilingTexture[textureIndex];
+					drawColor &= ~(-fogReject);
+
+					// Draw floor
+					curFloorDrawInt |= (floorTexture[textureIndex] << (31 - (drawBit & 31))) & ~(-fogReject);
 				} else if (drawY > lineHeight + lineOffset + 1) {
 					// Floor - we already drew this when we drew the ceiling
 					continue;
