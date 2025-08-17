@@ -67,10 +67,13 @@ void renderScene(void)
 		int depthOfField = 0;
 		int maxDistance = 10000000;
 
+		float sinAngle, cosAngle;
+		sincosf(rayAngle, &sinAngle, &cosAngle);
+
 		// === Check for horizontal lines ===
 		float horizontalRayX, horizontalRayY;
 		float horizontalDistance = maxDistance;
-		float rayPerpendicularSlope = -1 / tanf(rayAngle);
+		float rayPerpendicularSlope = -cosAngle / sinAngle;
 
 		if (rayAngle == 0 || rayAngle == PI) {
 			// Looking straight left or right
@@ -112,7 +115,7 @@ void renderScene(void)
 		depthOfField = 0;
 		float verticalRayX, verticalRayY;
 		float verticalDistance = maxDistance;
-		float rayNegSlope = -tanf(rayAngle);
+		float rayNegSlope = -sinAngle / cosAngle;
 
 		if (rayAngle == P2 || rayAngle == P3) {
 			// Looking straight up or down
@@ -187,8 +190,8 @@ void renderScene(void)
 		float fixedOffsetAngle = cosf(offsetAngle);
 		rayDistance = rayDistance * fixedOffsetAngle;
 
-		curLineData.ceilingXModifier = cosf(rayAngle) * CEILING_RENDER_CONSTANT * CELL_SIZE / fixedOffsetAngle;
-		curLineData.ceilingYModifier = sinf(rayAngle) * CEILING_RENDER_CONSTANT * CELL_SIZE / fixedOffsetAngle;
+		curLineData.ceilingXModifier = cosAngle * CEILING_RENDER_CONSTANT * CELL_SIZE / fixedOffsetAngle;
+		curLineData.ceilingYModifier = sinAngle * CEILING_RENDER_CONSTANT * CELL_SIZE / fixedOffsetAngle;
 
 		if (verticalDistance > (maxDistance - 1) && horizontalDistance > (maxDistance - 1)) {
 			curLineData.lineHeight = 0;
