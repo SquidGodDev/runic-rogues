@@ -141,7 +141,8 @@ SpellData spellData[SPELL_COUNT] = {
         .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_WAVE_ICON,
         .type = SPELL_TYPE_INSTANT,
-        .cooldown = 3.0f,
+        .cooldown = 0.2f,
+        .manaCost = 30.0f,
         .castTime = 0.4f,
         .damage = 10,
         .projectileData = (SpellProjectileData) {
@@ -244,8 +245,8 @@ void initDeck(void) {
     }
 
     spellDeck[0] = SPELL_FIREBALL;
-    spellDeck[1] = SPELL_LASER;
-    spellDeck[2] = SPELL_ARC_LIGHTNING;
+    spellDeck[1] = SPELL_WAVE;
+    spellDeck[2] = SPELL_NONE;
     spellDeck[3] = SPELL_NONE;
     spellDeck[4] = SPELL_NONE;
 }
