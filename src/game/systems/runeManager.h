@@ -3,6 +3,8 @@
 
 #include "game/settings/settings.h"
 
+#define MAX_RUNES 14
+
 typedef enum RuneType {
     RUNE_TYPE_NONE,
     RUNE_TYPE_VAMPIRISM,
@@ -15,6 +17,7 @@ typedef enum RuneType {
 void initRunes(void);
 bool runeIsOwned(RuneType type);
 void addRune(RuneType type);
+RuneType getRune(int index);
 char *getRuneName(RuneType type, Language language);
 char *getRuneDescription(RuneType type, Language language);
 int getRuneIconIndex(RuneType type);
