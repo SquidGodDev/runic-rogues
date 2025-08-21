@@ -23,8 +23,8 @@ typedef struct SpellCastData {
 } SpellCastData;
 
 static Spell spellDeck[SPELL_DECK_MAX];
-static SpellCastData spellCastData[SPELL_DECK_MAX];
-float spellCooldowns[SPELL_DECK_MAX];
+static SpellCastData spellCastData[SPELL_EQUIP_MAX];
+float spellCooldowns[SPELL_EQUIP_MAX];
 static int utilitySpellCount;
 static float utilitySpellCharge;
 
@@ -252,7 +252,7 @@ void initDeck(void) {
 }
 
 void initSpells(void) {
-    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         spellCastData[i] = (SpellCastData) {
             .spell = SPELL_NONE,
             .castTime = 0.0f,
@@ -262,7 +262,7 @@ void initSpells(void) {
         };
     };
 
-    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         spellCooldowns[i] = 0.0f;
     }
 
@@ -318,7 +318,7 @@ float getSpellCooldownPercentage(int index) {
 
 float getPlayerSpeedModifier(void) {
     float totalSpeedModifier = 1.0f;
-    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         SpellCastData *castData = &spellCastData[i];
         Spell spell = castData->spell;
         if (spell == SPELL_NONE) {
@@ -417,7 +417,7 @@ void activateSpellEffect(int index, float angle) {
 }
 
 bool hasActiveChanneledSpell(void) {
-    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         SpellCastData *castData = &spellCastData[i];
         if (castData->spell == SPELL_NONE) {
             continue;
@@ -432,7 +432,7 @@ bool hasActiveChanneledSpell(void) {
 }
 
 void clearAllChannelledSpells(void) {
-    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         SpellCastData *castData = &spellCastData[i];
         if (castData->spell == SPELL_NONE) {
             continue;
@@ -499,7 +499,7 @@ void updateSpells(float deltaTime) {
         }
     }
 
-    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         if (spellCooldowns[i] > 0.0f) {
             spellCooldowns[i] -= deltaTime;
             if (spellCooldowns[i] < 0.0f) {

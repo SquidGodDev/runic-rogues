@@ -4,7 +4,8 @@
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
 
-#define SPELL_DECK_MAX 5
+#define SPELL_EQUIP_MAX 5
+#define SPELL_DECK_MAX 11
 
 typedef enum Spell {
     SPELL_NONE,

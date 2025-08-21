@@ -72,7 +72,7 @@ typedef struct SpellOverlay {
     float frameTime;
     float currentFrameTime;
 } SpellOverlay;
-SpellOverlay spellOverlays[SPELL_DECK_MAX];
+SpellOverlay spellOverlays[SPELL_EQUIP_MAX];
 
 void initUI(int isBossRoom) {
     screenShakeTime = 0;
@@ -85,7 +85,7 @@ void initUI(int isBossRoom) {
 
     popupImagetableIndex = -1;
 
-    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         spellOverlays[i] = (SpellOverlay) {
             .bitmapTable = NULL,
             .drawX = 0,
@@ -303,12 +303,12 @@ void drawExitArrow(void) {
     drawCenteredBitmap(pd->graphics->getTableBitmap(BITMAP_TABLES[BITMAP_TABLE_EXIT_ARROW], rotationTableIndex), EXIT_ARROW_X, EXIT_ARROW_Y);
 }
 
-int spellDrawX[SPELL_DECK_MAX] = {22, 6, 22, 38, 22};
-int spellDrawY[SPELL_DECK_MAX] = {71, 71, 53, 71, 89};
+int spellDrawX[SPELL_EQUIP_MAX] = {22, 6, 22, 38, 22};
+int spellDrawY[SPELL_EQUIP_MAX] = {71, 71, 53, 71, 89};
 void drawSpellUI(void) {
     int spellIconHeight = 14;
     int spellIconWidth = 10;
-    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         Spell heldSpell = getDeckSpell(i);
         LCDBitmap *spellIcon = getSpellIcon(heldSpell);
         int drawX = spellDrawX[i];
@@ -400,7 +400,7 @@ void clearSpellOverlay(int index) {
 }
 
 void drawSpellOverlay(float deltaTime) {
-    for (int i = 0; i < SPELL_DECK_MAX; i++) {
+    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         SpellOverlay *overlay = &spellOverlays[i];
         if (overlay->bitmapTable == NULL) {
             continue;
