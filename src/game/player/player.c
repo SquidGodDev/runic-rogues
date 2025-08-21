@@ -92,23 +92,9 @@ static PlayerState playerState;
 static PlayerMovementStats movementStats;
 static WeaponAnimation weaponAnimation;
 
-static int defaultStrafeSetting = 0;
-static int toggleMovementSetting = 0;
-static int movementToggled = 0;
-
-PDMenuItem* toggleDefaultStrafeMenuItem;
-PDMenuItem* toggleMovementMenuItem;
-
-void toggleDefaultStrafeCallback(void* userdata) {
-	int value = pd->system->getMenuItemValue(toggleDefaultStrafeMenuItem);
-	defaultStrafeSetting = value;
-}
-
-void toggleMovementCallback(void* userdata) {
-	int value = pd->system->getMenuItemValue(toggleMovementMenuItem);
-	toggleMovementSetting = value;
-	movementToggled = 0;
-}
+static bool defaultStrafeSetting = false;
+static bool toggleMovementSetting = false;
+static bool movementToggled = false;
 
 void initPlayer(void) {
 	playerHealth = getPlayerMaxHealth();
@@ -180,18 +166,12 @@ void initPlayer(void) {
 		.targetDrawX = weaponBasePositionX,
 		.targetDrawY = weaponBasePositionY
 	};
-
-	pd->system->removeAllMenuItems();
-	const char *movementOptions[] = {"rotate", "strafe"};
-	toggleDefaultStrafeMenuItem = pd->system->addOptionsMenuItem("Default", movementOptions, 2, toggleDefaultStrafeCallback, NULL);
-	toggleMovementMenuItem = pd->system->addCheckmarkMenuItem("Toggle", 0, toggleMovementCallback, NULL);
 }
 
 void handleInput(float deltaTime)
 {
 	if (!pd->system->isCrankDocked() && !defaultStrafeSetting) {
-		pd->system->setMenuItemValue(toggleDefaultStrafeMenuItem, 1);
-		toggleDefaultStrafeCallback(NULL);
+		defaultStrafeSetting = true;
 	}
 
 	int cellSize = CELL_SIZE;

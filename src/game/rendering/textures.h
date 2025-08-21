@@ -97,6 +97,7 @@ typedef enum BitmapPaths {
 	BITMAP_ELDER_BOSS_TITLE_JP,
 	BITMAP_WRAITH_BOSS_TITLE,
 	BITMAP_WRAITH_BOSS_TITLE_JP,
+	BITMAP_INVENTORY_BACKGROUND,
 	// Bottom reserved for pickups (auto generated textures from bitmap)
 	BITMAP_SPELL_EMPTY_ICON,
 	BITMAP_SPELL_FIREBALL_ICON,

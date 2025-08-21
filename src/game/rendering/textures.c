@@ -74,6 +74,7 @@ const char *bitmapPathStrings[] = {
 	"images/UI/prompts/elderBossTitle_JP",
 	"images/UI/prompts/wraithBossTitle",
 	"images/UI/prompts/wraithBossTitle_JP",
+	"images/UI/inventory/background",
 	"images/spells/icons/empty",
 	"images/spells/icons/fireball",
 	"images/spells/icons/tripleShot",
