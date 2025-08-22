@@ -2,6 +2,7 @@
 #include "pd_api.h"
 
 #include "globals.h"
+#include "helpers.h"
 #include "game/UI/inventory.h"
 #include "game/gameScene.h"
 #include "game/player/spells.h"
@@ -45,9 +46,61 @@ void createInventoryMenuItem(void) {
 #define RUNE_ROW 2
 #define RUNE_COL 7
 
+#define SPELL_TOP_LEFT_OFFSET_X -2
+#define SPELL_TOP_LEFT_OFFSET_Y -2
+#define SPELL_TOP_RIGHT_OFFSET_X 9
+#define SPELL_TOP_RIGHT_OFFSET_Y -2
+#define SPELL_BOTTOM_LEFT_OFFSET_X -2
+#define SPELL_BOTTOM_LEFT_OFFSET_Y 13
+#define SPELL_BOTTOM_RIGHT_OFFSET_X 9
+#define SPELL_BOTTOM_RIGHT_OFFSET_Y 13
+
+#define RUNE_TOP_LEFT_OFFSET_X -3
+#define RUNE_TOP_LEFT_OFFSET_Y -1
+#define RUNE_TOP_RIGHT_OFFSET_X 10
+#define RUNE_TOP_RIGHT_OFFSET_Y -1
+#define RUNE_BOTTOM_LEFT_OFFSET_X -3
+#define RUNE_BOTTOM_LEFT_OFFSET_Y 12
+#define RUNE_BOTTOM_RIGHT_OFFSET_X 10
+#define RUNE_BOTTOM_RIGHT_OFFSET_Y 12
+
+#define LERP_SPEED 15
+
+typedef enum buttonDir {
+	DIR_LEFT,
+	DIR_UP,
+	DIR_RIGHT,
+	DIR_DOWN,
+	DIR_COUNT
+} buttonDir;
+
+int navigateTarget[SPELL_EQUIP_MAX][DIR_COUNT] = {
+	{1, 2, 3, 4},
+	{-1, 2, 3, 4},
+	{1, -1, 3, 4},
+	{1, 2, -1, 4},
+	{1, 2, 3, 6}
+};
+
+int cursorIndex;
+FPoint cursorTopLeft;
+FPoint cursorTopRight;
+FPoint cursorBottomLeft;
+FPoint cursorBottomRight;
+FPoint cursorTargetTopLeft;
+FPoint cursorTargetTopRight;
+FPoint cursorTargetBottomLeft;
+FPoint cursorTargetBottomRight;
 Point spellPositions[SPELL_DECK_MAX];
 
 void initInventory(void) {
+	cursorIndex = 1;
+
+	cursorTopLeft = (FPoint){spellPositions[cursorIndex].x + SPELL_TOP_LEFT_OFFSET_X, spellPositions[cursorIndex].y + SPELL_TOP_LEFT_OFFSET_Y};
+	cursorTopRight = (FPoint){spellPositions[cursorIndex].x + SPELL_TOP_RIGHT_OFFSET_X, spellPositions[cursorIndex].y + SPELL_TOP_RIGHT_OFFSET_Y};
+	cursorBottomLeft = (FPoint){spellPositions[cursorIndex].x + SPELL_BOTTOM_LEFT_OFFSET_X, spellPositions[cursorIndex].y + SPELL_BOTTOM_LEFT_OFFSET_Y};
+	cursorBottomRight = (FPoint){spellPositions[cursorIndex].x + SPELL_BOTTOM_RIGHT_OFFSET_X, spellPositions[cursorIndex].y + SPELL_BOTTOM_RIGHT_OFFSET_Y};
+
 	backgroundSprite = pd->sprite->newSprite();
 	pd->sprite->moveTo(backgroundSprite, 100, 60);
 	pd->sprite->setImage(backgroundSprite, BITMAPS[BITMAP_INVENTORY_BACKGROUND], kBitmapUnflipped);
@@ -97,6 +150,33 @@ void updateInventory(float deltaTime) {
 		}
 	}
 
+	if (cursorIndex < SPELL_DECK_MAX) {
+		int spellX = spellPositions[cursorIndex].x;
+		int spellY = spellPositions[cursorIndex].y;
+		cursorTargetTopLeft = (FPoint){spellX + SPELL_TOP_LEFT_OFFSET_X, spellY + SPELL_TOP_LEFT_OFFSET_Y};
+		cursorTargetTopRight = (FPoint){spellX + SPELL_TOP_RIGHT_OFFSET_X, spellY + SPELL_TOP_RIGHT_OFFSET_Y};
+		cursorTargetBottomLeft = (FPoint){spellX + SPELL_BOTTOM_LEFT_OFFSET_X, spellY + SPELL_BOTTOM_LEFT_OFFSET_Y};
+		cursorTargetBottomRight = (FPoint){spellX + SPELL_BOTTOM_RIGHT_OFFSET_X, spellY + SPELL_BOTTOM_RIGHT_OFFSET_Y};
+	} else {
+		int runeIndex = cursorIndex - SPELL_DECK_MAX;
+		int runeX = RUNE_BASE_X + (runeIndex % RUNE_COL) * INV_X_GAP;
+		int runeY = INV_BASE_Y + (runeIndex / RUNE_COL) * INV_Y_GAP;
+		cursorTargetTopLeft = (FPoint){runeX + RUNE_TOP_LEFT_OFFSET_X, runeY + RUNE_TOP_LEFT_OFFSET_Y};
+		cursorTargetTopRight = (FPoint){runeX + RUNE_TOP_RIGHT_OFFSET_X, runeY + RUNE_TOP_RIGHT_OFFSET_Y};
+		cursorTargetBottomLeft = (FPoint){runeX + RUNE_BOTTOM_LEFT_OFFSET_X, runeY + RUNE_BOTTOM_LEFT_OFFSET_Y};
+		cursorTargetBottomRight = (FPoint){runeX + RUNE_BOTTOM_RIGHT_OFFSET_X, runeY + RUNE_BOTTOM_RIGHT_OFFSET_Y};
+	}
+
+	cursorTopLeft = lerpFPoint(cursorTopLeft, cursorTargetTopLeft, LERP_SPEED * deltaTime);
+	cursorTopRight = lerpFPoint(cursorTopRight, cursorTargetTopRight, LERP_SPEED * deltaTime);
+	cursorBottomLeft = lerpFPoint(cursorBottomLeft, cursorTargetBottomLeft, LERP_SPEED * deltaTime);
+	cursorBottomRight = lerpFPoint(cursorBottomRight, cursorTargetBottomRight, LERP_SPEED * deltaTime);
+
+	pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_TOP_LEFT], cursorTopLeft.x, cursorTopLeft.y, kBitmapUnflipped);
+	pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_TOP_RIGHT], cursorTopRight.x, cursorTopRight.y, kBitmapUnflipped);
+	pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_BOTTOM_LEFT], cursorBottomLeft.x, cursorBottomLeft.y, kBitmapUnflipped);
+	pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_BOTTOM_RIGHT], cursorBottomRight.x, cursorBottomRight.y, kBitmapUnflipped);
+
 	PDButtons pushed;
 	pd->system->getButtonState(NULL, &pushed, NULL);
 	if (pushed & kButtonB) {
@@ -105,5 +185,75 @@ void updateInventory(float deltaTime) {
 		setScene(SCENE_GAME);
 		createInventoryMenuItem();
 		return;
+	}
+
+	if (cursorIndex < SPELL_EQUIP_MAX) {
+		int target = cursorIndex;
+		if (pushed & kButtonLeft) {
+			target = navigateTarget[cursorIndex][DIR_LEFT];
+		} else if (pushed & kButtonUp) {
+			target = navigateTarget[cursorIndex][DIR_UP];
+		} else if (pushed & kButtonDown) {
+			target = navigateTarget[cursorIndex][DIR_DOWN];
+		} else if (pushed & kButtonRight) {
+			target = navigateTarget[cursorIndex][DIR_RIGHT];
+		}
+		if (target > 0) {
+			cursorIndex = target;
+		}
+	} else if (cursorIndex < SPELL_DECK_MAX) {
+		int curCol = (cursorIndex - SPELL_EQUIP_MAX) % SPELL_COL;
+		int curRow = (cursorIndex - SPELL_EQUIP_MAX) / SPELL_COL;
+		if (pushed & kButtonLeft) {
+			if (curCol > 0) {
+				cursorIndex--;
+			}
+		} else if (pushed & kButtonUp) {
+			if (curRow > 0) {
+				cursorIndex -= SPELL_COL;
+			} else if (curCol == 0) {
+				cursorIndex = 1; // Left equipped spell index
+			} else if (curCol == 1) {
+				cursorIndex = 4; // Down equipped spell index
+			} else if (curCol == 2) {
+				cursorIndex = 3; // Right equipped spell index
+			}
+		} else if (pushed & kButtonDown) {
+			if (curRow < 1) {
+				cursorIndex += SPELL_COL;
+			}
+		} else if (pushed & kButtonRight) {
+			if (curCol < SPELL_COL - 1) {
+				cursorIndex++;
+			} else if (curRow == 0) {
+				cursorIndex = SPELL_DECK_MAX;
+			} else if (curRow == 1) {
+				cursorIndex = SPELL_DECK_MAX + RUNE_COL;
+			}
+		}
+	} else {
+		int curCol = (cursorIndex - SPELL_DECK_MAX) % RUNE_COL;
+		int curRow = (cursorIndex - SPELL_DECK_MAX) / RUNE_COL;
+		if (pushed & kButtonLeft) {
+			if (curCol > 0) {
+				cursorIndex--;
+			} else if (curRow == 0) {
+				cursorIndex = SPELL_DECK_MAX - SPELL_COL - 1;
+			} else if (curRow == 1) {
+				cursorIndex = SPELL_DECK_MAX - 1;
+			}
+		} else if (pushed & kButtonUp) {
+			if (curRow > 0) {
+				cursorIndex -= RUNE_COL;
+			}
+		} else if (pushed & kButtonDown) {
+			if (curRow < 1) {
+				cursorIndex += RUNE_COL;
+			}
+		} else if (pushed & kButtonRight) {
+			if (curCol < RUNE_COL - 1) {
+				cursorIndex++;
+			}
+		}
 	}
 }

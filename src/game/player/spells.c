@@ -249,6 +249,9 @@ void initDeck(void) {
     spellDeck[2] = SPELL_NONE;
     spellDeck[3] = SPELL_NONE;
     spellDeck[4] = SPELL_NONE;
+    spellDeck[5] = SPELL_ARC_LIGHTNING;
+    spellDeck[6] = SPELL_EXPLOSIVE_SHOT;
+    spellDeck[7] = SPELL_BOMBER;
 }
 
 void initSpells(void) {

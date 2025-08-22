@@ -26,6 +26,11 @@ typedef struct Point {
 	int y;
 } Point;
 
+typedef struct FPoint {
+	float x;
+	float y;
+} FPoint;
+
 typedef enum RoomType {
     ROOM_TYPE_ENEMY,
     ROOM_TYPE_ELITE,

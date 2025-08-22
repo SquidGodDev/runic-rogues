@@ -39,7 +39,24 @@ static inline uint32_t swap(uint32_t n)
 }
 
 static inline float lerp(float start, float end, float t) {
+	if (fabsf(end - start) < 0.5f) {
+		return end;
+	}
 	return (1 - t) * start + t * end;
+}
+
+static inline Point lerpPoint(Point start, Point end, float t) {
+	Point result;
+	result.x = lerp(start.x, end.x, t);
+	result.y = lerp(start.y, end.y, t);
+	return result;
+}
+
+static inline FPoint lerpFPoint(FPoint start, FPoint end, float t) {
+	FPoint result;
+	result.x = lerp(start.x, end.x, t);
+	result.y = lerp(start.y, end.y, t);
+	return result;
 }
 
 static inline float clampFloat(float d, float min, float max) {
