@@ -157,6 +157,8 @@ void selectShopItem(ShopItem shopItem) {
             continue;
         }
         Interactable *interactable = &INTERACTABLES[shopInteractableIndexes[i]];
+        pd->graphics->freeBitmap(interactable->shopItem.shopPageBitmapEN);
+        pd->graphics->freeBitmap(interactable->shopItem.shopPageBitmapJP);
         interactable->active = false;
     }
 
