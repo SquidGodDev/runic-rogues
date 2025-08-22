@@ -64,6 +64,9 @@ void createInventoryMenuItem(void) {
 #define RUNE_BOTTOM_RIGHT_OFFSET_X 10
 #define RUNE_BOTTOM_RIGHT_OFFSET_Y 12
 
+#define SELECT_OFFSET_X 3
+#define SELECT_OFFSET_Y -3
+
 #define LERP_SPEED 15
 
 typedef enum buttonDir {
@@ -82,6 +85,8 @@ int navigateTarget[SPELL_EQUIP_MAX][DIR_COUNT] = {
 	{1, 2, 3, 6}
 };
 
+int selectedIndex;
+FPoint selectedPos;
 int cursorIndex;
 FPoint cursorTopLeft;
 FPoint cursorTopRight;
@@ -94,6 +99,7 @@ FPoint cursorTargetBottomRight;
 Point spellPositions[SPELL_DECK_MAX];
 
 void initInventory(void) {
+	selectedIndex = -1;
 	cursorIndex = 1;
 
 	cursorTopLeft = (FPoint){spellPositions[cursorIndex].x + SPELL_TOP_LEFT_OFFSET_X, spellPositions[cursorIndex].y + SPELL_TOP_LEFT_OFFSET_Y};
@@ -122,7 +128,7 @@ void updateInventory(float deltaTime) {
 
 	for (int i = 0; i < SPELL_DECK_MAX; i++) {
 		Spell spell = getDeckSpell(i);
-		if (spell == SPELL_NONE) {
+		if (spell == SPELL_NONE || selectedIndex == i) {
 			pd->graphics->drawBitmap(BITMAPS[BITMAP_SPELL_EMPTY_ICON], spellPositions[i].x, spellPositions[i].y, kBitmapUnflipped);
 		} else {
 			pd->graphics->drawBitmap(getSpellIcon(spell), spellPositions[i].x, spellPositions[i].y, kBitmapUnflipped);
@@ -133,7 +139,7 @@ void updateInventory(float deltaTime) {
 		Spell spell = getDeckSpell(i);
 		int invX = INV_BASE_X + ((i - SPELL_EQUIP_MAX) % SPELL_COL) * INV_X_GAP;
 		int invY = INV_BASE_Y + ((i - SPELL_EQUIP_MAX) / SPELL_COL) * INV_Y_GAP;
-		if (spell == SPELL_NONE) {
+		if (spell == SPELL_NONE || selectedIndex == i) {
 			pd->graphics->drawBitmap(BITMAPS[BITMAP_SPELL_EMPTY_ICON], invX, invY, kBitmapUnflipped);
 		} else {
 			pd->graphics->drawBitmap(getSpellIcon(spell), invX, invY, kBitmapUnflipped);
@@ -172,19 +178,47 @@ void updateInventory(float deltaTime) {
 	cursorBottomLeft = lerpFPoint(cursorBottomLeft, cursorTargetBottomLeft, LERP_SPEED * deltaTime);
 	cursorBottomRight = lerpFPoint(cursorBottomRight, cursorTargetBottomRight, LERP_SPEED * deltaTime);
 
-	pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_TOP_LEFT], cursorTopLeft.x, cursorTopLeft.y, kBitmapUnflipped);
-	pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_TOP_RIGHT], cursorTopRight.x, cursorTopRight.y, kBitmapUnflipped);
-	pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_BOTTOM_LEFT], cursorBottomLeft.x, cursorBottomLeft.y, kBitmapUnflipped);
-	pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_BOTTOM_RIGHT], cursorBottomRight.x, cursorBottomRight.y, kBitmapUnflipped);
+	if (selectedIndex != -1) {
+		int selectedTargetX = spellPositions[cursorIndex].x + SELECT_OFFSET_X;
+		int selectedTargetY = spellPositions[cursorIndex].y + SELECT_OFFSET_Y;
+		selectedPos = lerpFPoint(selectedPos, (FPoint){selectedTargetX, selectedTargetY}, LERP_SPEED * deltaTime);
+		Spell spell = getDeckSpell(selectedIndex);
+		if (spell != SPELL_NONE) {
+			pd->graphics->drawBitmap(getSpellIcon(spell), selectedPos.x, selectedPos.y, kBitmapUnflipped);
+		}
+	} else {
+		pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_TOP_LEFT], cursorTopLeft.x, cursorTopLeft.y, kBitmapUnflipped);
+		pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_TOP_RIGHT], cursorTopRight.x, cursorTopRight.y, kBitmapUnflipped);
+		pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_BOTTOM_LEFT], cursorBottomLeft.x, cursorBottomLeft.y, kBitmapUnflipped);
+		pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_BOTTOM_RIGHT], cursorBottomRight.x, cursorBottomRight.y, kBitmapUnflipped);
+	}
 
 	PDButtons pushed;
 	pd->system->getButtonState(NULL, &pushed, NULL);
 	if (pushed & kButtonB) {
-		pd->sprite->removeAllSprites();
-		pd->sprite->freeSprite(backgroundSprite);
-		setScene(SCENE_GAME);
-		createInventoryMenuItem();
-		return;
+		if (selectedIndex == -1 ) {
+			pd->sprite->removeAllSprites();
+			pd->sprite->freeSprite(backgroundSprite);
+			setScene(SCENE_GAME);
+			createInventoryMenuItem();
+			return;
+		} else {
+			cursorIndex = selectedIndex;
+			selectedIndex = -1;
+		}
+	}
+
+	if (pushed & kButtonA) {
+		if (selectedIndex != -1) {
+			swapSpells(selectedIndex, cursorIndex);
+			selectedIndex = -1;
+		} else if (cursorIndex < SPELL_DECK_MAX) {
+			Spell spell = getDeckSpell(cursorIndex);
+			if (spell != SPELL_NONE) {
+				selectedIndex = cursorIndex;
+				selectedPos = (FPoint){spellPositions[cursorIndex].x + SELECT_OFFSET_X, spellPositions[cursorIndex].y + SELECT_OFFSET_Y};
+			}
+		}
 	}
 
 	if (cursorIndex < SPELL_EQUIP_MAX) {
@@ -225,10 +259,12 @@ void updateInventory(float deltaTime) {
 		} else if (pushed & kButtonRight) {
 			if (curCol < SPELL_COL - 1) {
 				cursorIndex++;
-			} else if (curRow == 0) {
+			} else if (selectedIndex == -1) {
+				if (curRow == 0) {
 				cursorIndex = SPELL_DECK_MAX;
-			} else if (curRow == 1) {
-				cursorIndex = SPELL_DECK_MAX + RUNE_COL;
+				} else if (curRow == 1) {
+					cursorIndex = SPELL_DECK_MAX + RUNE_COL;
+				}
 			}
 		}
 	} else {

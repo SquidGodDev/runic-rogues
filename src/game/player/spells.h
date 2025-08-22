@@ -71,6 +71,7 @@ void initSpells(void);
 Spell *getSpellDeck(void);
 bool spellInDeck(Spell spell);
 void addSpellToDeck(Spell spell);
+void swapSpells(int spellIndex1, int spellIndex2);
 int getSpellPickupTextureIndex(Spell spell);
 LCDBitmap* getSpellIcon(Spell spell);
 Spell getDeckSpell(int index);

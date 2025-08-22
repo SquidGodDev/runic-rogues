@@ -298,6 +298,15 @@ void addSpellToDeck(Spell spell) {
     }
 }
 
+void swapSpells(int spellIndex1, int spellIndex2) {
+    if (spellIndex1 < 0 || spellIndex1 >= SPELL_DECK_MAX || spellIndex2 < 0 || spellIndex2 >= SPELL_DECK_MAX) {
+        return;
+    }
+    Spell temp = spellDeck[spellIndex1];
+    spellDeck[spellIndex1] = spellDeck[spellIndex2];
+    spellDeck[spellIndex2] = temp;
+}
+
 int getSpellPickupTextureIndex(Spell spell) {
     return spellData[spell].pickupTextureIndex;
 }
