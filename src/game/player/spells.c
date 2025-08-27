@@ -193,7 +193,7 @@ SpellData spellData[SPELL_COUNT] = {
     },
     [SPELL_ARC_LIGHTNING] = {
         .name = "Arc Lightning",
-        .name_jp = "アークライトニング",
+        .name_jp = "ライトニング",
         .description = "Unleashes lightning from your hand that damages enemies directly in front of you.",
         .description_jp = "前方の敵に直接ダメージを与える稲妻を手から放つ。",
         .pickupTextureIndex = TEXTURE_SPELL_ARC_LIGHTNING,
@@ -209,7 +209,7 @@ SpellData spellData[SPELL_COUNT] = {
     },
     [SPELL_EXPLOSIVE_SHOT] = {
         .name = "Explosive Shot",
-        .name_jp = "エクスプローシブショット",
+        .name_jp = "爆裂弾",
         .description = "Shoot a projectile that drops a bomb on impact, dealing damage to nearby enemies.",
         .description_jp = "衝撃で爆弾を落とす弾を発射し、周囲の敵にダメージを与える。",
         .pickupTextureIndex = TEXTURE_SPELL_EXPLOSIVE_SHOT,

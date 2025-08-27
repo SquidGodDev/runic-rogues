@@ -62,6 +62,7 @@ void initRunes(void) {
     for (int i = 0; i < MAX_RUNES; i++) {
         runes[i] = RUNE_TYPE_NONE;
     }
+    runes[0] = RUNE_TYPE_WINGED_BOOTS;
 }
 
 bool runeIsOwned(RuneType type) {

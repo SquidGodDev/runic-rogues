@@ -25,18 +25,18 @@ void createInventoryMenuItem(void) {
 	pd->system->addMenuItem("Inventory", openInventoryCallback, NULL);
 }
 
-#define BASIC_SPELL_X 30
+#define BASIC_SPELL_X 24
 #define BASIC_SPELL_Y 24
-#define LEFT_SPELL_X 14
-#define LEFT_SPELL_Y 24
-#define UP_SPELL_X 30
-#define UP_SPELL_Y 6
-#define RIGHT_SPELL_X 46
-#define RIGHT_SPELL_Y 24
-#define DOWN_SPELL_X 30
-#define DOWN_SPELL_Y 42
+#define LEFT_SPELL_X BASIC_SPELL_X - 16
+#define LEFT_SPELL_Y BASIC_SPELL_Y
+#define UP_SPELL_X BASIC_SPELL_X
+#define UP_SPELL_Y BASIC_SPELL_Y - 18
+#define RIGHT_SPELL_X BASIC_SPELL_X + 16
+#define RIGHT_SPELL_Y BASIC_SPELL_Y
+#define DOWN_SPELL_X BASIC_SPELL_X
+#define DOWN_SPELL_Y BASIC_SPELL_Y + 18
 
-#define INV_BASE_X 14
+#define INV_BASE_X 8
 #define INV_BASE_Y 79
 #define RUNE_BASE_X 77
 #define INV_X_GAP 16
@@ -98,9 +98,125 @@ FPoint cursorTargetBottomLeft;
 FPoint cursorTargetBottomRight;
 Point spellPositions[SPELL_DECK_MAX];
 
+float descriptionOffset;
+int maxDescriptionOffset;
+
+#define HEADER_X 58
+#define HEADER_Y 4
+#define DESC_X 62
+#define DESC_Y 40
+#define DESC_MAX_WIDTH 124
+#define DESC_BOX_HEIGHT 34
+#define SCROLLBAR_LENGTH 28
+#define SCROLLBAR_SENSITIVITY 0.2f
+
+typedef struct InfoPageData {
+	LCDBitmap *headerBitmap;
+	LCDBitmap *descBitmap;
+	int descHeight;
+} InfoPageData;
+
+#define MAX_INVENTORY_SLOTS SPELL_DECK_MAX + MAX_RUNES
+InfoPageData spellInfoPages[SPELL_COUNT];
+InfoPageData runeInfoPages[RUNE_TYPE_COUNT];
+
+InfoPageData createInfoPage(char *name, char *desc, char* type, LCDBitmap *icon, Language language) {
+    LCDFont *fontTitle = fontTitleEN;
+    LCDFont *fontSub = fontSubEN;
+    LCDBitmapDrawMode drawMode = kDrawModeCopy;
+    int titleTracking = -1;
+    int tracking = -2;
+    int leading = 0;
+	int subheadingDrawY = language == LANGUAGE_JP ? 19 : 20;
+    if (language == LANGUAGE_JP) {
+        fontTitle = fontTitleJP;
+		titleTracking = 0;
+        fontSub = fontSubJP;
+        drawMode = kDrawModeFillWhite;
+        tracking = 1;
+        leading = 2;
+    }
+
+    LCDBitmap *infoHeaderBitmap = pd->graphics->newBitmap(140, 40, kColorClear);
+    pd->graphics->pushContext(infoHeaderBitmap);
+        pd->graphics->drawScaledBitmap(icon, 0, 0, 2.0f, 2.0f);
+        pd->graphics->setDrawMode(drawMode);
+        pd->graphics->setFont(fontTitle);
+        pd->graphics->setTextTracking(titleTracking);
+        pd->graphics->drawText(name, strlen(name), kUTF8Encoding, 25, 2);
+        pd->graphics->setFont(fontSub);
+        pd->graphics->setTextTracking(tracking);
+        pd->graphics->setTextLeading(leading);
+        pd->graphics->drawText(type, strlen(type), kUTF8Encoding, 26, subheadingDrawY);
+    pd->graphics->popContext();
+
+	int descHeight = pd->graphics->getTextHeightForMaxWidth(fontSub, desc, strlen(desc), DESC_MAX_WIDTH, kUTF8Encoding, kWrapWord, tracking, leading);
+	LCDBitmap *infoDescBitmap = pd->graphics->newBitmap(DESC_MAX_WIDTH, descHeight, kColorClear);
+	pd->graphics->pushContext(infoDescBitmap);
+		pd->graphics->setDrawMode(drawMode);
+		pd->graphics->setFont(fontSub);
+		pd->graphics->setTextTracking(tracking);
+		pd->graphics->setTextLeading(leading);
+		pd->graphics->drawTextInRect(desc, strlen(desc), kUTF8Encoding, 0, 0, DESC_MAX_WIDTH, descHeight, kWrapWord, kAlignTextLeft);
+	pd->graphics->popContext();
+
+	return (InfoPageData){
+		.headerBitmap = infoHeaderBitmap,
+		.descBitmap = infoDescBitmap,
+		.descHeight = descHeight
+	};
+}
+
+InfoPageData createSpellInfoPage(Spell spell, Language language) {
+    SpellData curSpellData = spellData[spell];
+    char *name = curSpellData.name;
+    char *desc = curSpellData.description;
+    char *type = "Spell";
+    if (language == LANGUAGE_JP) {
+        name = curSpellData.name_jp;
+        desc = curSpellData.description_jp;
+        type = "スペル";
+    }
+    return createInfoPage(name, desc, type, BITMAPS[curSpellData.spellIconIndex], language);
+}
+
+InfoPageData createRuneInfoPage(RuneType runeType, Language language) {
+    char *name = getRuneName(runeType, language);
+    char *desc = getRuneDescription(runeType, language);
+    char *type = language == LANGUAGE_JP ? "ルーン" : "Rune";
+    return createInfoPage(name, desc, type, BITMAPS[getRuneIconIndex(runeType)], language);
+}
+
+void drawInfoPage(InfoPageData *pageData) {
+    pd->graphics->drawBitmap(pageData->headerBitmap, HEADER_X, HEADER_Y, kBitmapUnflipped);
+	pd->graphics->pushContext(NULL);
+		pd->graphics->setClipRect(DESC_X, DESC_Y, DESC_MAX_WIDTH, DESC_BOX_HEIGHT);
+		pd->graphics->drawBitmap(pageData->descBitmap, DESC_X, DESC_Y - descriptionOffset, kBitmapUnflipped);
+	pd->graphics->popContext();
+
+	pd->graphics->drawRect(DESC_X - 3, DESC_Y - 3, DESC_MAX_WIDTH + 12, DESC_BOX_HEIGHT + 6, kColorWhite);
+	float scrollbarPercentage = (float)DESC_BOX_HEIGHT / pageData->descHeight;
+	if (scrollbarPercentage < 1.0f) {
+		int scrollbarX = DESC_X + DESC_MAX_WIDTH + 1;
+		int scrollbarY = DESC_Y;
+		pd->graphics->drawRoundRect(scrollbarX, scrollbarY, 5, DESC_BOX_HEIGHT, 1, 1, kColorWhite);
+		int scrollbarLength = SCROLLBAR_LENGTH * scrollbarPercentage;
+		int scrollbarOffset = SCROLLBAR_LENGTH * ((float)descriptionOffset / pageData->descHeight);
+		int scrollbarLineX = scrollbarX + 2;
+		int scrollbarLineY = scrollbarY + 3 + scrollbarOffset;
+		pd->graphics->drawLine(scrollbarLineX, scrollbarLineY, scrollbarLineX, scrollbarLineY + scrollbarLength, 1, kColorWhite);
+
+		maxDescriptionOffset = pageData->descHeight - DESC_BOX_HEIGHT > 0 ? pageData->descHeight - DESC_BOX_HEIGHT : 0;
+	} else {
+		maxDescriptionOffset = 0;
+	}
+}
+
 void initInventory(void) {
 	selectedIndex = -1;
 	cursorIndex = 1;
+	descriptionOffset = 0;
+	maxDescriptionOffset = 0;
 
 	cursorTopLeft = (FPoint){spellPositions[cursorIndex].x + SPELL_TOP_LEFT_OFFSET_X, spellPositions[cursorIndex].y + SPELL_TOP_LEFT_OFFSET_Y};
 	cursorTopRight = (FPoint){spellPositions[cursorIndex].x + SPELL_TOP_RIGHT_OFFSET_X, spellPositions[cursorIndex].y + SPELL_TOP_RIGHT_OFFSET_Y};
@@ -192,6 +308,38 @@ void updateInventory(float deltaTime) {
 		pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_BOTTOM_LEFT], cursorBottomLeft.x, cursorBottomLeft.y, kBitmapUnflipped);
 		pd->graphics->drawBitmap(BITMAPS[BITMAP_CURSOR_BOTTOM_RIGHT], cursorBottomRight.x, cursorBottomRight.y, kBitmapUnflipped);
 	}
+
+	if (cursorIndex < SPELL_DECK_MAX) {
+		Spell spell = getDeckSpell(cursorIndex);
+		if (spell != SPELL_NONE) {
+			InfoPageData pageData = spellInfoPages[spell];
+			if (pageData.headerBitmap == NULL) {
+				pageData = createSpellInfoPage(spell, SETTINGS.language);
+				spellInfoPages[spell] = pageData;
+			}
+			drawInfoPage(&pageData);
+		}
+	} else {
+		RuneType runeType = getRune(cursorIndex - SPELL_DECK_MAX);
+		if (runeType != RUNE_TYPE_NONE) {
+			InfoPageData pageData = runeInfoPages[runeType];
+			if (pageData.headerBitmap == NULL) {
+				pageData = createRuneInfoPage(runeType, SETTINGS.language);
+				runeInfoPages[runeType] = pageData;
+			}
+			drawInfoPage(&pageData);
+		}
+	}
+
+	float crankChange = pd->system->getCrankChange() * SCROLLBAR_SENSITIVITY;
+	descriptionOffset += crankChange;
+	if (descriptionOffset < 0) {
+		descriptionOffset = 0;
+	} else if (descriptionOffset > maxDescriptionOffset) {
+		descriptionOffset = maxDescriptionOffset;
+	}
+
+	int prevCursorIndex = cursorIndex;
 
 	PDButtons pushed;
 	pd->system->getButtonState(NULL, &pushed, NULL);
@@ -291,5 +439,9 @@ void updateInventory(float deltaTime) {
 				cursorIndex++;
 			}
 		}
+	}
+
+	if (prevCursorIndex != cursorIndex) {
+		descriptionOffset = 0;
 	}
 }
