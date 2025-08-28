@@ -12,19 +12,6 @@
 
 LCDSprite *backgroundSprite;
 
-void openInventoryCallback(void* userdata) {
-	if (scene != SCENE_INVENTORY) {
-		pd->system->removeAllMenuItems();
-		initInventory();
-		setScene(SCENE_INVENTORY);
-	}
-}
-
-void createInventoryMenuItem(void) {
-    pd->system->removeAllMenuItems();
-	pd->system->addMenuItem("Inventory", openInventoryCallback, NULL);
-}
-
 #define BASIC_SPELL_X 24
 #define BASIC_SPELL_Y 24
 #define LEFT_SPELL_X BASIC_SPELL_X - 16
@@ -212,6 +199,49 @@ void drawInfoPage(InfoPageData *pageData) {
 	}
 }
 
+void openInventoryCallback(void* userdata) {
+	if (scene != SCENE_INVENTORY) {
+		pd->system->removeAllMenuItems();
+		initInventory();
+		setScene(SCENE_INVENTORY);
+	}
+}
+
+void createInventoryMenuItem(void) {
+    pd->system->removeAllMenuItems();
+	pd->system->addMenuItem("Inventory", openInventoryCallback, NULL);
+}
+
+void closeInventoryCallback(void* userdata) {
+	pd->sprite->removeAllSprites();
+	pd->sprite->freeSprite(backgroundSprite);
+	for (int i = 0; i < SPELL_COUNT; i++) {
+		if (spellInfoPages[i].headerBitmap != NULL) {
+			pd->graphics->freeBitmap(spellInfoPages[i].headerBitmap);
+		}
+		if (spellInfoPages[i].descBitmap != NULL) {
+			pd->graphics->freeBitmap(spellInfoPages[i].descBitmap);
+		}
+		spellInfoPages[i] = (InfoPageData){0};
+	}
+	for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
+		if (runeInfoPages[i].headerBitmap != NULL) {
+			pd->graphics->freeBitmap(runeInfoPages[i].headerBitmap);
+		}
+		if (runeInfoPages[i].descBitmap != NULL) {
+			pd->graphics->freeBitmap(runeInfoPages[i].descBitmap);
+		}
+		runeInfoPages[i] = (InfoPageData){0};
+	}
+	setScene(SCENE_GAME);
+	createInventoryMenuItem();
+}
+
+void createInventoryExitMenuItem(void) {
+	pd->system->removeAllMenuItems();
+	pd->system->addMenuItem("Exit Inventory", closeInventoryCallback, NULL);
+}
+
 void initInventory(void) {
 	selectedIndex = -1;
 	cursorIndex = 1;
@@ -237,6 +267,8 @@ void initInventory(void) {
 		int invY = INV_BASE_Y + ((i - SPELL_EQUIP_MAX) / SPELL_COL) * INV_Y_GAP;
 		spellPositions[i] = (Point){invX, invY};
 	}
+
+	createInventoryExitMenuItem();
 }
 
 void updateInventory(float deltaTime) {
@@ -345,28 +377,7 @@ void updateInventory(float deltaTime) {
 	pd->system->getButtonState(NULL, &pushed, NULL);
 	if (pushed & kButtonB) {
 		if (selectedIndex == -1 ) {
-			pd->sprite->removeAllSprites();
-			pd->sprite->freeSprite(backgroundSprite);
-			for (int i = 0; i < SPELL_COUNT; i++) {
-				if (spellInfoPages[i].headerBitmap != NULL) {
-					pd->graphics->freeBitmap(spellInfoPages[i].headerBitmap);
-				}
-				if (spellInfoPages[i].descBitmap != NULL) {
-					pd->graphics->freeBitmap(spellInfoPages[i].descBitmap);
-				}
-				spellInfoPages[i] = (InfoPageData){0};
-			}
-			for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
-				if (runeInfoPages[i].headerBitmap != NULL) {
-					pd->graphics->freeBitmap(runeInfoPages[i].headerBitmap);
-				}
-				if (runeInfoPages[i].descBitmap != NULL) {
-					pd->graphics->freeBitmap(runeInfoPages[i].descBitmap);
-				}
-				runeInfoPages[i] = (InfoPageData){0};
-			}
-			setScene(SCENE_GAME);
-			createInventoryMenuItem();
+			closeInventoryCallback(NULL);
 			return;
 		} else {
 			cursorIndex = selectedIndex;
