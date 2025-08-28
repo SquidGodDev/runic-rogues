@@ -113,6 +113,7 @@ void drawHealth(void) {
         int textWidth = pd->graphics->getTextWidth(fontSubEN, healthString, strlen(healthString), kUTF8Encoding, tracking);
         pd->graphics->drawText(healthString, strlen(healthString), kUTF8Encoding, 45 - textWidth / 2, 4);
     pd->graphics->popContext();
+    pd->system->realloc(healthString, 0);
 }
 
 void drawEntityToMinimap(float entityX, float entityY, uint8_t *texture, float playerAngleCos, float playerAngleSin) {

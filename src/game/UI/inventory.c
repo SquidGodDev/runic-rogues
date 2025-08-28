@@ -347,6 +347,24 @@ void updateInventory(float deltaTime) {
 		if (selectedIndex == -1 ) {
 			pd->sprite->removeAllSprites();
 			pd->sprite->freeSprite(backgroundSprite);
+			for (int i = 0; i < SPELL_COUNT; i++) {
+				if (spellInfoPages[i].headerBitmap != NULL) {
+					pd->graphics->freeBitmap(spellInfoPages[i].headerBitmap);
+				}
+				if (spellInfoPages[i].descBitmap != NULL) {
+					pd->graphics->freeBitmap(spellInfoPages[i].descBitmap);
+				}
+				spellInfoPages[i] = (InfoPageData){0};
+			}
+			for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
+				if (runeInfoPages[i].headerBitmap != NULL) {
+					pd->graphics->freeBitmap(runeInfoPages[i].headerBitmap);
+				}
+				if (runeInfoPages[i].descBitmap != NULL) {
+					pd->graphics->freeBitmap(runeInfoPages[i].descBitmap);
+				}
+				runeInfoPages[i] = (InfoPageData){0};
+			}
 			setScene(SCENE_GAME);
 			createInventoryMenuItem();
 			return;
