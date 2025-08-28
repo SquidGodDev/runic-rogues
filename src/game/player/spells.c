@@ -16,6 +16,7 @@
 
 typedef struct SpellCastData {
     Spell spell;
+    float maxCooldown;
     float castTime;
     float activationTime;
     int activationCount;
@@ -258,6 +259,7 @@ void initSpells(void) {
     for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         spellCastData[i] = (SpellCastData) {
             .spell = SPELL_NONE,
+            .maxCooldown = 0.0f,
             .castTime = 0.0f,
             .activationTime = 0.0f,
             .activationCount = 0,
@@ -320,12 +322,12 @@ Spell getDeckSpell(int index) {
 }
 
 float getSpellCooldownPercentage(int index) {
-    if (spellCooldowns[index] <= 0.0f) {
+    float maxCooldown = spellCastData[index].maxCooldown;
+    if (spellCooldowns[index] <= 0.0f || maxCooldown <= 0.0f) {
         return 0.0f;
     }
 
-    SpellData data = spellData[spellDeck[index]];
-    return spellCooldowns[index] / data.cooldown;
+    return spellCooldowns[index] / maxCooldown;
 }
 
 float getPlayerSpeedModifier(void) {
@@ -477,6 +479,7 @@ bool castSpell(int index) {
     if (data->type == SPELL_TYPE_REPEAT) {
         spellCastData[index] = (SpellCastData) {
             .spell = spell,
+            .maxCooldown = data->cooldown,
             .castTime = data->castTime,
             .activationTime = data->repeatData.activationTime,
             .activationCount = 0,
@@ -485,11 +488,13 @@ bool castSpell(int index) {
     } else if (data->type == SPELL_TYPE_CHANNEL) {
         spellCastData[index] = (SpellCastData) {
             .spell = spell,
+            .maxCooldown = data->cooldown,
             .activationTime = data->repeatData.activationTime,
             .initialCastAngle = playerAngle
         };
     } else {
         spellCastData[index].spell = SPELL_NONE;
+        spellCastData[index].maxCooldown = data->cooldown;
     }
 
     playSound(SFX_SHOOT);
