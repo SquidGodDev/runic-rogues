@@ -5,7 +5,6 @@
 #include "game/enemies/enemies.h"
 
 #define MAX_ROOM_COUNT 10
-#define ENEMY_TYPES_PER_AREA 3
 
 typedef enum Area
 {
@@ -30,4 +29,3 @@ void setRoomCompleted(bool completed);
 bool isRoomCompleted(void);
 void nextRoom(void);
 int isTransitioning(void);
-EnemyType *getAreaSpawnList(void);

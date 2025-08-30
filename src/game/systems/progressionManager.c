@@ -14,13 +14,6 @@ static bool roomCompleted;
 
 static Area currentArea = AREA_LOST_ARCHIVES;
 static AreaData areaData[AREA_COUNT];
-static EnemyType enemySpawnList[AREA_COUNT][ENEMY_TYPES_PER_AREA] = {
-    // [AREA_ECHOING_CAVERNS] = {ENEMY_TYPE_SLIME, ENEMY_TYPE_SKELETON, ENEMY_TYPE_BAT},
-    [AREA_ECHOING_CAVERNS] = {ENEMY_TYPE_BABY_SLIME, ENEMY_TYPE_BABY_SLIME, ENEMY_TYPE_BABY_SLIME},
-    // [AREA_ECHOING_CAVERNS] = {ENEMY_TYPE_TURRET, ENEMY_TYPE_TURRET, ENEMY_TYPE_TURRET},
-    [AREA_LOST_ARCHIVES] = {ENEMY_TYPE_IMP, ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_LIVING_ARMOR},
-    [AREA_TEST] = {ENEMY_TYPE_IMP}
-};
 
 void initProgressionManager(int area, int room) {
     currentArea = area;
@@ -78,8 +71,4 @@ void nextRoom(void) {
 
 int isTransitioning(void) {
     return transitioning;
-}
-
-EnemyType *getAreaSpawnList(void) {
-    return enemySpawnList[currentArea];
 }
