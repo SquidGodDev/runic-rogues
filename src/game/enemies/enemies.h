@@ -18,6 +18,7 @@ typedef enum EnemyType
 	ENEMY_TYPE_IMP,
 	ENEMY_TYPE_FLYING_TOME,
 	ENEMY_TYPE_LIVING_ARMOR,
+	ENEMY_TYPE_MUMMY,
 	ENEMY_TYPE_WRAITH_BOSS,
 	ENEMY_TYPE_WRAITH,
 	ENEMY_TYPE_COUNT
@@ -66,7 +67,6 @@ void initEnemies(void);
 int getEnemiesDefeated(void);
 int getActiveEnemyCount(void);
 int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion);
-void spawnRandomEnemy(int spawnX, int spawnY);
 void spawnEnemies(int currentArea, RoomType roomType);
 void updateEnemies(float deltaTime);
 float getBossHealthPercentage(void);

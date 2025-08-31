@@ -20,7 +20,7 @@ static EnemySpawnData enemySpawnData[AREA_COUNT] = {
     },
     [AREA_LOST_ARCHIVES] = {
         .basicEnemyType = ENEMY_TYPE_BABY_SLIME,
-        .eliteEnemyTypes = {ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_LIVING_ARMOR, ENEMY_TYPE_WRAITH, ENEMY_TYPE_BAT}
+        .eliteEnemyTypes = {ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_LIVING_ARMOR, ENEMY_TYPE_MUMMY, ENEMY_TYPE_BAT}
     },
     [AREA_TEST] = {
         .basicEnemyType = ENEMY_TYPE_BABY_SLIME,

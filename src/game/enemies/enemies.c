@@ -281,6 +281,23 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackPattern = ATTACK_PATTERN_MELEE,
 		.knockbackResistant = true
 	},
+	[ENEMY_TYPE_MUMMY] = (EnemyData){
+		.name = "Mummy",
+		.health = 60,
+		.attackDetectionRange = 60,
+		.attackDamage = 12,
+		.attackCooldown = 4.0f,
+		.moveSpeed = 0.2f,
+		.textureIndex = TEXTURE_MUMMY,
+		.idleFrameEnd = 8,
+		.attackFrameStart = 9,
+		.attackFrameEnd = 17,
+		.attackActiveFrame = 13,
+		.deathFrameStart = 18,
+		.deathFrameEnd = 21,
+		.frameTime = 0.14f,
+		.attackPattern = ATTACK_PATTERN_CUSTOM_ATTACK
+	},
 	[ENEMY_TYPE_WRAITH_BOSS] = (EnemyData){
 		.name = "Wraith Boss",
 		.health = 1000,
@@ -436,17 +453,6 @@ int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 	}
 
 	return newEnemyIndex;
-}
-
-void spawnRandomEnemy(int spawnX, int spawnY) {
-	EnemyType *spawnList = getAreaSpawnList();
-	EnemyType enemyType = spawnList[randInt(0, ENEMY_TYPES_PER_AREA - 1)];
-
-	if (SPAWN_TEST_ENEMY) {
-		enemyType = ENEMY_TYPE_TEST;
-	}
-
-	spawnEnemy(enemyType, spawnX, spawnY, false /*isMinion*/);
 }
 
 void initEnemies(void) {
@@ -641,30 +647,38 @@ void customAttackEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
 		// Fire custom attack towards player if attack animation passes active frame
 		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
-			if (!curEnemy->attackedPlayer) {
-				curEnemy->attackedPlayer = true;
-				curEnemy->targetX = playerX;
-				curEnemy->targetY = playerY;
-			}
-			int attackCount = curEnemy->stateCount;
-			int maxAttackCount = curEnemyData->abilityDataPrimary;
-			if (curEnemy->stateTimer <= 0 && attackCount < maxAttackCount) {
-				float dx = curEnemy->targetX - curEnemy->x;
-				float dy = curEnemy->targetY - curEnemy->y;
-				if (dx == 0 && dy == 0) {
-					dx = 1;
-					dy = 0;
+			if (curEnemy->type == ENEMY_TYPE_MUMMY) {
+				if (!curEnemy->attackedPlayer) {
+					curEnemy->attackedPlayer = true;
+					spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x, curEnemy->y, true /*isMinion*/);
 				}
-				float length = sqrtf(dx * dx + dy * dy);
-				if (length > 0) {
-					dx /= length;
-					dy /= length;
+			} else if (curEnemy->type == ENEMY_TYPE_SERPENT) {
+				// Spawn tail attack particles at intervals during attack animation
+				if (!curEnemy->attackedPlayer) {
+					curEnemy->attackedPlayer = true;
+					curEnemy->targetX = playerX;
+					curEnemy->targetY = playerY;
 				}
-				float offsetX = dx * (curEnemy->stateCount + 1) * CELL_SIZE / 2;
-				float offsetY = dy * (curEnemy->stateCount + 1) * CELL_SIZE / 2;
-				spawnParticle(PARTICLE_TYPE_SERPENT_TAIL, curEnemy->x + offsetX, curEnemy->y + offsetY, PARTICLE_TYPE_NONE, true /* enemyParticle */);
-				curEnemy->stateCount++;
-				curEnemy->stateTimer = curEnemyData->abilityDataSecondary;
+				int attackCount = curEnemy->stateCount;
+				int maxAttackCount = curEnemyData->abilityDataPrimary;
+				if (curEnemy->stateTimer <= 0 && attackCount < maxAttackCount) {
+					float dx = curEnemy->targetX - curEnemy->x;
+					float dy = curEnemy->targetY - curEnemy->y;
+					if (dx == 0 && dy == 0) {
+						dx = 1;
+						dy = 0;
+					}
+					float length = sqrtf(dx * dx + dy * dy);
+					if (length > 0) {
+						dx /= length;
+						dy /= length;
+					}
+					float offsetX = dx * (curEnemy->stateCount + 1) * CELL_SIZE / 2;
+					float offsetY = dy * (curEnemy->stateCount + 1) * CELL_SIZE / 2;
+					spawnParticle(PARTICLE_TYPE_SERPENT_TAIL, curEnemy->x + offsetX, curEnemy->y + offsetY, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+					curEnemy->stateCount++;
+					curEnemy->stateTimer = curEnemyData->abilityDataSecondary;
+				}
 			}
 		}
 
@@ -890,6 +904,9 @@ void updateEnemies(float deltaTime) {
 		bool attackAnimationReset = updateEnemyAnimation(curEnemy, curEnemyData, deltaTime);
 
 		if (curEnemy->state == ENEMY_STATE_DEAD) {
+			if(!curEnemy->active) {
+				continue;
+			}
 			addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->textureIndex, curEnemy->animationFrame);
 			continue;
 		}
