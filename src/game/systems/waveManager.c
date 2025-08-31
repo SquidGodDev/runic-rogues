@@ -19,7 +19,7 @@ static EnemySpawnData enemySpawnData[AREA_COUNT] = {
         .eliteEnemyTypes = {ENEMY_TYPE_SERPENT, ENEMY_TYPE_SLIME, ENEMY_TYPE_SKELETON, ENEMY_TYPE_BAT}
     },
     [AREA_LOST_ARCHIVES] = {
-        .basicEnemyType = ENEMY_TYPE_BABY_SLIME,
+        .basicEnemyType = ENEMY_TYPE_RAT,
         .eliteEnemyTypes = {ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_LIVING_ARMOR, ENEMY_TYPE_MUMMY, ENEMY_TYPE_BAT}
     },
     [AREA_TEST] = {
@@ -29,7 +29,7 @@ static EnemySpawnData enemySpawnData[AREA_COUNT] = {
 };
 
 #define MAX_BASE_ACTIVE_ENEMIES 20
-#define BASE_TOTAL_ENEMIES 1
+#define BASE_TOTAL_ENEMIES 10
 #define TOTAL_ENEMY_INCREMENT 5
 #define WAVE_SPAWN_INTERVAL 1.0f
 #define ELITE_BASE_SPAWN_CHANCE 0

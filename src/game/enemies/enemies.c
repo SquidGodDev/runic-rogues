@@ -123,7 +123,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.name = "Slime",
 		.health = 40,
 		.attackDetectionRange = 10,
-		.attackDistance = 10,
+		.attackDistance = 15,
 		.attackDamage = 15,
 		.attackCooldown = 2.0f,
 		.moveSpeed = 0.25f,
@@ -139,7 +139,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.name = "Baby Slime",
 		.health = 20,
 		.attackDetectionRange = 10,
-		.attackDistance = 10,
+		.attackDistance = 15,
 		.attackDamage = 5,
 		.attackCooldown = 2.0f,
 		.moveSpeed = 0.2f,
@@ -223,6 +223,21 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.frameTime = 0.15f,
 		.attackPattern = ATTACK_PATTERN_ELDER_BOSS,
 		.knockbackResistant = true
+	},
+	[ENEMY_TYPE_RAT] = (EnemyData){
+		.name = "Rat",
+		.health = 30,
+		.attackDetectionRange = 10,
+		.attackDistance = 15,
+		.attackDamage = 5,
+		.attackCooldown = 2.0f,
+		.moveSpeed = 0.2f,
+		.textureIndex = TEXTURE_RAT,
+		.idleFrameEnd = 9,
+		.deathFrameStart = 10,
+		.deathFrameEnd = 13,
+		.frameTime = 0.1f,
+		.attackPattern = ATTACK_PATTERN_PROXIMITY
 	},
 	[ENEMY_TYPE_IMP] = (EnemyData){
 		.name = "Imp",
@@ -324,7 +339,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.name = "Wraith",
 		.health = 20,
 		.attackDetectionRange = 10,
-		.attackDistance = 10,
+		.attackDistance = 15,
 		.attackDamage = 15,
 		.attackCooldown = 1.0f,
 		.moveSpeed = 0.6f,
@@ -516,7 +531,7 @@ void transitionToState(Enemy *enemy, EnemyState newState) {
 
 void proximityEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
 	// Constantly attack nearby player
-	if (playerInAttackDetectionRange(index)) {
+	if (playerInAttackDistance(index)) {
 		if (curEnemy->attackCooldown <= 0) {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
 			damagePlayer(curEnemyData->attackDamage);
@@ -525,8 +540,10 @@ void proximityEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
 		curEnemy->attackCooldown = curEnemyData->attackCooldown;
 	}
 
-	// Constantly move towards player
-	moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+	if (!playerInAttackDetectionRange(index)) {
+		// Constantly move towards player if not in attack range
+		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+	}
 }
 
 void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
