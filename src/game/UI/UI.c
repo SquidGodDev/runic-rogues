@@ -372,12 +372,12 @@ void drawBossHealthBar(void) {
 
 void drawWaveProgressBar(void) {
     float wavePercentage = getWavePercentage();
-    int waveBarWidth = wavePercentage * 68;
+    int waveBarWidth = wavePercentage * 44;
 
-    int progressBarX = 64;
-    int progressBarY = 20;
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_BOSS_HEALTH_BAR], progressBarX, progressBarY, kBitmapUnflipped);
-    pd->graphics->fillRect(progressBarX + 2, progressBarY + 2, waveBarWidth, 4, kColorWhite);
+    int progressBarX = 148;
+    int progressBarY = 55;
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_WAVE_PROGRESS_BAR], progressBarX, progressBarY, kBitmapUnflipped);
+    pd->graphics->fillRect(progressBarX + 2, progressBarY + 2, waveBarWidth, 3, kColorWhite);
 }
 
 void setSpellOverlay(int index, int bitmapTableIndex, float frameTime, int drawX, int drawY) {
@@ -473,12 +473,12 @@ void drawUI(float deltaTime) {
     drawPopup(deltaTime);
     drawInteractablePrompt();
 
-    if (!isRoomCompleted()) {
-        if (showBossHealthBar) {
+    if (showBossHealthBar) {
+        if (!isRoomCompleted()) {
             drawBossHealthBar();
-        } else {
-            drawWaveProgressBar();
         }
+    } else {
+        drawWaveProgressBar();
     }
 }
 

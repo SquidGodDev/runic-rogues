@@ -65,6 +65,7 @@ const char *bitmapPathStrings[] = {
 	"images/UI/minimap/minimapWall",
 	"images/UI/minimap/minimapBorder",
 	"images/UI/minimap/minimapMask",
+	"images/UI/wave/waveProgressBar",
 	"images/UI/prompts/AButton",
 	"images/UI/prompts/exitPrompt",
 	"images/UI/prompts/exitPrompt_JP",
