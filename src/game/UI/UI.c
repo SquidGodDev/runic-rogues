@@ -465,7 +465,7 @@ void drawUI(float deltaTime) {
     }
 
     if (showBossHealthBar) {
-        if (!isRoomCompleted()) {
+        if (!isBossDefeated()) {
             drawBossHealthBar();
         }
     } else {

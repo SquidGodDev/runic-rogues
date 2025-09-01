@@ -11,15 +11,19 @@
 static int currentRoom = 0;
 static int transitioning = 0;
 static bool roomCompleted;
+static bool bossDefeated;
 
+static RoomType currentRoomType;
 static Area currentArea = AREA_LOST_ARCHIVES;
 static AreaData areaData[AREA_COUNT];
 
-void initProgressionManager(int area, int room) {
+void initProgressionManager(int area, int room, RoomType roomType) {
     currentArea = area;
     currentRoom = room;
     transitioning = 0;
     roomCompleted = false;
+    bossDefeated = false;
+    currentRoomType = roomType;
 
     areaData[AREA_ECHOING_CAVERNS] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
@@ -51,6 +55,18 @@ Area getCurrentArea(void) {
 
 int getCurrentRoom(void) {
     return currentRoom;
+}
+
+RoomType getCurrentRoomType(void) {
+    return currentRoomType;
+}
+
+void setBossDefeated(void) {
+    bossDefeated = true;
+}
+
+bool isBossDefeated(void) {
+    return bossDefeated;
 }
 
 void setRoomCompleted(bool completed) {

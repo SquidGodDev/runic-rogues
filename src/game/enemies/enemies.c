@@ -494,10 +494,11 @@ int getActiveEnemyCount(void) {
 
 void spawnEnemies(int currentArea, RoomType roomType) {
 	if (roomType == ROOM_TYPE_BOSS) {
+		Point bossPos = getBossSpawnPosition();
 		if (currentArea == AREA_ECHOING_CAVERNS) {
-			bossIndex = spawnEnemy(ENEMY_TYPE_ELDER_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE, false /*isMinion*/);	
+			bossIndex = spawnEnemy(ENEMY_TYPE_ELDER_BOSS, bossPos.x, bossPos.y, false /*isMinion*/);
 		} else if (currentArea == AREA_LOST_ARCHIVES) {
-			bossIndex = spawnEnemy(ENEMY_TYPE_WRAITH_BOSS, MAP_WIDTH / 2 * CELL_SIZE, MAP_HEIGHT / 2 * CELL_SIZE, false /*isMinion*/);
+			bossIndex = spawnEnemy(ENEMY_TYPE_WRAITH_BOSS, bossPos.x, bossPos.y, false /*isMinion*/);
 		}
 	}
 }
@@ -1014,6 +1015,10 @@ bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmou
 		curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
 		curEnemy.animationTime = curEnemyData.frameTime;
 		curEnemy.hitFlashTime = 0;
+
+		if (index == bossIndex) {
+			setBossDefeated();
+		}
 
 		if (index != bossIndex && !curEnemy.isMinion) {
 			enemiesDefeated++;

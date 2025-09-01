@@ -42,10 +42,12 @@ int eliteSpawnCount;
 int eliteSpawnInterval;
 int eliteTypeCount;
 int currentEliteIndex;
+bool isBossRoom;
 
 void initWaveManager(void) {
     spawnedEnemies = 0;
     spawnTimer = 0.0f;
+    isBossRoom = getCurrentRoomType() == ROOM_TYPE_BOSS;
     int currentRoom = getCurrentRoom();
     enemySpawnCount = BASE_TOTAL_ENEMIES + (currentRoom * TOTAL_ENEMY_INCREMENT);
     eliteSpawnCount = enemySpawnCount * (ELITE_BASE_SPAWN_CHANCE + (currentRoom * ELITE_SPAWN_CHANCE_INCREMENT));
@@ -65,7 +67,7 @@ float getWavePercentage(void) {
 void updateWaveManager(float deltaTime) {
     spawnTimer += deltaTime;
     if (spawnTimer >= WAVE_SPAWN_INTERVAL) {
-        if (getActiveEnemyCount() < MAX_BASE_ACTIVE_ENEMIES && spawnedEnemies < enemySpawnCount) {
+        if (getActiveEnemyCount() < MAX_BASE_ACTIVE_ENEMIES && (spawnedEnemies < enemySpawnCount || (isBossRoom && !isBossDefeated()))) {
             spawnTimer = 0.0f;
             Point spawnPosition = getRandomEnemySpawnPosition();
             EnemyType enemyType = enemySpawnData[getCurrentArea()].basicEnemyType;

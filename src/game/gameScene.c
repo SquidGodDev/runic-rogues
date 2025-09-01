@@ -60,7 +60,7 @@ int initGameScene(lua_State* L)
 	bool isBossRoom = roomType == ROOM_TYPE_BOSS;
 
 	// Progression
-	initProgressionManager(currentArea, currentRoom);
+	initProgressionManager(currentArea, currentRoom, roomType);
 
 	// Spells
 	initSpells();

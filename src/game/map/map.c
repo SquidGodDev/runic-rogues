@@ -34,12 +34,6 @@ RoomLayout roomLayouts[ROOM_TYPE_COUNT] = {
         .playerSpawnMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
         .exitMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
     },
-    [ROOM_TYPE_SHOP] = (RoomLayout){
-        .mapWidth = 10,
-        .mapHeight = 10,
-        .playerSpawnMapPosition = (Point){.x = 2, .y = 5},
-        .exitMapPosition = (Point){.x = 7, .y = 5}
-    },
     [ROOM_TYPE_CAMPFIRE] = (RoomLayout){
         .mapWidth = 14,
         .mapHeight = 5,
@@ -49,7 +43,7 @@ RoomLayout roomLayouts[ROOM_TYPE_COUNT] = {
     [ROOM_TYPE_BOSS] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = (Point){.x = 2, .y = MAP_HEIGHT / 2},
+        .playerSpawnMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
         .exitMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
     }
 };
@@ -147,6 +141,14 @@ Point getRandomEnemySpawnPosition(void) {
     return (Point){.x = x, .y = y};
 }
 
+Point getBossSpawnPosition(void) {
+    int width = roomLayouts[curRoomType].mapWidth;
+    int height = roomLayouts[curRoomType].mapHeight;
+    int x = (width - MAP_PADDING - 1) * CELL_SIZE;
+    int y = (height / 2) * CELL_SIZE + CELL_SIZE / 2;
+    return (Point){.x = x, .y = y};
+}
+
 Point getShopMapPosition(void) {
     return (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 1};
 }
@@ -181,8 +183,6 @@ void generateSquareDungeon(void) {
 
     if (curRoomType == ROOM_TYPE_CAMPFIRE) {
         addInteractable(width / 3, height / 2, INTERACTABLE_TYPE_CAMPFIRE);
-        spawnExit();
-    } else if (curRoomType == ROOM_TYPE_SHOP) {
         spawnExit();
     }
 }
