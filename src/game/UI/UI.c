@@ -464,6 +464,14 @@ void drawUI(float deltaTime) {
         }
     }
 
+    if (showBossHealthBar) {
+        if (!isRoomCompleted()) {
+            drawBossHealthBar();
+        }
+    } else {
+        drawWaveProgressBar();
+    }
+
     drawHealth();
     drawMinimap();
     drawSpellOverlay(deltaTime);
@@ -472,14 +480,6 @@ void drawUI(float deltaTime) {
     drawExitArrow();
     drawPopup(deltaTime);
     drawInteractablePrompt();
-
-    if (showBossHealthBar) {
-        if (!isRoomCompleted()) {
-            drawBossHealthBar();
-        }
-    } else {
-        drawWaveProgressBar();
-    }
 }
 
 void screenShake(ScreenShakeStrength strength) {
