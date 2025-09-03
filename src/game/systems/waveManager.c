@@ -32,8 +32,8 @@ static EnemySpawnData enemySpawnData[AREA_COUNT] = {
 #define BASE_TOTAL_ENEMIES 10
 #define TOTAL_ENEMY_INCREMENT 5
 #define WAVE_SPAWN_INTERVAL 1.0f
-#define ELITE_BASE_SPAWN_CHANCE 0
-#define ELITE_SPAWN_CHANCE_INCREMENT 0.1f
+#define ELITE_BASE_SPAWN_CHANCE 0.1f
+#define ELITE_SPAWN_CHANCE_INCREMENT 0.05f
 
 int enemySpawnCount;
 int spawnedEnemies;
@@ -50,7 +50,10 @@ void initWaveManager(void) {
     isBossRoom = getCurrentRoomType() == ROOM_TYPE_BOSS;
     int currentRoom = getCurrentRoom();
     enemySpawnCount = BASE_TOTAL_ENEMIES + (currentRoom * TOTAL_ENEMY_INCREMENT);
-    eliteSpawnCount = enemySpawnCount * (ELITE_BASE_SPAWN_CHANCE + (currentRoom * ELITE_SPAWN_CHANCE_INCREMENT));
+    eliteSpawnCount = enemySpawnCount * (ELITE_BASE_SPAWN_CHANCE + ((currentRoom - 1) * ELITE_SPAWN_CHANCE_INCREMENT));
+    if (currentRoom == 0) {
+        eliteSpawnCount = 0;
+    }
     eliteSpawnInterval = enemySpawnCount / (eliteSpawnCount > 0 ? eliteSpawnCount : 1);
     eliteTypeCount = currentRoom > ELITE_ENEMY_TYPE_COUNT ? ELITE_ENEMY_TYPE_COUNT : currentRoom;
     currentEliteIndex = 0;
