@@ -197,7 +197,7 @@ void getRandomEmptyMapPosition(int *mapX, int *mapY) {
 void initMap(RoomType roomType) {
     curRoomType = roomType;
     generateSquareDungeon();
-    printMap();
+    // printMap();
 }
 
 int isBlocked(int x, int y) {
