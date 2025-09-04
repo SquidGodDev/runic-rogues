@@ -398,20 +398,6 @@ void moveEnemy(Enemy *enemy, int enemyIndex, float targetX, float targetY, float
 		moveSpeed *= 1.0f - enemy->slowAmount;
 	}
 
-	// Apply knockback force away from player
-	if (enemy->knockbackTime > 0) {
-		float knockbackFactor = enemy->knockbackTime / enemy->knockbackMaxTime;
-		float knockbackX = enemy->x - playerX;
-		float knockbackY = enemy->y - playerY;
-		float knockbackDist = sqrtf(knockbackX*knockbackX + knockbackY*knockbackY);
-		if (knockbackDist > 0.01f) {
-			knockbackX /= knockbackDist;
-			knockbackY /= knockbackDist;
-			dx += knockbackX * enemy->knockbackAmount * knockbackFactor;
-			dy += knockbackY * enemy->knockbackAmount * knockbackFactor;
-		}
-	}
-
 	// Normalize final direction vector
 	float magnitude = sqrtf(dx*dx + dy*dy);
 	if (magnitude > 0.01f) {
@@ -910,6 +896,37 @@ bool updateEnemyAnimation(Enemy *curEnemy, EnemyData *curEnemyData, float deltaT
 	return attackAnimationReset;
 }
 
+void applyEnemyKnockback(Enemy *enemy) {
+	if (enemy->knockbackTime > 0) {
+		float knockbackX = enemy->x - playerX;
+		float knockbackY = enemy->y - playerY;
+		float knockbackDist = sqrtf(knockbackX*knockbackX + knockbackY*knockbackY);
+		if (knockbackDist > 0.001f) {
+			knockbackX /= knockbackDist;
+			knockbackY /= knockbackDist;
+
+			float maxKnockbackDist = CELL_SIZE * 2;
+			float normalizedDist = knockbackDist / maxKnockbackDist;
+			normalizedDist = normalizedDist > 1.0f ? 1.0f : normalizedDist;
+			float distanceScale = (1.0f - normalizedDist) * (1.0f - normalizedDist);
+
+			float dx = knockbackX * enemy->knockbackAmount * distanceScale;
+			float dy = knockbackY * enemy->knockbackAmount * distanceScale;
+
+			// Wall avoidance
+			int frontX = (int)((enemy->x + dx * WALL_CHECK_DISTANCE) / CELL_SIZE);
+			int frontY = (int)((enemy->y + dy * WALL_CHECK_DISTANCE) / CELL_SIZE);
+			if (isBlocked(frontX, frontY)) {
+				dx = -dx * WALL_AVOID_FORCE;
+				dy = -dy * WALL_AVOID_FORCE;
+			}
+
+			enemy->x += dx;
+			enemy->y += dy;
+		}
+	}
+}
+
 void updateEnemies(float deltaTime) {
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy *curEnemy = &enemies[i];
@@ -928,6 +945,8 @@ void updateEnemies(float deltaTime) {
 			addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->textureIndex, curEnemy->animationFrame);
 			continue;
 		}
+
+		applyEnemyKnockback(curEnemy);
 
 		AttackPattern curAttackPattern = curEnemyData->attackPattern;
 		if (curAttackPattern == ATTACK_PATTERN_PROXIMITY) {
@@ -1001,6 +1020,7 @@ bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmou
 	curEnemy.hitFlashTime = HIT_FLASH_TIME;
 	curEnemy.health -= damage;
 	if (!curEnemyData.knockbackResistant && knockbackTime > 0 && knockbackAmount > 0) {
+		pd->system->logToConsole("Knockback applied");
 		curEnemy.knockbackMaxTime = knockbackTime;
 		curEnemy.knockbackTime = knockbackTime;
 		curEnemy.knockbackAmount = knockbackAmount;
@@ -1066,7 +1086,8 @@ void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
 	}
 }
 
-void damageEnemiesInArea(float x, float y, int radiusSquared, int damage, float knockbackTime, float knockbackAmount) {
+void damageEnemiesInArea(float x, float y, int radius, int damage, float knockbackTime, float knockbackAmount) {
+	int radiusSquared = radius * radius;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy enemy = enemies[i];
 		if (!enemy.active) {

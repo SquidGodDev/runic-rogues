@@ -375,6 +375,118 @@ void castRayToWall(float x1, float y1, float x2, float y2, float *targetX, float
     return;
 }
 
+#define MAX_FIELD_DEPTH 12
+Point checkRayCollision(float startX, float startY, float angle, float distance) {
+    float rayX = startX;
+    float rayY = startY;
+    float xOffset = 0;
+    float yOffset = 0;
+    int depthOfField = 0;
+    int maxDistance = 10000000;
+
+    float sinAngle, cosAngle;
+    sincosf(angle, &sinAngle, &cosAngle);
+
+    // === Check for horizontal lines ===
+    float horizontalRayX, horizontalRayY;
+    float horizontalDistance = maxDistance;
+    float rayPerpendicularSlope = -cosAngle / sinAngle;
+
+    if (angle == 0 || angle == PI) {
+        // Looking straight left or right
+        depthOfField = MAX_FIELD_DEPTH;
+        rayX = startX;
+        rayY = startY;
+    } else if (angle > PI) {
+        // Looking up
+        rayY = (float)(((int)startY / CELL_SIZE) * CELL_SIZE - 0.0001f);
+        rayX = (startY - rayY) * rayPerpendicularSlope + startX;
+        yOffset = -CELL_SIZE;
+        xOffset = -yOffset * rayPerpendicularSlope;
+    } else if (angle < PI && angle > 0) {
+        // Looking down
+        rayY = (((int)startY / CELL_SIZE) * CELL_SIZE) + CELL_SIZE;
+        rayX = (startY - rayY) * rayPerpendicularSlope + startX;
+        yOffset = CELL_SIZE;
+        xOffset = -yOffset * rayPerpendicularSlope;
+    }
+
+    while (depthOfField < MAX_FIELD_DEPTH) {
+        int mapX = (int)rayX / CELL_SIZE;
+        int mapY = (int)rayY / CELL_SIZE;
+        int mapIndex = (mapY * MAP_WIDTH) + mapX;
+        if ((mapIndex < 0 || mapIndex >= MAP_WIDTH * MAP_HEIGHT || mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) || map[mapIndex] > 0) {
+            // Hit wall
+            depthOfField = MAX_FIELD_DEPTH;
+            horizontalDistance = distanceSquared(startX, startY, rayX, rayY);
+            horizontalRayX = rayX;
+            horizontalRayY = rayY;
+        } else {
+            rayX += xOffset;
+            rayY += yOffset;
+            depthOfField += 1;
+        }
+    }
+
+    // === Check for vertical lines ===
+    depthOfField = 0;
+    float verticalRayX, verticalRayY;
+    float verticalDistance = maxDistance;
+    float rayNegSlope = -sinAngle / cosAngle;
+
+    if (angle == P2 || angle == P3) {
+        // Looking straight up or down
+        depthOfField = MAX_FIELD_DEPTH;
+        rayX = startX;
+        rayY = startY;
+    } else if (angle > P2 && angle < P3) {
+        // Looking left
+        rayX = (float)(((int)startX / CELL_SIZE) * CELL_SIZE) - 0.0001f;
+        rayY = (startX - rayX) * rayNegSlope + startY;
+        xOffset = -CELL_SIZE;
+        yOffset = -xOffset * rayNegSlope;
+    } else if (angle < P2 || angle > P3) {
+        // Looking right
+        rayX = (((int)startX / CELL_SIZE) * CELL_SIZE) + CELL_SIZE;
+        rayY = (startX - rayX) * rayNegSlope + startY;
+        xOffset = CELL_SIZE;
+        yOffset = -xOffset * rayNegSlope;
+    }
+
+    while (depthOfField < MAX_FIELD_DEPTH) {
+        int mapX = (int)rayX / CELL_SIZE;
+        int mapY = (int)rayY / CELL_SIZE;
+        int mapIndex = (mapY * MAP_WIDTH) + mapX;
+        if ((mapIndex < 0 || mapIndex >= MAP_WIDTH * MAP_HEIGHT || mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) || map[mapIndex] > 0) {
+            depthOfField = MAX_FIELD_DEPTH; // Hit wall
+            verticalDistance = distanceSquared(startX, startY, rayX, rayY);
+            verticalRayX = rayX;
+            verticalRayY = rayY;
+        } else {
+            rayX += xOffset;
+            rayY += yOffset;
+            depthOfField += 1;
+        }
+    }
+
+    if (distance * distance < verticalDistance && distance < horizontalDistance) {
+        rayX = startX + cosAngle * distance;
+        rayY = startY + sinAngle * distance;
+    } else if (verticalDistance < horizontalDistance) {
+        rayX = verticalRayX - cosAngle * CELL_SIZE;
+        rayY = verticalRayY - sinAngle * CELL_SIZE;
+    } else if (horizontalDistance < verticalDistance) {
+        rayX = horizontalRayX - cosAngle * CELL_SIZE;
+        rayY = horizontalRayY - sinAngle * CELL_SIZE;
+    } else {
+        rayX = verticalRayX;
+        rayY = verticalRayY;
+    }
+
+    Point hitPoint = { rayX, rayY };
+    return hitPoint;
+}
+
 
 /* Lua program to create basic map
 ================================

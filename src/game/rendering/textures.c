@@ -94,6 +94,8 @@ const char *bitmapPathStrings[] = {
 	"images/spells/icons/arcLightning",
 	"images/spells/icons/explosiveShot",
 	"images/spells/icons/bomber",
+	"images/spells/icons/teleport",
+	"images/spells/icons/blackHole",
 	"images/runes/empty",
 	"images/runes/vampirism",
 	"images/runes/wingedBoots",

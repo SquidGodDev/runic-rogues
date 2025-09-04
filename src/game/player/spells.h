@@ -20,6 +20,7 @@ typedef enum Spell {
     SPELL_ARC_LIGHTNING,
     SPELL_EXPLOSIVE_SHOT,
     SPELL_BOMBER,
+    SPELL_TELEPORT,
     SPELL_COUNT
 } Spell;
 

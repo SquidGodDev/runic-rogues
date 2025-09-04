@@ -237,6 +237,20 @@ SpellData spellData[SPELL_COUNT] = {
         .cooldown = 2.0f,
         .manaCost = 10.0f,
         .castTime = 0.3f,
+    },
+    [SPELL_TELEPORT] = {
+        .name = "Teleport",
+        .name_jp = "テレポート",
+        .description = "Instantly teleport a short distance in the direction you're facing.",
+        .description_jp = "向いている方向に短距離テレポートする。",
+        .pickupTextureIndex = TEXTURE_SPELL_TELEPORT,
+        .spellIconIndex = BITMAP_SPELL_TELEPORT_ICON,
+        .type = SPELL_TYPE_INSTANT,
+        .cooldown = 5.0f,
+        .manaCost = 20.0f,
+        .damage = 10,
+        .knockbackAmount = 10.0f,
+        .knockbackTime = 0.5f
     }
 };
 
@@ -246,7 +260,7 @@ void initDeck(void) {
     }
 
     spellDeck[0] = SPELL_FIREBALL;
-    spellDeck[1] = SPELL_WAVE;
+    spellDeck[1] = SPELL_TELEPORT;
     spellDeck[2] = SPELL_NONE;
     spellDeck[3] = SPELL_NONE;
     spellDeck[4] = SPELL_NONE;
@@ -418,13 +432,23 @@ void activateSpellEffect(int index, float angle) {
         int damage = data->damage;
         float knockbackTime = data->knockbackTime;
         float knockbackAmount = data->knockbackAmount;
-        damageEnemiesInArea(lightningX, lightningY, damageRadius * damageRadius, damage, knockbackTime, knockbackAmount);
+        damageEnemiesInArea(lightningX, lightningY, damageRadius, damage, knockbackTime, knockbackAmount);
     } else if (spell == SPELL_EXPLOSIVE_SHOT) {
         fireSpellProjectile(spell, angle);
     } else if (spell == SPELL_BOMBER) {
         float offsetX = cosf(angle) * CELL_SIZE / 2;
         float offsetY = sinf(angle) * CELL_SIZE / 2;
         spawnParticle(PARTICLE_TYPE_BOMB, playerX + offsetX, playerY + offsetY, PARTICLE_TYPE_NONE, false /* enemyParticle */);
+    } else if (spell == SPELL_TELEPORT) {
+        float teleportDistance = CELL_SIZE * 4;
+        Point target = checkRayCollision(playerX, playerY, angle, teleportDistance);
+        playerX = target.x;
+        playerY = target.y;
+        SpellData *data = &spellData[spell];
+        int damage = data->damage;
+        float knockbackTime = data->knockbackTime;
+        float knockbackAmount = data->knockbackAmount;
+        damageEnemiesInArea(target.x, target.y, CELL_SIZE * 2, damage, knockbackTime, knockbackAmount);
     }
 
     castData->activationCount++;
