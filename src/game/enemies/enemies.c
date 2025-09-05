@@ -1010,17 +1010,17 @@ void slowEnemy(int index, float slowTime, float slowAmount) {
 	enemies[index].slowAmount = slowAmount;
 }
 
-void knockbackEnemy(int index, Point knockbackSource, float knockbackTime, float knockbackAmount) {
+void knockbackEnemy(int index, int knockbackSourceX, int knockbackSourceY, float knockbackTime, float knockbackAmount) {
 	Enemy curEnemy = enemies[index];
 	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.invincibilityTime > 0) {
 		return;
 	}
 
-	if (!enemyData[curEnemy.type].knockbackResistant && knockbackTime > 0 && knockbackAmount > 0) {
+	if (!enemyData[curEnemy.type].knockbackResistant && knockbackTime > 0 && knockbackAmount != 0) {
 		enemies[index].knockbackTime = knockbackTime;
 		enemies[index].knockbackAmount = knockbackAmount;
-		enemies[index].knockbackSourceX = knockbackSource.x;
-		enemies[index].knockbackSourceY = knockbackSource.y;
+		enemies[index].knockbackSourceX = knockbackSourceX;
+		enemies[index].knockbackSourceY = knockbackSourceY;
 	}
 }
 
@@ -1108,7 +1108,7 @@ void damageEnemiesInArea(float x, float y, int radius, int damage) {
 	}
 }
 
-void knockbackEnemiesInArea(float x, float y, int radius, Point knockbackSource, float knockbackTime, float knockbackAmount) {
+void knockbackEnemiesInArea(float x, float y, int radius, float knockbackTime, float knockbackAmount) {
 	int radiusSquared = radius * radius;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy enemy = enemies[i];
@@ -1117,7 +1117,7 @@ void knockbackEnemiesInArea(float x, float y, int radius, Point knockbackSource,
 		}
 		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
 		if (distSquared < radiusSquared) {
-			knockbackEnemy(i, knockbackSource, knockbackTime, knockbackAmount);
+			knockbackEnemy(i, x, y, knockbackTime, knockbackAmount);
 		}
 	}
 }

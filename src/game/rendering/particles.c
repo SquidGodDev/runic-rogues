@@ -71,6 +71,14 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damage = 40,
 		.damageRadius = CELL_SIZE
 	},
+	[PARTICLE_TYPE_BLACK_HOLE] = {
+		.frameCount = 50,
+		.animationTime = 0.1f,
+		.textureIndex = TEXTURE_PARTICLE_BLACK_HOLE,
+		.damageFrame = 0,
+		.damage = 0,
+		.damageRadius = 0
+	}
 };
 
 void initParticles(void) {

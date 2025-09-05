@@ -21,6 +21,7 @@ typedef struct SpellCastData {
     float activationTime;
     int activationCount;
     float initialCastAngle;
+    Point spellPosition;
 } SpellCastData;
 
 static Spell spellDeck[SPELL_DECK_MAX];
@@ -245,6 +246,24 @@ SpellData spellData[SPELL_COUNT] = {
         .damage = 10,
         .knockbackAmount = 10.0f,
         .knockbackTime = 0.5f
+    },
+    [SPELL_BLACK_HOLE] = {
+        .name = "Black Hole",
+        .name_jp = "ブラックホール",
+        .description = "Summon a black hole that pulls in nearby enemies.",
+        .description_jp = "近くの敵を引き寄せるブラックホールを召喚する。",
+        .pickupTextureIndex = TEXTURE_SPELL_BLACK_HOLE,
+        .spellIconIndex = BITMAP_SPELL_BLACK_HOLE_ICON,
+        .type = SPELL_TYPE_REPEAT,
+        .cooldown = 10.0f,
+        .manaCost = 30.0f,
+        .knockbackAmount = -0.5f,
+        .knockbackTime = 0.4f,
+        .repeatData = (RepeatData){
+            .castTime = 5.0f,
+            .activationTime = 0.5f,
+            .repeatCount = 10
+        }
     }
 };
 
@@ -255,8 +274,8 @@ void initDeck(void) {
 
     spellDeck[0] = SPELL_FIREBALL;
     spellDeck[1] = SPELL_TELEPORT;
-    spellDeck[2] = SPELL_NONE;
-    spellDeck[3] = SPELL_NONE;
+    spellDeck[2] = SPELL_BLACK_HOLE;
+    spellDeck[3] = SPELL_LASER;
     spellDeck[4] = SPELL_NONE;
     spellDeck[5] = SPELL_ARC_LIGHTNING;
     spellDeck[6] = SPELL_EXPLOSIVE_SHOT;
@@ -381,9 +400,10 @@ void fireSpellProjectile(Spell spell, float angle) {
     firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data.damage, data.projectileData);
 }
 
-void activateSpellEffect(int index, float angle) {
+void activateSpellEffect(int index, float angle, bool initialCast) {
     Spell spell = spellDeck[index];
     SpellCastData *castData = &spellCastData[index];
+    SpellData *data = &spellData[spell];
     if (spell == SPELL_FIREBALL) {
         fireSpellProjectile(spell, angle);
     } else if (spell == SPELL_TRIPLE_SHOT) {
@@ -436,12 +456,21 @@ void activateSpellEffect(int index, float angle) {
         Point target = checkRayCollision(playerX, playerY, angle, teleportDistance);
         playerX = target.x;
         playerY = target.y;
-        SpellData *data = &spellData[spell];
         int damage = data->damage;
         float knockbackTime = data->knockbackTime;
         float knockbackAmount = data->knockbackAmount;
         damageEnemiesInArea(target.x, target.y, CELL_SIZE * 2, damage);
-        knockbackEnemiesInArea(target.x, target.y, CELL_SIZE * 2, (Point){ .x = playerX, .y = playerY }, knockbackTime, knockbackAmount);
+        knockbackEnemiesInArea(target.x, target.y, CELL_SIZE * 2, knockbackTime, knockbackAmount);
+    } else if (spell == SPELL_BLACK_HOLE) {
+        if (initialCast) {
+            float castDistance = CELL_SIZE * 2;
+            Point castPosition = checkRayCollision(playerX, playerY, angle, castDistance);
+            spawnParticle(PARTICLE_TYPE_BLACK_HOLE, castPosition.x, castPosition.y, PARTICLE_TYPE_NONE, false /* enemyParticle */);
+            castData->spellPosition = castPosition;
+        }
+        float knockbackTime = data->knockbackTime;
+        float knockbackAmount = data->knockbackAmount;
+        knockbackEnemiesInArea(castData->spellPosition.x, castData->spellPosition.y, CELL_SIZE * 2, knockbackTime, knockbackAmount);
     }
 
     castData->activationCount++;
@@ -515,7 +544,7 @@ bool castSpell(int index) {
     }
 
     playSound(SFX_SHOOT);
-    activateSpellEffect(index, playerAngle);
+    activateSpellEffect(index, playerAngle, true /* initialCast */);
 
     if (spell == SPELL_ARC_LIGHTNING) {
         setSpellOverlay(index, BITMAP_TABLE_ARC_LIGHTNING_OVERLAY, 0.2f /* frameTime */, 106 /* x */, 52 /* y */);
@@ -561,7 +590,7 @@ void updateSpells(float deltaTime) {
             castData->activationTime -= deltaTime;
             if (castData->activationTime <= 0.0f && castData->activationCount < data->repeatData.repeatCount) {
                 float angle = data->useInitialCastAngle ? castData->initialCastAngle : playerAngle;
-                activateSpellEffect(i, angle);
+                activateSpellEffect(i, angle, false /* initialCast */);
                 castData->activationTime = data->repeatData.activationTime;
             }
         } else if (data->type == SPELL_TYPE_CHANNEL) {
@@ -573,7 +602,7 @@ void updateSpells(float deltaTime) {
                     clearSpellOverlay(i);
                 } else {
                     float angle = data->useInitialCastAngle ? castData->initialCastAngle : playerAngle;
-                    activateSpellEffect(i, angle);
+                    activateSpellEffect(i, angle, false /* initialCast */);
                     castData->activationTime = data->repeatData.activationTime;
                 }
             }

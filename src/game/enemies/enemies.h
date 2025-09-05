@@ -75,5 +75,5 @@ float getBossHealthPercentage(void);
 bool damageEnemy(int index, int damage);
 void damageEnemiesAtMapPosition(int mapX, int mapY, int damage);
 void damageEnemiesInArea(float x, float y, int radius, int damage);
-void knockbackEnemiesInArea(float x, float y, int radius, Point knockbackSource, float knockbackTime, float knockbackAmount);
+void knockbackEnemiesInArea(float x, float y, int radius, float knockbackTime, float knockbackAmount);
 bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime, float slowAmount);
