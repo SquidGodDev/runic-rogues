@@ -32,6 +32,7 @@ typedef enum SpellType {
 } SpellType;
 
 typedef struct RepeatData {
+    float castTime;
     int repeatCount;
     float activationTime;
 } RepeatData;
@@ -57,7 +58,6 @@ typedef struct SpellData {
     SpellType type;
     float cooldown;
     float manaCost;
-    float castTime;
     int damage;
     float knockbackTime;
     float knockbackAmount;
