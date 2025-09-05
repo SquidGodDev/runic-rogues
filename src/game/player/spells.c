@@ -430,9 +430,7 @@ void activateSpellEffect(int index, float angle) {
         int damageRadius = CELL_SIZE;
         SpellData *data = &spellData[spell];
         int damage = data->damage;
-        float knockbackTime = data->knockbackTime;
-        float knockbackAmount = data->knockbackAmount;
-        damageEnemiesInArea(lightningX, lightningY, damageRadius, damage, knockbackTime, knockbackAmount);
+        damageEnemiesInArea(lightningX, lightningY, damageRadius, damage);
     } else if (spell == SPELL_EXPLOSIVE_SHOT) {
         fireSpellProjectile(spell, angle);
     } else if (spell == SPELL_BOMBER) {
@@ -448,7 +446,8 @@ void activateSpellEffect(int index, float angle) {
         int damage = data->damage;
         float knockbackTime = data->knockbackTime;
         float knockbackAmount = data->knockbackAmount;
-        damageEnemiesInArea(target.x, target.y, CELL_SIZE * 2, damage, knockbackTime, knockbackAmount);
+        damageEnemiesInArea(target.x, target.y, CELL_SIZE * 2, damage);
+        knockbackEnemiesInArea(target.x, target.y, CELL_SIZE * 2, (Point){ .x = playerX, .y = playerY }, knockbackTime, knockbackAmount);
     }
 
     castData->activationCount++;

@@ -898,8 +898,8 @@ bool updateEnemyAnimation(Enemy *curEnemy, EnemyData *curEnemyData, float deltaT
 
 void applyEnemyKnockback(Enemy *enemy) {
 	if (enemy->knockbackTime > 0) {
-		float knockbackX = enemy->x - playerX;
-		float knockbackY = enemy->y - playerY;
+		float knockbackX = enemy->x - enemy->knockbackSourceX;
+		float knockbackY = enemy->y - enemy->knockbackSourceY;
 		float knockbackDist = sqrtf(knockbackX*knockbackX + knockbackY*knockbackY);
 		if (knockbackDist > 0.001f) {
 			knockbackX /= knockbackDist;
@@ -1010,7 +1010,21 @@ void slowEnemy(int index, float slowTime, float slowAmount) {
 	enemies[index].slowAmount = slowAmount;
 }
 
-bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmount) {
+void knockbackEnemy(int index, Point knockbackSource, float knockbackTime, float knockbackAmount) {
+	Enemy curEnemy = enemies[index];
+	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.invincibilityTime > 0) {
+		return;
+	}
+
+	if (!enemyData[curEnemy.type].knockbackResistant && knockbackTime > 0 && knockbackAmount > 0) {
+		enemies[index].knockbackTime = knockbackTime;
+		enemies[index].knockbackAmount = knockbackAmount;
+		enemies[index].knockbackSourceX = knockbackSource.x;
+		enemies[index].knockbackSourceY = knockbackSource.y;
+	}
+}
+
+bool damageEnemy(int index, int damage) {
 	Enemy curEnemy = enemies[index];
 	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.invincibilityTime > 0) {
 		return false;
@@ -1019,12 +1033,6 @@ bool damageEnemy(int index, int damage, float knockbackTime, float knockbackAmou
 	EnemyData curEnemyData = enemyData[curEnemy.type];
 	curEnemy.hitFlashTime = HIT_FLASH_TIME;
 	curEnemy.health -= damage;
-	if (!curEnemyData.knockbackResistant && knockbackTime > 0 && knockbackAmount > 0) {
-		pd->system->logToConsole("Knockback applied");
-		curEnemy.knockbackMaxTime = knockbackTime;
-		curEnemy.knockbackTime = knockbackTime;
-		curEnemy.knockbackAmount = knockbackAmount;
-	}
 	playSound(SFX_ENEMY_HIT);
 
 	if (curEnemy.health <= 0) {
@@ -1081,12 +1089,12 @@ void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
 		int enemyMapX = (int)enemy.x / CELL_SIZE;
 		int enemyMapY = (int)enemy.y / CELL_SIZE;
 		if (enemyMapX == mapX && enemyMapY == mapY) {
-			damageEnemy(i, damage, 0, 0);
+			damageEnemy(i, damage);
 		}
 	}
 }
 
-void damageEnemiesInArea(float x, float y, int radius, int damage, float knockbackTime, float knockbackAmount) {
+void damageEnemiesInArea(float x, float y, int radius, int damage) {
 	int radiusSquared = radius * radius;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy enemy = enemies[i];
@@ -1095,7 +1103,21 @@ void damageEnemiesInArea(float x, float y, int radius, int damage, float knockba
 		}
 		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
 		if (distSquared < radiusSquared) {
-			damageEnemy(i, damage, knockbackTime, knockbackAmount);
+			damageEnemy(i, damage);
+		}
+	}
+}
+
+void knockbackEnemiesInArea(float x, float y, int radius, Point knockbackSource, float knockbackTime, float knockbackAmount) {
+	int radiusSquared = radius * radius;
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		Enemy enemy = enemies[i];
+		if (!enemy.active) {
+			continue;
+		}
+		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
+		if (distSquared < radiusSquared) {
+			knockbackEnemy(i, knockbackSource, knockbackTime, knockbackAmount);
 		}
 	}
 }
@@ -1113,7 +1135,7 @@ bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange
 			if (slowTime > 0) {
 				slowEnemy(i, slowTime, slowAmount);
 			}
-			bool enemyDamaged = damageEnemy(i, damage, 0, 0);
+			bool enemyDamaged = damageEnemy(i, damage);
 			if (enemyDamaged) {
 				setAdd(hitEnemies, i);
 				collided = true;
