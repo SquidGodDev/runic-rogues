@@ -12,14 +12,17 @@
 #include "game/player/spells.h"
 #include "game/map/map.h"
 
+typedef struct ShopPageData {
+    LCDBitmap *shopPageBitmap;
+    LCDBitmap *shopDescBitmap;
+    int descHeight;
+} ShopPageData;
+
 #define SHOP_OPTION_COUNT 3
 
 int shopInteractableIndexes[SHOP_OPTION_COUNT];
 
 #define SHOP_ITEM_SPACING 1
-
-#define DESC_MAX_WIDTH 150
-#define DESC_MAX_HEIGHT 50
 
 #define SHOP_PAGE_ICON_X 12
 #define SHOP_PAGE_ICON_Y 10
@@ -27,10 +30,8 @@ int shopInteractableIndexes[SHOP_OPTION_COUNT];
 #define SHOP_PAGE_TITLE_Y 12
 #define SHOP_PAGE_TYPE_X 41
 #define SHOP_PAGE_TYPE_Y 30
-#define SHOP_PAGE_DESC_X 10
-#define SHOP_PAGE_DESC_Y 49
 
-LCDBitmap *createShopPage(char *name, char *desc, char* type, LCDBitmap *icon, Language language) {
+ShopPageData createShopPage(char *name, char *desc, char* type, LCDBitmap *icon, Language language) {
     LCDFont *fontTitle = fontTitleEN;
     LCDFont *fontSub = fontSubEN;
     LCDBitmapDrawMode drawMode = kDrawModeCopy;
@@ -56,13 +57,26 @@ LCDBitmap *createShopPage(char *name, char *desc, char* type, LCDBitmap *icon, L
         pd->graphics->setTextTracking(tracking);
         pd->graphics->setTextLeading(leading);
         pd->graphics->drawText(type, strlen(type), kUTF8Encoding, SHOP_PAGE_TYPE_X, SHOP_PAGE_TYPE_Y);
-        pd->graphics->drawTextInRect(desc, strlen(desc), kUTF8Encoding, SHOP_PAGE_DESC_X, SHOP_PAGE_DESC_Y, DESC_MAX_WIDTH, DESC_MAX_HEIGHT, kWrapWord, kAlignTextLeft);
     pd->graphics->popContext();
 
-    return shopPageBitmap;
+    int descHeight = pd->graphics->getTextHeightForMaxWidth(fontSub, desc, strlen(desc), SHOP_DESC_MAX_WIDTH, kUTF8Encoding, kWrapWord, tracking, leading);
+    LCDBitmap *shopDescBitmap = pd->graphics->newBitmap(SHOP_DESC_MAX_WIDTH, descHeight, kColorClear);
+    pd->graphics->pushContext(shopDescBitmap);
+        pd->graphics->setDrawMode(drawMode);
+        pd->graphics->setFont(fontSub);
+        pd->graphics->setTextTracking(tracking);
+        pd->graphics->setTextLeading(leading);
+        pd->graphics->drawTextInRect(desc, strlen(desc), kUTF8Encoding, 0, 0, SHOP_DESC_MAX_WIDTH, descHeight, kWrapWord, kAlignTextLeft);
+    pd->graphics->popContext();
+
+    return (ShopPageData){
+        .shopPageBitmap = shopPageBitmap,
+        .shopDescBitmap = shopDescBitmap,
+        .descHeight = descHeight
+    };
 }
 
-LCDBitmap *createSpellShopPage(Spell spell, Language language) {
+ShopPageData createSpellShopPage(Spell spell, Language language) {
     SpellData curSpellData = spellData[spell];
     char *name = curSpellData.name;
     char *desc = curSpellData.description;
@@ -75,7 +89,7 @@ LCDBitmap *createSpellShopPage(Spell spell, Language language) {
     return createShopPage(name, desc, type, BITMAPS[curSpellData.spellIconIndex], language);
 }
 
-LCDBitmap *createRuneShopPage(RuneType runeType, Language language) {
+ShopPageData createRuneShopPage(RuneType runeType, Language language) {
     char *name = getRuneName(runeType, language);
     char *desc = getRuneDescription(runeType, language);
     char *type = language == LANGUAGE_JP ? "ルーン" : "Rune";
@@ -105,8 +119,8 @@ void createShopInteractables(void) {
 
     Point shopMapPosition = getShopMapPosition();
     for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
-        LCDBitmap *shopPageBitmapEN;
-        LCDBitmap *shopPageBitmapJP;
+        ShopPageData shopPageDataEN;
+        ShopPageData shopPageDataJP;
         Spell shopSpell = SPELL_NONE;
         RuneType shopRune = RUNE_TYPE_NONE;
         int textureIndex = 0;
@@ -116,24 +130,28 @@ void createShopInteractables(void) {
             if (!stackIsEmpty(&optionsStack)) {
                 shopSpell = (Spell)stackPop(&optionsStack);
             }
-            shopPageBitmapEN = createSpellShopPage(shopSpell, LANGUAGE_EN);
-            shopPageBitmapJP = createSpellShopPage(shopSpell, LANGUAGE_JP);
+            shopPageDataEN = createSpellShopPage(shopSpell, LANGUAGE_EN);
+            shopPageDataJP = createSpellShopPage(shopSpell, LANGUAGE_JP);
             textureIndex = getSpellPickupTextureIndex(shopSpell);
         } else {
             shopRune = RUNE_TYPE_VAMPIRISM; // Default rune if no options available
             if (!stackIsEmpty(&optionsStack)) {
                 shopRune = (RuneType)stackPop(&optionsStack);
             }
-            shopPageBitmapEN = createRuneShopPage(shopRune, LANGUAGE_EN);
-            shopPageBitmapJP = createRuneShopPage(shopRune, LANGUAGE_JP);
+            shopPageDataEN = createRuneShopPage(shopRune, LANGUAGE_EN);
+            shopPageDataJP = createRuneShopPage(shopRune, LANGUAGE_JP);
             textureIndex = getRuneTextureIndex(shopRune);
         }
         
         int mapX = shopMapPosition.x - SHOP_ITEM_SPACING + (i * SHOP_ITEM_SPACING);
         int mapY = shopMapPosition.y;
         ShopItem shopItem = {
-            .shopPageBitmapEN = shopPageBitmapEN,
-            .shopPageBitmapJP = shopPageBitmapJP,
+            .shopPageBitmapEN = shopPageDataEN.shopPageBitmap,
+            .shopDescBitmapEN = shopPageDataEN.shopDescBitmap,
+            .descHeightEN = shopPageDataEN.descHeight,
+            .shopPageBitmapJP = shopPageDataJP.shopPageBitmap,
+            .shopDescBitmapJP = shopPageDataJP.shopDescBitmap,
+            .descHeightJP = shopPageDataJP.descHeight,
             .textureIndex = textureIndex,
             .spell = shopSpell,
             .runeType = shopRune,
@@ -158,7 +176,9 @@ void selectShopItem(ShopItem shopItem) {
         }
         Interactable *interactable = &INTERACTABLES[shopInteractableIndexes[i]];
         pd->graphics->freeBitmap(interactable->shopItem.shopPageBitmapEN);
+        pd->graphics->freeBitmap(interactable->shopItem.shopDescBitmapEN);
         pd->graphics->freeBitmap(interactable->shopItem.shopPageBitmapJP);
+        pd->graphics->freeBitmap(interactable->shopItem.shopDescBitmapJP);
         interactable->active = false;
     }
 

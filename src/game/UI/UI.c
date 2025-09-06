@@ -28,7 +28,8 @@
 #define INTERACTABLE_PROMPT_LABEL_Y 60
 #define INTERACTABLE_BUTTON_PROMPT_X 100
 #define INTERACTABLE_BUTTON_PROMPT_Y 80
-#define SHOP_NAME_DESC_PADDING 4
+#define SHOP_NAME_DESC_X 23
+#define SHOP_NAME_DESC_Y 54
 
 #define EXIT_ARROW_X 100
 #define EXIT_ARROW_Y 30
@@ -62,6 +63,9 @@ static int popupFrame;
 static int popupMaxFrame;
 static float popupCurFrameTime;
 static float popupFrameTime;
+
+static int shopDescOffset;
+static int maxDescOffset;
 
 typedef struct SpellOverlay {
     LCDBitmapTable *bitmapTable;
@@ -250,6 +254,30 @@ void drawMinimap(void) {
     // == End of entity layer ==
 }
 
+bool adjustShopDescOffset(int delta) {
+    shopDescOffset += delta;
+    if (shopDescOffset < 0) {
+        shopDescOffset = 0;
+    } else if (shopDescOffset > maxDescOffset) {
+        shopDescOffset = maxDescOffset;
+    }
+
+    return maxDescOffset > 0;
+}
+
+void resetShopDescOffset(void) {
+    shopDescOffset = 0;
+
+    int playerInteractableIndex = getPlayerInteractableIndex();
+    if (playerInteractableIndex < 0 || playerInteractableIndex >= MAX_INTERACTABLE_COUNT) {
+        return;
+    }
+
+    Interactable curInteractable = INTERACTABLES[playerInteractableIndex];
+    int descHeight = SETTINGS.language == LANGUAGE_JP ? curInteractable.shopItem.descHeightJP : curInteractable.shopItem.descHeightEN;
+    maxDescOffset = descHeight - SHOP_DESC_MAX_HEIGHT > 0 ? descHeight - SHOP_DESC_MAX_HEIGHT : 0;
+}
+
 void drawInteractablePrompt(void) {
     int playerInteractableIndex = getPlayerInteractableIndex();
     if (playerInteractableIndex < 0 || playerInteractableIndex >= MAX_INTERACTABLE_COUNT) {
@@ -276,10 +304,32 @@ void drawInteractablePrompt(void) {
         }
         drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_A_BUTTON], INTERACTABLE_BUTTON_PROMPT_X, INTERACTABLE_BUTTON_PROMPT_Y);
     } else if (curInteractable.type == INTERACTABLE_TYPE_SHOP_ITEM) {
+        LCDBitmap *shopDescBitmap;
+        int descHeight;
         if (SETTINGS.language == LANGUAGE_JP) {
             drawCenteredBitmap(curInteractable.shopItem.shopPageBitmapJP, INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
+            shopDescBitmap = curInteractable.shopItem.shopDescBitmapJP;
+            descHeight = curInteractable.shopItem.descHeightJP;
         } else {
             drawCenteredBitmap(curInteractable.shopItem.shopPageBitmapEN, INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
+            shopDescBitmap = curInteractable.shopItem.shopDescBitmapEN;
+            descHeight = curInteractable.shopItem.descHeightEN;
+        }
+        pd->graphics->pushContext(NULL);
+            pd->graphics->setClipRect(SHOP_NAME_DESC_X, SHOP_NAME_DESC_Y, SHOP_DESC_MAX_WIDTH, SHOP_DESC_MAX_HEIGHT);
+            pd->graphics->drawBitmap(shopDescBitmap, SHOP_NAME_DESC_X, SHOP_NAME_DESC_Y - shopDescOffset, kBitmapUnflipped);
+        pd->graphics->popContext();
+        if (maxDescOffset > 0) {
+            int scrollbarX = 173;
+            int scrollbarY = 54;
+            pd->graphics->drawRoundRect(scrollbarX, scrollbarY, 5, 45, 1, 1, kColorWhite);
+            float scrollbarPercentage = (float)SHOP_DESC_MAX_HEIGHT / descHeight;
+            int scrollbarMaxLen = 39;
+            int scrollbarLength = scrollbarMaxLen * scrollbarPercentage;
+            int scrollbarOffset = scrollbarMaxLen * ((float)shopDescOffset / descHeight);
+            int scrollbarLineX = scrollbarX + 2;
+            int scrollbarLineY = scrollbarY + 3 + scrollbarOffset;
+            pd->graphics->drawLine(scrollbarLineX, scrollbarLineY, scrollbarLineX, scrollbarLineY + scrollbarLength, 1, kColorWhite);
         }
     }
 }
