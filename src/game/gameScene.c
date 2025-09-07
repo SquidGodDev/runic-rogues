@@ -44,6 +44,7 @@ void initRunStart(void) {
 	setGameState(GAME_STATE_ACTIVE);
 	initDeck();
 	initRunes();
+	initProgressionManager();
 }
 
 // Run at the start of every room
@@ -53,14 +54,8 @@ void initGameScene(void)
 	setGameState(GAME_STATE_ACTIVE);
 	pd->system->resetElapsedTime();
 
-	// TODO: Make progression manager store current area/room/roomType
-	int currentArea = 0;
-	int currentRoom = 0;
-	RoomType roomType = ROOM_TYPE_ENEMY;
-	bool isBossRoom = roomType == ROOM_TYPE_BOSS;
-
 	// Progression
-	initProgressionManager(currentArea, currentRoom, roomType);
+	resetProgressionManagerRoomState();
 
 	// Spells
 	initSpells();
@@ -74,15 +69,15 @@ void initGameScene(void)
 	initParticles();
 
 	// Map
-	initMap(roomType);
+	initMap();
 	initRaycasting();
-	spawnEnemies(currentArea, roomType);
+	spawnEnemies();
 
 	// Wave Manager
 	initWaveManager();
 
 	// UI
-	initUI(isBossRoom);
+	initUI();
 
 	// Player
 	initPlayer();

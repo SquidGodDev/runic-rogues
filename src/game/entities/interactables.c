@@ -3,6 +3,8 @@
 
 #include "globals/globals.h"
 #include "globals/helpers.h"
+#include "globals/sceneManager.h"
+
 #include "game/player/player.h"
 #include "game/entities/interactables.h"
 #include "game/rendering/textures.h"
@@ -77,7 +79,7 @@ void interact(int interactableIndex) {
 
 	switch (curInteractable.type) {
 		case INTERACTABLE_TYPE_EXIT:
-			nextRoom();
+			switchScene(SCENE_ROOM_MAP);
 			break;
 		case INTERACTABLE_TYPE_CAMPFIRE:
 			healPlayer(CAMPFIRE_HEAL_AMOUNT);

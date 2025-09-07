@@ -6,7 +6,7 @@ typedef enum ScreenShakeStrength {
     SCREEN_SHAKE_STRONG
 } ScreenShakeStrength;
 
-void initUI(int isBossRoom);
+void initUI(void);
 void drawUI(float deltaTime);
 void showRoomClearedPopup(void);
 bool adjustShopDescOffset(int delta);

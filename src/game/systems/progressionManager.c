@@ -11,7 +11,6 @@
 #include "game/UI/UI.h"
 
 static int currentRoom = 0;
-static int transitioning = 0;
 static bool roomCompleted;
 static bool bossDefeated;
 
@@ -19,13 +18,10 @@ static RoomType currentRoomType;
 static Area currentArea = AREA_LOST_ARCHIVES;
 static AreaData areaData[AREA_COUNT];
 
-void initProgressionManager(int area, int room, RoomType roomType) {
-    currentArea = area;
-    currentRoom = room;
-    transitioning = 0;
-    roomCompleted = false;
-    bossDefeated = false;
-    currentRoomType = roomType;
+void initProgressionManager(void) {
+    currentArea = AREA_LOST_ARCHIVES;
+    currentRoom = 0;
+    currentRoomType = ROOM_TYPE_ENEMY;
 
     areaData[AREA_ECHOING_CAVERNS] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
@@ -45,6 +41,11 @@ void initProgressionManager(int area, int room, RoomType roomType) {
         .floorTexture = TEXTURES[TEXTURE_TEST_FLOOR],
         .gateTexture = TEXTURES[TEXTURE_TEST_WALL]
     };
+}
+
+void resetProgressionManagerRoomState(void) {
+    roomCompleted = false;
+    bossDefeated = false;
 }
 
 AreaData getCurrentAreaData(void) {
@@ -82,12 +83,14 @@ bool isRoomCompleted(void) {
     return roomCompleted;
 }
 
-void nextRoom(void) {
-    transitioning = 1;
-    // TODO: Increment room/area and load roomOverview scene
+void incrementToNextRoom(void) {
+    currentRoom++;
+    if (currentRoom >= MAX_ROOM_COUNT) {
+        currentRoom = 0;
+        currentArea++;
+        if (currentArea >= AREA_COUNT) {
+            currentArea = AREA_ECHOING_CAVERNS;
+        }
+    }
     switchScene(SCENE_GAME);
-}
-
-int isTransitioning(void) {
-    return transitioning;
 }

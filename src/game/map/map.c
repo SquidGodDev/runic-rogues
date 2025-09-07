@@ -194,8 +194,8 @@ void getRandomEmptyMapPosition(int *mapX, int *mapY) {
     } while (map[*mapY * MAP_WIDTH + *mapX] != MAP_FLOOR);
 }
 
-void initMap(RoomType roomType) {
-    curRoomType = roomType;
+void initMap(void) {
+    curRoomType = getCurrentRoomType();
     generateSquareDungeon();
     // printMap();
 }

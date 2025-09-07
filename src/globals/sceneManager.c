@@ -5,10 +5,12 @@
 
 #include "globals/sceneManager.h"
 #include "title/titleScene.h"
+#include "title/roomMapScene.h"
 #include "title/gameOverScene.h"
 #include "game/gameScene.h"
 
 static Scene currentScene;
+static bool isTransitioning;
 
 void switchScene(Scene newScene) {
     currentScene = newScene;
@@ -18,6 +20,9 @@ void switchScene(Scene newScene) {
             break;
         case SCENE_GAME:
             initGameScene();
+            break;
+        case SCENE_ROOM_MAP:
+            initRoomMapScene();
             break;
         case SCENE_GAME_OVER:
             initGameOverScene();
@@ -40,10 +45,17 @@ int updateSceneManager(void* userdata) {
         case SCENE_GAME:
             updateGameScene(deltaTime);
             break;
+        case SCENE_ROOM_MAP:
+            updateRoomMapScene(deltaTime);
+            break;
         case SCENE_GAME_OVER:
             updateGameOverScene(deltaTime);
             break;
     }
 
     return 1;
+}
+
+bool getSceneTransitioning(void) {
+    return isTransitioning;
 }

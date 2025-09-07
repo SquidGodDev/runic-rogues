@@ -56,7 +56,7 @@ static bool exitActive;
 static int exitWorldX;
 static int exitWorldY;
 
-static int showBossHealthBar;
+static bool showBossHealthBar;
 
 static int popupImagetableIndex;
 static int popupFrame;
@@ -78,14 +78,14 @@ typedef struct SpellOverlay {
 } SpellOverlay;
 SpellOverlay spellOverlays[SPELL_EQUIP_MAX];
 
-void initUI(int isBossRoom) {
+void initUI(void) {
     screenShakeTime = 0;
     shakeMagnitude = 0;
     pd->display->setOffset(0, 0);
     pd->graphics->setBackgroundColor(kColorBlack);
 
     exitActive = false;
-    showBossHealthBar = isBossRoom;
+    showBossHealthBar = getCurrentRoomType() == ROOM_TYPE_BOSS;
 
     popupImagetableIndex = -1;
 

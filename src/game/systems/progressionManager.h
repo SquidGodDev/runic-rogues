@@ -21,7 +21,8 @@ typedef struct AreaData {
     uint8_t *gateTexture;
 } AreaData;
 
-void initProgressionManager(int area, int room, RoomType roomType);
+void initProgressionManager(void);
+void resetProgressionManagerRoomState(void);
 AreaData getCurrentAreaData(void);
 Area getCurrentArea(void);
 int getCurrentRoom(void);
@@ -30,5 +31,4 @@ void setBossDefeated(void);
 bool isBossDefeated(void);
 void setRoomCompleted(bool completed);
 bool isRoomCompleted(void);
-void nextRoom(void);
-int isTransitioning(void);
+void incrementToNextRoom(void);

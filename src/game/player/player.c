@@ -184,7 +184,7 @@ void handleInput(float deltaTime)
 	PDButtons released;
 	pd->system->getButtonState(&current, &pushed, &released);
 
-	if (isTransitioning() || playerState.dead) {
+	if (getSceneTransitioning() || playerState.dead) {
 		// Disable inputs
 		current = 0;
 		pushed = 0;

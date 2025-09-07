@@ -478,7 +478,9 @@ int getActiveEnemyCount(void) {
 	return count;
 }
 
-void spawnEnemies(int currentArea, RoomType roomType) {
+void spawnEnemies(void) {
+	RoomType roomType = getCurrentRoomType();
+	Area currentArea = getCurrentArea();
 	if (roomType == ROOM_TYPE_BOSS) {
 		Point bossPos = getBossSpawnPosition();
 		if (currentArea == AREA_ECHOING_CAVERNS) {
