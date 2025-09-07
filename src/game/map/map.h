@@ -1,6 +1,6 @@
 #pragma once
 
-#include "globals.h"
+#include "globals/globals.h"
 #include "game/systems/progressionManager.h"
 
 #define MAP_FLOOR 0

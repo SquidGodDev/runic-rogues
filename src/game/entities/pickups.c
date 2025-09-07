@@ -1,6 +1,6 @@
 #define TARGET_EXTENSION 1
 
-#include "helpers.h"
+#include "globals/helpers.h"
 #include "game/entities/entities.h"
 #include "game/entities/pickups.h"
 #include "game/player/player.h"

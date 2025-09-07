@@ -1,7 +1,7 @@
 #define TARGET_EXTENSION 1
 #include "pd_api.h"
 
-#include "globals.h"
+#include "globals/globals.h"
 #include "game/gameScene.h"
 
 int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)

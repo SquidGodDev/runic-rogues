@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pd_api.h"
-#include "globals.h"
+#include "globals/globals.h"
 #include "game/enemies/enemies.h"
 
 #define MAX_ROOM_COUNT 10

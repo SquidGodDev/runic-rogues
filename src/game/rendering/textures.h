@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pd_api.h"
-#include "globals.h"
+#include "globals/globals.h"
 
 typedef enum TexturePaths {
 	TEXTURE_MINIMAP_CAMPFIRE,

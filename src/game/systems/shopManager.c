@@ -1,8 +1,8 @@
 #define TARGET_EXTENSION 1
 #include "pd_api.h"
 
-#include "globals.h"
-#include "helpers.h"
+#include "globals/globals.h"
+#include "globals/helpers.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/runeManager.h"

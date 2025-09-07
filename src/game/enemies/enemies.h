@@ -1,7 +1,7 @@
 #pragma once
 
 #include "stdbool.h"
-#include "helpers.h"
+#include "globals/helpers.h"
 
 #define MAX_ENEMY_COUNT 50
 

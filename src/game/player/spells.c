@@ -1,5 +1,5 @@
-#include "globals.h"
-#include "helpers.h"
+#include "globals/globals.h"
+#include "globals/helpers.h"
 
 #include "game/entities/projectiles.h"
 #include "game/UI/UI.h"

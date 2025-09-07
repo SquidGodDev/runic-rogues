@@ -1,6 +1,6 @@
 #define TARGET_EXTENSION 1
 #include "pd_api.h"
-#include "helpers.h"
+#include "globals/helpers.h"
 
 void drawCenteredBitmap(LCDBitmap *bitmap, int x, int y) {
 	int width, height;

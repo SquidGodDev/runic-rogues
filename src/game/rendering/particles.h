@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pd_api.h"
-#include "helpers.h"
+#include "globals/helpers.h"
 #include "stdbool.h"
 
 #define MAX_PARTICLE_COUNT 60
