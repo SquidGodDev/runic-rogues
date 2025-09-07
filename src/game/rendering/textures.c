@@ -55,6 +55,8 @@ const char *texturePathStrings[] = {
 
 LCDBitmap* BITMAPS[BITMAP_PATHS_COUNT];
 const char *bitmapPathStrings[] = {
+	"images/title/titleScreen",
+	"images/title/gameEndScreen",
 	"images/player/hand",
 	"images/player/handOpen",
 	"images/UI/health/heart",

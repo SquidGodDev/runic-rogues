@@ -1,6 +1,8 @@
 #define TARGET_EXTENSION 1
 #include "pd_api.h"
 
+#include "globals/sceneManager.h"
+
 #include "game/systems/progressionManager.h"
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
@@ -82,7 +84,8 @@ bool isRoomCompleted(void) {
 
 void nextRoom(void) {
     transitioning = 1;
-    pd->lua->callFunction("NextLevel", 0, NULL);
+    // TODO: Increment room/area and load roomOverview scene
+    switchScene(SCENE_GAME);
 }
 
 int isTransitioning(void) {

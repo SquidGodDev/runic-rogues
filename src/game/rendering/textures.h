@@ -81,6 +81,8 @@ typedef struct textureBounds {
 extern TextureBounds* TEXTURE_BOUNDS[];
 
 typedef enum BitmapPaths {
+	BITMAP_TITLE_SCREEN_BACKGROUND,
+	BITMAP_GAME_OVER_SCREEN,
 	BITMAP_HAND,
 	BITMAP_HAND_OPEN,
 	BITMAP_HEART,

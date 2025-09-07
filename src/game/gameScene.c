@@ -26,9 +26,9 @@
 
 PlaydateAPI *pd = NULL;
 
-Scene scene;
-void setScene(Scene newScene) {
-	scene = newScene;
+GameState gameState;
+void setGameState(GameState newState) {
+	gameState = newState;
 }
 
 // Run when game is launched
@@ -41,22 +41,22 @@ void initSystems(void)
 
 // Run at the start of every new run
 void initRunStart(void) {
-	setScene(SCENE_GAME);
+	setGameState(GAME_STATE_ACTIVE);
 	initDeck();
 	initRunes();
 }
 
 // Run at the start of every room
-int initGameScene(lua_State* L)
+void initGameScene(void)
 {	
     createInventoryMenuItem();
-	setScene(SCENE_GAME);
+	setGameState(GAME_STATE_ACTIVE);
 	pd->system->resetElapsedTime();
 
-	// Args 0/1 are the state and an unused scene object
-	int currentArea = pd->lua->getArgInt(2) - 1;
-	int currentRoom = pd->lua->getArgInt(3) - 1;
-	RoomType roomType = pd->lua->getArgInt(4);
+	// TODO: Make progression manager store current area/room/roomType
+	int currentArea = 0;
+	int currentRoom = 0;
+	RoomType roomType = ROOM_TYPE_ENEMY;
 	bool isBossRoom = roomType == ROOM_TYPE_BOSS;
 
 	// Progression
@@ -86,15 +86,11 @@ int initGameScene(lua_State* L)
 
 	// Player
 	initPlayer();
-
-	return 0;
 }
 
-int updateGameScene(lua_State* L)
+void updateGameScene(float deltaTime)
 {
-	float deltaTime = pd->system->getElapsedTime(); // In seconds
-	pd->system->resetElapsedTime();
-	if (scene == SCENE_GAME) {
+	if (gameState == GAME_STATE_ACTIVE) {
 		updatePickups(deltaTime);
 		updateSpells(deltaTime);
 		updatePlayer(deltaTime);
@@ -107,10 +103,9 @@ int updateGameScene(lua_State* L)
 		drawUI(deltaTime);
 
 		pd->system->drawFPS(185, 108);
-	} else if (scene == SCENE_INVENTORY) {
+	} else if (gameState == GAME_STATE_INVENTORY) {
 		updateInventory(deltaTime);
 	}
 
 	pd->lua->pushNil();
-	return 1;
 }

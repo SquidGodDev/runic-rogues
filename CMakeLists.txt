@@ -48,6 +48,7 @@ if (TOOLCHAIN STREQUAL "armgcc")
 	target_include_directories(${PLAYDATE_GAME_DEVICE} PRIVATE 
 							   ${CMAKE_SOURCE_DIR}/src
 							   ${CMAKE_SOURCE_DIR}/globals
+							   ${CMAKE_SOURCE_DIR}/title
 							   ${CMAKE_SOURCE_DIR}/game
 							   ${CMAKE_SOURCE_DIR}/game/enemies
 							   ${CMAKE_SOURCE_DIR}/game/entities
@@ -67,6 +68,7 @@ else()
 	target_include_directories(${PLAYDATE_GAME_NAME} PRIVATE 
 							   ${CMAKE_SOURCE_DIR}/src
 							   ${CMAKE_SOURCE_DIR}/globals
+							   ${CMAKE_SOURCE_DIR}/title
 							   ${CMAKE_SOURCE_DIR}/game
 							   ${CMAKE_SOURCE_DIR}/game/enemies
 							   ${CMAKE_SOURCE_DIR}/game/entities

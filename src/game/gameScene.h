@@ -2,13 +2,13 @@
 
 #include "pd_api.h"
 
-typedef enum Scene {
-	SCENE_GAME,
-	SCENE_INVENTORY
-} Scene;
+typedef enum GameState {
+	GAME_STATE_ACTIVE,
+	GAME_STATE_INVENTORY
+} GameState;
 
-extern Scene scene;
+extern GameState gameState;
 
-void setScene(Scene newScene);
-int initGameScene(lua_State* L);
-int updateGameScene(lua_State* L);
+void setGameState(GameState newState);
+void initGameScene(void);
+void updateGameScene(float deltaTime);

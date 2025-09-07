@@ -200,10 +200,10 @@ void drawInfoPage(InfoPageData *pageData) {
 }
 
 void openInventoryCallback(void* userdata) {
-	if (scene != SCENE_INVENTORY) {
+	if (gameState != GAME_STATE_INVENTORY) {
 		pd->system->removeAllMenuItems();
 		initInventory();
-		setScene(SCENE_INVENTORY);
+		setGameState(GAME_STATE_INVENTORY);
 	}
 }
 
@@ -233,7 +233,7 @@ void closeInventoryCallback(void* userdata) {
 		}
 		runeInfoPages[i] = (InfoPageData){0};
 	}
-	setScene(SCENE_GAME);
+	setGameState(GAME_STATE_ACTIVE);
 	createInventoryMenuItem();
 }
 

@@ -3,6 +3,8 @@
 
 #include "globals/globals.h"
 #include "globals/helpers.h"
+#include "globals/sceneManager.h"
+
 #include "game/player/player.h"
 #include "game/player/playerStats.h"
 #include "game/player/spells.h"
@@ -523,7 +525,7 @@ void damagePlayer(float amount) {
         playerHealth = 0;
 		playerState.dead = 1;
         pd->graphics->clear(kColorBlack);
-        pd->lua->callFunction("GameOver", 0, NULL);
+        switchScene(SCENE_GAME_OVER);
     }
 }
 

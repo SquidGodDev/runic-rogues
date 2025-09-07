@@ -2,11 +2,12 @@
 #include "pd_api.h"
 
 #include "globals/globals.h"
+#include "globals/sceneManager.h"
 #include "game/gameScene.h"
 
 int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 {
-	if (event == kEventInitLua) {
+	if (event == kEventInit) {
 		pd = playdate;
 		pd->system->resetElapsedTime();
 		pd->display->setScale(400 / SCREEN_WIDTH);
@@ -16,8 +17,8 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 
 		initSystems();
 		initRunStart();
-		pd->lua->addFunction(updateGameScene, "GameScene.update", NULL);
-		pd->lua->addFunction(initGameScene, "GameScene.init", NULL);
+		initSceneManager();
+		pd->system->setUpdateCallback(updateSceneManager, NULL);
 	}
 
 	return 0;
