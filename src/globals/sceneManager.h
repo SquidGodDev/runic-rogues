@@ -10,4 +10,4 @@ typedef enum Scene {
 void switchScene(Scene newScene);
 void initSceneManager(void);
 int updateSceneManager(void* userdata);
-bool getSceneTransitioning(void);
+bool isSceneTransitioning(void);

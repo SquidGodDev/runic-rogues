@@ -15,7 +15,7 @@ void updateTitleScene(float deltaTime) {
 
     PDButtons pushed;
     pd->system->getButtonState(NULL, &pushed, NULL);
-    if (pushed & kButtonA) {
+    if ((pushed & kButtonA) && !isSceneTransitioning()) {
         switchScene(SCENE_GAME);
     }
 }

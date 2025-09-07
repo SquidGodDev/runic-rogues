@@ -42,7 +42,7 @@ static inline float lerp(float start, float end, float t) {
 	if (fabsf(end - start) < 0.5f) {
 		return end;
 	}
-	return (1 - t) * start + t * end;
+	return start + (end - start) * t;
 }
 
 static inline Point lerpPoint(Point start, Point end, float t) {
@@ -80,6 +80,15 @@ static inline int randInt(int min, int max) {
 
 static inline float radToDeg(float radAngle) {
 	return radAngle * (180 / PI);
+}
+
+static inline float easeOutCubic(float x) {
+    float t = 1.0f - x;
+    return 1.0f - t * t * t;
+}
+
+static inline float easeInCubic(float x) {
+    return x * x * x;
 }
 
 // === DRAWING HELPERS ===
