@@ -1,6 +1,8 @@
 *.dll
 *.elf
 *.pdx
+.DS_Store
+*.dylib
 /build
 .sentry-native
 .vscode
