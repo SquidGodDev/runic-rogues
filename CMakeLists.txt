@@ -62,6 +62,7 @@ if (TOOLCHAIN STREQUAL "armgcc")
 		-ffast-math
 		-falign-functions=32
 		-falign-loops=32
+		-O2
 	)
 else()
 	add_library(${PLAYDATE_GAME_NAME} SHARED ${SOURCES} ${HEADERS})
