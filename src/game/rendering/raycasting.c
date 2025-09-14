@@ -67,8 +67,8 @@ void renderScene(void)
 		int depthOfField = 0;
 		int maxDistance = 10000000;
 
-		float sinAngle, cosAngle;
-		sincosf(rayAngle, &sinAngle, &cosAngle);
+		float sinAngle = sinf(rayAngle);
+		float cosAngle = cosf(rayAngle);
 
 		// === Check for horizontal lines ===
 		float horizontalRayX, horizontalRayY;

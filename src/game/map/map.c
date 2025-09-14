@@ -25,26 +25,26 @@ RoomLayout roomLayouts[ROOM_TYPE_COUNT] = {
     [ROOM_TYPE_ENEMY] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
-        .exitMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
+        .playerSpawnMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
+        .exitMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
     },
     [ROOM_TYPE_ELITE] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
-        .exitMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
+        .playerSpawnMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
+        .exitMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
     },
     [ROOM_TYPE_CAMPFIRE] = (RoomLayout){
         .mapWidth = 14,
         .mapHeight = 5,
-        .playerSpawnMapPosition = (Point){.x = 1, .y = 2},
-        .exitMapPosition = (Point){.x = 10, .y = 2}
+        .playerSpawnMapPosition = {.x = 1, .y = 2},
+        .exitMapPosition = {.x = 10, .y = 2}
     },
     [ROOM_TYPE_BOSS] = (RoomLayout){
         .mapWidth = MAP_WIDTH,
         .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
-        .exitMapPosition = (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
+        .playerSpawnMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
+        .exitMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
     }
 };
 
@@ -384,8 +384,8 @@ Point checkRayCollision(float startX, float startY, float angle, float distance)
     int depthOfField = 0;
     int maxDistance = 10000000;
 
-    float sinAngle, cosAngle;
-    sincosf(angle, &sinAngle, &cosAngle);
+    float sinAngle = sinf(angle);
+    float cosAngle = cosf(angle);
 
     // === Check for horizontal lines ===
     float horizontalRayX, horizontalRayY;
