@@ -15,11 +15,11 @@ static bool roomCompleted;
 static bool bossDefeated;
 
 static RoomType currentRoomType;
-static Area currentArea = AREA_LOST_ARCHIVES;
+static Area currentArea;
 static AreaData areaData[AREA_COUNT];
 
 void initProgressionManager(void) {
-    currentArea = AREA_LOST_ARCHIVES;
+    currentArea = AREA_ECHOING_CAVERNS;
     currentRoom = 0;
     currentRoomType = ROOM_TYPE_ENEMY;
 
