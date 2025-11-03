@@ -99,7 +99,7 @@ ShopPageData createRuneShopPage(RuneType runeType, Language language) {
 void createShopInteractables(void) {
     Stack optionsStack;
     stackInit(&optionsStack);
-    bool isSpellShop = getCurrentRoom() % 2 == 1;
+    bool isSpellShop = getCurrentRoom() % 2 == 0;
     if (isSpellShop) {
         for (int i = SPELL_NONE + 1; i < SPELL_COUNT; i++) {
             if (spellInDeck((Spell)i)) {

@@ -92,5 +92,12 @@ void incrementToNextRoom(void) {
             currentArea = AREA_ECHOING_CAVERNS;
         }
     }
+
+    if (currentRoom == MAX_ROOM_COUNT - 1) {
+        currentRoomType = ROOM_TYPE_BOSS;
+    } else {
+        currentRoomType = ROOM_TYPE_ENEMY;
+    }
+
     switchScene(SCENE_GAME);
 }

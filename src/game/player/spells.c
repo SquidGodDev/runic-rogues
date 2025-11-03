@@ -273,9 +273,9 @@ void initDeck(void) {
     }
 
     spellDeck[0] = SPELL_FIREBALL;
-    // spellDeck[1] = SPELL_TELEPORT;
-    // spellDeck[2] = SPELL_BLACK_HOLE;
-    // spellDeck[3] = SPELL_LASER;
+    spellDeck[1] = SPELL_LASER;
+    // spellDeck[2] = SPELL_TELEPORT;
+    // spellDeck[3] = SPELL_BLACK_HOLE;
     // spellDeck[4] = SPELL_NONE;
     // spellDeck[5] = SPELL_ARC_LIGHTNING;
     // spellDeck[6] = SPELL_EXPLOSIVE_SHOT;

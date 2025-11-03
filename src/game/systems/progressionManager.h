@@ -4,7 +4,7 @@
 #include "globals/globals.h"
 #include "game/enemies/enemies.h"
 
-#define MAX_ROOM_COUNT 10
+#define MAX_ROOM_COUNT 5 // Should be 10, but set to 5 for testing
 
 typedef enum Area
 {
