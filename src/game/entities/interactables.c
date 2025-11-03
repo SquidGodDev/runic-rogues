@@ -79,7 +79,8 @@ void interact(int interactableIndex) {
 
 	switch (curInteractable.type) {
 		case INTERACTABLE_TYPE_EXIT:
-			switchScene(SCENE_ROOM_MAP);
+			incrementToNextRoom();
+			switchScene(SCENE_GAME);
 			break;
 		case INTERACTABLE_TYPE_CAMPFIRE:
 			healPlayer(CAMPFIRE_HEAL_AMOUNT);
