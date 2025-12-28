@@ -12,7 +12,7 @@
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
-#include "game/player/spells.h"
+#include "game/spells/spells.h"
 #include "game/UI/UI.h"
 #include "game/UI/inventory.h"
 #include "game/enemies/enemies.h"

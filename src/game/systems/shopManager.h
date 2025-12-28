@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pd_api.h"
-#include "game/player/spells.h"
+#include "game/spells/spells.h"
 #include "game/systems/runeManager.h"
 
 #define SHOP_DESC_MAX_WIDTH 150

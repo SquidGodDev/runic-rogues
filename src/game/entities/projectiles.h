@@ -1,7 +1,7 @@
 #pragma once
 
 #include "globals/helpers.h"
-#include "game/player/spells.h"
+#include "game/spells/spells.h"
 
 #define MAX_PROJECTILE_COUNT 20
 

@@ -57,6 +57,7 @@ if (TOOLCHAIN STREQUAL "armgcc")
 							   ${CMAKE_SOURCE_DIR}/game/rendering
 							   ${CMAKE_SOURCE_DIR}/game/settings
 							   ${CMAKE_SOURCE_DIR}/game/systems
+							   ${CMAKE_SOURCE_DIR}/game/spells
 	)
 	target_compile_options(${PLAYDATE_GAME_DEVICE} PRIVATE 
 		-ffast-math
@@ -78,6 +79,7 @@ else()
 							   ${CMAKE_SOURCE_DIR}/game/rendering
 							   ${CMAKE_SOURCE_DIR}/game/settings
 							   ${CMAKE_SOURCE_DIR}/game/systems
+							   ${CMAKE_SOURCE_DIR}/game/spells
 	)
 	target_compile_options(${PLAYDATE_GAME_NAME} PRIVATE 
 		-Wall

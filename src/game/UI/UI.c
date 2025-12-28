@@ -6,7 +6,7 @@
 #include "game/UI/UI.h"
 #include "game/player/player.h"
 #include "game/player/playerStats.h"
-#include "game/player/spells.h"
+#include "game/spells/spells.h"
 #include "game/rendering/textures.h"
 #include "game/rendering/particles.h"
 #include "game/map/map.h"
