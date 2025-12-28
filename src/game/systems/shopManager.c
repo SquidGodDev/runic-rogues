@@ -9,7 +9,7 @@
 #include "game/settings/settings.h"
 #include "game/rendering/textures.h"
 #include "game/entities/interactables.h"
-#include "game/player/spells.h"
+#include "game/player/spells/spells.h"
 #include "game/map/map.h"
 
 typedef struct ShopPageData {

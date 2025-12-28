@@ -3,8 +3,7 @@
 #include "pd_api.h"
 
 typedef enum GameState {
-	GAME_STATE_ACTIVE,
-	GAME_STATE_INVENTORY
+	GAME_STATE_ACTIVE
 } GameState;
 
 extern GameState gameState;

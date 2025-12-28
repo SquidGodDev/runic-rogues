@@ -6,7 +6,7 @@
 #include "game/UI/UI.h"
 #include "game/player/player.h"
 #include "game/player/playerStats.h"
-#include "game/player/spells.h"
+#include "game/player/spells/spells.h"
 #include "game/rendering/textures.h"
 #include "game/rendering/particles.h"
 #include "game/map/map.h"
@@ -354,8 +354,8 @@ void drawExitArrow(void) {
     drawCenteredBitmap(pd->graphics->getTableBitmap(BITMAP_TABLES[BITMAP_TABLE_EXIT_ARROW], rotationTableIndex), EXIT_ARROW_X, EXIT_ARROW_Y);
 }
 
-int spellDrawX[SPELL_EQUIP_MAX] = {22, 6, 22, 38, 22};
-int spellDrawY[SPELL_EQUIP_MAX] = {71, 71, 53, 71, 89};
+int spellDrawX[SPELL_EQUIP_MAX] = {22, 6};
+int spellDrawY[SPELL_EQUIP_MAX] = {71, 71};
 void drawSpellUI(void) {
     int spellIconHeight = 14;
     int spellIconWidth = 10;

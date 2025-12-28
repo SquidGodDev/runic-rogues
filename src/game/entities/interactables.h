@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pd_api.h"
-#include "game/player/spells.h"
+#include "game/player/spells/spells.h"
 #include "game/systems/shopManager.h"
 
 #define MAX_INTERACTABLE_COUNT 15

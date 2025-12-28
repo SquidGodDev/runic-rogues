@@ -4,24 +4,13 @@
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
 
-#define SPELL_EQUIP_MAX 5
-#define SPELL_DECK_MAX 11
+#define SPELL_EQUIP_MAX 2
+#define SPELL_DECK_MAX 2
 
 typedef enum Spell {
     SPELL_NONE,
     SPELL_FIREBALL,
-    SPELL_TRIPLE_SHOT,
-    SPELL_SHOTGUN,
     SPELL_LASER,
-    SPELL_ROOT_SURGE,
-    SPELL_WAVE,
-    SPELL_TRIPLE_WAVE,
-    SPELL_CONE_OF_ICE,
-    SPELL_ARC_LIGHTNING,
-    SPELL_EXPLOSIVE_SHOT,
-    SPELL_BOMBER,
-    SPELL_TELEPORT,
-    SPELL_BLACK_HOLE,
     SPELL_COUNT
 } Spell;
 
@@ -48,6 +37,16 @@ typedef struct SpellProjectileData {
     ParticleType timeoutParticle;
 } SpellProjectileData;
 
+typedef struct SpellCastData {
+    Spell spell;
+    float maxCooldown;
+    float castTime;
+    float activationTime;
+    int activationCount;
+    float initialCastAngle;
+    Point spellPosition;
+} SpellCastData;
+
 typedef struct SpellData {
     char* name;
     char* name_jp;
@@ -57,6 +56,7 @@ typedef struct SpellData {
     int spellTextureIndex;
     int spellIconIndex;
     SpellType type;
+    void (*cast)(Spell spell, SpellCastData *castData, float angle, bool initialCast);
     float cooldown;
     float manaCost;
     int damage;
@@ -68,8 +68,8 @@ typedef struct SpellData {
     SpellProjectileData projectileData;
 } SpellData;
 
-void initDeck(void);
 void initSpells(void);
+void resetSpellState(void);
 Spell *getSpellDeck(void);
 bool spellInDeck(Spell spell);
 void addSpellToDeck(Spell spell);

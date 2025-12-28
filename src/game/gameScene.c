@@ -12,9 +12,8 @@
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
-#include "game/player/spells.h"
+#include "game/player/spells/spells.h"
 #include "game/UI/UI.h"
-#include "game/UI/inventory.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
 #include "game/systems/audioManager.h"
@@ -42,7 +41,7 @@ void initSystems(void)
 // Run at the start of every new run
 void initRunStart(void) {
 	setGameState(GAME_STATE_ACTIVE);
-	initDeck();
+	initSpells();
 	initRunes();
 	initProgressionManager();
 }
@@ -50,7 +49,6 @@ void initRunStart(void) {
 // Run at the start of every room
 void initGameScene(void)
 {	
-    createInventoryMenuItem();
 	setGameState(GAME_STATE_ACTIVE);
 	pd->system->resetElapsedTime();
 
@@ -58,7 +56,7 @@ void initGameScene(void)
 	resetProgressionManagerRoomState();
 
 	// Spells
-	initSpells();
+	resetSpellState();
 	initPickups();
 
 	// Entities
@@ -98,8 +96,6 @@ void updateGameScene(float deltaTime)
 		drawUI(deltaTime);
 
 		pd->system->drawFPS(185, 108);
-	} else if (gameState == GAME_STATE_INVENTORY) {
-		updateInventory(deltaTime);
 	}
 
 	pd->lua->pushNil();
