@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pd_api.h"
-#include "game/spells/spells.h"
+#include "game/player/spells.h"
 
 #define MAX_PICKUP_COUNT 10
 

@@ -7,7 +7,7 @@
 
 #include "game/player/player.h"
 #include "game/player/playerStats.h"
-#include "game/spells/spells.h"
+#include "game/player/spells.h"
 #include "game/UI/UI.h"
 #include "game/entities/projectiles.h"
 #include "game/entities/interactables.h"
