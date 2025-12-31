@@ -22,7 +22,6 @@ typedef enum Spell {
 typedef enum SpellType {
     SPELL_TYPE_INSTANT,
     SPELL_TYPE_REPEAT,
-    SPELL_TYPE_CHANNEL,
     SPELL_TYPE_COUNT
 } SpellType;
 
@@ -89,8 +88,6 @@ int getMaxUtilitySpells(void);
 int getUtilitySpellCount(void);
 float getUtilitySpellCharge(void);
 void castUtilitySpell(void);
-bool hasActiveChanneledSpell(void);
-void clearAllChannelledSpells(void);
 bool castSpell(int index);
 void updateSpells(float deltaTime);
 

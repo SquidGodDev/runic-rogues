@@ -21,6 +21,7 @@
 #include "game/systems/progressionManager.h"
 #include "game/systems/runeManager.h"
 #include "game/systems/shopManager.h"
+#include "game/systems/timerManager.h"
 #include "game/systems/waveManager.h"
 #include "game/settings/settings.h"
 
@@ -46,6 +47,7 @@ void initRunStart(void) {
 	initRunes();
 	initProgressionManager();
 	initUpgrades();
+	initTimers();
 }
 
 // Run at the start of every room
@@ -94,6 +96,7 @@ void updateGameScene(float deltaTime)
 		updateParticles(deltaTime);
 		updateInteractables(deltaTime);
 		updateWaveManager(deltaTime);
+		updateTimers(deltaTime);
 		renderScene();
 		drawUI(deltaTime);
 

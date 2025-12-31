@@ -230,10 +230,6 @@ void handleInput(float deltaTime)
 	// 	movementToggled ^= 1;
 	// }
 
-	if (pushed & kButtonB) {
-		clearAllChannelledSpells();
-	}
-
 	if (current & kButtonB) {
 		int spellIndex = 0;
 		if (current & kButtonLeft) {
@@ -554,7 +550,4 @@ void updatePlayer(float deltaTime) {
 	handleInput(deltaTime);
 	handleInteractables();
 	healPlayer(getPlayerHealthRegenRate() * deltaTime);
-	if (!hasActiveChanneledSpell()) {
-		addMana(getPlayerManaRegenRate() * deltaTime);
-	}
 }

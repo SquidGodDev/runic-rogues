@@ -7,6 +7,7 @@
 #include "game/player/playerStats.h"
 #include "game/player/spells/spells.h"
 #include "game/systems/audioManager.h"
+#include "game/systems/timerManager.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
 
@@ -31,8 +32,16 @@ void fireballCast(Spell spell, SpellCastData *castData, float angle, bool initia
     fireSpellProjectile(spell, angle);
 }
 
+void laserRepeatCallback(int repeatCount, void *data) {
+    SpellCastData *castData = (SpellCastData *)data;
+    fireSpellProjectile(castData->spell, castData->initialCastAngle);
+}
+
 void laserCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
     fireSpellProjectile(spell, angle);
+    if (initialCast) {
+        addTimer(castData->activationTime, castData->activationCount - 1, laserRepeatCallback, (void *)castData);
+    }
 }
 
 SpellData baseSpellData[SPELL_COUNT] = {
@@ -73,7 +82,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .playerSpeedModifier = -0.7f,
         .useInitialCastAngle = true,
         .repeatData = (RepeatData){
-            .castTime = 0.6f,
             .activationTime = 0.1f,
             .repeatCount = 5
         },
@@ -97,12 +105,6 @@ void initSpells(void) {
 
     spellDeck[0] = SPELL_FIREBALL;
     spellDeck[1] = SPELL_LASER;
-    // spellDeck[2] = SPELL_TELEPORT;
-    // spellDeck[3] = SPELL_BLACK_HOLE;
-    // spellDeck[4] = SPELL_NONE;
-    // spellDeck[5] = SPELL_ARC_LIGHTNING;
-    // spellDeck[6] = SPELL_EXPLOSIVE_SHOT;
-    // spellDeck[7] = SPELL_BOMBER;
 }
 
 void resetSpellState(void) {
@@ -221,37 +223,6 @@ void activateSpellEffect(int index, float angle, bool initialCast) {
     SpellCastData *castData = &spellCastData[index];
     SpellData *data = &spellData[spell];
     data->cast(spell, castData, angle, initialCast);
-    castData->activationCount++;
-}
-
-bool hasActiveChanneledSpell(void) {
-    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
-        SpellCastData *castData = &spellCastData[i];
-        if (castData->spell == SPELL_NONE) {
-            continue;
-        }
-
-        SpellData *data = &spellData[castData->spell];
-        if (data->type == SPELL_TYPE_CHANNEL) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void clearAllChannelledSpells(void) {
-    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
-        SpellCastData *castData = &spellCastData[i];
-        if (castData->spell == SPELL_NONE) {
-            continue;
-        }
-
-        SpellData *data = &spellData[castData->spell];
-        if (data->type == SPELL_TYPE_CHANNEL) {
-            castData->spell = SPELL_NONE;
-            clearSpellOverlay(i);
-        }
-    }
 }
 
 bool castSpell(int index) {
@@ -270,26 +241,14 @@ bool castSpell(int index) {
     }
 
     spellCooldowns[index] = data->cooldown;
-    if (data->type == SPELL_TYPE_REPEAT) {
-        spellCastData[index] = (SpellCastData) {
-            .spell = spell,
-            .maxCooldown = data->cooldown,
-            .castTime = data->repeatData.castTime,
-            .activationTime = data->repeatData.activationTime,
-            .activationCount = 0,
-            .initialCastAngle = playerAngle
-        };
-    } else if (data->type == SPELL_TYPE_CHANNEL) {
-        spellCastData[index] = (SpellCastData) {
-            .spell = spell,
-            .maxCooldown = data->cooldown,
-            .activationTime = data->repeatData.activationTime,
-            .initialCastAngle = playerAngle
-        };
-    } else {
-        spellCastData[index].spell = SPELL_NONE;
-        spellCastData[index].maxCooldown = data->cooldown;
-    }
+    spellCastData[index] = (SpellCastData) {
+        .spell = spell,
+        .maxCooldown = data->cooldown,
+        .castTime = data->repeatData.activationTime * data->repeatData.repeatCount,
+        .activationTime = data->repeatData.activationTime,
+        .activationCount = 0,
+        .initialCastAngle = playerAngle
+    };
 
     playSound(SFX_SHOOT);
     activateSpellEffect(index, playerAngle, true /* initialCast */);
@@ -336,19 +295,6 @@ void updateSpells(float deltaTime) {
                 float angle = data->useInitialCastAngle ? castData->initialCastAngle : playerAngle;
                 activateSpellEffect(i, angle, false /* initialCast */);
                 castData->activationTime = data->repeatData.activationTime;
-            }
-        } else if (data->type == SPELL_TYPE_CHANNEL) {
-            castData->activationTime -= deltaTime;
-            if (castData->activationTime <= 0.0f) {
-                bool sufficientMana = spendMana(data->manaCost);
-                if (!sufficientMana) {
-                    castData->spell = SPELL_NONE;
-                    clearSpellOverlay(i);
-                } else {
-                    float angle = data->useInitialCastAngle ? castData->initialCastAngle : playerAngle;
-                    activateSpellEffect(i, angle, false /* initialCast */);
-                    castData->activationTime = data->repeatData.activationTime;
-                }
             }
         } else {
             castData->spell = SPELL_NONE;
