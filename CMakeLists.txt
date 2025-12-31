@@ -54,6 +54,7 @@ if (TOOLCHAIN STREQUAL "armgcc")
 							   ${CMAKE_SOURCE_DIR}/game/entities
 							   ${CMAKE_SOURCE_DIR}/game/map
 							   ${CMAKE_SOURCE_DIR}/game/player
+							   ${CMAKE_SOURCE_DIR}/game/player/classes
 							   ${CMAKE_SOURCE_DIR}/game/player/spells
 							   ${CMAKE_SOURCE_DIR}/game/player/upgrades
 							   ${CMAKE_SOURCE_DIR}/game/rendering
@@ -77,6 +78,7 @@ else()
 							   ${CMAKE_SOURCE_DIR}/game/entities
 							   ${CMAKE_SOURCE_DIR}/game/map
 							   ${CMAKE_SOURCE_DIR}/game/player
+							   ${CMAKE_SOURCE_DIR}/game/player/classes
 							   ${CMAKE_SOURCE_DIR}/game/player/spells
 							   ${CMAKE_SOURCE_DIR}/game/player/upgrades
 							   ${CMAKE_SOURCE_DIR}/game/rendering

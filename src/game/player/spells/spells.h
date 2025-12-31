@@ -9,8 +9,13 @@
 
 typedef enum Spell {
     SPELL_NONE,
-    SPELL_FIREBALL,
+    SPELL_ARCANE_BOLT,
     SPELL_LASER,
+    SPELL_FIREBALL,
+    SPELL_SWORD,
+    SPELL_BASH,
+    SPELL_KNIFE,
+    SPELL_DASH,
     SPELL_COUNT
 } Spell;
 
