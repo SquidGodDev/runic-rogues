@@ -13,6 +13,7 @@
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
 #include "game/player/spells/spells.h"
+#include "game/player/upgrades/upgrades.h"
 #include "game/UI/UI.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
@@ -44,6 +45,7 @@ void initRunStart(void) {
 	initSpells();
 	initRunes();
 	initProgressionManager();
+	initUpgrades();
 }
 
 // Run at the start of every room
