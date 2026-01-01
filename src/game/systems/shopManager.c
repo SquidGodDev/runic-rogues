@@ -163,7 +163,8 @@ void createShopInteractables(void) {
 }
 
 void initShop(void) {
-    createShopInteractables();
+    // createShopInteractables();
+    spawnExit();
     carveOutShopArea();
     Point exitMapPosition = getExitMapPosition();
     setExitArrowPosition(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);

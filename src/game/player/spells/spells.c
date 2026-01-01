@@ -5,6 +5,7 @@
 #include "game/UI/UI.h"
 #include "game/player/player.h"
 #include "game/player/playerStats.h"
+#include "game/player/classes/classData.h"
 #include "game/player/spells/spells.h"
 #include "game/systems/audioManager.h"
 #include "game/systems/timerManager.h"
@@ -44,12 +45,49 @@ void laserCast(Spell spell, SpellCastData *castData, float angle, bool initialCa
     }
 }
 
+void swordCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
+    float meleeX = playerX + cosf(angle) * CELL_SIZE / 2;
+    float meleeY = playerY + sinf(angle) * CELL_SIZE / 2;
+    SpellData *data = &spellData[spell];
+    int damageRadius = data->meleeData.range;
+    int damage = data->damage;
+    float knockbackTime = data->knockbackTime;
+    float knockbackAmount = data->knockbackAmount;
+    damageEnemiesInArea(meleeX, meleeY, damageRadius, damage);
+    knockbackEnemiesInArea(meleeX, meleeY, damageRadius, knockbackTime, knockbackAmount);
+}
+
 SpellData baseSpellData[SPELL_COUNT] = {
     [SPELL_NONE] = {
         .name = "None",
         .name_jp = "なし",
         .description = "Empty.",
         .spellIconIndex = BITMAP_SPELL_EMPTY_ICON,
+    },
+    [SPELL_ARCANE_BOLT] = {
+        .name = "Arcane Bolt",
+        .name_jp = "アーケインボルト",
+        .description = "Shoot a projectile that deals medium damage to one enemy.",
+        .description_jp = "敵に中程度のダメージを与える弾を発射する。",
+        .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
+        .spellTextureIndex = TEXTURE_PROJECTILE,
+        .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
+        .type = SPELL_TYPE_INSTANT,
+        .cast = fireballCast,
+        .cooldown = 0.5f,
+        .damage = 10,
+        .projectileData = (SpellProjectileData) {
+            .speed = 75.0f
+        },
+        .weaponData = (WeaponData) {
+            .weaponBitmapTable = BITMAP_TABLE_HAND,
+            .drawX = 126,
+            .drawY = 75,
+            .activeOffsetX = 0,
+            .activeOffsetY = -7,
+            .frameTime = 0.6f,
+            .activeFrame = 0
+        }
     },
     [SPELL_FIREBALL] = {
         .name = "Fireball",
@@ -89,6 +127,30 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .hitCount = 3,
             .speed = 300.0f
         }
+    },
+    [SPELL_SWORD] = {
+        .name = "Melee",
+        .name_jp = "近接攻撃",
+        .description = "Perform a melee attack that deals damage to nearby enemies",
+        .description_jp = "近くの敵にダメージを与える近接攻撃を行う",
+        .pickupTextureIndex = TEXTURE_SPELL_ARC_LIGHTNING, // TEMP
+        .spellIconIndex = BITMAP_SPELL_ARC_LIGHTNING_ICON, // TEMP
+        .type = SPELL_TYPE_INSTANT,
+        .cast = swordCast,
+        .cooldown = 0.5f,
+        .damage = 15,
+        .knockbackTime = 0.5f,
+        .knockbackAmount = 8.0f,
+        .meleeData = (MeleeData) {
+            .range = CELL_SIZE * 1.5f
+        },
+        .weaponData = (WeaponData) {
+            .weaponBitmapTable = BITMAP_TABLE_SWORD,
+            .drawX = 61,
+            .drawY = 8,
+            .frameTime = 0.075f,
+            .activeFrame = 5
+        }
     }
 };
 
@@ -103,8 +165,9 @@ void initSpells(void) {
         spellDeck[i] = SPELL_NONE;
     }
 
-    spellDeck[0] = SPELL_FIREBALL;
-    spellDeck[1] = SPELL_LASER;
+    const ClassData *classData = getCurrentClassData();
+    spellDeck[BASIC_SPELL_INDEX] = classData->basicSpell;
+    spellDeck[SPECIAL_SPELL_INDEX] = classData->specialSpell;
 }
 
 void resetSpellState(void) {
@@ -173,6 +236,14 @@ Spell getDeckSpell(int index) {
     return spellDeck[index];
 }
 
+Spell getBasicSpell(void) {
+    return spellDeck[BASIC_SPELL_INDEX];
+}
+
+Spell getSpecialSpell(void) {
+    return spellDeck[SPECIAL_SPELL_INDEX];
+}
+
 float getSpellCooldownPercentage(int index) {
     float maxCooldown = spellCastData[index].maxCooldown;
     if (spellCooldowns[index] <= 0.0f || maxCooldown <= 0.0f) {
@@ -225,7 +296,7 @@ void activateSpellEffect(int index, float angle, bool initialCast) {
     data->cast(spell, castData, angle, initialCast);
 }
 
-bool castSpell(int index) {
+bool spellIsCastable(int index) {
     if (spellCooldowns[index] > 0.0f) {
         return false;
     }
@@ -239,6 +310,17 @@ bool castSpell(int index) {
     if (!spendMana(data->manaCost)) {
         return false;
     }
+
+    return true;
+}
+
+bool castSpell(int index) {
+    if (!spellIsCastable(index)) {
+        return false;
+    }
+
+    Spell spell = spellDeck[index];
+    SpellData *data = &spellData[spell];
 
     spellCooldowns[index] = data->cooldown;
     spellCastData[index] = (SpellCastData) {
@@ -254,6 +336,14 @@ bool castSpell(int index) {
     activateSpellEffect(index, playerAngle, true /* initialCast */);
 
     return true;
+}
+
+bool castBasicSpell(void) {
+    return castSpell(BASIC_SPELL_INDEX);
+}
+
+bool castSpecialSpell(void) {
+    return castSpell(SPECIAL_SPELL_INDEX);
 }
 
 void updateSpells(float deltaTime) {

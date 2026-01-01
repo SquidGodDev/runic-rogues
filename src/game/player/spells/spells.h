@@ -7,6 +7,9 @@
 #define SPELL_EQUIP_MAX 2
 #define SPELL_DECK_MAX 2
 
+#define BASIC_SPELL_INDEX 0
+#define SPECIAL_SPELL_INDEX 1
+
 typedef enum Spell {
     SPELL_NONE,
     SPELL_ARCANE_BOLT,
@@ -25,6 +28,16 @@ typedef enum SpellType {
     SPELL_TYPE_COUNT
 } SpellType;
 
+typedef struct SpellCastData {
+    Spell spell;
+    float maxCooldown;
+    float castTime;
+    float activationTime;
+    int activationCount;
+    float initialCastAngle;
+    Point spellPosition;
+} SpellCastData;
+
 typedef struct RepeatData {
     float castTime;
     int repeatCount;
@@ -41,15 +54,19 @@ typedef struct SpellProjectileData {
     ParticleType timeoutParticle;
 } SpellProjectileData;
 
-typedef struct SpellCastData {
-    Spell spell;
-    float maxCooldown;
-    float castTime;
-    float activationTime;
-    int activationCount;
-    float initialCastAngle;
-    Point spellPosition;
-} SpellCastData;
+typedef struct MeleeData {
+    float range;
+} MeleeData;
+
+typedef struct WeaponData {
+    BitmapTablePath weaponBitmapTable;
+    int drawX;
+    int drawY;
+    int activeOffsetX;
+    int activeOffsetY;
+    float frameTime;
+    int activeFrame;
+} WeaponData;
 
 typedef struct SpellData {
     char* name;
@@ -70,6 +87,8 @@ typedef struct SpellData {
     float playerSpeedModifier;
     RepeatData repeatData;
     SpellProjectileData projectileData;
+    MeleeData meleeData;
+    WeaponData weaponData;
 } SpellData;
 
 void initSpells(void);
@@ -81,14 +100,18 @@ void swapSpells(int spellIndex1, int spellIndex2);
 int getSpellPickupTextureIndex(Spell spell);
 LCDBitmap* getSpellIcon(Spell spell);
 Spell getDeckSpell(int index);
-int getMaxHeldSpells(void);
+Spell getBasicSpell(void);
+Spell getSpecialSpell(void);
 float getSpellCooldownPercentage(int index);
 float getPlayerSpeedModifier(void);
 int getMaxUtilitySpells(void);
 int getUtilitySpellCount(void);
 float getUtilitySpellCharge(void);
 void castUtilitySpell(void);
+bool spellIsCastable(int index);
 bool castSpell(int index);
+bool castBasicSpell(void);
+bool castSpecialSpell(void);
 void updateSpells(float deltaTime);
 
 extern SpellData spellData[SPELL_COUNT];

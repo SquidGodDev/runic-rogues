@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game/player/spells/spells.h"
+#include "game/rendering/textures.h"
 
 typedef enum ClassType {
     CLASS_MAGE,
@@ -22,3 +23,6 @@ typedef struct ClassData {
 } ClassData;
 
 extern const ClassData classData[CLASS_COUNT];
+
+ClassType getCurrentClassType(void);
+const ClassData* getCurrentClassData(void);

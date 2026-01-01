@@ -1,7 +1,7 @@
 #include "game/player/classes/classData.h"
 
 const ClassData classData[CLASS_COUNT] = {
-    {
+    [CLASS_MAGE] = {
         .classType = CLASS_MAGE,
         .name = "Mage",
         .desc = "",
@@ -9,10 +9,10 @@ const ClassData classData[CLASS_COUNT] = {
         .descJP = "",
         .baseHealth = 100,
         .baseSpeed = 12,
-        .basicSpell = SPELL_FIREBALL,
+        .basicSpell = SPELL_ARCANE_BOLT,
         .specialSpell = SPELL_LASER
     },
-    {
+    [CLASS_WARRIOR] = {
         .classType = CLASS_WARRIOR,
         .name = "Warrior",
         .desc = "",
@@ -21,9 +21,9 @@ const ClassData classData[CLASS_COUNT] = {
         .baseHealth = 150,
         .baseSpeed = 10,
         .basicSpell = SPELL_SWORD,
-        .specialSpell = SPELL_BASH
+        .specialSpell = SPELL_LASER
     },
-    {
+    [CLASS_ROGUE] = {
         .classType = CLASS_ROGUE,
         .name = "Rogue",
         .desc = "",
@@ -35,3 +35,13 @@ const ClassData classData[CLASS_COUNT] = {
         .specialSpell = SPELL_DASH
     }
 };
+
+ClassType currentClass = CLASS_WARRIOR;
+
+ClassType getCurrentClassType(void) {
+    return currentClass;
+}
+
+const ClassData* getCurrentClassData(void) {
+    return &classData[currentClass];
+}

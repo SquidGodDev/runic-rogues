@@ -8,6 +8,7 @@
 #include "game/player/player.h"
 #include "game/player/playerStats.h"
 #include "game/player/spells/spells.h"
+#include "game/player/classes/classData.h"
 #include "game/UI/UI.h"
 #include "game/entities/projectiles.h"
 #include "game/entities/interactables.h"
@@ -24,8 +25,6 @@
 #define HIT_INVINCIBILITY_TIME 0.5f // Seconds
 
 #define DOUBLE_TAP_TIME 0.3f // Seconds
-
-#define WEAPON_ANIM_COOLDOWN 0.6f
 
 // === Extern variables ===
 float playerX, playerY;
@@ -81,13 +80,19 @@ typedef struct WeaponAnimation {
 	int yOffset;
 	int activeXOffset;
 	int activeYOffset;
+	LCDBitmapTable *bitmapTable;
+	int bitmapFrames;
+	float frameTime;
+	int activeFrame;
 	// Dynamic values
-	float curCooldown;
+	int spellIndex;
 	float bobCounter;
 	float drawX;
 	float drawY;
 	float targetDrawX;
 	float targetDrawY;
+	int curFrame;
+	float curFrameTime;
 } WeaponAnimation;
 
 static PlayerState playerState;
@@ -99,6 +104,7 @@ static bool toggleMovementSetting = false;
 static bool movementToggled = false;
 
 void initPlayer(void) {
+	const ClassData *classData = getCurrentClassData();
 	playerHealth = getPlayerMaxHealth();
 	playerMana = getPlayerMaxMana();
 	playerState = (PlayerState) {
@@ -136,7 +142,6 @@ void initPlayer(void) {
 		.turnMaxSpeed = 2.0f,
 		.turnInitialSpeed = 0.5f,
 		.turnSpeed = 0,
-
 		.initialSpeed = 20.0f,
 		.acceleration = 175.0f,
 		.drag = 175.0f,
@@ -151,23 +156,43 @@ void initPlayer(void) {
 	};
 
 	// Animation
-	int weaponBasePositionX = 126;
-	int weaponBasePositionY = 75;
+	Spell basicSpell = classData->basicSpell;
+	SpellData basicSpellData = spellData[basicSpell];
+	WeaponData weaponData = basicSpellData.weaponData;
+	int weaponBasePositionX = weaponData.drawX;
+	int weaponBasePositionY = weaponData.drawY;
+	LCDBitmapTable *bitmapTable = BITMAP_TABLES[weaponData.weaponBitmapTable];
+    int frameCount;
+    pd->graphics->getBitmapTableInfo(bitmapTable, NULL, &frameCount);
 	weaponAnimation = (WeaponAnimation) {
+		// Fixed constants
 		.bobSpeed = 0.15f,
 		.basePositionX = weaponBasePositionX,
 		.basePositionY = weaponBasePositionY,
 		.xOffset = 5,
 		.yOffset = 3,
-		.activeXOffset = 0,
-		.activeYOffset = -7,
-		.curCooldown = 0,
+		.activeXOffset = weaponData.activeOffsetX,
+		.activeYOffset = weaponData.activeOffsetY,
+		.bitmapTable = bitmapTable,
+		.bitmapFrames = frameCount,
+		.frameTime = weaponData.frameTime,
+		.activeFrame = weaponData.activeFrame,
+		// Dynamic values
+		.spellIndex = -1,
 		.bobCounter = 0,
 		.drawX = weaponBasePositionX,
 		.drawY = weaponBasePositionY,
 		.targetDrawX = weaponBasePositionX,
-		.targetDrawY = weaponBasePositionY
+		.targetDrawY = weaponBasePositionY,
+		.curFrame = 0,
+		.curFrameTime = 0
 	};
+}
+
+void startWeaponAnimation(int spellIndex) {
+	weaponAnimation.spellIndex = spellIndex;
+	weaponAnimation.curFrameTime = weaponAnimation.frameTime;
+	weaponAnimation.curFrame = 1;
 }
 
 void handleInput(float deltaTime)
@@ -205,8 +230,8 @@ void handleInput(float deltaTime)
 			playerState.interactedOnPress = true;
 		}
 	} else if ((current & kButtonA) && !playerState.interactedOnPress) {
-		if(castSpell(0)) {
-			weaponAnimation.curCooldown = WEAPON_ANIM_COOLDOWN;
+		if(spellIsCastable(BASIC_SPELL_INDEX) && weaponAnimation.curFrame == 0 && weaponAnimation.spellIndex != BASIC_SPELL_INDEX) {
+			startWeaponAnimation(BASIC_SPELL_INDEX);
 		}
 	}
 
@@ -231,23 +256,9 @@ void handleInput(float deltaTime)
 	// }
 
 	if (current & kButtonB) {
-		int spellIndex = 0;
-		if (current & kButtonLeft) {
-			spellIndex = 1;
-		} else if (current & kButtonUp) {
-			spellIndex = 2;
-		} else if (current & kButtonRight) {
-			spellIndex = 3;
-		} else if (current & kButtonDown) {
-			spellIndex = 4;
+		if (castSpecialSpell() && getCurrentClassType() == CLASS_MAGE) {
+			startWeaponAnimation(SPECIAL_SPELL_INDEX);
 		}
-		if (spellIndex > 0) {
-			if (castSpell(spellIndex)) {
-				weaponAnimation.curCooldown = WEAPON_ANIM_COOLDOWN;
-			}
-		}
-		current = 0;
-		pushed = 0;
 	}
 
 	int playerIsDashing = movementStats.curDashTime > 0;
@@ -457,7 +468,7 @@ void handleInput(float deltaTime)
 		weaponAnimation.targetDrawY = weaponAnimation.basePositionY;
 	}
 
-	if (weaponAnimation.curCooldown > 0) {
+	if (weaponAnimation.curFrame > 0) {
 		weaponAnimation.targetDrawX = weaponAnimation.basePositionX + weaponAnimation.activeXOffset;
 		weaponAnimation.targetDrawY = weaponAnimation.basePositionY + weaponAnimation.activeYOffset;
 	}
@@ -529,15 +540,23 @@ void drawWeapon(float deltaTime) {
 	float lerpSpeed = 0.2f;
 	weaponAnimation.drawX = lerp(weaponAnimation.drawX, weaponAnimation.targetDrawX, lerpSpeed);
 	weaponAnimation.drawY = lerp(weaponAnimation.drawY, weaponAnimation.targetDrawY, lerpSpeed);
-	if (weaponAnimation.curCooldown > 0) {
-		weaponAnimation.curCooldown -= deltaTime;
-		if (weaponAnimation.curCooldown <= 0) {
-			weaponAnimation.curCooldown = 0;
+	if (weaponAnimation.curFrame > 0 && weaponAnimation.curFrameTime > 0) {
+		weaponAnimation.curFrameTime -= deltaTime;
+		if (weaponAnimation.curFrameTime <= 0) {
+			weaponAnimation.curFrameTime = weaponAnimation.frameTime;
+			weaponAnimation.curFrame++;
+			if (weaponAnimation.curFrame == weaponAnimation.activeFrame && weaponAnimation.spellIndex == BASIC_SPELL_INDEX) {
+				castSpell(BASIC_SPELL_INDEX);
+			}
+			if (weaponAnimation.curFrame >= weaponAnimation.bitmapFrames) {
+				weaponAnimation.curFrame = 0;
+				weaponAnimation.spellIndex = -1;
+			}
 		}
-		pd->graphics->drawBitmap(BITMAPS[BITMAP_HAND_OPEN], weaponAnimation.drawX, weaponAnimation.drawY, kBitmapUnflipped);
-	} else {
-		pd->graphics->drawBitmap(BITMAPS[BITMAP_HAND], weaponAnimation.drawX, weaponAnimation.drawY, kBitmapUnflipped);
 	}
+
+	LCDBitmap *weaponBitmap = pd->graphics->getTableBitmap(weaponAnimation.bitmapTable, weaponAnimation.curFrame);
+	pd->graphics->drawBitmap(weaponBitmap, weaponAnimation.drawX, weaponAnimation.drawY, kBitmapUnflipped);
 }
 
 void updatePlayer(float deltaTime) {

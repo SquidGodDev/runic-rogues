@@ -80,11 +80,9 @@ typedef struct textureBounds {
 } TextureBounds;
 extern TextureBounds* TEXTURE_BOUNDS[];
 
-typedef enum BitmapPaths {
+typedef enum BitmapPath {
 	BITMAP_TITLE_SCREEN_BACKGROUND,
 	BITMAP_GAME_OVER_SCREEN,
-	BITMAP_HAND,
-	BITMAP_HAND_OPEN,
 	BITMAP_HEART,
 	BITMAP_HEALTH_BAR,
 	BITMAP_MANA_BAR,
@@ -127,17 +125,19 @@ typedef enum BitmapPaths {
 	BITMAP_RUNE_HEALTHY,
 	BITMAP_RUNE_SWIFT,
 	BITMAP_PATHS_COUNT
-} BitmapPaths;
+} BitmapPath;
 extern LCDBitmap* BITMAPS[];
 extern uint8_t* SPELL_TEXTURES[];
 
-typedef enum BitmapTablePaths {
+typedef enum BitmapTablePath {
 	BITMAP_TABLE_EXIT_ARROW,
 	BITMAP_TABLE_ROOM_CLEARED_POPUP_EN,
 	BITMAP_TABLE_ROOM_CLEARED_POPUP_JP,
 	BITMAP_TABLE_ARC_LIGHTNING_OVERLAY,
+	BITMAP_TABLE_HAND,
+	BITMAP_TABLE_SWORD,
 	BITMAP_TABLE_PATHS_COUNT,
-} BitmapTablePaths;
+} BitmapTablePath;
 extern LCDBitmapTable* BITMAP_TABLES[];
 
 extern LCDFont *fontTitleEN;

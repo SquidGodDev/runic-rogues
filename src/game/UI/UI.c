@@ -519,11 +519,11 @@ void drawUI(float deltaTime) {
             drawBossHealthBar();
         }
     } else {
-        drawWaveProgressBar();
+        // drawWaveProgressBar();
     }
 
     drawHealth();
-    drawMinimap();
+    // drawMinimap();
     drawSpellOverlay(deltaTime);
     drawWeapon(deltaTime);
     drawSpellUI();

@@ -147,7 +147,7 @@ void updateParticles(float deltaTime) {
 					damagePlayer(data->damage);
 				}
 			} else {
-				damageEnemiesInArea(curParticle->x, curParticle->y, data->damageRadius * data->damageRadius, data->damage);
+				damageEnemiesInArea(curParticle->x, curParticle->y, data->damageRadius, data->damage);
 			}
 		}
 

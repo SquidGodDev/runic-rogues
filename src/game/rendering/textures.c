@@ -57,8 +57,6 @@ LCDBitmap* BITMAPS[BITMAP_PATHS_COUNT];
 const char *bitmapPathStrings[] = {
 	"images/title/titleScreen",
 	"images/title/gameEndScreen",
-	"images/player/hand",
-	"images/player/handOpen",
 	"images/UI/health/heart",
 	"images/UI/health/healthBar",
 	"images/UI/mana/manaBar",
@@ -107,6 +105,8 @@ const char *bitmapTablePathStrings[] = {
 	"images/UI/popups/roomClearedEN",
 	"images/UI/popups/roomClearedJP",
 	"images/spells/overlays/arcLightningOverlay",
+	"images/player/hand",
+	"images/player/sword",
 };
 
 LCDFont *fontTitleEN;
