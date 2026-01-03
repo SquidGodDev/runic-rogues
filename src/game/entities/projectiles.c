@@ -47,6 +47,10 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 				.damage = damage,
 				.spellProjectileData = spellProjectileData,
 				.textureIndex = textureIndex,
+				.frameCount = spellProjectileData.frameCount,
+				.frameTime = spellProjectileData.frameTime,
+				.currentFrame = 0,
+				.currentFrameTime = 0.0f,
 				.isEnemy = isEnemy,
 				.hitCount = spellProjectileData.hitCount,
 				.hitEnemies = hitEnemies,
@@ -59,7 +63,7 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 }
 
 void firePlayerProjectile(float x, float y, float deltaX, float deltaY, int damage, SpellProjectileData spellProjectileData) {
-	fireProjectile(x, y, deltaX, deltaY, spellProjectileData.speed, damage, TEXTURE_PROJECTILE, 0 /*isEnemy*/, spellProjectileData);
+	fireProjectile(x, y, deltaX, deltaY, spellProjectileData.speed, damage, spellProjectileData.textureIndex, 0 /*isEnemy*/, spellProjectileData);
 }
 
 void fireEnemyProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage) {
@@ -136,6 +140,17 @@ void updateProjectiles(float deltaTime) {
 		curProjectile->x += xVelocity * deltaTime;
 		curProjectile->y += yVelocity * deltaTime;
 
-		addEntityToRenderQueue(curProjectile->x, curProjectile->y, PROJECTILE, i, curProjectile->textureIndex, 0 /* animationFrame*/);
+		if (curProjectile->frameCount > 1) {
+			curProjectile->currentFrameTime += deltaTime;
+			if (curProjectile->currentFrameTime >= curProjectile->frameTime) {
+				curProjectile->currentFrameTime = 0.0f;
+				curProjectile->currentFrame++;
+				if (curProjectile->currentFrame >= curProjectile->frameCount) {
+					curProjectile->currentFrame = 0;
+				}
+			}
+		}
+
+		addEntityToRenderQueue(curProjectile->x, curProjectile->y, PROJECTILE, i, curProjectile->textureIndex, curProjectile->currentFrame);
 	}
 }

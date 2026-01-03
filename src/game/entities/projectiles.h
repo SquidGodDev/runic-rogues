@@ -15,6 +15,10 @@ typedef struct Projectile {
 	Set *hitEnemies;
 	int damage;
 	int textureIndex;
+	int frameCount;
+	float frameTime;
+	int currentFrame;
+	float currentFrameTime;
 	bool isEnemy;
 	int hitCount;
 	float activeTime;

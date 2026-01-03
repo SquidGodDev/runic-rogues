@@ -52,6 +52,9 @@ typedef struct SpellProjectileData {
     float activeTime;
     ParticleType hitParticle;
     ParticleType timeoutParticle;
+    TexturePaths textureIndex;
+    int frameCount;
+	float frameTime;
 } SpellProjectileData;
 
 typedef struct MeleeData {
@@ -74,7 +77,6 @@ typedef struct SpellData {
     char* description;
     char* description_jp;
     int pickupTextureIndex;
-    int spellTextureIndex;
     int spellIconIndex;
     SpellType type;
     void (*cast)(Spell spell, SpellCastData *castData, float angle, bool initialCast);

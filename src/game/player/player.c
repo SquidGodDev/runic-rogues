@@ -85,6 +85,7 @@ typedef struct WeaponAnimation {
 	int activeFrame;
 	// Dynamic values
 	int spellIndex;
+	bool spellCasted;
 	float bobCounter;
 	float drawX;
 	float drawY;
@@ -177,6 +178,7 @@ void initPlayer(void) {
 		.activeFrame = weaponData.activeFrame,
 		// Dynamic values
 		.spellIndex = -1,
+		.spellCasted = false,
 		.bobCounter = 0,
 		.drawX = weaponBasePositionX,
 		.drawY = weaponBasePositionY,
@@ -189,6 +191,7 @@ void initPlayer(void) {
 
 void startWeaponAnimation(int spellIndex) {
 	weaponAnimation.spellIndex = spellIndex;
+	weaponAnimation.spellCasted = false;
 	weaponAnimation.curFrameTime = weaponAnimation.frameTime;
 	weaponAnimation.curFrame = 1;
 }
@@ -228,7 +231,8 @@ void handleInput(float deltaTime)
 			playerState.interactedOnPress = true;
 		}
 	} else if ((current & kButtonA) && !playerState.interactedOnPress) {
-		if(spellIsCastable(BASIC_SPELL_INDEX) && weaponAnimation.curFrame == 0 && weaponAnimation.spellIndex != BASIC_SPELL_INDEX) {
+		bool animationCancellable = weaponAnimation.curFrame == 0 || weaponAnimation.curFrame > weaponAnimation.activeFrame;
+		if(spellIsCastable(BASIC_SPELL_INDEX) && animationCancellable) {
 			startWeaponAnimation(BASIC_SPELL_INDEX);
 		}
 	}
@@ -524,14 +528,16 @@ void drawWeapon(float deltaTime) {
 		if (weaponAnimation.curFrameTime <= 0) {
 			weaponAnimation.curFrameTime = weaponAnimation.frameTime;
 			weaponAnimation.curFrame++;
-			if (weaponAnimation.curFrame == weaponAnimation.activeFrame && weaponAnimation.spellIndex == BASIC_SPELL_INDEX) {
-				castSpell(BASIC_SPELL_INDEX);
-			}
 			if (weaponAnimation.curFrame >= weaponAnimation.bitmapFrames) {
 				weaponAnimation.curFrame = 0;
 				weaponAnimation.spellIndex = -1;
 			}
 		}
+	}
+
+	if (!weaponAnimation.spellCasted && weaponAnimation.curFrame >= weaponAnimation.activeFrame && weaponAnimation.spellIndex == BASIC_SPELL_INDEX) {
+		castSpell(BASIC_SPELL_INDEX);
+		weaponAnimation.spellCasted = true;
 	}
 
 	LCDBitmap *weaponBitmap = pd->graphics->getTableBitmap(weaponAnimation.bitmapTable, weaponAnimation.curFrame);

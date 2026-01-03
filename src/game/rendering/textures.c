@@ -26,6 +26,7 @@ const char *texturePathStrings[] = {
 	"images/environment/test/testCeiling",
 	"images/environment/test/testFloor",
 	"images/player/fireballTexture",
+	"images/player/knife",
 	"images/particles/projectileBreak",
 	"images/particles/projectileShrink",
 	"images/particles/warning",

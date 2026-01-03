@@ -70,14 +70,16 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .description = "Shoot a projectile that deals medium damage to one enemy.",
         .description_jp = "敵に中程度のダメージを与える弾を発射する。",
         .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
-        .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .type = SPELL_TYPE_INSTANT,
         .cast = fireballCast,
         .cooldown = 0.5f,
         .damage = 10,
         .projectileData = (SpellProjectileData) {
-            .speed = 75.0f
+            .speed = 75.0f,
+            .textureIndex = TEXTURE_PROJECTILE,
+            .frameCount = 1,
+            .frameTime = 0.0f
         },
         .weaponData = (WeaponData) {
             .weaponBitmapTable = BITMAP_TABLE_HAND,
@@ -95,14 +97,16 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .description = "Shoot a projectile that deals medium damage to one enemy.",
         .description_jp = "敵に中程度のダメージを与える弾を発射する。",
         .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
-        .spellTextureIndex = TEXTURE_PROJECTILE,
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .type = SPELL_TYPE_INSTANT,
         .cast = fireballCast,
         .cooldown = 0.5f,
         .damage = 10,
         .projectileData = (SpellProjectileData) {
-            .speed = 75.0f
+            .speed = 75.0f,
+            .textureIndex = TEXTURE_PROJECTILE,
+            .frameCount = 1,
+            .frameTime = 0.0f
         }
     },
     [SPELL_LASER] = {
@@ -150,7 +154,34 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .frameTime = 0.075f,
             .activeFrame = 5
         }
-    }
+    },
+    [SPELL_KNIFE] = {
+        .name = "Knife",
+        .name_jp = "",
+        .description = "",
+        .description_jp = "",
+        .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
+        .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
+        .type = SPELL_TYPE_INSTANT,
+        .cast = fireballCast,
+        .cooldown = 0.5f,
+        .damage = 5,
+        .projectileData = (SpellProjectileData) {
+            .speed = 125.0f,
+            .textureIndex = TEXTURE_KNIFE,
+            .frameCount = 8,
+            .frameTime = 0.07f
+        },
+        .weaponData = (WeaponData) {
+            .weaponBitmapTable = BITMAP_TABLE_HAND,
+            .drawX = 126,
+            .drawY = 75,
+            .activeOffsetX = 0,
+            .activeOffsetY = -7,
+            .frameTime = 0.6f,
+            .activeFrame = 0
+        }
+    },
 };
 
 SpellData spellData[SPELL_COUNT];

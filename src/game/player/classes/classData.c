@@ -32,7 +32,7 @@ const ClassData classData[CLASS_COUNT] = {
         .baseHealth = 120,
         .baseSpeed = 15,
         .basicSpell = SPELL_KNIFE,
-        .specialSpell = SPELL_DASH
+        .specialSpell = SPELL_LASER
     }
 };
 
