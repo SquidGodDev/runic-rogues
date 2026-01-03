@@ -107,6 +107,7 @@ const char *bitmapTablePathStrings[] = {
 	"images/spells/overlays/arcLightningOverlay",
 	"images/player/hand",
 	"images/player/sword",
+	"images/player/knifeHand",
 };
 
 LCDFont *fontTitleEN;

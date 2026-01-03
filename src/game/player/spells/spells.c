@@ -173,13 +173,13 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .frameTime = 0.07f
         },
         .weaponData = (WeaponData) {
-            .weaponBitmapTable = BITMAP_TABLE_HAND,
-            .drawX = 126,
-            .drawY = 75,
+            .weaponBitmapTable = BITMAP_TABLE_KNIFE_HAND,
+            .drawX = 123,
+            .drawY = 45,
             .activeOffsetX = 0,
-            .activeOffsetY = -7,
-            .frameTime = 0.6f,
-            .activeFrame = 0
+            .activeOffsetY = 0,
+            .frameTime = 0.1f,
+            .activeFrame = 2
         }
     },
 };
