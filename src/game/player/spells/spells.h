@@ -79,7 +79,6 @@ typedef struct SpellData {
     SpellType type;
     void (*cast)(Spell spell, SpellCastData *castData, float angle, bool initialCast);
     float cooldown;
-    float manaCost;
     int damage;
     float knockbackTime;
     float knockbackAmount;

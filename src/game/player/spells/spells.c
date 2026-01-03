@@ -115,7 +115,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .type = SPELL_TYPE_REPEAT,
         .cast = laserCast,
         .cooldown = 6.0f,
-        .manaCost = 20.0f,
         .damage = 10,
         .playerSpeedModifier = -0.7f,
         .useInitialCastAngle = true,
@@ -303,11 +302,6 @@ bool spellIsCastable(int index) {
 
     Spell spell = spellDeck[index];
     if (spell == SPELL_NONE) {
-        return false;
-    }
-
-    SpellData *data = &spellData[spell];
-    if (!spendMana(data->manaCost)) {
         return false;
     }
 

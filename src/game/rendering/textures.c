@@ -59,7 +59,6 @@ const char *bitmapPathStrings[] = {
 	"images/title/gameEndScreen",
 	"images/UI/health/heart",
 	"images/UI/health/healthBar",
-	"images/UI/mana/manaBar",
 	"images/spells/icons/dashIndicatorEmpty",
 	"images/spells/icons/dashIndicatorFull",
 	"images/spells/utility/utilityChargeBar",

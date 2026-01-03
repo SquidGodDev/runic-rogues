@@ -32,7 +32,6 @@ float playerAngle;
 float planeX, planeY;
 float dirX, dirY;
 float playerHealth;
-float playerMana;
 // ========================
 
 typedef struct PlayerState {
@@ -106,7 +105,6 @@ static bool movementToggled = false;
 void initPlayer(void) {
 	const ClassData *classData = getCurrentClassData();
 	playerHealth = getPlayerMaxHealth();
-	playerMana = getPlayerMaxMana();
 	playerState = (PlayerState) {
 		.dead = 0,
 		.hitInvincibility = 0,
@@ -491,25 +489,6 @@ void playerDash(void) {
 	movementStats.dashAngle = playerAngle;
 	movementStats.curDashTime = movementStats.dashTime;
 	playerState.hitInvincibility = movementStats.dashTime * 2;
-}
-
-float getPlayerMana(void) {
-	return playerMana;
-}
-
-void addMana(float amount) {
-	playerMana += amount;
-	if (playerMana >= getPlayerMaxMana()) {
-		playerMana = getPlayerMaxMana();
-	}
-}
-
-bool spendMana(float amount) {
-	if (playerMana >= amount) {
-		playerMana -= amount;
-		return true;
-	}
-	return false;
 }
 
 void healPlayer(float amount) {

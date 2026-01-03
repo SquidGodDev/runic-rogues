@@ -389,11 +389,6 @@ void drawSpellUI(void) {
         int utilityChargeBarDrawY = utilitySpellChargeBarY + utilityChargeBarHeight - chargeBarHeight + 1;
         pd->graphics->fillRect(utilitySpellChargeBarX + 1, utilityChargeBarDrawY, utilitySpellChargeBarWidth, chargeBarHeight, kColorWhite);
     }
-
-    int manaBarX = 2, manaBarY = 106;
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_MANA_BAR], manaBarX, manaBarY, kBitmapUnflipped);
-    int manaBarWidth = (getPlayerMana() / getPlayerMaxMana()) * 61;
-    pd->graphics->fillRect(manaBarX + 10, manaBarY + 6, manaBarWidth, 3, kColorWhite);
 }
 
 void drawBossHealthBar(void) {

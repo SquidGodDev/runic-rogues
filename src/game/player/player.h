@@ -8,13 +8,10 @@ extern float planeX, planeY;
 extern float dirX, dirY;
 
 extern float playerHealth;
-extern float playerMana;
 
 void initPlayer(void);
 int getPlayerInteractableIndex(void);
 void playerDash(void);
-float getPlayerMana(void);
-bool spendMana(float amount);
 void healPlayer(float amount);
 void damagePlayer(float amount);
 void drawWeapon(float deltaTime);

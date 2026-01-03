@@ -3,8 +3,6 @@
 
 #define BASE_MAX_HEALTH 100
 #define BASE_HEALTH_REGEN_RATE 1.0f
-#define BASE_MAX_MANA 100
-#define BASE_MANA_REGEN_RATE 10.0f
 #define BASE_UTILITY_SPELL_COUNT 3
 #define BASE_UTILITY_SPELL_CHARGE_RATE 0.2f
 #define BASE_MOVE_SPEED 40.0f
@@ -19,14 +17,6 @@ int getPlayerMaxHealth(void) {
 
 float getPlayerHealthRegenRate(void) {
     return BASE_HEALTH_REGEN_RATE;
-}
-
-int getPlayerMaxMana(void) {
-    return BASE_MAX_MANA;
-}
-
-float getPlayerManaRegenRate(void) {
-    return BASE_MANA_REGEN_RATE;
 }
 
 int getPlayerUtilitySpellCount(void) {
