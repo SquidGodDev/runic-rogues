@@ -22,27 +22,11 @@ float spellCooldowns[SPELL_EQUIP_MAX];
 static int utilitySpellCount;
 static float utilitySpellCharge;
 
-void fireSpellProjectile(Spell spell, float angle) {
+void projectileCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
     SpellData data = spellData[spell];
     float projectileX = playerX + cosf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
     float projectileY = playerY + sinf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
     firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data.damage, data.projectileData);
-}
-
-void fireballCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
-    fireSpellProjectile(spell, angle);
-}
-
-void laserRepeatCallback(int repeatCount, void *data) {
-    SpellCastData *castData = (SpellCastData *)data;
-    fireSpellProjectile(castData->spell, castData->initialCastAngle);
-}
-
-void laserCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
-    fireSpellProjectile(spell, angle);
-    if (initialCast) {
-        addTimer(castData->activationTime, castData->activationCount - 1, laserRepeatCallback, (void *)castData);
-    }
 }
 
 void swordCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
@@ -72,7 +56,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .type = SPELL_TYPE_INSTANT,
-        .cast = fireballCast,
+        .cast = projectileCast,
         .cooldown = 0.5f,
         .damage = 10,
         .projectileData = (SpellProjectileData) {
@@ -99,7 +83,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .type = SPELL_TYPE_INSTANT,
-        .cast = fireballCast,
+        .cast = projectileCast,
         .cooldown = 0.5f,
         .damage = 10,
         .projectileData = (SpellProjectileData) {
@@ -117,7 +101,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_LASER,
         .spellIconIndex = BITMAP_SPELL_LASER_ICON,
         .type = SPELL_TYPE_REPEAT,
-        .cast = laserCast,
+        .cast = projectileCast,
         .cooldown = 6.0f,
         .damage = 10,
         .playerSpeedModifier = -0.7f,
@@ -128,7 +112,8 @@ SpellData baseSpellData[SPELL_COUNT] = {
         },
         .projectileData = (SpellProjectileData) {
             .hitCount = 3,
-            .speed = 300.0f
+            .speed = 300.0f,
+            .textureIndex = TEXTURE_PROJECTILE
         }
     },
     [SPELL_SWORD] = {
@@ -163,7 +148,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .type = SPELL_TYPE_INSTANT,
-        .cast = fireballCast,
+        .cast = projectileCast,
         .cooldown = 0.5f,
         .damage = 5,
         .projectileData = (SpellProjectileData) {
@@ -348,14 +333,19 @@ bool castSpell(int index) {
     SpellData *data = &spellData[spell];
 
     spellCooldowns[index] = data->cooldown;
-    spellCastData[index] = (SpellCastData) {
-        .spell = spell,
-        .maxCooldown = data->cooldown,
-        .castTime = data->repeatData.activationTime * data->repeatData.repeatCount,
-        .activationTime = data->repeatData.activationTime,
-        .activationCount = 0,
-        .initialCastAngle = playerAngle
-    };
+    if (data->type == SPELL_TYPE_REPEAT) {
+        spellCastData[index] = (SpellCastData) {
+            .spell = spell,
+            .maxCooldown = data->cooldown,
+            .castTime = data->repeatData.activationTime * data->repeatData.repeatCount,
+            .activationTime = data->repeatData.activationTime,
+            .activationCount = 0,
+            .initialCastAngle = playerAngle
+        };
+    } else {
+        spellCastData[index].spell = SPELL_NONE;
+        spellCastData[index].maxCooldown = data->cooldown;
+    }
 
     playSound(SFX_SHOOT);
     activateSpellEffect(index, playerAngle, true /* initialCast */);

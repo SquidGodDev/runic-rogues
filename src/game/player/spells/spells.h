@@ -18,7 +18,7 @@ typedef enum Spell {
     SPELL_SWORD,
     SPELL_BASH,
     SPELL_KNIFE,
-    SPELL_DASH,
+    SPELL_FAN_OF_KNIVES,
     SPELL_COUNT
 } Spell;
 
@@ -39,7 +39,6 @@ typedef struct SpellCastData {
 } SpellCastData;
 
 typedef struct RepeatData {
-    float castTime;
     int repeatCount;
     float activationTime;
 } RepeatData;
