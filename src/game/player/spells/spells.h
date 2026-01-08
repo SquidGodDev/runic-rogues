@@ -44,10 +44,12 @@ typedef struct RepeatData {
 } RepeatData;
 
 typedef struct SpellProjectileData {
+    float speed;
     int hitCount;
     float slowTime;
     float slowAmount;
-    float speed;
+    int spreadCount;
+    float spreadAngle;
     float activeTime;
     ParticleType hitParticle;
     ParticleType timeoutParticle;

@@ -24,9 +24,16 @@ static float utilitySpellCharge;
 
 void projectileCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
     SpellData data = spellData[spell];
-    float projectileX = playerX + cosf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-    float projectileY = playerY + sinf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-    firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data.damage, data.projectileData);
+    int spreadCount = data.projectileData.spreadCount;
+    spreadCount = spreadCount < 1 ? 1 : spreadCount;
+    float spreadAngle = data.projectileData.spreadAngle;
+    float startAngle = angle - (spreadAngle * (spreadCount - 1) / 2);
+    for (int i = 0; i < spreadCount; i++) {
+        float castAngle = startAngle + spreadAngle * i;
+        float projectileX = playerX + cosf(castAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
+        float projectileY = playerY + sinf(castAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
+        firePlayerProjectile(projectileX, projectileY, cosf(castAngle), sinf(castAngle), data.damage, data.projectileData);
+    }
 }
 
 void swordCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
@@ -111,8 +118,8 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .repeatCount = 5
         },
         .projectileData = (SpellProjectileData) {
-            .hitCount = 3,
             .speed = 300.0f,
+            .hitCount = 3,
             .textureIndex = TEXTURE_PROJECTILE
         }
     },
@@ -165,6 +172,30 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .activeOffsetY = 0,
             .frameTime = 0.1f,
             .activeFrame = 2
+        }
+    },
+    [SPELL_FAN_OF_KNIVES] = {
+        .name = "Fan of Knives",
+        .name_jp = "",
+        .description = "",
+        .description_jp = "",
+        .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
+        .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
+        .type = SPELL_TYPE_REPEAT,
+        .cast = projectileCast,
+        .cooldown = 4.0f,
+        .damage = 5,
+        .repeatData = (RepeatData){
+            .activationTime = 0.2f,
+            .repeatCount = 3
+        },
+        .projectileData = (SpellProjectileData) {
+            .speed = 125.0f,
+            .spreadCount = 5,
+            .spreadAngle = 10.0f * (PI / 180),
+            .textureIndex = TEXTURE_KNIFE,
+            .frameCount = 8,
+            .frameTime = 0.07f
         }
     },
 };

@@ -32,11 +32,11 @@ const ClassData classData[CLASS_COUNT] = {
         .baseHealth = 120,
         .baseSpeed = 15,
         .basicSpell = SPELL_KNIFE,
-        .specialSpell = SPELL_LASER
+        .specialSpell = SPELL_FAN_OF_KNIVES
     }
 };
 
-ClassType currentClass = CLASS_MAGE;
+ClassType currentClass = CLASS_ROGUE;
 
 ClassType getCurrentClassType(void) {
     return currentClass;

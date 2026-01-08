@@ -82,6 +82,10 @@ static inline float radToDeg(float radAngle) {
 	return radAngle * (180 / PI);
 }
 
+static inline float degToRad(float degAngle) {
+	return degAngle * (PI / 180);
+}
+
 static inline float easeOutCubic(float x) {
     float t = 1.0f - x;
     return 1.0f - t * t * t;
