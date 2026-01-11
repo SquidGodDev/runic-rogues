@@ -21,7 +21,7 @@ const ClassData classData[CLASS_COUNT] = {
         .baseHealth = 150,
         .baseSpeed = 10,
         .basicSpell = SPELL_SWORD,
-        .specialSpell = SPELL_LASER
+        .specialSpell = SPELL_ROARING_SHOUT
     },
     [CLASS_ROGUE] = {
         .classType = CLASS_ROGUE,
@@ -36,7 +36,7 @@ const ClassData classData[CLASS_COUNT] = {
     }
 };
 
-ClassType currentClass = CLASS_ROGUE;
+ClassType currentClass = CLASS_WARRIOR;
 
 ClassType getCurrentClassType(void) {
     return currentClass;

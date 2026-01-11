@@ -48,6 +48,18 @@ void swordCast(Spell spell, SpellCastData *castData, float angle, bool initialCa
     knockbackEnemiesInArea(meleeX, meleeY, damageRadius, knockbackTime, knockbackAmount);
 }
 
+void shoutCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
+    float shoutX = playerX;
+    float shoutY = playerY;
+    SpellData *data = &spellData[spell];
+    int damageRadius = data->meleeData.range;
+    int damage = data->damage;
+    float knockbackTime = data->knockbackTime;
+    float knockbackAmount = data->knockbackAmount;
+    damageEnemiesInArea(shoutX, shoutY, damageRadius, damage);
+    knockbackEnemiesInArea(shoutX, shoutY, damageRadius, knockbackTime, knockbackAmount);
+}
+
 SpellData baseSpellData[SPELL_COUNT] = {
     [SPELL_NONE] = {
         .name = "None",
@@ -134,8 +146,8 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .cast = swordCast,
         .cooldown = 0.5f,
         .damage = 15,
-        .knockbackTime = 0.5f,
-        .knockbackAmount = 8.0f,
+        .knockbackTime = 0.3f,
+        .knockbackAmount = 3.0f,
         .meleeData = (MeleeData) {
             .range = CELL_SIZE * 1.5f
         },
@@ -145,6 +157,23 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .drawY = 8,
             .frameTime = 0.075f,
             .activeFrame = 5
+        }
+    },
+    [SPELL_ROARING_SHOUT] = {
+        .name = "Roaring Shout",
+        .name_jp = "",
+        .description = "Emit a powerful shout that damages and knocks back nearby enemies.",
+        .description_jp = "",
+        .pickupTextureIndex = TEXTURE_SPELL_ARC_LIGHTNING, // TEMP
+        .spellIconIndex = BITMAP_SPELL_ARC_LIGHTNING_ICON, // TEMP
+        .type = SPELL_TYPE_INSTANT,
+        .cast = shoutCast,
+        .cooldown = 8.0f,
+        .damage = 15,
+        .knockbackTime = 0.6f,
+        .knockbackAmount = 2.5f,
+        .meleeData = (MeleeData) {
+            .range = CELL_SIZE * 2.0f
         }
     },
     [SPELL_KNIFE] = {

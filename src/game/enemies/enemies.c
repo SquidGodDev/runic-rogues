@@ -845,8 +845,8 @@ void updateEnemyTimers(Enemy *curEnemy, float deltaTime) {
 		curEnemy->slowTime -= deltaTime;
 	}
 
-	if (curEnemy->knockbackTime > 0) {
-		curEnemy->knockbackTime -= deltaTime;
+	if (curEnemy->knockbackTimeRemaining > 0) {
+		curEnemy->knockbackTimeRemaining -= deltaTime;
 	}
 
 	if (curEnemy->invincibilityTime > 0) {
@@ -899,7 +899,7 @@ bool updateEnemyAnimation(Enemy *curEnemy, EnemyData *curEnemyData, float deltaT
 }
 
 void applyEnemyKnockback(Enemy *enemy) {
-	if (enemy->knockbackTime > 0) {
+	if (enemy->knockbackTimeRemaining > 0) {
 		float knockbackX = enemy->x - enemy->knockbackSourceX;
 		float knockbackY = enemy->y - enemy->knockbackSourceY;
 		float knockbackDist = sqrtf(knockbackX*knockbackX + knockbackY*knockbackY);
@@ -907,13 +907,10 @@ void applyEnemyKnockback(Enemy *enemy) {
 			knockbackX /= knockbackDist;
 			knockbackY /= knockbackDist;
 
-			float maxKnockbackDist = CELL_SIZE * 2;
-			float normalizedDist = knockbackDist / maxKnockbackDist;
-			normalizedDist = normalizedDist > 1.0f ? 1.0f : normalizedDist;
-			float distanceScale = (1.0f - normalizedDist) * (1.0f - normalizedDist);
+			float timeScale = enemy->knockbackTimeRemaining / enemy->knockbackTime;
 
-			float dx = knockbackX * enemy->knockbackAmount * distanceScale;
-			float dy = knockbackY * enemy->knockbackAmount * distanceScale;
+			float dx = knockbackX * enemy->knockbackAmount * timeScale;
+			float dy = knockbackY * enemy->knockbackAmount * timeScale;
 
 			// Wall avoidance
 			int frontX = (int)((enemy->x + dx * WALL_CHECK_DISTANCE) / CELL_SIZE);
@@ -1020,6 +1017,7 @@ void knockbackEnemy(int index, int knockbackSourceX, int knockbackSourceY, float
 
 	if (!enemyData[curEnemy.type].knockbackResistant && knockbackTime > 0 && knockbackAmount != 0) {
 		enemies[index].knockbackTime = knockbackTime;
+		enemies[index].knockbackTimeRemaining = knockbackTime;
 		enemies[index].knockbackAmount = knockbackAmount;
 		enemies[index].knockbackSourceX = knockbackSourceX;
 		enemies[index].knockbackSourceY = knockbackSourceY;

@@ -60,6 +60,7 @@ typedef struct Enemy {
 	float knockbackSourceX;
 	float knockbackSourceY;
 	float knockbackTime;
+	float knockbackTimeRemaining;
 	float knockbackAmount;
 } Enemy;
 
