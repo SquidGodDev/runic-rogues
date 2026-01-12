@@ -58,6 +58,7 @@ void shoutCast(Spell spell, SpellCastData *castData, float angle, bool initialCa
     float knockbackAmount = data->knockbackAmount;
     damageEnemiesInArea(shoutX, shoutY, damageRadius, damage);
     knockbackEnemiesInArea(shoutX, shoutY, damageRadius, knockbackTime, knockbackAmount);
+    screenShake(SCREEN_SHAKE_MEDIUM);
 }
 
 SpellData baseSpellData[SPELL_COUNT] = {
