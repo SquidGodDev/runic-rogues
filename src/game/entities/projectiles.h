@@ -21,6 +21,7 @@ typedef struct Projectile {
 	float currentFrameTime;
 	bool isEnemy;
 	int hitCount;
+	Spell onHitSpell;
 	float activeTime;
 	bool active;
 } Projectile;

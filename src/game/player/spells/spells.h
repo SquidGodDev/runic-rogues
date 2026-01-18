@@ -15,6 +15,8 @@ typedef enum Spell {
     SPELL_ARCANE_BOLT,
     SPELL_LASER,
     SPELL_FIREBALL,
+    SPELL_GREATER_FIREBALL,
+    SPELL_FIREBALL_EXPLOSION,
     SPELL_SWORD,
     SPELL_ROARING_SHOUT,
     SPELL_KNIFE,
@@ -51,6 +53,7 @@ typedef struct SpellProjectileData {
     int spreadCount;
     float spreadAngle;
     float activeTime;
+    Spell onHitSpell;
     ParticleType hitParticle;
     ParticleType timeoutParticle;
     TexturePaths textureIndex;
@@ -80,7 +83,7 @@ typedef struct SpellData {
     int pickupTextureIndex;
     int spellIconIndex;
     SpellType type;
-    void (*cast)(Spell spell, SpellCastData *castData, float angle, bool initialCast);
+    void (*cast)(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast);
     float cooldown;
     int damage;
     float knockbackTime;
@@ -110,6 +113,7 @@ int getMaxUtilitySpells(void);
 int getUtilitySpellCount(void);
 float getUtilitySpellCharge(void);
 void castUtilitySpell(void);
+void castSpellDirect(Spell spell, float x, float y, float angle);
 bool spellIsCastable(int index);
 bool castSpell(int index);
 bool castBasicSpell(void);

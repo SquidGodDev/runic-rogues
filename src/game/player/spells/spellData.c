@@ -8,7 +8,7 @@
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
-void projectileCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
+void projectileCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
     SpellData data = spellData[spell];
     int spreadCount = data.projectileData.spreadCount;
     spreadCount = spreadCount < 1 ? 1 : spreadCount;
@@ -16,15 +16,15 @@ void projectileCast(Spell spell, SpellCastData *castData, float angle, bool init
     float startAngle = angle - (spreadAngle * (spreadCount - 1) / 2);
     for (int i = 0; i < spreadCount; i++) {
         float castAngle = startAngle + spreadAngle * i;
-        float projectileX = playerX + cosf(castAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-        float projectileY = playerY + sinf(castAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
+        float projectileX = x + cosf(castAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
+        float projectileY = y + sinf(castAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
         firePlayerProjectile(projectileX, projectileY, cosf(castAngle), sinf(castAngle), data.damage, data.projectileData);
     }
 }
 
-void swordCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
-    float meleeX = playerX + cosf(angle) * CELL_SIZE / 2;
-    float meleeY = playerY + sinf(angle) * CELL_SIZE / 2;
+void swordCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
+    float meleeX = x + cosf(angle) * CELL_SIZE / 2;
+    float meleeY = y + sinf(angle) * CELL_SIZE / 2;
     SpellData *data = &spellData[spell];
     int damageRadius = data->meleeData.range;
     int damage = data->damage;
@@ -34,17 +34,20 @@ void swordCast(Spell spell, SpellCastData *castData, float angle, bool initialCa
     knockbackEnemiesInArea(meleeX, meleeY, damageRadius, knockbackTime, knockbackAmount);
 }
 
-void shoutCast(Spell spell, SpellCastData *castData, float angle, bool initialCast) {
-    float shoutX = playerX;
-    float shoutY = playerY;
+void explosionCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
     SpellData *data = &spellData[spell];
     int damageRadius = data->meleeData.range;
     int damage = data->damage;
     float knockbackTime = data->knockbackTime;
     float knockbackAmount = data->knockbackAmount;
-    damageEnemiesInArea(shoutX, shoutY, damageRadius, damage);
-    knockbackEnemiesInArea(shoutX, shoutY, damageRadius, knockbackTime, knockbackAmount);
+    damageEnemiesInArea(x, y, damageRadius, damage);
+    knockbackEnemiesInArea(x, y, damageRadius, knockbackTime, knockbackAmount);
     screenShake(SCREEN_SHAKE_MEDIUM);
+}
+
+void lightningArcCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
+    // Damage random enemies in area and spawn a lightning particle at their locations
+    
 }
 
 SpellData baseSpellData[SPELL_COUNT] = {
@@ -97,6 +100,37 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .textureIndex = TEXTURE_PROJECTILE,
             .frameCount = 1,
             .frameTime = 0.0f
+        }
+    },
+    [SPELL_GREATER_FIREBALL] = {
+        .name = "Greater Fireball",
+        .name_jp = "",
+        .description = "",
+        .description_jp = "",
+        .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
+        .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
+        .type = SPELL_TYPE_INSTANT,
+        .cast = projectileCast,
+        .cooldown = 3.0f,
+        .damage = 15,
+        .projectileData = (SpellProjectileData) {
+            .speed = 30.0f,
+            .onHitSpell = SPELL_FIREBALL_EXPLOSION,
+            .textureIndex = TEXTURE_PROJECTILE,
+            .frameCount = 1,
+            .frameTime = 0.0f
+        }
+    },
+    [SPELL_FIREBALL_EXPLOSION] = {
+        // Internal spell used for greater fireball explosion
+        .name = "Fireball Explosion",
+        .type = SPELL_TYPE_INSTANT,
+        .cast = explosionCast,
+        .damage = 1,
+        .knockbackTime = 0.4f,
+        .knockbackAmount = 1.0f,
+        .meleeData = (MeleeData) {
+            .range = CELL_SIZE * 1.5f
         }
     },
     [SPELL_LASER] = {
@@ -154,7 +188,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_ARC_LIGHTNING, // TEMP
         .spellIconIndex = BITMAP_SPELL_ARC_LIGHTNING_ICON, // TEMP
         .type = SPELL_TYPE_INSTANT,
-        .cast = shoutCast,
+        .cast = explosionCast,
         .cooldown = 8.0f,
         .damage = 15,
         .knockbackTime = 0.6f,

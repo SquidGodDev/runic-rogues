@@ -154,11 +154,16 @@ void castUtilitySpell(void) {
     }
 }
 
+void castSpellDirect(Spell spell, float x, float y, float angle) {
+    SpellData *data = &spellData[spell];
+    data->cast(spell, NULL, x, y, angle, true /* initialCast */);
+}
+
 void activateSpellEffect(int index, float angle, bool initialCast) {
     Spell spell = spellDeck[index];
     SpellCastData *castData = &spellCastData[index];
     SpellData *data = &spellData[spell];
-    data->cast(spell, castData, angle, initialCast);
+    data->cast(spell, castData, playerX, playerY, angle, initialCast);
 }
 
 bool spellIsCastable(int index) {
