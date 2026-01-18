@@ -11,6 +11,7 @@ typedef struct Projectile {
 	float deltaX;
 	float deltaY;
 	float speed;
+	float acceleration;
 	SpellProjectileData spellProjectileData;
 	Set *hitEnemies;
 	int damage;

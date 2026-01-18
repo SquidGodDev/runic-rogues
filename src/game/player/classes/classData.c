@@ -36,7 +36,7 @@ const ClassData classData[CLASS_COUNT] = {
     }
 };
 
-ClassType currentClass = CLASS_MAGE;
+ClassType currentClass = CLASS_ROGUE;
 
 ClassType getCurrentClassType(void) {
     return currentClass;

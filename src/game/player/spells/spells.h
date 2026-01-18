@@ -47,6 +47,7 @@ typedef struct RepeatData {
 
 typedef struct SpellProjectileData {
     float speed;
+    float acceleration;
     int hitCount;
     float slowTime;
     float slowAmount;

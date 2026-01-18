@@ -44,6 +44,7 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 				.deltaX = deltaX,
 				.deltaY = deltaY,
 				.speed = speed,
+				.acceleration = spellProjectileData.acceleration,
 				.damage = damage,
 				.spellProjectileData = spellProjectileData,
 				.textureIndex = textureIndex,
@@ -143,6 +144,8 @@ void updateProjectiles(float deltaTime) {
 		float yVelocity = deltaY * curProjectile->speed;
 		curProjectile->x += xVelocity * deltaTime;
 		curProjectile->y += yVelocity * deltaTime;
+
+		curProjectile->speed += curProjectile->acceleration * deltaTime;
 
 		if (curProjectile->frameCount > 1) {
 			curProjectile->currentFrameTime += deltaTime;
