@@ -4,6 +4,7 @@
 #include "globals/sceneManager.h"
 
 #include "title/titleScene.h"
+#include "game/gameScene.h"
 #include "game/rendering/textures.h"
 
 void initTitleScene(void) {
@@ -16,6 +17,7 @@ void updateTitleScene(float deltaTime) {
     PDButtons pushed;
     pd->system->getButtonState(NULL, &pushed, NULL);
     if ((pushed & kButtonA) && !isSceneTransitioning()) {
+        initRunStart();
         switchScene(SCENE_GAME);
     }
 }

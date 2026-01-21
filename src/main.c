@@ -16,7 +16,6 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 		srand(pd->system->getSecondsSinceEpoch(NULL));
 
 		initSystems();
-		initRunStart();
 		initSceneManager();
 		pd->system->setUpdateCallback(updateSceneManager, NULL);
 	}

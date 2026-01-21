@@ -8,8 +8,19 @@
 
 #define PICKUP_DISTANCE 80.0f
 
-#define PICKUP_ANIM_FRAME_TIME 0.2f
-#define PICKUP_ANIM_FRAMES 8
+typedef struct PickupData {
+    int textureIndex;
+    int animationFrames;
+    float animationFrameTime;
+} PickupData;
+
+PickupData pickupData[PICKUP_TYPE_COUNT] = {
+    [PICKUP_TYPE_XP_ORB] = {
+        .textureIndex = TEXTURE_XP_ORB,
+        .animationFrames = 1,
+        .animationFrameTime = 0
+    }
+};
 
 Pickup pickups[MAX_PICKUP_COUNT];
 
@@ -19,41 +30,21 @@ void initPickups(void) {
     }
 }
 
-void spawnPickup(int mapX, int mapY, PickupType type) {
-    float x = mapX * CELL_SIZE + CELL_SIZE / 2;
-    float y = mapY * CELL_SIZE + CELL_SIZE / 2;
+void spawnPickup(int worldX, int worldY, PickupType type) {
     for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
         if (!pickups[i].active) {
+            PickupData data = pickupData[type];
             pickups[i] = (Pickup) {
-                .x = x,
-                .y = y,
-                .mapX = mapX,
-                .mapY = mapY,
+                .x = worldX,
+                .y = worldY,
                 .active = 1,
                 .animationFrame = 0,
-                .animationTime = PICKUP_ANIM_FRAME_TIME,
-                .textureIndex = TEXTURE_CAMPFIRE // CHANGE TO COIN TEXTURE
+                .animationTime = data.animationFrameTime,
+                .textureIndex = data.textureIndex
             };
             return;
         }
     }
-}
-
-int otherPickupAtPosition(int mapX, int mapY) {
-    int playerMapX = playerX / CELL_SIZE;
-    int playerMapY = playerY / CELL_SIZE;
-    if (mapX == playerMapX && mapY == playerMapY) {
-        return 1;
-    }
-
-    for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
-        if (pickups[i].active) {
-            if (pickups[i].mapX == mapX && pickups[i].mapY == mapY) {
-                return 1;
-            }
-        }
-    }
-    return 0;
 }
 
 void updatePickups(float deltaTime) {
@@ -63,12 +54,15 @@ void updatePickups(float deltaTime) {
             continue;
         }
 
-        pickup->animationTime -= deltaTime;
-        if (pickup->animationTime <= 0) {
-            pickup->animationTime = PICKUP_ANIM_FRAME_TIME;
-            pickup->animationFrame++;
-            if (pickup->animationFrame >= PICKUP_ANIM_FRAMES) {
-                pickup->animationFrame = 0;
+        PickupData data = pickupData[pickup->type];
+        if (data.animationFrames > 1) {
+            pickup->animationTime -= deltaTime;
+            if (pickup->animationTime <= 0) {
+                pickup->animationTime = data.animationFrameTime;
+                pickup->animationFrame++;
+                if (pickup->animationFrame >= data.animationFrames) {
+                    pickup->animationFrame = 0;
+                }
             }
         }
         

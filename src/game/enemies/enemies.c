@@ -7,6 +7,7 @@
 #include "game/player/player.h"
 #include "game/entities/entities.h"
 #include "game/entities/projectiles.h"
+#include "game/entities/pickups.h"
 #include "game/rendering/textures.h"
 #include "game/rendering/particles.h"
 #include "game/systems/audioManager.h"
@@ -961,7 +962,7 @@ void updateEnemies(float deltaTime) {
 	}
 }
 
-void enemyDeathEffect(int index) {
+bool enemyDeathEffect(int index) {
 	Enemy curEnemy = enemies[index];
 	EnemyType enemyType = curEnemy.type;
 	if (enemyType == ENEMY_TYPE_SLIME) {
@@ -973,7 +974,9 @@ void enemyDeathEffect(int index) {
 			int yOffset = randInt(offsetMin, offsetMax);
 			spawnEnemy(ENEMY_TYPE_BABY_SLIME, curEnemy.x + xOffset, curEnemy.y + yOffset, true /*isMinion*/);
 		}
+		return true;
 	}
+	return false;
 }
 
 float getBossHealthPercentage(void) {
@@ -1045,7 +1048,7 @@ bool damageEnemy(int index, int damage) {
 
 	if (curEnemy.health <= 0) {
 		playSound(SFX_ENEMY_DEATH);
-		enemyDeathEffect(index);
+		bool summonsMinions = enemyDeathEffect(index);
 
 		curEnemy.state = ENEMY_STATE_DEAD;
 		curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
@@ -1056,6 +1059,8 @@ bool damageEnemy(int index, int damage) {
 			killAllNonBossEnemies();
 			setBossActive(false);
 			setRoomCompleted(true);
+		} else if (!summonsMinions) {
+			spawnPickup(curEnemy.x, curEnemy.y, PICKUP_TYPE_XP_ORB);
 		}
 
 		if (index != bossIndex && !curEnemy.isMinion) {

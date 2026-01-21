@@ -49,6 +49,7 @@ typedef enum TexturePaths {
 	TEXTURE_PORTAL,
 	TEXTURE_CAMPFIRE,
 	TEXTURE_EXTINGUISHED_CAMPFIRE,
+	TEXTURE_XP_ORB,
 	// Bottom reserved for pickups (auto generated textures from bitmap)
 	TEXTURE_SPELL_NONE,
 	TEXTURE_SPELL_FIREBALL,
