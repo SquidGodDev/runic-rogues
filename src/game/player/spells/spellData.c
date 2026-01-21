@@ -197,7 +197,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .knockbackTime = 0.6f,
         .knockbackAmount = 2.5f,
         .meleeData = (MeleeData) {
-            .range = CELL_SIZE * 2.0f
+            .range = CELL_SIZE * 4.0f
         }
     },
     [SPELL_KNIFE] = {

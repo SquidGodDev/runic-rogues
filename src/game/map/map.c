@@ -171,8 +171,10 @@ void carveOutShopArea(void) {
 }
 
 void spawnExit(void) {
+    carveOutShopArea();
     Point exitMapPosition = getExitMapPosition();
     addInteractable(exitMapPosition.x, exitMapPosition.y, INTERACTABLE_TYPE_EXIT);
+    setArrowPosition(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);
 }
 
 void generateSquareDungeon(void) {

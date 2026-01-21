@@ -167,7 +167,7 @@ void initShop(void) {
     spawnExit();
     carveOutShopArea();
     Point exitMapPosition = getExitMapPosition();
-    setExitArrowPosition(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);
+    setArrowPosition(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);
 }
 
 void selectShopItem(ShopItem shopItem) {

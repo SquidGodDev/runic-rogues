@@ -4,7 +4,7 @@
 #include "globals/globals.h"
 #include "game/enemies/enemies.h"
 
-#define MAX_ROOM_COUNT 5 // Should be 10, but set to 5 for testing
+#define MAX_ROOM_COUNT 1
 
 typedef enum Area
 {
@@ -27,8 +27,6 @@ AreaData getCurrentAreaData(void);
 Area getCurrentArea(void);
 int getCurrentRoom(void);
 RoomType getCurrentRoomType(void);
-void setBossDefeated(void);
-bool isBossDefeated(void);
 void setRoomCompleted(bool completed);
 bool isRoomCompleted(void);
 void incrementToNextRoom(void);

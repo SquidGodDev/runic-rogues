@@ -448,9 +448,13 @@ int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 	};
 
 	if (enemyType == ENEMY_TYPE_WRAITH_BOSS) {
-		bossIndex = enemies[newEnemyIndex].stateTimer = WRAITH_BOSS_IDLE_TIME;
+		bossIndex = newEnemyIndex;
+		setBossActive(true);
+		enemies[newEnemyIndex].stateTimer = WRAITH_BOSS_IDLE_TIME;
 	} else if (enemyType == ENEMY_TYPE_ELDER_BOSS) {
-		bossIndex = enemies[newEnemyIndex].stateTimer = ELDER_BOSS_IDLE_TIME;
+		bossIndex = newEnemyIndex;
+		setBossActive(true);
+		enemies[newEnemyIndex].stateTimer = ELDER_BOSS_IDLE_TIME;
 	}
 
 	return newEnemyIndex;
@@ -476,19 +480,6 @@ int getActiveEnemyCount(void) {
 		}
 	}
 	return count;
-}
-
-void spawnEnemies(void) {
-	RoomType roomType = getCurrentRoomType();
-	Area currentArea = getCurrentArea();
-	if (roomType == ROOM_TYPE_BOSS) {
-		Point bossPos = getBossSpawnPosition();
-		if (currentArea == AREA_ECHOING_CAVERNS) {
-			bossIndex = spawnEnemy(ENEMY_TYPE_ELDER_BOSS, bossPos.x, bossPos.y, false /*isMinion*/);
-		} else if (currentArea == AREA_LOST_ARCHIVES) {
-			bossIndex = spawnEnemy(ENEMY_TYPE_WRAITH_BOSS, bossPos.x, bossPos.y, false /*isMinion*/);
-		}
-	}
 }
 
 int playerInAttackDetectionRange(int enemyIndex) {
@@ -1024,6 +1015,23 @@ void knockbackEnemy(int index, int knockbackSourceX, int knockbackSourceY, float
 	}
 }
 
+void killAllNonBossEnemies(void) {
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		if (i == bossIndex) {
+			continue;
+		}
+		Enemy curEnemy = enemies[i];
+		if (curEnemy.active && curEnemy.state != ENEMY_STATE_DEAD) {
+			EnemyData curEnemyData = enemyData[curEnemy.type];
+			curEnemy.state = ENEMY_STATE_DEAD;
+			curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
+			curEnemy.animationTime = curEnemyData.frameTime;
+			curEnemy.hitFlashTime = 0;
+			enemies[i] = curEnemy;
+		}
+	}
+}
+
 bool damageEnemy(int index, int damage) {
 	Enemy curEnemy = enemies[index];
 	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.invincibilityTime > 0) {
@@ -1045,7 +1053,9 @@ bool damageEnemy(int index, int damage) {
 		curEnemy.hitFlashTime = 0;
 
 		if (index == bossIndex) {
-			setBossDefeated();
+			killAllNonBossEnemies();
+			setBossActive(false);
+			setRoomCompleted(true);
 		}
 
 		if (index != bossIndex && !curEnemy.isMinion) {
@@ -1055,27 +1065,8 @@ bool damageEnemy(int index, int damage) {
 		if (runeIsOwned(RUNE_TYPE_VAMPIRISM)) {
 			healPlayer(getRunePrimaryValue(RUNE_TYPE_VAMPIRISM));
 		}
-
-		if (allEnemiesSpawned()) { 
-			int allEnemiesDead = 1;
-			for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-				if (i == index) {
-					continue;
-				}
-	
-				if (enemies[i].active && enemies[i].state != ENEMY_STATE_DEAD) {
-					allEnemiesDead = 0;
-					break;
-				}
-			}
-	
-			if (allEnemiesDead) {
-				setRoomCompleted(true);
-				initShop();
-			}
-		}
 	}
-	
+
 	enemies[index] = curEnemy;
 	return true;
 }

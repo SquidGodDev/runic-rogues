@@ -56,8 +56,6 @@ static bool exitActive;
 static int exitWorldX;
 static int exitWorldY;
 
-static bool showBossHealthBar;
-
 static int popupImagetableIndex;
 static int popupFrame;
 static int popupMaxFrame;
@@ -85,7 +83,6 @@ void initUI(void) {
     pd->graphics->setBackgroundColor(kColorBlack);
 
     exitActive = false;
-    showBossHealthBar = getCurrentRoomType() == ROOM_TYPE_BOSS;
 
     popupImagetableIndex = -1;
 
@@ -334,7 +331,7 @@ void drawInteractablePrompt(void) {
     }
 }
 
-void setExitArrowPosition(int worldX, int worldY) {
+void setArrowPosition(int worldX, int worldY) {
     exitActive = true;
     exitWorldX = worldX;
     exitWorldY = worldY;
@@ -415,16 +412,6 @@ void drawBossHealthBar(void) {
     }
 }
 
-void drawWaveProgressBar(void) {
-    float wavePercentage = getWavePercentage();
-    int waveBarWidth = wavePercentage * 44;
-
-    int progressBarX = 148;
-    int progressBarY = 55;
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_WAVE_PROGRESS_BAR], progressBarX, progressBarY, kBitmapUnflipped);
-    pd->graphics->fillRect(progressBarX + 2, progressBarY + 2, waveBarWidth, 3, kColorWhite);
-}
-
 void setSpellOverlay(int index, int bitmapTableIndex, float frameTime, int drawX, int drawY) {
     LCDBitmapTable *bitmapTable = BITMAP_TABLES[bitmapTableIndex];
     int frameCount;
@@ -495,6 +482,27 @@ void drawPopup(float deltaTime) {
     }
 }
 
+void drawLevelTimer(void) {
+    float levelTime = getLevelTimer();
+    if (levelTime <= 0) {
+        return;
+    }
+
+    int minutes = (int)(levelTime / 60);
+    int seconds = (int)(levelTime) % 60;
+
+    char *timeString;
+    pd->system->formatString(&timeString, "%02d:%02d", minutes, seconds);
+    pd->graphics->pushContext(NULL);
+        pd->graphics->setFont(fontSubEN);
+        int tracking = -1;
+        pd->graphics->setTextTracking(tracking);
+        int textWidth = pd->graphics->getTextWidth(fontSubEN, timeString, strlen(timeString), kUTF8Encoding, tracking);
+        pd->graphics->drawText(timeString, strlen(timeString), kUTF8Encoding, MINIMAP_X - textWidth / 2, 55);
+    pd->graphics->popContext();
+    pd->system->realloc(timeString, 0);
+}
+
 void drawUI(float deltaTime) {
     if (screenShakeTime > 0) {
         screenShakeTime -= deltaTime;
@@ -509,22 +517,19 @@ void drawUI(float deltaTime) {
         }
     }
 
-    if (showBossHealthBar) {
-        if (!isBossDefeated()) {
-            drawBossHealthBar();
-        }
-    } else {
-        // drawWaveProgressBar();
+    if (getBossActive()) {
+        drawBossHealthBar();
     }
 
     drawHealth();
-    // drawMinimap();
     drawSpellOverlay(deltaTime);
     drawWeapon(deltaTime);
     drawSpellUI();
+    drawMinimap();
     drawExitArrow();
     drawPopup(deltaTime);
     drawInteractablePrompt();
+    drawLevelTimer();
 }
 
 void screenShake(ScreenShakeStrength strength) {

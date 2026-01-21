@@ -73,7 +73,6 @@ void initGameScene(void)
 	// Map
 	initMap();
 	initRaycasting();
-	spawnEnemies();
 
 	// Wave Manager
 	initWaveManager();

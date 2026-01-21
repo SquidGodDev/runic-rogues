@@ -1,6 +1,7 @@
 #pragma once
 
 void initWaveManager(void);
-bool allEnemiesSpawned(void);
-float getWavePercentage(void);
+bool getBossActive(void);
+void setBossActive(bool active);
+float getLevelTimer(void);
 void updateWaveManager(float deltaTime);

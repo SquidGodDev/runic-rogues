@@ -64,17 +64,10 @@ RoomType getCurrentRoomType(void) {
     return currentRoomType;
 }
 
-void setBossDefeated(void) {
-    bossDefeated = true;
-}
-
-bool isBossDefeated(void) {
-    return bossDefeated;
-}
-
 void setRoomCompleted(bool completed) {
     roomCompleted = completed;
     if (completed) {
+        spawnExit();
         showRoomClearedPopup();
     }
 }
