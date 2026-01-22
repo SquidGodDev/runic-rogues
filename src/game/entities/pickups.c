@@ -5,6 +5,7 @@
 #include "game/entities/pickups.h"
 #include "game/player/player.h"
 #include "game/map/map.h"
+#include "game/systems/progressionManager.h"
 
 #define PICKUP_DISTANCE 80.0f
 
@@ -68,6 +69,9 @@ void updatePickups(float deltaTime) {
         
         if (distanceSquared(pickup->x, pickup->y, playerX, playerY) <= PICKUP_DISTANCE) {
             pickup->active = false; // Pickup collected
+            if (pickup->type == PICKUP_TYPE_XP_ORB) {
+                addExperience(1.0f);
+            }
         }
 
         addEntityToRenderQueue(pickup->x, pickup->y, PICKUP, i, pickup->textureIndex, pickup->animationFrame);

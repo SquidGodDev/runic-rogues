@@ -503,6 +503,14 @@ void drawLevelTimer(void) {
     pd->system->realloc(timeString, 0);
 }
 
+void drawExperienceBar(void) {
+    float experiencePercent = getExperiencePercentToNextLevel();
+    int expBarWidth = 200;
+    int expBarHeight = 3;
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_EXPERIENCE_BAR], 0, 115, kBitmapUnflipped);
+    pd->graphics->fillRect(0, 117, expBarWidth * experiencePercent, expBarHeight, kColorWhite);
+}
+
 void drawUI(float deltaTime) {
     if (screenShakeTime > 0) {
         screenShakeTime -= deltaTime;
@@ -530,6 +538,7 @@ void drawUI(float deltaTime) {
     drawPopup(deltaTime);
     drawInteractablePrompt();
     drawLevelTimer();
+    drawExperienceBar();
 }
 
 void screenShake(ScreenShakeStrength strength) {

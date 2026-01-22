@@ -10,18 +10,24 @@
 #include "game/map/map.h"
 #include "game/UI/UI.h"
 
-static int currentRoom = 0;
-static bool roomCompleted;
-static bool bossDefeated;
+#define LEVEL_UP_EXPERIENCE_BASE 10.0f
 
 static RoomType currentRoomType;
 static Area currentArea;
 static AreaData areaData[AREA_COUNT];
+static float experience;
+static int curLevel;
+
+static int currentRoom = 0;
+static bool roomCompleted;
+static bool bossDefeated;
 
 void initProgressionManager(void) {
     currentArea = AREA_ECHOING_CAVERNS;
     currentRoom = 0;
     currentRoomType = ROOM_TYPE_ENEMY;
+    experience = 0.0f;
+    curLevel = 0;
 
     areaData[AREA_ECHOING_CAVERNS] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
@@ -46,6 +52,20 @@ void initProgressionManager(void) {
 void resetProgressionManagerRoomState(void) {
     roomCompleted = false;
     bossDefeated = false;
+}
+
+float getExperiencePercentToNextLevel(void) {
+    float levelUpExp = LEVEL_UP_EXPERIENCE_BASE * (curLevel + 1);
+    return experience / levelUpExp;
+}
+
+void addExperience(float amount) {
+    experience += amount;
+    float levelUpExp = LEVEL_UP_EXPERIENCE_BASE * (curLevel + 1);
+    if (experience >= levelUpExp) {
+        experience -= levelUpExp;
+        curLevel++;
+    }
 }
 
 AreaData getCurrentAreaData(void) {

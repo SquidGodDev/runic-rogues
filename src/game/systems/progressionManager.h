@@ -23,6 +23,8 @@ typedef struct AreaData {
 
 void initProgressionManager(void);
 void resetProgressionManagerRoomState(void);
+float getExperiencePercentToNextLevel(void);
+void addExperience(float amount);
 AreaData getCurrentAreaData(void);
 Area getCurrentArea(void);
 int getCurrentRoom(void);
