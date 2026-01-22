@@ -8,6 +8,9 @@
 #include "game/systems/progressionManager.h"
 
 #define PICKUP_DISTANCE 80.0f
+#define EXPIRATION_TIME 10.0f
+#define EXPIRATION_FLASH_TIME 2.0f
+#define EXPIRATION_FLASH_INTERVAL 0.2f
 
 typedef struct PickupData {
     int textureIndex;
@@ -39,6 +42,7 @@ void spawnPickup(int worldX, int worldY, PickupType type) {
                 .x = worldX,
                 .y = worldY,
                 .active = 1,
+                .expirationTime = EXPIRATION_TIME,
                 .animationFrame = 0,
                 .animationTime = data.animationFrameTime,
                 .textureIndex = data.textureIndex
@@ -68,9 +72,22 @@ void updatePickups(float deltaTime) {
         }
         
         if (distanceSquared(pickup->x, pickup->y, playerX, playerY) <= PICKUP_DISTANCE) {
-            pickup->active = false; // Pickup collected
+            pickup->active = false;
             if (pickup->type == PICKUP_TYPE_XP_ORB) {
                 addExperience(1.0f);
+            }
+        }
+
+        pickup->expirationTime -= deltaTime;
+        if (pickup->expirationTime <= 0) {
+            pickup->active = false;
+            continue;
+        }
+
+        if (pickup->expirationTime <= EXPIRATION_FLASH_TIME) {
+            int flashPhase = (int)(pickup->expirationTime / EXPIRATION_FLASH_INTERVAL);
+            if (flashPhase % 2 == 0) {
+                continue;
             }
         }
 

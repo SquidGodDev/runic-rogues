@@ -15,6 +15,7 @@ typedef struct Pickup {
     float y;
     PickupType type;
     bool active;
+    float expirationTime;
 	int animationFrame;
     float animationTime;
     int textureIndex;
