@@ -75,6 +75,7 @@ const char *bitmapPathStrings[] = {
 	"images/UI/prompts/restPrompt",
 	"images/UI/prompts/restPrompt_JP",
 	"images/shop/shopPopupBackground",
+	"images/shop/cursor",
 	"images/UI/prompts/bossHealthBar",
 	"images/UI/prompts/elderBossTitle",
 	"images/UI/prompts/elderBossTitle_JP",
@@ -214,27 +215,9 @@ void initTextures(void)
 	}
 	for (int i = 0; i < BITMAP_PATHS_COUNT; i++) {
 		const char *outErr = NULL;
-		LCDBitmap *loadedBitmap = pd->graphics->loadBitmap(bitmapPathStrings[i], &outErr);
-		if (!loadedBitmap) {
+		BITMAPS[i] = pd->graphics->loadBitmap(bitmapPathStrings[i], &outErr);
+		if (!BITMAPS[i]) {
 			pd->system->error(outErr);
-		}
-		BITMAPS[i] = pd->graphics->loadBitmap(bitmapPathStrings[i], NULL);
-		if (i >= BITMAP_SPELL_EMPTY_ICON) {
-			int frames = 8;
-			LCDBitmap *spellBitmap = pd->graphics->newBitmap(32, 32 * frames, kColorClear);
-			int baseX = 10, baseY = 8;
-			pd->graphics->pushContext(spellBitmap);
-				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY, kBitmapUnflipped);
-				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 + 1, kBitmapUnflipped);
-				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 2 + 2, kBitmapUnflipped);
-				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 3 + 3, kBitmapUnflipped);
-				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 4 + 3, kBitmapUnflipped);
-				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 5 + 2, kBitmapUnflipped);
-				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 6 + 1, kBitmapUnflipped);
-				pd->graphics->drawBitmap(loadedBitmap, baseX, baseY + 32 * 7, kBitmapUnflipped);
-			pd->graphics->popContext();
-			int textureIndex = TEXTURE_SPELL_NONE + (i - BITMAP_SPELL_EMPTY_ICON);
-			bitmapToTextureArray(spellBitmap, textureIndex);
 		}
 	}
 

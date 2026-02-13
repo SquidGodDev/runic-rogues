@@ -14,7 +14,6 @@ Point getExitMapPosition(void);
 Point getRandomEnemySpawnPosition(void);
 Point getBossSpawnPosition(void);
 Point getShopMapPosition(void);
-void carveOutShopArea(void);
 void spawnExit(void);
 void getRandomEmptyMapPosition(int *mapX, int *mapY);
 void initMap(void);

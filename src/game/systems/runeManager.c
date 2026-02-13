@@ -12,6 +12,7 @@ typedef struct RuneData {
     char *descriptionJP;
     int iconIndex;
     int textureIndex;
+    int maxLevel;
     float primaryValue;
     float secondaryValue;
 } RuneData;
@@ -56,38 +57,30 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     }
 };
 
-RuneType runes[MAX_RUNES];
+RuneType runes[MAX_OWNED_RUNES];
+int ownedRuneLevel[RUNE_TYPE_COUNT];
 
 void initRunes(void) {
-    for (int i = 0; i < MAX_RUNES; i++) {
+    for (int i = 0; i < MAX_OWNED_RUNES; i++) {
         runes[i] = RUNE_TYPE_NONE;
     }
-    runes[0] = RUNE_TYPE_WINGED_BOOTS;
+    for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
+        ownedRuneLevel[i] = 0;
+    }
 }
 
 bool runeIsOwned(RuneType type) {
-    for (int i = 0; i < MAX_RUNES; i++) {
-        if (runes[i] == type) {
-            return true;
-        }
-    }
-    return false;
+    return ownedRuneLevel[type] > 0;
 }
 
-void addRune(RuneType type) {
-    for (int i = 0; i < MAX_RUNES; i++) {
+void addRune(RuneType type, int level) {
+    for (int i = 0; i < MAX_OWNED_RUNES; i++) {
         if (runes[i] == RUNE_TYPE_NONE) {
             runes[i] = type;
             break;
         }
     }
-}
-
-RuneType getRune(int index) {
-    if (index >= 0 && index < MAX_RUNES) {
-        return runes[index];
-    }
-    return RUNE_TYPE_NONE;
+    ownedRuneLevel[type] = level;
 }
 
 char *getRuneName(RuneType type, Language language) {
@@ -120,4 +113,8 @@ float getRunePrimaryValue(RuneType type) {
 
 float getRuneSecondaryValue(RuneType type) {
     return RUNE_DATA[type].secondaryValue;
+}
+
+float getRuneValue(RuneType type) {
+    return ownedRuneLevel[type] * RUNE_DATA[type].primaryValue;
 }

@@ -14,7 +14,6 @@
 
 #define CAMPFIRE_HEAL_AMOUNT 2
 #define INTERACT_DISTANCE 500
-#define SHOP_INTERACT_DISTANCE 150
 
 typedef struct InteractableData {
 	int textureIndex;
@@ -39,10 +38,6 @@ InteractableData interactableData[INTERACTABLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_EXTINGUISHED_CAMPFIRE,
 		.frameTime = 0.1f,
 		.idleEndFrame = 1
-	},
-	[INTERACTABLE_TYPE_SHOP_ITEM] = {
-		.frameTime = 0.1f,
-		.idleEndFrame = 8
 	}
 };
 
@@ -59,8 +54,7 @@ int getInteractableIndexAtPosition(float x, float y) {
 		}
 
 		Interactable curInteractable = INTERACTABLES[i];
-		int interactDistance = curInteractable.type == INTERACTABLE_TYPE_SHOP_ITEM ? SHOP_INTERACT_DISTANCE : INTERACT_DISTANCE;
-		if (distanceSquared(x, y, curInteractable.x, curInteractable.y) <= interactDistance) {
+		if (distanceSquared(x, y, curInteractable.x, curInteractable.y) <= INTERACT_DISTANCE) {
 			return i;
 		}
 	}
@@ -88,21 +82,9 @@ void interact(int interactableIndex) {
 			int campfireMapX = (INTERACTABLES[interactableIndex].x - CELL_SIZE / 2) / CELL_SIZE;
 			int campfireMapY = (INTERACTABLES[interactableIndex].y - CELL_SIZE / 2) / CELL_SIZE;
 			addInteractable(campfireMapX, campfireMapY, INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE);
-		case INTERACTABLE_TYPE_SHOP_ITEM:
-			selectShopItem(curInteractable.shopItem);
 		default:
 			break;
 	}
-}
-
-int addShopInteractable(int mapX, int mapY, ShopItem shopItem) {
-	int interactableIndex = addInteractable(mapX, mapY, INTERACTABLE_TYPE_SHOP_ITEM);
-	if (interactableIndex < 0) {
-		return -1;
-	}
-	INTERACTABLES[interactableIndex].shopItem = shopItem;
-	INTERACTABLES[interactableIndex].textureIndex = shopItem.textureIndex;
-	return interactableIndex;
 }
 
 int addInteractable(int mapX, int mapY, InteractableType type) {

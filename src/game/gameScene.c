@@ -98,9 +98,10 @@ void updateGameScene(float deltaTime)
 		updateTimers(deltaTime);
 		renderScene();
 		drawUI(deltaTime);
-
-		pd->system->drawFPS(185, 108);
+	} else if (gameState == GAME_STATE_SHOP) {
+		updateShop(deltaTime);
 	}
-
+	
+	pd->system->drawFPS(185, 108);
 	pd->lua->pushNil();
 }

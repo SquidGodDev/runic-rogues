@@ -298,17 +298,6 @@ void handleInput(float deltaTime)
 		}
 	}
 
-	int curInteractableIndex = getPlayerInteractableIndex();
-	if (curInteractableIndex != -1) {
-		Interactable curInteractable = INTERACTABLES[curInteractableIndex];
-		if (curInteractable.active && curInteractable.type == INTERACTABLE_TYPE_SHOP_ITEM) {
-			if (adjustShopDescOffset(crankChange)) {
-				crankChange = 0;
-			}
-		}
-    }
-
-
 	float adjustedTurnSpeed = movementStats.turnSpeed * deltaTime + crankChange * CRANK_SENSITIVITY;
 	playerAngle += adjustedTurnSpeed;
 	if (playerAngle < 0) {
@@ -477,12 +466,7 @@ void handleInput(float deltaTime)
 }
 
 void handleInteractables(void) {
-	int previousInteractableIndex = playerState.interactableIndex;
 	playerState.interactableIndex = getInteractableIndexAtPosition(playerX, playerY);
-
-	if (playerState.interactableIndex != previousInteractableIndex) {
-		resetShopDescOffset();
-	}
 }
 
 int getPlayerInteractableIndex(void) {

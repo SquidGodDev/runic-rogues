@@ -4,13 +4,14 @@
 #include "globals/sceneManager.h"
 
 #include "game/systems/progressionManager.h"
+#include "game/systems/shopManager.h"
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
 #include "game/entities/interactables.h"
 #include "game/map/map.h"
 #include "game/UI/UI.h"
 
-#define LEVEL_UP_EXPERIENCE_BASE 10.0f
+#define LEVEL_UP_EXPERIENCE_BASE 1.0f //10.0f
 
 static RoomType currentRoomType;
 static Area currentArea;
@@ -65,6 +66,7 @@ void addExperience(float amount) {
     if (experience >= levelUpExp) {
         experience -= levelUpExp;
         curLevel++;
+        initShop();
     }
 }
 

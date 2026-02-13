@@ -3,7 +3,7 @@
 
 #include "game/settings/settings.h"
 
-#define MAX_RUNES 14
+#define MAX_OWNED_RUNES 14
 
 typedef enum RuneType {
     RUNE_TYPE_NONE,
@@ -16,11 +16,11 @@ typedef enum RuneType {
 
 void initRunes(void);
 bool runeIsOwned(RuneType type);
-void addRune(RuneType type);
-RuneType getRune(int index);
+void addRune(RuneType type, int level);
 char *getRuneName(RuneType type, Language language);
 char *getRuneDescription(RuneType type, Language language);
 int getRuneIconIndex(RuneType type);
 int getRuneTextureIndex(RuneType type);
 float getRunePrimaryValue(RuneType type);
 float getRuneSecondaryValue(RuneType type);
+float getRuneValue(RuneType type);

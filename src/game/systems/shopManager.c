@@ -3,6 +3,7 @@
 
 #include "globals/globals.h"
 #include "globals/helpers.h"
+#include "game/gameScene.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/runeManager.h"
@@ -13,23 +14,28 @@
 #include "game/map/map.h"
 
 typedef struct ShopPageData {
-    LCDBitmap *shopPageBitmap;
     LCDBitmap *shopDescBitmap;
     int descHeight;
 } ShopPageData;
 
 #define SHOP_OPTION_COUNT 3
 
-int shopInteractableIndexes[SHOP_OPTION_COUNT];
+LCDBitmap *gameScreenshot;
+ShopItem shopItems[SHOP_OPTION_COUNT];
 
-#define SHOP_ITEM_SPACING 1
+#define SHOP_PAGE_X 18
+#define SHOP_PAGE_Y 50
+#define SHOP_DESC_X SHOP_PAGE_X + 5
+#define SHOP_DESC_Y SHOP_PAGE_Y + 6
+#define SHOP_ICON_BASE_X 15
+#define SHOP_ICON_BASE_Y 12
+#define SHOP_ICON_SPACING 71
 
-#define SHOP_PAGE_ICON_X 12
-#define SHOP_PAGE_ICON_Y 10
-#define SHOP_PAGE_TITLE_X 40
-#define SHOP_PAGE_TITLE_Y 12
-#define SHOP_PAGE_TYPE_X 41
-#define SHOP_PAGE_TYPE_Y 30
+#define SHOP_TITLE_DESC_SPACING 6
+
+static int shopDescOffset;
+static int maxDescOffset;
+static int selectedShopOptionIndex;
 
 ShopPageData createShopPage(char *name, char *desc, char* type, LCDBitmap *icon, Language language) {
     LCDFont *fontTitle = fontTitleEN;
@@ -46,47 +52,27 @@ ShopPageData createShopPage(char *name, char *desc, char* type, LCDBitmap *icon,
         leading = 2;
     }
 
-    LCDBitmap *shopPageBitmap = pd->graphics->copyBitmap(BITMAPS[BITMAP_SHOP_POPUP_BACKGROUND]);
-    pd->graphics->pushContext(shopPageBitmap);
-        pd->graphics->drawScaledBitmap(icon, SHOP_PAGE_ICON_X, SHOP_PAGE_ICON_Y, 2.0f, 2.0f);
-        pd->graphics->setDrawMode(drawMode);
+    int titleFontHeight = pd->graphics->getFontHeight(fontTitle);
+    int descHeight = pd->graphics->getTextHeightForMaxWidth(fontSub, desc, strlen(desc), SHOP_DESC_MAX_WIDTH, kUTF8Encoding, kWrapWord, tracking, leading);
+    int totalHeight = titleFontHeight + SHOP_TITLE_DESC_SPACING + descHeight;
+    LCDBitmap *shopDescBitmap = pd->graphics->newBitmap(SHOP_DESC_MAX_WIDTH, totalHeight, kColorClear);
+    pd->graphics->pushContext(shopDescBitmap);
+        // Title
         pd->graphics->setFont(fontTitle);
         pd->graphics->setTextTracking(titleTracking);
-        pd->graphics->drawText(name, strlen(name), kUTF8Encoding, SHOP_PAGE_TITLE_X, SHOP_PAGE_TITLE_Y);
-        pd->graphics->setFont(fontSub);
-        pd->graphics->setTextTracking(tracking);
-        pd->graphics->setTextLeading(leading);
-        pd->graphics->drawText(type, strlen(type), kUTF8Encoding, SHOP_PAGE_TYPE_X, SHOP_PAGE_TYPE_Y);
-    pd->graphics->popContext();
-
-    int descHeight = pd->graphics->getTextHeightForMaxWidth(fontSub, desc, strlen(desc), SHOP_DESC_MAX_WIDTH, kUTF8Encoding, kWrapWord, tracking, leading);
-    LCDBitmap *shopDescBitmap = pd->graphics->newBitmap(SHOP_DESC_MAX_WIDTH, descHeight, kColorClear);
-    pd->graphics->pushContext(shopDescBitmap);
+        pd->graphics->drawText(name, strlen(name), kUTF8Encoding, 0, 0);
+        // Description
         pd->graphics->setDrawMode(drawMode);
         pd->graphics->setFont(fontSub);
         pd->graphics->setTextTracking(tracking);
         pd->graphics->setTextLeading(leading);
-        pd->graphics->drawTextInRect(desc, strlen(desc), kUTF8Encoding, 0, 0, SHOP_DESC_MAX_WIDTH, descHeight, kWrapWord, kAlignTextLeft);
+        pd->graphics->drawTextInRect(desc, strlen(desc), kUTF8Encoding, 0, titleFontHeight + SHOP_TITLE_DESC_SPACING, SHOP_DESC_MAX_WIDTH, descHeight, kWrapWord, kAlignTextLeft);
     pd->graphics->popContext();
 
     return (ShopPageData){
-        .shopPageBitmap = shopPageBitmap,
         .shopDescBitmap = shopDescBitmap,
-        .descHeight = descHeight
+        .descHeight = totalHeight
     };
-}
-
-ShopPageData createSpellShopPage(Spell spell, Language language) {
-    SpellData curSpellData = spellData[spell];
-    char *name = curSpellData.name;
-    char *desc = curSpellData.description;
-    char *type = "Spell";
-    if (language == LANGUAGE_JP) {
-        name = curSpellData.name_jp;
-        desc = curSpellData.description_jp;
-        type = "スペル";
-    }
-    return createShopPage(name, desc, type, BITMAPS[curSpellData.spellIconIndex], language);
 }
 
 ShopPageData createRuneShopPage(RuneType runeType, Language language) {
@@ -96,98 +82,167 @@ ShopPageData createRuneShopPage(RuneType runeType, Language language) {
     return createShopPage(name, desc, type, BITMAPS[getRuneIconIndex(runeType)], language);
 }
 
-void createShopInteractables(void) {
+void createShopOptions(void) {
     Stack optionsStack;
     stackInit(&optionsStack);
-    bool isSpellShop = getCurrentRoom() % 2 == 0;
-    if (isSpellShop) {
-        for (int i = SPELL_NONE + 1; i < SPELL_COUNT; i++) {
-            if (spellInDeck((Spell)i)) {
-                continue;
-            }
-            stackPush(&optionsStack, i);
+    for (int i = RUNE_TYPE_NONE + 1; i < RUNE_TYPE_COUNT; i++) {
+        if (runeIsOwned((RuneType)i)) {
+            continue;
         }
-    } else {
-        for (int i = RUNE_TYPE_NONE + 1; i < RUNE_TYPE_COUNT; i++) {
-            if (runeIsOwned((RuneType)i)) {
-                continue;
-            }
-            stackPush(&optionsStack, i);
-        }
+        stackPush(&optionsStack, i);
     }
     stackShuffle(&optionsStack);
-
-    Point shopMapPosition = getShopMapPosition();
+    
     for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
         ShopPageData shopPageDataEN;
         ShopPageData shopPageDataJP;
-        Spell shopSpell = SPELL_NONE;
-        RuneType shopRune = RUNE_TYPE_NONE;
-        int textureIndex = 0;
-        
-        if (isSpellShop) {
-            shopSpell = SPELL_FIREBALL; // Default spell if no options available
-            if (!stackIsEmpty(&optionsStack)) {
-                shopSpell = (Spell)stackPop(&optionsStack);
-            }
-            shopPageDataEN = createSpellShopPage(shopSpell, LANGUAGE_EN);
-            shopPageDataJP = createSpellShopPage(shopSpell, LANGUAGE_JP);
-            textureIndex = getSpellPickupTextureIndex(shopSpell);
-        } else {
-            shopRune = RUNE_TYPE_VAMPIRISM; // Default rune if no options available
-            if (!stackIsEmpty(&optionsStack)) {
-                shopRune = (RuneType)stackPop(&optionsStack);
-            }
-            shopPageDataEN = createRuneShopPage(shopRune, LANGUAGE_EN);
-            shopPageDataJP = createRuneShopPage(shopRune, LANGUAGE_JP);
-            textureIndex = getRuneTextureIndex(shopRune);
+        RuneType shopRune = RUNE_TYPE_VAMPIRISM; // Default rune if no options available
+        if (!stackIsEmpty(&optionsStack)) {
+            shopRune = (RuneType)stackPop(&optionsStack);
         }
-        
-        int mapX = shopMapPosition.x - SHOP_ITEM_SPACING + (i * SHOP_ITEM_SPACING);
-        int mapY = shopMapPosition.y;
+        shopPageDataEN = createRuneShopPage(shopRune, LANGUAGE_EN);
+        shopPageDataJP = createRuneShopPage(shopRune, LANGUAGE_JP);
+        int iconIndex = getRuneIconIndex(shopRune);
+
         ShopItem shopItem = {
-            .shopPageBitmapEN = shopPageDataEN.shopPageBitmap,
             .shopDescBitmapEN = shopPageDataEN.shopDescBitmap,
             .descHeightEN = shopPageDataEN.descHeight,
-            .shopPageBitmapJP = shopPageDataJP.shopPageBitmap,
             .shopDescBitmapJP = shopPageDataJP.shopDescBitmap,
             .descHeightJP = shopPageDataJP.descHeight,
-            .textureIndex = textureIndex,
-            .spell = shopSpell,
-            .runeType = shopRune,
-            .price = 20
+            .iconIndex = iconIndex,
+            .runeType = shopRune
         };
-        int interactableIndex = addShopInteractable(mapX, mapY, shopItem);
-        shopInteractableIndexes[i] = interactableIndex;
+        shopItems[i] = shopItem;
     }
 }
 
+bool adjustShopDescOffset(int delta) {
+    shopDescOffset += delta;
+    if (shopDescOffset < 0) {
+        shopDescOffset = 0;
+    } else if (shopDescOffset > maxDescOffset) {
+        shopDescOffset = maxDescOffset;
+    }
+
+    return maxDescOffset > 0;
+}
+
+void resetShopDescOffset(void) {
+    shopDescOffset = 0;
+
+    ShopItem curShopItem = shopItems[selectedShopOptionIndex];
+    int descHeight = SETTINGS.language == LANGUAGE_JP ? curShopItem.descHeightJP : curShopItem.descHeightEN;
+    maxDescOffset = descHeight - SHOP_DESC_MAX_HEIGHT > 0 ? descHeight - SHOP_DESC_MAX_HEIGHT : 0;
+}
+
 void initShop(void) {
-    // createShopInteractables();
-    spawnExit();
-    carveOutShopArea();
-    Point exitMapPosition = getExitMapPosition();
-    setArrowPosition(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);
+    if (gameScreenshot != NULL) {
+        pd->graphics->freeBitmap(gameScreenshot);
+    }
+    gameScreenshot = pd->graphics->newBitmap(SCREEN_WIDTH, SCREEN_HEIGHT, kColorClear);
+    LCDBitmap *displayBuffer = pd->graphics->getDisplayBufferBitmap();
+    pd->graphics->pushContext(gameScreenshot);
+        pd->graphics->drawBitmap(displayBuffer, 0, 0, kBitmapUnflipped);
+    pd->graphics->popContext();
+    createShopOptions();
+    selectedShopOptionIndex = 1;
+    resetShopDescOffset();
+    setGameState(GAME_STATE_SHOP);
 }
 
 void selectShopItem(ShopItem shopItem) {
     for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
-        if (shopInteractableIndexes[i] < 0) {
-            continue;
+        pd->graphics->freeBitmap(shopItem.shopDescBitmapEN);
+        pd->graphics->freeBitmap(shopItem.shopDescBitmapJP);
+    }
+
+    if (shopItem.runeType != RUNE_TYPE_NONE) {
+        addRune(shopItem.runeType, 1 /* level */);
+    }
+}
+
+void drawShop(float deltaTime) {
+    if (gameScreenshot != NULL) {
+        pd->graphics->drawBitmap(gameScreenshot, 0, 0, kBitmapUnflipped);
+    }
+
+    // pd->graphics->setDrawOffset(0, 10);
+
+    for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
+        int optionIconX = SHOP_ICON_BASE_X + i * SHOP_ICON_SPACING;
+        int optionIconY = SHOP_ICON_BASE_Y;
+        ShopItem shopItem = shopItems[i];
+        pd->graphics->drawBitmap(BITMAPS[shopItem.iconIndex], optionIconX, optionIconY, kBitmapUnflipped);
+        if (i == selectedShopOptionIndex) {
+            pd->graphics->drawBitmap(BITMAPS[BITMAP_SHOP_CURSOR], optionIconX - 4, optionIconY - 4, kBitmapUnflipped);
         }
-        Interactable *interactable = &INTERACTABLES[shopInteractableIndexes[i]];
-        pd->graphics->freeBitmap(interactable->shopItem.shopPageBitmapEN);
-        pd->graphics->freeBitmap(interactable->shopItem.shopDescBitmapEN);
-        pd->graphics->freeBitmap(interactable->shopItem.shopPageBitmapJP);
-        pd->graphics->freeBitmap(interactable->shopItem.shopDescBitmapJP);
-        interactable->active = false;
     }
 
-    if (shopItem.spell != SPELL_NONE) {
-        addSpellToDeck(shopItem.spell);
-    } else if (shopItem.runeType != RUNE_TYPE_NONE) {
-        addRune(shopItem.runeType);
+    ShopItem curShopItem = shopItems[selectedShopOptionIndex];
+    LCDBitmap *shopDescBitmap;
+    int descHeight;
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_SHOP_POPUP_BACKGROUND], SHOP_PAGE_X, SHOP_PAGE_Y, kBitmapUnflipped);
+    if (SETTINGS.language == LANGUAGE_JP) {
+        shopDescBitmap = curShopItem.shopDescBitmapJP;
+        descHeight = curShopItem.descHeightJP;
+    } else {
+        shopDescBitmap = curShopItem.shopDescBitmapEN;
+        descHeight = curShopItem.descHeightEN;
+    }
+    pd->graphics->setClipRect(SHOP_DESC_X, SHOP_DESC_Y, SHOP_DESC_MAX_WIDTH, SHOP_DESC_MAX_HEIGHT);
+    pd->graphics->drawBitmap(shopDescBitmap, SHOP_DESC_X, SHOP_DESC_Y - shopDescOffset, kBitmapUnflipped);
+    pd->graphics->clearClipRect();
+
+    // Scrollbar
+    if (maxDescOffset > 0) {
+        int scrollbarX = 173;
+        int scrollbarY = 54;
+        int scrollbarWidth = 5;
+        int scrollbarHeight = 55;
+        pd->graphics->drawRoundRect(scrollbarX, scrollbarY, scrollbarWidth, scrollbarHeight, 1, 1, kColorWhite);
+        float scrollbarPercentage = (float)SHOP_DESC_MAX_HEIGHT / descHeight;
+        int scrollbarMaxLen = scrollbarHeight - 6;
+        int scrollbarLength = scrollbarMaxLen * scrollbarPercentage;
+        int scrollbarOffset = scrollbarMaxLen * ((float)shopDescOffset / descHeight);
+        int scrollbarLineX = scrollbarX + 2;
+        int scrollbarLineY = scrollbarY + 3 + scrollbarOffset;
+        pd->graphics->drawLine(scrollbarLineX, scrollbarLineY, scrollbarLineX, scrollbarLineY + scrollbarLength, 1, kColorWhite);
     }
 
-    spawnExit();
+    // pd->graphics->setDrawOffset(0, 0);
+}
+
+void updateShop(float deltaTime) {
+    drawShop(deltaTime);
+
+    PDButtons pushed;
+    PDButtons current;
+	pd->system->getButtonState(&current, &pushed, NULL);
+    if (pushed & kButtonLeft) {
+        if (selectedShopOptionIndex > 0) {
+            selectedShopOptionIndex--;
+            resetShopDescOffset();
+        }
+    } else if (pushed & kButtonRight) {
+        if (selectedShopOptionIndex < SHOP_OPTION_COUNT - 1) {
+            selectedShopOptionIndex++;
+            resetShopDescOffset();
+        }
+    }
+
+    if (current & kButtonUp) {
+        adjustShopDescOffset(-1);
+    } else if (current & kButtonDown) {
+        adjustShopDescOffset(1);
+    }
+
+    float crankChange = pd->system->getCrankChange();
+    if (crankChange != 0) {
+        adjustShopDescOffset(crankChange);
+    }
+
+    if (pushed & kButtonA) {
+        selectShopItem(shopItems[selectedShopOptionIndex]);
+        setGameState(GAME_STATE_ACTIVE);
+    }
 }

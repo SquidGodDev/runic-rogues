@@ -153,7 +153,7 @@ Point getShopMapPosition(void) {
     return (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 1};
 }
 
-void carveOutShopArea(void) {
+void carveOutExitArea(void) {
     setCell(MAP_WIDTH / 2, MAP_PADDING, MAP_FLOOR);
     setCell(MAP_WIDTH / 2 - 1, MAP_PADDING, MAP_FLOOR);
     setCell(MAP_WIDTH / 2 + 1, MAP_PADDING, MAP_FLOOR);
@@ -171,7 +171,7 @@ void carveOutShopArea(void) {
 }
 
 void spawnExit(void) {
-    carveOutShopArea();
+    carveOutExitArea();
     Point exitMapPosition = getExitMapPosition();
     addInteractable(exitMapPosition.x, exitMapPosition.y, INTERACTABLE_TYPE_EXIT);
     setArrowPosition(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);
