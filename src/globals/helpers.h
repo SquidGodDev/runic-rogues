@@ -95,6 +95,13 @@ static inline float easeInCubic(float x) {
     return x * x * x;
 }
 
+static inline float easeOutBack(float x) {
+	const float c1 = 1.70158f;
+	const float c3 = c1 + 1.0f;
+
+	return 1.0f + c3 * powf(x - 1.0f, 3) + c1 * powf(x - 1.0f, 2);
+}
+
 // === DRAWING HELPERS ===
 void drawCenteredBitmap(LCDBitmap *bitmap, int x, int y);
 
