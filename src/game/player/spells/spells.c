@@ -10,6 +10,7 @@
 #include "game/player/spells/spellData.h"
 #include "game/systems/audioManager.h"
 #include "game/systems/timerManager.h"
+#include "game/systems/runeManager.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
 
@@ -22,10 +23,6 @@ static float utilitySpellCharge;
 SpellData spellData[SPELL_COUNT];
 
 void initSpells(void) {
-    for (int i = 0; i < SPELL_COUNT; i++) {
-        spellData[i] = baseSpellData[i];
-    }
-
     for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         spellDeck[i] = SPELL_NONE;
     }
@@ -35,7 +32,88 @@ void initSpells(void) {
     spellDeck[SPECIAL_SPELL_INDEX] = classData->specialSpell;
 }
 
+// SpellProjectileData modifiers
+void modifyProjectileSpeed(SpellData *spell, const RuneData *rune) {
+    spell->projectileData.speed += rune->primaryValue;
+}
+
+void modifyProjectileAcceleration(SpellData *spell, const RuneData *rune) {
+    spell->projectileData.acceleration += rune->primaryValue;
+}
+
+void modifyProjectileHitCount(SpellData *spell, const RuneData *rune) {
+    spell->projectileData.hitCount += (int)rune->primaryValue;
+}
+
+void modifyProjectileSlowTime(SpellData *spell, const RuneData *rune) {
+    spell->projectileData.slowTime += rune->primaryValue;
+}
+
+void modifyProjectileSlowAmount(SpellData *spell, const RuneData *rune) {
+    spell->projectileData.slowAmount += rune->primaryValue;
+}
+
+void modifyProjectileSpreadCount(SpellData *spell, const RuneData *rune) {
+    spell->projectileData.spreadCount += (int)rune->primaryValue;
+}
+
+void modifyProjectileSpreadAngle(SpellData *spell, const RuneData *rune) {
+    spell->projectileData.spreadAngle += rune->primaryValue;
+}
+
+void modifyProjectileActiveTime(SpellData *spell, const RuneData *rune) {
+    spell->projectileData.activeTime += rune->primaryValue;
+}
+
+void setProjectileOnHitSpell(SpellData *spell, const RuneData *rune) {
+    spell->projectileData.onHitSpell = (Spell)rune->primaryValue;
+}
+
+void setProjectileHitParticle(SpellData *spell, const RuneData *rune) {
+    spell->projectileData.hitParticle = (ParticleType)rune->primaryValue;
+}
+
+void setProjectileTimeoutParticle(SpellData *spell, const RuneData *rune) {
+    spell->projectileData.timeoutParticle = (ParticleType)rune->primaryValue;
+}
+
+// SpellData modifiers
+void modifySpellCooldown(SpellData *spell, const RuneData *rune) {
+    spell->cooldown += rune->primaryValue;
+}
+
+void modifySpellDamage(SpellData *spell, const RuneData *rune) {
+    spell->damage += (int)rune->primaryValue;
+}
+
+void modifySpellKnockbackTime(SpellData *spell, const RuneData *rune) {
+    spell->knockbackTime += rune->primaryValue;
+}
+
+void modifySpellKnockbackAmount(SpellData *spell, const RuneData *rune) {
+    spell->knockbackAmount += rune->primaryValue;
+}
+
+void modifySpellKnockback(SpellData *spell, const RuneData *rune) {
+    spell->knockbackTime   += rune->primaryValue;
+    spell->knockbackAmount += rune->secondaryValue;
+}
+
+// RepeatData modifiers
+void modifyRepeatCount(SpellData *spell, const RuneData *rune) {
+    spell->repeatData.repeatCount += (int)rune->primaryValue;
+}
+
+void modifyRepeatActivationTime(SpellData *spell, const RuneData *rune) {
+    spell->repeatData.activationTime += rune->primaryValue;
+}
+
 void resetSpellState(void) {
+    for (int i = 0; i < SPELL_COUNT; i++) {
+        spellData[i] = baseSpellData[i];
+    }
+    applyRuneEffectsToSpells();
+
     for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         spellCastData[i] = (SpellCastData) {
             .spell = SPELL_NONE,

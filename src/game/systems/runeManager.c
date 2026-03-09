@@ -4,18 +4,7 @@
 #include "game/systems/runeManager.h"
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
-
-typedef struct RuneData {
-    char *nameEN;
-    char *nameJP;
-    char *descriptionEN;
-    char *descriptionJP;
-    int iconIndex;
-    int textureIndex;
-    int maxLevel;
-    float primaryValue;
-    float secondaryValue;
-} RuneData;
+#include "game/player/spells/spells.h"
 
 RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_VAMPIRISM] = {
@@ -117,4 +106,21 @@ float getRuneSecondaryValue(RuneType type) {
 
 float getRuneValue(RuneType type) {
     return ownedRuneLevel[type] * RUNE_DATA[type].primaryValue;
+}
+
+void applyRuneEffectsToSpells(void) {
+    for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
+        if (!runeIsOwned(i)) {
+            continue;
+        }
+        RuneData *data = &RUNE_DATA[i];
+        if (data->applySpellModifier == NULL) {
+            continue;
+        }
+        for (int j = 0; j < SPELL_COUNT; j++) {
+            if (spellData[j].cast != NULL) {
+                data->applySpellModifier(&spellData[j], data);
+            }
+        }
+    }
 }

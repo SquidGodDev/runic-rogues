@@ -14,6 +14,22 @@ typedef enum RuneType {
     RUNE_TYPE_COUNT
 } RuneType;
 
+// Forward declaration (spells.h)
+struct SpellData;
+
+typedef struct RuneData {
+    char *nameEN;
+    char *nameJP;
+    char *descriptionEN;
+    char *descriptionJP;
+    int iconIndex;
+    int textureIndex;
+    int maxLevel;
+    float primaryValue;
+    float secondaryValue;
+    void (*applySpellModifier)(struct SpellData *spell, const struct RuneData *rune);  // NULL = no spell effect
+} RuneData;
+
 void initRunes(void);
 bool runeIsOwned(RuneType type);
 void addRune(RuneType type, int level);
@@ -24,3 +40,4 @@ int getRuneTextureIndex(RuneType type);
 float getRunePrimaryValue(RuneType type);
 float getRuneSecondaryValue(RuneType type);
 float getRuneValue(RuneType type);
+void applyRuneEffectsToSpells(void);
