@@ -17,6 +17,13 @@ typedef enum RuneType {
 // Forward declaration (spells.h)
 struct SpellData;
 
+typedef enum RuneSpellTarget {
+    RUNE_SPELL_TARGET_NONE,
+    RUNE_SPELL_TARGET_BASIC,
+    RUNE_SPELL_TARGET_SPECIAL,
+    RUNE_SPELL_TARGET_BOTH
+} RuneSpellTarget;
+
 typedef struct RuneData {
     char *nameEN;
     char *nameJP;
@@ -27,6 +34,7 @@ typedef struct RuneData {
     int maxLevel;
     float primaryValue;
     float secondaryValue;
+    RuneSpellTarget spellTarget;
     void (*applySpellModifier)(struct SpellData *spell, const struct RuneData *rune);  // NULL = no spell effect
 } RuneData;
 

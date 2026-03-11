@@ -5,6 +5,7 @@
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
 #include "game/player/spells/spells.h"
+#include "game/player/classes/classData.h"
 
 RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_VAMPIRISM] = {
@@ -109,18 +110,20 @@ float getRuneValue(RuneType type) {
 }
 
 void applyRuneEffectsToSpells(void) {
+    const ClassData *classData = getCurrentClassData();
     for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
         if (!runeIsOwned(i)) {
             continue;
         }
         RuneData *data = &RUNE_DATA[i];
-        if (data->applySpellModifier == NULL) {
+        if (data->applySpellModifier == NULL || data->spellTarget == RUNE_SPELL_TARGET_NONE) {
             continue;
         }
-        for (int j = 0; j < SPELL_COUNT; j++) {
-            if (spellData[j].cast != NULL) {
-                data->applySpellModifier(&spellData[j], data);
-            }
+        if (data->spellTarget == RUNE_SPELL_TARGET_BASIC || data->spellTarget == RUNE_SPELL_TARGET_BOTH) {
+            data->applySpellModifier(&spellData[classData->basicSpell], data);
+        }
+        if (data->spellTarget == RUNE_SPELL_TARGET_SPECIAL || data->spellTarget == RUNE_SPELL_TARGET_BOTH) {
+            data->applySpellModifier(&spellData[classData->specialSpell], data);
         }
     }
 }
