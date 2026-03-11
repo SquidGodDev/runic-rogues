@@ -6,3 +6,4 @@
 /build
 .sentry-native
 .vscode
+.claude/settings.local.json
