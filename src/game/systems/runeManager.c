@@ -15,7 +15,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "敵を倒すと体力を回復する。",
         .iconIndex = BITMAP_RUNE_VAMPIRISM,
         .textureIndex = TEXTURE_RUNE_VAMPIRISM,
-        .primaryValue = 2 // Heal for 2 hp when defeating enemies
+        .primaryValues = {2, 4, 6} // Health gained
     },
     [RUNE_TYPE_WINGED_BOOTS] = {
         .nameEN = "Winged Boots",
@@ -24,8 +24,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "ダッシュの回数を増やし、ダッシュのクールダウン時間を短縮する。",
         .iconIndex = BITMAP_RUNE_WINGED_BOOTS,
         .textureIndex = TEXTURE_RUNE_WINGED_BOOTS,
-        .primaryValue = 0.5f, // Increases dash charge rate by 50%,
-        .secondaryValue = 1 // Increases number of dashes by 1
+        .primaryValues   = {0.5f, 0.75f, 1.0f}, // Dash charge rate increase %
+        .secondaryValues = {1, 2, 3} // Dash count increase
     },
     [RUNE_TYPE_HEALTHY] = {
         .nameEN = "Healthy",
@@ -34,7 +34,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "最大体力が増加する。",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 20 // Increases max health by 20
+        .primaryValues = {20, 35, 50} // Health increase
     },
     [RUNE_TYPE_SWIFT] = {
         .nameEN = "Swift",
@@ -43,7 +43,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "移動速度が増加する。",
         .iconIndex = BITMAP_RUNE_SWIFT,
         .textureIndex = TEXTURE_RUNE_SWIFT,
-        .primaryValue = 0.3f // Increases move speed by 30%
+        .primaryValues = {0.3f, 0.5f, 0.7f} // Speed increase %
     }
 };
 
@@ -97,33 +97,53 @@ int getRuneTextureIndex(RuneType type) {
     return RUNE_DATA[type].textureIndex;
 }
 
-float getRunePrimaryValue(RuneType type) {
-    return RUNE_DATA[type].primaryValue;
+float getRuneValue(RuneType type) {
+    int level = ownedRuneLevel[type];
+    if (level == 0) {
+        return 0;
+    }
+    return RUNE_DATA[type].primaryValues[level - 1];
 }
 
 float getRuneSecondaryValue(RuneType type) {
-    return RUNE_DATA[type].secondaryValue;
-}
-
-float getRuneValue(RuneType type) {
-    return ownedRuneLevel[type] * RUNE_DATA[type].primaryValue;
+    int level = ownedRuneLevel[type];
+    if (level == 0) {
+        return 0;
+    }
+    return RUNE_DATA[type].secondaryValues[level - 1];
 }
 
 void applyRuneEffectsToSpells(void) {
     const ClassData *classData = getCurrentClassData();
     for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
-        if (!runeIsOwned(i)) {
+        RuneType runeType = (RuneType)i;
+        int level = ownedRuneLevel[runeType];
+        if (level == 0) {
             continue;
         }
-        RuneData *data = &RUNE_DATA[i];
-        if (data->applySpellModifier == NULL || data->spellTarget == RUNE_SPELL_TARGET_NONE) {
+        RuneData *rune = &RUNE_DATA[runeType];
+        if (rune->spellTarget == RUNE_SPELL_TARGET_NONE) {
             continue;
         }
-        if (data->spellTarget == RUNE_SPELL_TARGET_BASIC || data->spellTarget == RUNE_SPELL_TARGET_BOTH) {
-            data->applySpellModifier(&spellData[classData->basicSpell], data);
+        SpellData *basicSpell   = &spellData[classData->basicSpell];
+        SpellData *specialSpell = &spellData[classData->specialSpell];
+        if (rune->applySpellModifierPrimary) {
+            float value = rune->primaryValues[level - 1];
+            if (rune->spellTarget == RUNE_SPELL_TARGET_BASIC || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
+                rune->applySpellModifierPrimary(basicSpell, value);
+            }
+            if (rune->spellTarget == RUNE_SPELL_TARGET_SPECIAL || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
+                rune->applySpellModifierPrimary(specialSpell, value);
+            }
         }
-        if (data->spellTarget == RUNE_SPELL_TARGET_SPECIAL || data->spellTarget == RUNE_SPELL_TARGET_BOTH) {
-            data->applySpellModifier(&spellData[classData->specialSpell], data);
+        if (rune->applySpellModifierSecondary) {
+            float value = rune->secondaryValues[level - 1];
+            if (rune->spellTarget == RUNE_SPELL_TARGET_BASIC || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
+                rune->applySpellModifierSecondary(basicSpell, value);
+            }
+            if (rune->spellTarget == RUNE_SPELL_TARGET_SPECIAL || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
+                rune->applySpellModifierSecondary(specialSpell, value);
+            }
         }
     }
 }

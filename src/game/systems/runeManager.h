@@ -5,6 +5,7 @@
 #include "game/player/classes/classData.h"
 
 #define MAX_OWNED_RUNES 14
+#define MAX_RUNE_LEVEL 3
 
 typedef enum RuneType {
     RUNE_TYPE_NONE,
@@ -38,10 +39,11 @@ typedef struct RuneData {
     int iconIndex;
     int textureIndex;
     int maxLevel;
-    float primaryValue;
-    float secondaryValue;
+    float primaryValues[MAX_RUNE_LEVEL];
+    float secondaryValues[MAX_RUNE_LEVEL];
     RuneSpellTarget spellTarget;
-    void (*applySpellModifier)(struct SpellData *spell, const struct RuneData *rune);  // NULL = no spell effect
+    void (*applySpellModifierPrimary)(struct SpellData *spell, float value);
+    void (*applySpellModifierSecondary)(struct SpellData *spell, float value);
     RuneClassFilter classFilter;  // Bitmask of classes this rune can appear in the shop for
 } RuneData;
 
@@ -52,7 +54,6 @@ char *getRuneName(RuneType type, Language language);
 char *getRuneDescription(RuneType type, Language language);
 int getRuneIconIndex(RuneType type);
 int getRuneTextureIndex(RuneType type);
-float getRunePrimaryValue(RuneType type);
-float getRuneSecondaryValue(RuneType type);
 float getRuneValue(RuneType type);
+float getRuneSecondaryValue(RuneType type);
 void applyRuneEffectsToSpells(void);

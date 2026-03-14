@@ -268,77 +268,72 @@ void updateSpells(float deltaTime) {
 // === Spell Modifier Functions ===
 
 // SpellProjectileData modifiers
-void modifyProjectileSpeed(SpellData *spell, const RuneData *rune) {
-    spell->projectileData.speed += rune->primaryValue;
+void modifyProjectileSpeed(SpellData *spell, float value) {
+    spell->projectileData.speed += value;
 }
 
-void modifyProjectileAcceleration(SpellData *spell, const RuneData *rune) {
-    spell->projectileData.acceleration += rune->primaryValue;
+void modifyProjectileAcceleration(SpellData *spell, float value) {
+    spell->projectileData.acceleration += value;
 }
 
-void modifyProjectileHitCount(SpellData *spell, const RuneData *rune) {
-    spell->projectileData.hitCount += (int)rune->primaryValue;
+void modifyProjectileHitCount(SpellData *spell, float value) {
+    spell->projectileData.hitCount += (int)value;
 }
 
-void modifyProjectileSlowTime(SpellData *spell, const RuneData *rune) {
-    spell->projectileData.slowTime += rune->primaryValue;
+void modifyProjectileSlowTime(SpellData *spell, float value) {
+    spell->projectileData.slowTime += value;
 }
 
-void modifyProjectileSlowAmount(SpellData *spell, const RuneData *rune) {
-    spell->projectileData.slowAmount += rune->primaryValue;
+void modifyProjectileSlowAmount(SpellData *spell, float value) {
+    spell->projectileData.slowAmount += value;
 }
 
-void modifyProjectileSpreadCount(SpellData *spell, const RuneData *rune) {
-    spell->projectileData.spreadCount += (int)rune->primaryValue;
+void modifyProjectileSpreadCount(SpellData *spell, float value) {
+    spell->projectileData.spreadCount += (int)value;
 }
 
-void modifyProjectileSpreadAngle(SpellData *spell, const RuneData *rune) {
-    spell->projectileData.spreadAngle += rune->primaryValue;
+void modifyProjectileSpreadAngle(SpellData *spell, float value) {
+    spell->projectileData.spreadAngle += value;
 }
 
-void modifyProjectileActiveTime(SpellData *spell, const RuneData *rune) {
-    spell->projectileData.activeTime += rune->primaryValue;
+void modifyProjectileActiveTime(SpellData *spell, float value) {
+    spell->projectileData.activeTime += value;
 }
 
-void setProjectileOnHitSpell(SpellData *spell, const RuneData *rune) {
-    spell->projectileData.onHitSpell = (Spell)rune->primaryValue;
+void setProjectileOnHitSpell(SpellData *spell, float value) {
+    spell->projectileData.onHitSpell = (Spell)value;
 }
 
-void setProjectileHitParticle(SpellData *spell, const RuneData *rune) {
-    spell->projectileData.hitParticle = (ParticleType)rune->primaryValue;
+void setProjectileHitParticle(SpellData *spell, float value) {
+    spell->projectileData.hitParticle = (ParticleType)value;
 }
 
-void setProjectileTimeoutParticle(SpellData *spell, const RuneData *rune) {
-    spell->projectileData.timeoutParticle = (ParticleType)rune->primaryValue;
+void setProjectileTimeoutParticle(SpellData *spell, float value) {
+    spell->projectileData.timeoutParticle = (ParticleType)value;
 }
 
 // SpellData modifiers
-void modifySpellCooldown(SpellData *spell, const RuneData *rune) {
-    spell->cooldown += rune->primaryValue;
+void modifySpellCooldown(SpellData *spell, float value) {
+    spell->cooldown += value;
 }
 
-void modifySpellDamage(SpellData *spell, const RuneData *rune) {
-    spell->damage += (int)rune->primaryValue;
+void modifySpellDamage(SpellData *spell, float value) {
+    spell->damage += (int)value;
 }
 
-void modifySpellKnockbackTime(SpellData *spell, const RuneData *rune) {
-    spell->knockbackTime += rune->primaryValue;
+void modifySpellKnockbackTime(SpellData *spell, float value) {
+    spell->knockbackTime += value;
 }
 
-void modifySpellKnockbackAmount(SpellData *spell, const RuneData *rune) {
-    spell->knockbackAmount += rune->primaryValue;
-}
-
-void modifySpellKnockback(SpellData *spell, const RuneData *rune) {
-    spell->knockbackTime   += rune->primaryValue;
-    spell->knockbackAmount += rune->secondaryValue;
+void modifySpellKnockbackAmount(SpellData *spell, float value) {
+    spell->knockbackAmount += value;
 }
 
 // RepeatData modifiers
-void modifyRepeatCount(SpellData *spell, const RuneData *rune) {
-    spell->repeatData.repeatCount += (int)rune->primaryValue;
+void modifyRepeatCount(SpellData *spell, float value) {
+    spell->repeatData.repeatCount += (int)value;
 }
 
-void modifyRepeatActivationTime(SpellData *spell, const RuneData *rune) {
-    spell->repeatData.activationTime += rune->primaryValue;
+void modifyRepeatActivationTime(SpellData *spell, float value) {
+    spell->repeatData.activationTime += value;
 }

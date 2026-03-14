@@ -1068,7 +1068,7 @@ bool damageEnemy(int index, int damage) {
 		}
 
 		if (runeIsOwned(RUNE_TYPE_VAMPIRISM)) {
-			healPlayer(getRunePrimaryValue(RUNE_TYPE_VAMPIRISM));
+			healPlayer(getRuneValue(RUNE_TYPE_VAMPIRISM));
 		}
 	}
 

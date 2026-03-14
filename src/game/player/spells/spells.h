@@ -97,32 +97,28 @@ typedef struct SpellData {
     WeaponData weaponData;
 } SpellData;
 
-// Forward declaration (runeManager.h)
-struct RuneData;
-
 // SpellProjectileData modifiers
-void modifyProjectileSpeed(SpellData *spell, const struct RuneData *rune);
-void modifyProjectileAcceleration(SpellData *spell, const struct RuneData *rune);
-void modifyProjectileHitCount(SpellData *spell, const struct RuneData *rune);
-void modifyProjectileSlowTime(SpellData *spell, const struct RuneData *rune);
-void modifyProjectileSlowAmount(SpellData *spell, const struct RuneData *rune);
-void modifyProjectileSpreadCount(SpellData *spell, const struct RuneData *rune);
-void modifyProjectileSpreadAngle(SpellData *spell, const struct RuneData *rune);
-void modifyProjectileActiveTime(SpellData *spell, const struct RuneData *rune);
-void setProjectileOnHitSpell(SpellData *spell, const struct RuneData *rune);
-void setProjectileHitParticle(SpellData *spell, const struct RuneData *rune);
-void setProjectileTimeoutParticle(SpellData *spell, const struct RuneData *rune);
+void modifyProjectileSpeed(SpellData *spell, float value);
+void modifyProjectileAcceleration(SpellData *spell, float value);
+void modifyProjectileHitCount(SpellData *spell, float value);
+void modifyProjectileSlowTime(SpellData *spell, float value);
+void modifyProjectileSlowAmount(SpellData *spell, float value);
+void modifyProjectileSpreadCount(SpellData *spell, float value);
+void modifyProjectileSpreadAngle(SpellData *spell, float value);
+void modifyProjectileActiveTime(SpellData *spell, float value);
+void setProjectileOnHitSpell(SpellData *spell, float value);
+void setProjectileHitParticle(SpellData *spell, float value);
+void setProjectileTimeoutParticle(SpellData *spell, float value);
 
 // SpellData modifiers
-void modifySpellCooldown(SpellData *spell, const struct RuneData *rune);
-void modifySpellDamage(SpellData *spell, const struct RuneData *rune);
-void modifySpellKnockbackTime(SpellData *spell, const struct RuneData *rune);
-void modifySpellKnockbackAmount(SpellData *spell, const struct RuneData *rune);
-void modifySpellKnockback(SpellData *spell, const struct RuneData *rune);
+void modifySpellCooldown(SpellData *spell, float value);
+void modifySpellDamage(SpellData *spell, float value);
+void modifySpellKnockbackTime(SpellData *spell, float value);
+void modifySpellKnockbackAmount(SpellData *spell, float value);
 
 // RepeatData modifiers
-void modifyRepeatCount(SpellData *spell, const struct RuneData *rune);
-void modifyRepeatActivationTime(SpellData *spell, const struct RuneData *rune);
+void modifyRepeatCount(SpellData *spell, float value);
+void modifyRepeatActivationTime(SpellData *spell, float value);
 
 void initSpells(void);
 void resetSpellState(void);

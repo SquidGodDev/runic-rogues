@@ -10,7 +10,7 @@
 int getPlayerMaxHealth(void) {
     int maxHealth = BASE_MAX_HEALTH;
     if (runeIsOwned(RUNE_TYPE_HEALTHY)) {
-        maxHealth += getRunePrimaryValue(RUNE_TYPE_HEALTHY);
+        maxHealth += getRuneValue(RUNE_TYPE_HEALTHY);
     }
     return maxHealth;
 }
@@ -30,7 +30,7 @@ int getPlayerUtilitySpellCount(void) {
 float getPlayerUtilitySpellChargeRate(void) {
     float chargeRate = BASE_UTILITY_SPELL_CHARGE_RATE;
     if (runeIsOwned(RUNE_TYPE_WINGED_BOOTS)) {
-        chargeRate *= (1.0f + getRunePrimaryValue(RUNE_TYPE_WINGED_BOOTS));
+        chargeRate *= (1.0f + getRuneValue(RUNE_TYPE_WINGED_BOOTS));
     }
     return chargeRate;
 }
@@ -38,7 +38,7 @@ float getPlayerUtilitySpellChargeRate(void) {
 float getPlayerMoveSpeed(void) {
     float moveSpeed = BASE_MOVE_SPEED;
     if (runeIsOwned(RUNE_TYPE_SWIFT)) {
-        moveSpeed *= (1.0f + getRunePrimaryValue(RUNE_TYPE_SWIFT));
+        moveSpeed *= (1.0f + getRuneValue(RUNE_TYPE_SWIFT));
     }
     return moveSpeed;
 }
