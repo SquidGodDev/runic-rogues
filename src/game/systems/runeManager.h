@@ -2,6 +2,7 @@
 #include "pd_api.h"
 
 #include "game/settings/settings.h"
+#include "game/player/classes/classData.h"
 
 #define MAX_OWNED_RUNES 14
 
@@ -16,6 +17,11 @@ typedef enum RuneType {
 
 // Forward declaration (spells.h)
 struct SpellData;
+
+typedef int RuneClassFilter;
+#define RUNE_CLASS_FILTER_MAGE    (1 << CLASS_MAGE)
+#define RUNE_CLASS_FILTER_WARRIOR (1 << CLASS_WARRIOR)
+#define RUNE_CLASS_FILTER_ROGUE   (1 << CLASS_ROGUE)
 
 typedef enum RuneSpellTarget {
     RUNE_SPELL_TARGET_NONE,
@@ -36,6 +42,7 @@ typedef struct RuneData {
     float secondaryValue;
     RuneSpellTarget spellTarget;
     void (*applySpellModifier)(struct SpellData *spell, const struct RuneData *rune);  // NULL = no spell effect
+    RuneClassFilter classFilter;  // Bitmask of classes this rune can appear in the shop for
 } RuneData;
 
 void initRunes(void);
