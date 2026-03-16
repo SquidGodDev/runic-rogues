@@ -148,7 +148,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .secondaryValue = 0.7f, // Slow amount increase
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .applySpellModifierPrimary   = modifySlowTime,
-        .applySpellModifierSecondary = modifySlowAmount
+        .applySpellModifierSecondary = modifySlowAmount,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_ICE_LANCE] = {
         .nameEN = "Ice Lance",
@@ -161,7 +162,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .secondaryValue = 0.7f, // Slow amount increase
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .applySpellModifierPrimary   = modifySlowTime,
-        .applySpellModifierSecondary = modifySlowAmount
+        .applySpellModifierSecondary = modifySlowAmount,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_NEEDLE_AND_THREAD] = {
         .nameEN = "Needle and Thread",
@@ -172,7 +174,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryValue = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
-        .applySpellModifierPrimary = modifyProjectileHitCount
+        .applySpellModifierPrimary = modifyProjectileHitCount,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_HAMMER_AND_NAILS] = {
         .nameEN = "Hammer and Nails",
@@ -183,7 +186,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryValue = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
-        .applySpellModifierPrimary = modifyProjectileHitCount
+        .applySpellModifierPrimary = modifyProjectileHitCount,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_QUARTZ_SHARD] = {
         .nameEN = "Quartz Shard",
@@ -192,11 +196,12 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 3,
+        .primaryValue   = 2,
         .secondaryValue = 10,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .applySpellModifierPrimary   = modifyProjectileSpreadCount,
-        .applySpellModifierSecondary = modifyProjectileSpreadAngle
+        .applySpellModifierSecondary = modifyProjectileSpreadAngle,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_QUARTZ_CLUSTER] = {
         .nameEN = "Quartz Cluster",
@@ -205,16 +210,17 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 3,
+        .primaryValue   = 2,
         .secondaryValue = 10,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .applySpellModifierPrimary   = modifyProjectileSpreadCount,
-        .applySpellModifierSecondary = modifyProjectileSpreadAngle
+        .applySpellModifierSecondary = modifyProjectileSpreadAngle,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_ENCHANTED_BRANCH] = {
         .nameEN = "Enchanted Branch",
         .nameJP = "",
-        .descriptionEN = "Basic repeat spells fire additional times.",
+        .descriptionEN = "Basic spells fire additional times.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -222,12 +228,13 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .secondaryValue = -0.05f,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .applySpellModifierPrimary   = modifyRepeatCount,
-        .applySpellModifierSecondary = modifyRepeatActivationTime
+        .applySpellModifierSecondary = modifyRepeatActivationTime,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_ARCANE_STAFF] = {
         .nameEN = "Arcane Staff",
         .nameJP = "",
-        .descriptionEN = "Special repeat spells fire additional times.",
+        .descriptionEN = "Special spells fire additional times.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -235,7 +242,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .secondaryValue = -0.05f,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .applySpellModifierPrimary   = modifyRepeatCount,
-        .applySpellModifierSecondary = modifyRepeatActivationTime
+        .applySpellModifierSecondary = modifyRepeatActivationTime,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     }
 };
 
