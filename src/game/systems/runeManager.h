@@ -4,8 +4,6 @@
 #include "game/settings/settings.h"
 #include "game/player/classes/classData.h"
 
-#define MAX_OWNED_RUNES 14
-#define MAX_RUNE_LEVEL 3
 
 typedef enum RuneType {
     RUNE_TYPE_NONE,
@@ -54,9 +52,8 @@ typedef struct RuneData {
     char *descriptionJP;
     int iconIndex;
     int textureIndex;
-    int maxLevel;
-    float primaryValues[MAX_RUNE_LEVEL];
-    float secondaryValues[MAX_RUNE_LEVEL];
+    float primaryValue;
+    float secondaryValue;
     RuneSpellTarget spellTarget;
     void (*applySpellModifierPrimary)(struct SpellData *spell, float value);
     void (*applySpellModifierSecondary)(struct SpellData *spell, float value);
@@ -65,7 +62,7 @@ typedef struct RuneData {
 
 void initRunes(void);
 bool runeIsOwned(RuneType type);
-void addRune(RuneType type, int level);
+void addRune(RuneType type);
 char *getRuneName(RuneType type, Language language);
 char *getRuneDescription(RuneType type, Language language);
 int getRuneIconIndex(RuneType type);

@@ -122,6 +122,7 @@ void modifyRepeatActivationTime(SpellData *spell, float value);
 
 void initSpells(void);
 void resetSpellState(void);
+void recalculateRuneEffectsToSpells(void);
 Spell *getSpellDeck(void);
 bool spellInDeck(Spell spell);
 void addSpellToDeck(Spell spell);

@@ -165,7 +165,7 @@ void initShop(void) {
 
 void selectShopItem(ShopItem shopItem) {
     if (shopItem.runeType != RUNE_TYPE_NONE) {
-        addRune(shopItem.runeType, 1 /* level */);
+        addRune(shopItem.runeType);
     }
 }
 

@@ -33,10 +33,7 @@ void initSpells(void) {
 }
 
 void resetSpellState(void) {
-    for (int i = 0; i < SPELL_COUNT; i++) {
-        spellData[i] = baseSpellData[i];
-    }
-    applyRuneEffectsToSpells();
+    recalculateRuneEffectsToSpells();
 
     for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         spellCastData[i] = (SpellCastData) {
@@ -55,6 +52,14 @@ void resetSpellState(void) {
 
     utilitySpellCount = getPlayerUtilitySpellCount();
     utilitySpellCharge = 0.0f;
+}
+
+void recalculateRuneEffectsToSpells(void) {
+    for (int i = 0; i < SPELL_COUNT; i++) {
+        // Reset spell data to base values before reapplying rune effects
+        spellData[i] = baseSpellData[i];
+    }
+    applyRuneEffectsToSpells();
 }
 
 Spell *getSpellDeck(void) {
