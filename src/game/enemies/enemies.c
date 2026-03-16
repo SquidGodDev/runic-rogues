@@ -1118,6 +1118,20 @@ void knockbackEnemiesInArea(float x, float y, int radius, float knockbackTime, f
 	}
 }
 
+void slowEnemiesInArea(float x, float y, int radius, float slowTime, float slowAmount) {
+	int radiusSquared = radius * radius;
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		Enemy enemy = enemies[i];
+		if (!enemy.active) {
+			continue;
+		}
+		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
+		if (distSquared < radiusSquared) {
+			slowEnemy(i, slowTime, slowAmount);
+		}
+	}
+}
+
 bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime, float slowAmount) {
 	bool collided = false; 
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {

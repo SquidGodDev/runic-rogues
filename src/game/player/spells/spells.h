@@ -64,6 +64,8 @@ typedef struct SpellProjectileData {
 
 typedef struct MeleeData {
     float range;
+    float slowTime;
+    float slowAmount;
 } MeleeData;
 
 typedef struct WeaponData {
@@ -101,8 +103,8 @@ typedef struct SpellData {
 void modifyProjectileSpeed(SpellData *spell, float value);
 void modifyProjectileAcceleration(SpellData *spell, float value);
 void modifyProjectileHitCount(SpellData *spell, float value);
-void modifyProjectileSlowTime(SpellData *spell, float value);
-void modifyProjectileSlowAmount(SpellData *spell, float value);
+void modifySlowTime(SpellData *spell, float value);
+void modifySlowAmount(SpellData *spell, float value);
 void modifyProjectileSpreadCount(SpellData *spell, float value);
 void modifyProjectileSpreadAngle(SpellData *spell, float value);
 void modifyProjectileActiveTime(SpellData *spell, float value);

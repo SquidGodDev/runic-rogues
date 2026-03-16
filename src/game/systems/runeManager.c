@@ -147,8 +147,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryValue   = 1.5f, // Slow time increase
         .secondaryValue = 0.7f, // Slow amount increase
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
-        .applySpellModifierPrimary   = modifyProjectileSlowTime,
-        .applySpellModifierSecondary = modifyProjectileSlowAmount
+        .applySpellModifierPrimary   = modifySlowTime,
+        .applySpellModifierSecondary = modifySlowAmount
     },
     [RUNE_TYPE_ICE_LANCE] = {
         .nameEN = "Ice Lance",
@@ -160,8 +160,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryValue   = 1.5f, // Slow time increase
         .secondaryValue = 0.7f, // Slow amount increase
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
-        .applySpellModifierPrimary   = modifyProjectileSlowTime,
-        .applySpellModifierSecondary = modifyProjectileSlowAmount
+        .applySpellModifierPrimary   = modifySlowTime,
+        .applySpellModifierSecondary = modifySlowAmount
     },
     [RUNE_TYPE_NEEDLE_AND_THREAD] = {
         .nameEN = "Needle and Thread",
@@ -245,6 +245,25 @@ void initRunes(void) {
     for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
         ownedRunes[i] = false;
     }
+
+    // == Testing runes ==
+    // addRune(RUNE_TYPE_DAGGER);
+    // addRune(RUNE_TYPE_BROADSWORD);
+    // addRune(RUNE_TYPE_POCKET_WATCH);
+    // addRune(RUNE_TYPE_HOURGLASS);
+    // addRune(RUNE_TYPE_SLING);
+    // addRune(RUNE_TYPE_LONGBOW);
+    // addRune(RUNE_TYPE_COPPER_PAN);
+    // addRune(RUNE_TYPE_IRON_GAUNTLET);
+    // addRune(RUNE_TYPE_FROST_SHARD);
+    // addRune(RUNE_TYPE_ICE_LANCE);
+    // addRune(RUNE_TYPE_NEEDLE_AND_THREAD);
+    // addRune(RUNE_TYPE_HAMMER_AND_NAILS);
+    // addRune(RUNE_TYPE_QUARTZ_SHARD);
+    // addRune(RUNE_TYPE_QUARTZ_CLUSTER);
+    // addRune(RUNE_TYPE_ENCHANTED_BRANCH);
+    // addRune(RUNE_TYPE_ARCANE_STAFF);
+
 }
 
 bool runeIsOwned(RuneType type) {

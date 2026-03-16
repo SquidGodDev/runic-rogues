@@ -285,12 +285,14 @@ void modifyProjectileHitCount(SpellData *spell, float value) {
     spell->projectileData.hitCount += (int)value;
 }
 
-void modifyProjectileSlowTime(SpellData *spell, float value) {
+void modifySlowTime(SpellData *spell, float value) {
     spell->projectileData.slowTime += value;
+    spell->meleeData.slowTime += value;
 }
 
-void modifyProjectileSlowAmount(SpellData *spell, float value) {
+void modifySlowAmount(SpellData *spell, float value) {
     spell->projectileData.slowAmount += value;
+    spell->meleeData.slowAmount += value;
 }
 
 void modifyProjectileSpreadCount(SpellData *spell, float value) {
