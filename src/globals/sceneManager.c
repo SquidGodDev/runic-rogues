@@ -5,6 +5,7 @@
 #include "globals/helpers.h"
 
 #include "globals/sceneManager.h"
+#include "title/classSelectScene.h"
 #include "title/titleScene.h"
 #include "title/roomMapScene.h"
 #include "title/gameOverScene.h"
@@ -39,7 +40,7 @@ LCDBitmap* transitionMask;
 void initSceneManager(void) {
     transitionTimer = 0;
     transitionState = TRANSITION_NONE;
-    currentScene = SCENE_TITLE;
+    currentScene = SCENE_CLASS_SELECT;
     pd->system->resetElapsedTime();
     transitionBitmap = pd->graphics->newBitmap(200, 120, kColorClear);
     transitionMask = pd->graphics->getBitmapMask(transitionBitmap);
@@ -57,6 +58,9 @@ void switchScene(Scene newScene) {
 void initNextScene(void) {
     currentScene = nextScene;
     switch (currentScene) {
+        case SCENE_CLASS_SELECT:
+            initClassSelectScene();
+            break;
         case SCENE_TITLE:
             initTitleScene();
             break;
@@ -76,6 +80,9 @@ int updateSceneManager(void* userdata) {
     float deltaTime = pd->system->getElapsedTime(); // In seconds
 	pd->system->resetElapsedTime();
     switch (currentScene) {
+        case SCENE_CLASS_SELECT:
+            updateClassSelectScene(deltaTime);
+            break;
         case SCENE_TITLE:
             updateTitleScene(deltaTime);
             break;

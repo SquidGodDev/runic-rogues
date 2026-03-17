@@ -42,6 +42,10 @@ ClassType getCurrentClassType(void) {
     return currentClass;
 }
 
+void setCurrentClass(ClassType type) {
+    currentClass = type;
+}
+
 const ClassData* getCurrentClassData(void) {
     return &classData[currentClass];
 }

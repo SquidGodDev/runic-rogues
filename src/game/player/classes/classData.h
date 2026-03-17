@@ -26,3 +26,4 @@ extern const ClassData classData[CLASS_COUNT];
 
 ClassType getCurrentClassType(void);
 const ClassData* getCurrentClassData(void);
+void setCurrentClass(ClassType type);
