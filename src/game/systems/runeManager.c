@@ -48,7 +48,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_DAGGER] = {
         .nameEN = "Dagger",
         .nameJP = "",
-        .descriptionEN = "Increases basic spell damage.",
+        .descriptionEN = "Increases basic spell damage. LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC ",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -255,11 +255,11 @@ void initRunes(void) {
     }
 
     // == Testing runes ==
-    // addRune(RUNE_TYPE_DAGGER);
-    // addRune(RUNE_TYPE_BROADSWORD);
-    // addRune(RUNE_TYPE_POCKET_WATCH);
-    // addRune(RUNE_TYPE_HOURGLASS);
-    // addRune(RUNE_TYPE_SLING);
+    addRune(RUNE_TYPE_DAGGER);
+    addRune(RUNE_TYPE_BROADSWORD);
+    addRune(RUNE_TYPE_POCKET_WATCH);
+    addRune(RUNE_TYPE_HOURGLASS);
+    addRune(RUNE_TYPE_SLING);
     // addRune(RUNE_TYPE_LONGBOW);
     // addRune(RUNE_TYPE_COPPER_PAN);
     // addRune(RUNE_TYPE_IRON_GAUNTLET);

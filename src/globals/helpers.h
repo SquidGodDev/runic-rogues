@@ -39,7 +39,7 @@ static inline uint32_t swap(uint32_t n)
 }
 
 static inline float lerp(float start, float end, float t) {
-	if (fabsf(end - start) < 0.5f) {
+	if (fabsf(end - start) < 0.1f) {
 		return end;
 	}
 	return start + (end - start) * t;

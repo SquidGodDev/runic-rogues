@@ -20,6 +20,7 @@
 #include "game/systems/progressionManager.h"
 #include "game/systems/runeManager.h"
 #include "game/systems/shopManager.h"
+#include "game/UI/runeInventory.h"
 #include "game/systems/timerManager.h"
 #include "game/systems/waveManager.h"
 #include "game/settings/settings.h"
@@ -44,6 +45,8 @@ void initRunStart(void) {
 	setGameState(GAME_STATE_ACTIVE);
 	initSpells();
 	initRunes();
+	freeRuneInventoryCache();
+	createRuneInventoryMenuItem();
 	initProgressionManager();
 	initTimers();
 }
@@ -98,6 +101,8 @@ void updateGameScene(float deltaTime)
 		drawUI(deltaTime);
 	} else if (gameState == GAME_STATE_SHOP) {
 		updateShop(deltaTime);
+	} else if (gameState == GAME_STATE_RUNE_INVENTORY) {
+		updateRuneInventory(deltaTime);
 	}
 	
 	pd->system->drawFPS(185, 108);

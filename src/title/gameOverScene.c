@@ -5,9 +5,11 @@
 
 #include "title/gameOverScene.h"
 #include "game/rendering/textures.h"
+#include "game/UI/runeInventory.h"
 
 void initGameOverScene(void) {
-	// Nothing
+	removeRuneInventoryMenuItem();
+	freeRuneInventoryCache();
 }
 
 void updateGameOverScene(float deltaTime) {
