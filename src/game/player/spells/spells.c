@@ -274,7 +274,7 @@ void updateSpells(float deltaTime) {
 
 // SpellProjectileData modifiers
 void modifyProjectileSpeed(SpellData *spell, float value) {
-    spell->projectileData.speed += value;
+    spell->projectileData.speed *= value;
 }
 
 void modifyProjectileAcceleration(SpellData *spell, float value) {
@@ -321,7 +321,7 @@ void setProjectileTimeoutParticle(SpellData *spell, float value) {
 
 // SpellData modifiers
 void modifySpellCooldown(SpellData *spell, float value) {
-    spell->cooldown += value;
+    spell->cooldown *= value;
 }
 
 void modifySpellDamage(SpellData *spell, float value) {
@@ -330,10 +330,12 @@ void modifySpellDamage(SpellData *spell, float value) {
 
 void modifySpellKnockbackTime(SpellData *spell, float value) {
     spell->knockbackTime += value;
+    spell->projectileData.knockbackTime += value;
 }
 
 void modifySpellKnockbackAmount(SpellData *spell, float value) {
     spell->knockbackAmount += value;
+    spell->projectileData.knockbackAmount += value;
 }
 
 // RepeatData modifiers

@@ -51,6 +51,8 @@ typedef struct SpellProjectileData {
     int hitCount;
     float slowTime;
     float slowAmount;
+    float knockbackTime;
+    float knockbackAmount;
     int spreadCount;
     float spreadAngle;
     float activeTime;

@@ -125,6 +125,15 @@ void updateProjectiles(float deltaTime) {
 				);
 			}
 			if (collided) {
+				if (!curProjectile->isEnemy && curProjectile->spellProjectileData.knockbackTime > 0) {
+					knockbackEnemiesInArea(
+						curProjectile->x, curProjectile->y,
+						(int)sqrtf(PLAYER_PROJECTILE_COLLISION_RANGE),
+						curProjectile->spellProjectileData.knockbackTime,
+						curProjectile->spellProjectileData.knockbackAmount,
+						true /*awayFromPlayer*/
+					);
+				}
 				curProjectile->hitCount--;
 				if (curProjectile->hitCount <= 0) {
 					curProjectile->active = 0;

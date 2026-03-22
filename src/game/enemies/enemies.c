@@ -892,8 +892,10 @@ bool updateEnemyAnimation(Enemy *curEnemy, EnemyData *curEnemyData, float deltaT
 
 void applyEnemyKnockback(Enemy *enemy) {
 	if (enemy->knockbackTimeRemaining > 0) {
-		float knockbackX = enemy->x - enemy->knockbackSourceX;
-		float knockbackY = enemy->y - enemy->knockbackSourceY;
+		float sourceX = enemy->knockbackAwayFromPlayer ? playerX : enemy->knockbackSourceX;
+		float sourceY = enemy->knockbackAwayFromPlayer ? playerY : enemy->knockbackSourceY;
+		float knockbackX = enemy->x - sourceX;
+		float knockbackY = enemy->y - sourceY;
 		float knockbackDist = sqrtf(knockbackX*knockbackX + knockbackY*knockbackY);
 		if (knockbackDist > 0.001f) {
 			knockbackX /= knockbackDist;
@@ -1003,7 +1005,7 @@ void slowEnemy(int index, float slowTime, float slowAmount) {
 	enemies[index].slowAmount = slowAmount;
 }
 
-void knockbackEnemy(int index, int knockbackSourceX, int knockbackSourceY, float knockbackTime, float knockbackAmount) {
+void knockbackEnemy(int index, int knockbackSourceX, int knockbackSourceY, float knockbackTime, float knockbackAmount, bool awayFromPlayer) {
 	Enemy curEnemy = enemies[index];
 	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.invincibilityTime > 0) {
 		return;
@@ -1015,6 +1017,7 @@ void knockbackEnemy(int index, int knockbackSourceX, int knockbackSourceY, float
 		enemies[index].knockbackAmount = knockbackAmount;
 		enemies[index].knockbackSourceX = knockbackSourceX;
 		enemies[index].knockbackSourceY = knockbackSourceY;
+		enemies[index].knockbackAwayFromPlayer = awayFromPlayer;
 	}
 }
 
@@ -1104,7 +1107,7 @@ void damageEnemiesInArea(float x, float y, int radius, int damage) {
 	}
 }
 
-void knockbackEnemiesInArea(float x, float y, int radius, float knockbackTime, float knockbackAmount) {
+void knockbackEnemiesInArea(float x, float y, int radius, float knockbackTime, float knockbackAmount, bool awayFromPlayer) {
 	int radiusSquared = radius * radius;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy enemy = enemies[i];
@@ -1113,7 +1116,7 @@ void knockbackEnemiesInArea(float x, float y, int radius, float knockbackTime, f
 		}
 		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
 		if (distSquared < radiusSquared) {
-			knockbackEnemy(i, x, y, knockbackTime, knockbackAmount);
+			knockbackEnemy(i, x, y, knockbackTime, knockbackAmount, awayFromPlayer);
 		}
 	}
 }
