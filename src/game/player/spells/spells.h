@@ -21,6 +21,8 @@ typedef enum Spell {
     SPELL_ROARING_SHOUT,
     SPELL_KNIFE,
     SPELL_FAN_OF_KNIVES,
+    SPELL_CHAIN_LIGHTNING,
+    SPELL_CHAIN_LIGHTNING_LINK,
     SPELL_COUNT
 } Spell;
 
@@ -56,6 +58,8 @@ typedef struct SpellProjectileData {
     int spreadCount;
     float spreadAngle;
     float activeTime;
+    float primaryData;
+    float secondaryData;
     Spell onHitSpell;
     ParticleType hitParticle;
     ParticleType timeoutParticle;

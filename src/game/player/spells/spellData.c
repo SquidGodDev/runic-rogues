@@ -3,6 +3,7 @@
 #include "game/entities/projectiles.h"
 #include "game/enemies/enemies.h"
 #include "game/UI/UI.h"
+#include "game/systems/chainLightningManager.h"
 
 // Spawn the projectile slightly to the right to match hand
 #define FIRE_ANGLE_OFFSET PI / 8
@@ -53,7 +54,19 @@ void explosionCast(Spell spell, SpellCastData *castData, float x, float y, float
 
 void lightningArcCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
     // Damage random enemies in area and spawn a lightning particle at their locations
-    
+
+}
+
+void chainLightningCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
+    SpellData *data = &spellData[spell];
+    float projectileX = x + cosf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
+    float projectileY = y + sinf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
+    firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data->damage, data->projectileData);
+}
+
+void chainLightningLinkCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
+    SpellData *data = &spellData[SPELL_CHAIN_LIGHTNING];
+    startChainLightning(x, y, data->damage, (int)data->projectileData.primaryData);
 }
 
 SpellData baseSpellData[SPELL_COUNT] = {
@@ -257,5 +270,42 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .frameCount = 8,
             .frameTime = 0.07f
         }
+    },
+    [SPELL_CHAIN_LIGHTNING] = {
+        .name = "Chain Lightning",
+        .name_jp = "",
+        .description = "Fire a bolt that chains to up to 3 nearby enemies.",
+        .description_jp = "",
+        .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
+        .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
+        .type = SPELL_TYPE_INSTANT,
+        .cast = chainLightningCast,
+        .cooldown = 4.0f,
+        .damage = 20,
+        .projectileData = (SpellProjectileData) {
+            .speed        = 200.0f,
+            .hitCount     = 1,
+            .activeTime   = 1.0f,
+            .onHitSpell   = SPELL_CHAIN_LIGHTNING_LINK,
+            .primaryData  = 6, // chain count
+            .textureIndex = TEXTURE_PROJECTILE,
+            .frameCount   = 1,
+            .frameTime    = 0.0f
+        },
+        .weaponData = (WeaponData) {
+            .weaponBitmapTable = BITMAP_TABLE_HAND,
+            .drawX = 126,
+            .drawY = 71,
+            .activeOffsetX = 0,
+            .activeOffsetY = -7,
+            .frameTime = 0.6f,
+            .activeFrame = 0
+        }
+    },
+    [SPELL_CHAIN_LIGHTNING_LINK] = {
+        // Internal: stepped by chainLightningManager, not directly cast by player
+        .name = "Chain Lightning Link",
+        .type = SPELL_TYPE_INSTANT,
+        .cast = chainLightningLinkCast,
     },
 };

@@ -1,0 +1,77 @@
+#define TARGET_EXTENSION 1
+#include "pd_api.h"
+
+#include "globals/globals.h"
+#include "globals/helpers.h"
+#include "game/systems/chainLightningManager.h"
+#include "game/systems/timerManager.h"
+#include "game/enemies/enemies.h"
+#include "game/rendering/particles.h"
+
+#define CHAIN_LIGHTNING_MAX_CHAINS  10 // hard upper bound for static array size
+#define CHAIN_LIGHTNING_CHAIN_RANGE (CELL_SIZE * 5)
+#define CHAIN_LIGHTNING_DELAY       0.12f
+
+static int chainStateDamage; // stored here so timer callbacks can access it
+// Static array so pointer-to-element passed to addTimer remains valid across frames
+static int chainTargetIndices[CHAIN_LIGHTNING_MAX_CHAINS];
+
+static void chainLinkTimerCallback(int repeatCount, void *data) {
+    int targetIndex = *(int *)data;
+    if (!enemies[targetIndex].active) {
+        return;
+    }
+    damageEnemy(targetIndex, chainStateDamage);
+    spawnParticle(PARTICLE_TYPE_PLAYER_ROOT_ATTACK, enemies[targetIndex].x, enemies[targetIndex].y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+}
+
+void startChainLightning(float fromX, float fromY, int damage, int chainCount) {
+    chainStateDamage = damage;
+    bool hitEnemies[MAX_ENEMY_COUNT] = {false}; // 50 bytes on stack, fine
+
+    // Mark the enemy closest to impact as already hit (2-cell threshold)
+    float closestDist = (float)(CELL_SIZE * CELL_SIZE * 4);
+    int justHitIndex = -1;
+    for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+        if (!enemies[i].active) {
+            continue;
+        }
+        float d = distanceSquared(fromX, fromY, enemies[i].x, enemies[i].y);
+        if (d < closestDist) {
+            closestDist = d;
+            justHitIndex = i;
+        }
+    }
+    if (justHitIndex >= 0) {
+        hitEnemies[justHitIndex] = true;
+    }
+
+    // Walk the chain: find nearest unhit enemy at each hop, save all targets upfront
+    float searchX = fromX;
+    float searchY = fromY;
+    for (int link = 0; link < chainCount; link++) {
+        float nearestDist = (float)(CHAIN_LIGHTNING_CHAIN_RANGE * CHAIN_LIGHTNING_CHAIN_RANGE);
+        int nearestIndex = -1;
+        for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+            if (!enemies[i].active || hitEnemies[i]) {
+                continue;
+            }
+            float d = distanceSquared(searchX, searchY, enemies[i].x, enemies[i].y);
+            if (d < nearestDist) {
+                nearestDist = d;
+                nearestIndex = i;
+            }
+        }
+        if (nearestIndex < 0) {
+            break;
+        }
+
+        hitEnemies[nearestIndex] = true;
+        chainTargetIndices[link] = nearestIndex;
+        searchX = enemies[nearestIndex].x;
+        searchY = enemies[nearestIndex].y;
+
+        // Stagger: 0.12s, 0.24s, 0.36s from initial hit
+        addTimer(CHAIN_LIGHTNING_DELAY * (link + 1), 1, chainLinkTimerCallback, &chainTargetIndices[link]);
+    }
+}
