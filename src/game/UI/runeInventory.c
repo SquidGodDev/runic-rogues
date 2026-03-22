@@ -285,7 +285,7 @@ void initRuneInventory(void) {
     if (menuItem != NULL) {
         pd->system->removeMenuItem(menuItem);
     }
-    menuItem = pd->system->addMenuItem("Exit", onExitMenuItemSelect, NULL);
+    menuItem = pd->system->addMenuItem("Close", onExitMenuItemSelect, NULL);
 
     setGameState(GAME_STATE_RUNE_INVENTORY);
 }

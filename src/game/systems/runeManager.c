@@ -48,7 +48,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_DAGGER] = {
         .nameEN = "Dagger",
         .nameJP = "",
-        .descriptionEN = "Increases basic spell damage. LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC LONG DESC ",
+        .descriptionEN = "Increases basic spell damage.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -74,7 +74,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = -0.12f,
+        .primaryValue = 0.5f, // 50% cooldown reduction
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .applySpellModifierPrimary = modifySpellCooldown
     },
@@ -85,7 +85,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = -1.5f,
+        .primaryValue = 0.5f, // 50% cooldown reduction
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .applySpellModifierPrimary = modifySpellCooldown
     },
@@ -96,9 +96,10 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 40,
+        .primaryValue = 2.0f, // 2x projectile speed increase
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
-        .applySpellModifierPrimary = modifyProjectileSpeed
+        .applySpellModifierPrimary = modifyProjectileSpeed,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_LONGBOW] = {
         .nameEN = "Longbow",
@@ -107,9 +108,10 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 40,
+        .primaryValue = 2.0f, // 2x projectile speed increase
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
-        .applySpellModifierPrimary = modifyProjectileSpeed
+        .applySpellModifierPrimary = modifyProjectileSpeed,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_COPPER_PAN] = {
         .nameEN = "Copper Pan",
@@ -118,7 +120,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 0.15f, // Knockback time increase
+        .primaryValue   = 0.4f, // Knockback time increase
         .secondaryValue = 1.0f, // Knockback amount increase
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .applySpellModifierPrimary   = modifySpellKnockbackTime,
@@ -131,7 +133,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 0.2f, // Knockback time increase
+        .primaryValue   = 0.4f, // Knockback time increase
         .secondaryValue = 1.5f, // Knockback amount increase
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .applySpellModifierPrimary   = modifySpellKnockbackTime,
@@ -255,11 +257,11 @@ void initRunes(void) {
     }
 
     // == Testing runes ==
-    addRune(RUNE_TYPE_DAGGER);
-    addRune(RUNE_TYPE_BROADSWORD);
-    addRune(RUNE_TYPE_POCKET_WATCH);
-    addRune(RUNE_TYPE_HOURGLASS);
-    addRune(RUNE_TYPE_SLING);
+    // addRune(RUNE_TYPE_DAGGER);
+    // addRune(RUNE_TYPE_BROADSWORD);
+    // addRune(RUNE_TYPE_POCKET_WATCH);
+    // addRune(RUNE_TYPE_HOURGLASS);
+    // addRune(RUNE_TYPE_SLING);
     // addRune(RUNE_TYPE_LONGBOW);
     // addRune(RUNE_TYPE_COPPER_PAN);
     // addRune(RUNE_TYPE_IRON_GAUNTLET);
