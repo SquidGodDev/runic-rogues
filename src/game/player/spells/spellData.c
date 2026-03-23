@@ -57,13 +57,6 @@ void lightningArcCast(Spell spell, SpellCastData *castData, float x, float y, fl
 
 }
 
-void chainLightningCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
-    SpellData *data = &spellData[spell];
-    float projectileX = x + cosf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-    float projectileY = y + sinf(angle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-    firePlayerProjectile(projectileX, projectileY, cosf(angle), sinf(angle), data->damage, data->projectileData);
-}
-
 void chainLightningLinkCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
     SpellData *data = &spellData[SPELL_CHAIN_LIGHTNING];
     startChainLightning(x, y, data->damage, (int)data->projectileData.primaryData);
@@ -279,7 +272,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .pickupTextureIndex = TEXTURE_SPELL_FIREBALL,
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .type = SPELL_TYPE_INSTANT,
-        .cast = chainLightningCast,
+        .cast = projectileCast,
         .cooldown = 4.0f,
         .damage = 20,
         .projectileData = (SpellProjectileData) {
