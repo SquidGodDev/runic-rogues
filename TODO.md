@@ -1,0 +1,13 @@
+- Test the new runes
+- Investigate lightning on-hit and on-hit spell code
+- New Runes
+  - Black hole (every X specials)
+  - Random Lightning strike (existing function)
+- New mage spell (chain lightning)
+  - Lightning particle
+- Rune art
+- Character selection screen
+- Tutorial
+- Music
+- SFX
+- Rendering optimization (minimize floating point)
