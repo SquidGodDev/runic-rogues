@@ -135,15 +135,15 @@ void updateProjectiles(float deltaTime) {
 					);
 				}
 				curProjectile->hitCount--;
+				int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
+				int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
+				if (curProjectile->onHitSpell != SPELL_NONE) {
+					castSpellDirect(curProjectile->onHitSpell, particleX, particleY, atan2f(deltaY, deltaX));
+				}
 				if (curProjectile->hitCount <= 0) {
 					curProjectile->active = 0;
-					int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
-					int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
 					ParticleType hitParticle = curProjectile->spellProjectileData.hitParticle;
 					spawnParticle(hitParticle, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
-					if (curProjectile->onHitSpell != SPELL_NONE) {
-						castSpellDirect(curProjectile->onHitSpell, particleX, particleY, atan2f(deltaY, deltaX));
-					}
 					continue;
 				}
 			}
