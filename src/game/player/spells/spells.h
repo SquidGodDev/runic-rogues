@@ -105,28 +105,34 @@ typedef struct SpellData {
     WeaponData weaponData;
 } SpellData;
 
+typedef enum ModifyOperation {
+    MODIFY_OP_ADD,
+    MODIFY_OP_MULTIPLY,
+    MODIFY_OP_REPLACE_IF_ZERO,
+} ModifyOperation;
+
 // SpellProjectileData modifiers
-void modifyProjectileSpeed(SpellData *spell, float value);
-void modifyProjectileAcceleration(SpellData *spell, float value);
-void modifyProjectileHitCount(SpellData *spell, float value);
-void modifySlowTime(SpellData *spell, float value);
-void modifySlowAmount(SpellData *spell, float value);
-void modifyProjectileSpreadCount(SpellData *spell, float value);
-void modifyProjectileSpreadAngle(SpellData *spell, float value);
-void modifyProjectileActiveTime(SpellData *spell, float value);
-void setProjectileOnHitSpell(SpellData *spell, float value);
-void setProjectileHitParticle(SpellData *spell, float value);
-void setProjectileTimeoutParticle(SpellData *spell, float value);
+void modifyProjectileSpeed(SpellData *spell, float value, ModifyOperation operation);
+void modifyProjectileAcceleration(SpellData *spell, float value, ModifyOperation operation);
+void modifyProjectileHitCount(SpellData *spell, float value, ModifyOperation operation);
+void modifySlowTime(SpellData *spell, float value, ModifyOperation operation);
+void modifySlowAmount(SpellData *spell, float value, ModifyOperation operation);
+void modifyProjectileSpreadCount(SpellData *spell, float value, ModifyOperation operation);
+void modifyProjectileSpreadAngle(SpellData *spell, float value, ModifyOperation operation);
+void modifyProjectileActiveTime(SpellData *spell, float value, ModifyOperation operation);
+void setProjectileOnHitSpell(SpellData *spell, float value, ModifyOperation operation);
+void setProjectileHitParticle(SpellData *spell, float value, ModifyOperation operation);
+void setProjectileTimeoutParticle(SpellData *spell, float value, ModifyOperation operation);
 
 // SpellData modifiers
-void modifySpellCooldown(SpellData *spell, float value);
-void modifySpellDamage(SpellData *spell, float value);
-void modifySpellKnockbackTime(SpellData *spell, float value);
-void modifySpellKnockbackAmount(SpellData *spell, float value);
+void modifySpellCooldown(SpellData *spell, float value, ModifyOperation operation);
+void modifySpellDamage(SpellData *spell, float value, ModifyOperation operation);
+void modifySpellKnockbackTime(SpellData *spell, float value, ModifyOperation operation);
+void modifySpellKnockbackAmount(SpellData *spell, float value, ModifyOperation operation);
 
 // RepeatData modifiers
-void modifyRepeatCount(SpellData *spell, float value);
-void modifyRepeatActivationTime(SpellData *spell, float value);
+void modifyRepeatCount(SpellData *spell, float value, ModifyOperation operation);
+void modifyRepeatActivationTime(SpellData *spell, float value, ModifyOperation operation);
 
 void initSpells(void);
 void resetSpellState(void);

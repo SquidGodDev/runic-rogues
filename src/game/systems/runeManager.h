@@ -55,8 +55,10 @@ typedef struct RuneData {
     float primaryValue;
     float secondaryValue;
     RuneSpellTarget spellTarget;
-    void (*applySpellModifierPrimary)(struct SpellData *spell, float value);
-    void (*applySpellModifierSecondary)(struct SpellData *spell, float value);
+    ModifyOperation primaryModifyOperation;
+    ModifyOperation secondaryModifyOperation;
+    void (*applySpellModifierPrimary)(struct SpellData *spell, float value, ModifyOperation operation);
+    void (*applySpellModifierSecondary)(struct SpellData *spell, float value, ModifyOperation operation);
     RuneClassFilter classFilter;  // Bitmask of classes this rune can appear in the shop for
 } RuneData;
 

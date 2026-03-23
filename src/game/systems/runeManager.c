@@ -54,6 +54,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryValue = 8,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
+        .primaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary = modifySpellDamage
     },
     [RUNE_TYPE_BROADSWORD] = {
@@ -65,6 +66,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryValue = 8,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
+        .primaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary = modifySpellDamage
     },
     [RUNE_TYPE_POCKET_WATCH] = {
@@ -76,6 +78,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryValue = 0.5f, // 50% cooldown reduction
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifySpellCooldown
     },
     [RUNE_TYPE_HOURGLASS] = {
@@ -87,6 +90,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryValue = 0.5f, // 50% cooldown reduction
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifySpellCooldown
     },
     [RUNE_TYPE_SLING] = {
@@ -98,6 +102,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryValue = 2.0f, // 2x projectile speed increase
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifyProjectileSpeed,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
@@ -110,6 +115,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryValue = 2.0f, // 2x projectile speed increase
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifyProjectileSpeed,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
@@ -123,6 +129,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryValue   = 0.4f, // Knockback time increase
         .secondaryValue = 1.0f, // Knockback amount increase
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
+        .primaryModifyOperation   = MODIFY_OP_ADD,
+        .secondaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary   = modifySpellKnockbackTime,
         .applySpellModifierSecondary = modifySpellKnockbackAmount
     },
@@ -136,6 +144,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryValue   = 0.4f, // Knockback time increase
         .secondaryValue = 1.5f, // Knockback amount increase
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
+        .primaryModifyOperation   = MODIFY_OP_ADD,
+        .secondaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary   = modifySpellKnockbackTime,
         .applySpellModifierSecondary = modifySpellKnockbackAmount
     },
@@ -149,6 +159,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryValue   = 1.5f, // Slow time increase
         .secondaryValue = 0.7f, // Slow amount increase
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
+        .primaryModifyOperation   = MODIFY_OP_ADD,
+        .secondaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary   = modifySlowTime,
         .applySpellModifierSecondary = modifySlowAmount,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
@@ -163,6 +175,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryValue   = 1.5f, // Slow time increase
         .secondaryValue = 0.7f, // Slow amount increase
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
+        .primaryModifyOperation   = MODIFY_OP_ADD,
+        .secondaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary   = modifySlowTime,
         .applySpellModifierSecondary = modifySlowAmount,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
@@ -176,6 +190,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryValue = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
+        .primaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary = modifyProjectileHitCount,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
@@ -188,19 +203,22 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryValue = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
+        .primaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary = modifyProjectileHitCount,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_QUARTZ_SHARD] = {
         .nameEN = "Quartz Shard",
         .nameJP = "",
-        .descriptionEN = "Basic spell fires additional projectiles.",
+        .descriptionEN = "Basic spell fires additional spread of projectiles.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 2,
-        .secondaryValue = 10,
+        .primaryValue   = 2, // Additional projectile count
+        .secondaryValue = 15 * (PI / 180), // Set spread angle in radians
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
+        .primaryModifyOperation   = MODIFY_OP_ADD,
+        .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
         .applySpellModifierPrimary   = modifyProjectileSpreadCount,
         .applySpellModifierSecondary = modifyProjectileSpreadAngle,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
@@ -208,13 +226,15 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_QUARTZ_CLUSTER] = {
         .nameEN = "Quartz Cluster",
         .nameJP = "",
-        .descriptionEN = "Special spell fires additional projectiles.",
+        .descriptionEN = "Special spell fires additional spread of projectiles.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 2,
-        .secondaryValue = 10,
+        .primaryValue   = 2, // Additional projectile count
+        .secondaryValue = 15 * (PI / 180), // Set spread angle in radians
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
+        .primaryModifyOperation   = MODIFY_OP_ADD,
+        .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
         .applySpellModifierPrimary   = modifyProjectileSpreadCount,
         .applySpellModifierSecondary = modifyProjectileSpreadAngle,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
@@ -226,9 +246,11 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 3,
-        .secondaryValue = -0.05f,
+        .primaryValue   = 2, // Repeat count increase
+        .secondaryValue = 0.5f, // Repeat activation time set
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
+        .primaryModifyOperation   = MODIFY_OP_ADD,
+        .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
         .applySpellModifierPrimary   = modifyRepeatCount,
         .applySpellModifierSecondary = modifyRepeatActivationTime,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
@@ -240,9 +262,11 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 3,
-        .secondaryValue = -0.05f,
+        .primaryValue   = 2, // Repeat count increase
+        .secondaryValue = 0.5f, // Repeat activation time set
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
+        .primaryModifyOperation   = MODIFY_OP_ADD,
+        .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
         .applySpellModifierPrimary   = modifyRepeatCount,
         .applySpellModifierSecondary = modifyRepeatActivationTime,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
@@ -269,8 +293,8 @@ void initRunes(void) {
     // addRune(RUNE_TYPE_ICE_LANCE);
     // addRune(RUNE_TYPE_NEEDLE_AND_THREAD);
     // addRune(RUNE_TYPE_HAMMER_AND_NAILS);
-    // addRune(RUNE_TYPE_QUARTZ_SHARD);
-    // addRune(RUNE_TYPE_QUARTZ_CLUSTER);
+    addRune(RUNE_TYPE_QUARTZ_SHARD);
+    addRune(RUNE_TYPE_QUARTZ_CLUSTER);
     // addRune(RUNE_TYPE_ENCHANTED_BRANCH);
     // addRune(RUNE_TYPE_ARCANE_STAFF);
 
@@ -344,19 +368,19 @@ void applyRuneEffectsToSpells(void) {
         if (rune->applySpellModifierPrimary) {
             float value = rune->primaryValue;
             if (rune->spellTarget == RUNE_SPELL_TARGET_BASIC || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
-                rune->applySpellModifierPrimary(basicSpell, value);
+                rune->applySpellModifierPrimary(basicSpell, value, rune->primaryModifyOperation);
             }
             if (rune->spellTarget == RUNE_SPELL_TARGET_SPECIAL || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
-                rune->applySpellModifierPrimary(specialSpell, value);
+                rune->applySpellModifierPrimary(specialSpell, value, rune->primaryModifyOperation);
             }
         }
         if (rune->applySpellModifierSecondary) {
             float value = rune->secondaryValue;
             if (rune->spellTarget == RUNE_SPELL_TARGET_BASIC || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
-                rune->applySpellModifierSecondary(basicSpell, value);
+                rune->applySpellModifierSecondary(basicSpell, value, rune->secondaryModifyOperation);
             }
             if (rune->spellTarget == RUNE_SPELL_TARGET_SPECIAL || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
-                rune->applySpellModifierSecondary(specialSpell, value);
+                rune->applySpellModifierSecondary(specialSpell, value, rune->secondaryModifyOperation);
             }
         }
     }

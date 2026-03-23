@@ -273,76 +273,302 @@ void updateSpells(float deltaTime) {
 // === Spell Modifier Functions ===
 
 // SpellProjectileData modifiers
-void modifyProjectileSpeed(SpellData *spell, float value) {
-    spell->projectileData.speed *= value;
+void modifyProjectileSpeed(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->projectileData.speed += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->projectileData.speed *= value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.speed == 0.0f) {
+                spell->projectileData.speed = value;
+            }
+            break;
+    }
 }
 
-void modifyProjectileAcceleration(SpellData *spell, float value) {
-    spell->projectileData.acceleration += value;
+void modifyProjectileAcceleration(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->projectileData.acceleration += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->projectileData.acceleration *= value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.acceleration == 0.0f) {
+                spell->projectileData.acceleration = value;
+            }
+            break;
+    }
 }
 
-void modifyProjectileHitCount(SpellData *spell, float value) {
-    spell->projectileData.hitCount += (int)value;
+void modifyProjectileHitCount(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            if (spell->projectileData.hitCount == 0) {
+                spell->projectileData.hitCount = 1;
+            }
+            spell->projectileData.hitCount += (int)value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            if (spell->projectileData.hitCount == 0) {
+                spell->projectileData.hitCount = 1;
+            }
+            spell->projectileData.hitCount = (int)(spell->projectileData.hitCount * value);
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.hitCount == 0) {
+                spell->projectileData.hitCount = (int)value;
+            }
+            break;
+    }
 }
 
-void modifySlowTime(SpellData *spell, float value) {
-    spell->projectileData.slowTime += value;
-    spell->meleeData.slowTime += value;
+void modifySlowTime(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->projectileData.slowTime += value;
+            spell->meleeData.slowTime += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->projectileData.slowTime *= value;
+            spell->meleeData.slowTime *= value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.slowTime == 0.0f) {
+                spell->projectileData.slowTime = value;
+            }
+            if (spell->meleeData.slowTime == 0.0f) {
+                spell->meleeData.slowTime = value;
+            }
+            break;
+    }
 }
 
-void modifySlowAmount(SpellData *spell, float value) {
-    spell->projectileData.slowAmount += value;
-    spell->meleeData.slowAmount += value;
+void modifySlowAmount(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->projectileData.slowAmount += value;
+            spell->meleeData.slowAmount += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->projectileData.slowAmount *= value;
+            spell->meleeData.slowAmount *= value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.slowAmount == 0.0f) {
+                spell->projectileData.slowAmount = value;
+            }
+            if (spell->meleeData.slowAmount == 0.0f) {
+                spell->meleeData.slowAmount = value;
+            }
+            break;
+    }
 }
 
-void modifyProjectileSpreadCount(SpellData *spell, float value) {
-    spell->projectileData.spreadCount += (int)value;
+void modifyProjectileSpreadCount(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            if (spell->projectileData.spreadCount == 0) {
+                spell->projectileData.spreadCount = 1;
+            }
+            spell->projectileData.spreadCount += (int)value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            if (spell->projectileData.spreadCount == 0) {
+                spell->projectileData.spreadCount = 1;
+            }
+            spell->projectileData.spreadCount = (int)(spell->projectileData.spreadCount * value);
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.spreadCount == 0) {
+                spell->projectileData.spreadCount = (int)value;
+            }
+            break;
+    }
 }
 
-void modifyProjectileSpreadAngle(SpellData *spell, float value) {
-    spell->projectileData.spreadAngle += value;
+void modifyProjectileSpreadAngle(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->projectileData.spreadAngle += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->projectileData.spreadAngle *= value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.spreadAngle == 0.0f) {
+                spell->projectileData.spreadAngle = value;
+            }
+            break;
+    }
 }
 
-void modifyProjectileActiveTime(SpellData *spell, float value) {
-    spell->projectileData.activeTime += value;
+void modifyProjectileActiveTime(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->projectileData.activeTime += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->projectileData.activeTime *= value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.activeTime == 0.0f) {
+                spell->projectileData.activeTime = value;
+            }
+            break;
+    }
 }
 
-void setProjectileOnHitSpell(SpellData *spell, float value) {
-    spell->projectileData.onHitSpell = (Spell)value;
+void setProjectileOnHitSpell(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+        case MODIFY_OP_MULTIPLY:
+            spell->projectileData.onHitSpell = (Spell)value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.onHitSpell == 0) {
+                spell->projectileData.onHitSpell = (Spell)value;
+            }
+            break;
+    }
 }
 
-void setProjectileHitParticle(SpellData *spell, float value) {
-    spell->projectileData.hitParticle = (ParticleType)value;
+void setProjectileHitParticle(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+        case MODIFY_OP_MULTIPLY:
+            spell->projectileData.hitParticle = (ParticleType)value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.hitParticle == 0) {
+                spell->projectileData.hitParticle = (ParticleType)value;
+            }
+            break;
+    }
 }
 
-void setProjectileTimeoutParticle(SpellData *spell, float value) {
-    spell->projectileData.timeoutParticle = (ParticleType)value;
+void setProjectileTimeoutParticle(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+        case MODIFY_OP_MULTIPLY:
+            spell->projectileData.timeoutParticle = (ParticleType)value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.timeoutParticle == 0) {
+                spell->projectileData.timeoutParticle = (ParticleType)value;
+            }
+            break;
+    }
 }
 
 // SpellData modifiers
-void modifySpellCooldown(SpellData *spell, float value) {
-    spell->cooldown *= value;
+void modifySpellCooldown(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->cooldown += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->cooldown *= value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->cooldown == 0.0f) {
+                spell->cooldown = value;
+            }
+            break;
+    }
 }
 
-void modifySpellDamage(SpellData *spell, float value) {
-    spell->damage += (int)value;
+void modifySpellDamage(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->damage += (int)value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->damage = (int)(spell->damage * value);
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->damage == 0) {
+                spell->damage = (int)value;
+            }
+            break;
+    }
 }
 
-void modifySpellKnockbackTime(SpellData *spell, float value) {
-    spell->knockbackTime += value;
-    spell->projectileData.knockbackTime += value;
+void modifySpellKnockbackTime(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->knockbackTime += value;
+            spell->projectileData.knockbackTime += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->knockbackTime *= value;
+            spell->projectileData.knockbackTime *= value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->knockbackTime == 0.0f) {
+                spell->knockbackTime = value;
+            }
+            if (spell->projectileData.knockbackTime == 0.0f) {
+                spell->projectileData.knockbackTime = value;
+            }
+            break;
+    }
 }
 
-void modifySpellKnockbackAmount(SpellData *spell, float value) {
-    spell->knockbackAmount += value;
-    spell->projectileData.knockbackAmount += value;
+void modifySpellKnockbackAmount(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->knockbackAmount += value;
+            spell->projectileData.knockbackAmount += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->knockbackAmount *= value;
+            spell->projectileData.knockbackAmount *= value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->knockbackAmount == 0.0f) {
+                spell->knockbackAmount = value;
+            }
+            if (spell->projectileData.knockbackAmount == 0.0f) {
+                spell->projectileData.knockbackAmount = value;
+            }
+            break;
+    }
 }
 
 // RepeatData modifiers
-void modifyRepeatCount(SpellData *spell, float value) {
-    spell->repeatData.repeatCount += (int)value;
+void modifyRepeatCount(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->repeatData.repeatCount += (int)value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->repeatData.repeatCount = (int)(spell->repeatData.repeatCount * value);
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->repeatData.repeatCount == 0) {
+                spell->repeatData.repeatCount = (int)value;
+            }
+            break;
+    }
 }
 
-void modifyRepeatActivationTime(SpellData *spell, float value) {
-    spell->repeatData.activationTime += value;
+void modifyRepeatActivationTime(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->repeatData.activationTime += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->repeatData.activationTime *= value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->repeatData.activationTime == 0.0f) {
+                spell->repeatData.activationTime = value;
+            }
+            break;
+    }
 }
