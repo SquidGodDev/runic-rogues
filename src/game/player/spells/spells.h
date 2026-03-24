@@ -26,12 +26,6 @@ typedef enum Spell {
     SPELL_COUNT
 } Spell;
 
-typedef enum SpellType {
-    SPELL_TYPE_INSTANT,
-    SPELL_TYPE_REPEAT,
-    SPELL_TYPE_COUNT
-} SpellType;
-
 typedef struct SpellCastData {
     Spell spell;
     float maxCooldown;
@@ -91,7 +85,6 @@ typedef struct SpellData {
     char* description_jp;
     int pickupTextureIndex;
     int spellIconIndex;
-    SpellType type;
     void (*cast)(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast);
     float cooldown;
     int damage;

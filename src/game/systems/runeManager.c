@@ -295,8 +295,8 @@ void initRunes(void) {
     // addRune(RUNE_TYPE_HAMMER_AND_NAILS);
     // addRune(RUNE_TYPE_QUARTZ_SHARD);
     // addRune(RUNE_TYPE_QUARTZ_CLUSTER);
-    // addRune(RUNE_TYPE_ENCHANTED_BRANCH);
-    // addRune(RUNE_TYPE_ARCANE_STAFF);
+    addRune(RUNE_TYPE_ENCHANTED_BRANCH);
+    addRune(RUNE_TYPE_ARCANE_STAFF);
 
 }
 

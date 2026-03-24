@@ -195,7 +195,7 @@ bool castSpell(int index) {
     SpellData *data = &spellData[spell];
 
     spellCooldowns[index] = data->cooldown;
-    if (data->type == SPELL_TYPE_REPEAT) {
+    if (data->repeatData.repeatCount > 0) {
         spellCastData[index] = (SpellCastData) {
             .spell = spell,
             .maxCooldown = data->cooldown,
@@ -246,7 +246,7 @@ void updateSpells(float deltaTime) {
         }
 
         SpellData *data = &spellData[castData->spell];
-        if (data->type == SPELL_TYPE_REPEAT) {
+        if (data->repeatData.repeatCount > 0) {
             if (castData->castTime > 0.0f) {
                 castData->castTime -= deltaTime;
                 if (castData->castTime <= 0.0f) {
