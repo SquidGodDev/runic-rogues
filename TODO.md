@@ -1,11 +1,11 @@
 - Test the new runes
-- Investigate lightning on-hit and on-hit spell code
+- Add leveling back into rune system
+- Fix repeat spell rune implementation
 - New Runes
   - Black hole (every X specials)
-  - Random Lightning strike (existing function)
-- New mage spell (chain lightning)
-  - Lightning particle
+- Skip rune option
 - Rune art
+- Fix device warnings
 - Character selection screen
 - Tutorial
 - Music

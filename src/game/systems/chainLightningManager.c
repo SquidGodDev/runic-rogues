@@ -22,10 +22,11 @@ static void chainLinkTimerCallback(int repeatCount, void *data) {
         return;
     }
     damageEnemy(targetIndex, chainStateDamage);
-    spawnParticle(PARTICLE_TYPE_PLAYER_ROOT_ATTACK, enemies[targetIndex].x, enemies[targetIndex].y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+    spawnParticle(PARTICLE_TYPE_LIGHTNING_ATTACK, enemies[targetIndex].x, enemies[targetIndex].y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
 }
 
 void startChainLightning(float fromX, float fromY, int damage, int chainCount) {
+    spawnParticle(PARTICLE_TYPE_LIGHTNING_ATTACK, fromX, fromY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
     chainStateDamage = damage;
     bool hitEnemies[MAX_ENEMY_COUNT] = {false}; // 50 bytes on stack, fine
 

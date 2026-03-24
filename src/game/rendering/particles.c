@@ -55,6 +55,14 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damage = 10,
 		.damageRadius = CELL_SIZE
 	},
+	[PARTICLE_TYPE_LIGHTNING_ATTACK] = {
+		.frameCount = 6,
+		.animationTime = 0.08f,
+		.textureIndex = TEXTURE_PARTICLE_LIGHTNING_ATTACK,
+		.damageFrame = 0,
+		.damage = 0,
+		.damageRadius = CELL_SIZE
+	},
 	[PARTICLE_TYPE_SERPENT_TAIL] = {
 		.frameCount = 7,
 		.animationTime = 0.06f,
