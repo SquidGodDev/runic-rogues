@@ -390,7 +390,7 @@ Point checkRayCollision(float startX, float startY, float angle, float distance)
     float cosAngle = cosf(angle);
 
     // === Check for horizontal lines ===
-    float horizontalRayX, horizontalRayY;
+    float horizontalRayX = 0.0f, horizontalRayY = 0.0f;
     float horizontalDistance = maxDistance;
     float rayPerpendicularSlope = -cosAngle / sinAngle;
 
@@ -432,7 +432,7 @@ Point checkRayCollision(float startX, float startY, float angle, float distance)
 
     // === Check for vertical lines ===
     depthOfField = 0;
-    float verticalRayX, verticalRayY;
+    float verticalRayX = 0.0f, verticalRayY = 0.0f;
     float verticalDistance = maxDistance;
     float rayNegSlope = -sinAngle / cosAngle;
 

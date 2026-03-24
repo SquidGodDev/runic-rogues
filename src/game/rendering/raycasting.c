@@ -71,7 +71,7 @@ void renderScene(void)
 		float cosAngle = cosf(rayAngle);
 
 		// === Check for horizontal lines ===
-		float horizontalRayX, horizontalRayY;
+		float horizontalRayX = 0.0f, horizontalRayY = 0.0f;
 		float horizontalDistance = maxDistance;
 		float rayPerpendicularSlope = -cosAngle / sinAngle;
 
@@ -113,7 +113,7 @@ void renderScene(void)
 
 		// === Check for vertical lines ===
 		depthOfField = 0;
-		float verticalRayX, verticalRayY;
+		float verticalRayX = 0.0f, verticalRayY = 0.0f;
 		float verticalDistance = maxDistance;
 		float rayNegSlope = -sinAngle / cosAngle;
 
