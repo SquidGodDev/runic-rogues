@@ -44,7 +44,7 @@ typedef struct RepeatData {
 typedef struct SpellProjectileData {
     float speed;
     float acceleration;
-    int hitCount;
+    int pierceCount;
     float slowTime;
     float slowAmount;
     float knockbackTime;
@@ -107,7 +107,7 @@ typedef enum ModifyOperation {
 // SpellProjectileData modifiers
 void modifyProjectileSpeed(SpellData *spell, float value, ModifyOperation operation);
 void modifyProjectileAcceleration(SpellData *spell, float value, ModifyOperation operation);
-void modifyProjectileHitCount(SpellData *spell, float value, ModifyOperation operation);
+void modifyProjectilePierceCount(SpellData *spell, float value, ModifyOperation operation);
 void modifySlowTime(SpellData *spell, float value, ModifyOperation operation);
 void modifySlowAmount(SpellData *spell, float value, ModifyOperation operation);
 void modifyProjectileSpreadCount(SpellData *spell, float value, ModifyOperation operation);

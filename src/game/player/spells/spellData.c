@@ -162,7 +162,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         },
         .projectileData = (SpellProjectileData) {
             .speed = 300.0f,
-            .hitCount = 3,
+            .pierceCount = 2,
             .textureIndex = TEXTURE_PROJECTILE
         }
     },
@@ -247,7 +247,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         },
         .projectileData = (SpellProjectileData) {
             .speed = 125.0f,
-            .hitCount = 3,
+            .pierceCount = 2,
             .spreadCount = 5,
             .spreadAngle = 10.0f * (PI / 180),
             .textureIndex = TEXTURE_KNIFE,
@@ -267,7 +267,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .damage = 20,
         .projectileData = (SpellProjectileData) {
             .speed        = 75.0f,
-            .hitCount     = 1,
+            .pierceCount  = 0,
             .activeTime   = 1.0f,
             .onHitSpell   = SPELL_CHAIN_LIGHTNING_LINK,
             .primaryData  = 5, // chain count

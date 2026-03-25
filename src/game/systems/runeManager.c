@@ -227,7 +227,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation = MODIFY_OP_ADD,
-        .applySpellModifierPrimary = modifyProjectileHitCount,
+        .applySpellModifierPrimary = modifyProjectilePierceCount,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_HAMMER_AND_NAILS] = {
@@ -242,7 +242,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation = MODIFY_OP_ADD,
-        .applySpellModifierPrimary = modifyProjectileHitCount,
+        .applySpellModifierPrimary = modifyProjectilePierceCount,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_QUARTZ_SHARD] = {
@@ -340,12 +340,12 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_IRON_GAUNTLET, 1);
     // setRuneLevel(RUNE_TYPE_FROST_SHARD, 1);
     // setRuneLevel(RUNE_TYPE_ICE_LANCE, 1);
-    // setRuneLevel(RUNE_TYPE_NEEDLE_AND_THREAD, 1);
-    // setRuneLevel(RUNE_TYPE_HAMMER_AND_NAILS, 1);
+    setRuneLevel(RUNE_TYPE_NEEDLE_AND_THREAD, 1);
+    setRuneLevel(RUNE_TYPE_HAMMER_AND_NAILS, 1);
     // setRuneLevel(RUNE_TYPE_QUARTZ_SHARD, 1);
     // setRuneLevel(RUNE_TYPE_QUARTZ_CLUSTER, 1);
-    setRuneLevel(RUNE_TYPE_ENCHANTED_BRANCH, 1);
-    setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
+    // setRuneLevel(RUNE_TYPE_ENCHANTED_BRANCH, 1);
+    // setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
 }
 
 bool runeIsOwned(RuneType type) {

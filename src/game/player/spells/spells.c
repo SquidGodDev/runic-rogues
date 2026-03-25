@@ -305,23 +305,17 @@ void modifyProjectileAcceleration(SpellData *spell, float value, ModifyOperation
     }
 }
 
-void modifyProjectileHitCount(SpellData *spell, float value, ModifyOperation operation) {
+void modifyProjectilePierceCount(SpellData *spell, float value, ModifyOperation operation) {
     switch (operation) {
         case MODIFY_OP_ADD:
-            if (spell->projectileData.hitCount == 0) {
-                spell->projectileData.hitCount = 1;
-            }
-            spell->projectileData.hitCount += (int)value;
+            spell->projectileData.pierceCount += (int)value;
             break;
         case MODIFY_OP_MULTIPLY:
-            if (spell->projectileData.hitCount == 0) {
-                spell->projectileData.hitCount = 1;
-            }
-            spell->projectileData.hitCount = (int)(spell->projectileData.hitCount * value);
+            spell->projectileData.pierceCount = (int)(spell->projectileData.pierceCount * value);
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
-            if (spell->projectileData.hitCount == 0) {
-                spell->projectileData.hitCount = (int)value;
+            if (spell->projectileData.pierceCount == 0) {
+                spell->projectileData.pierceCount = (int)value;
             }
             break;
     }

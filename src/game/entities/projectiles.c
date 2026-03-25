@@ -53,7 +53,7 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 				.currentFrame = 0,
 				.currentFrameTime = 0.0f,
 				.isEnemy = isEnemy,
-				.hitCount = spellProjectileData.hitCount,
+				.pierceCount = spellProjectileData.pierceCount,
 				.onHitSpell = spellProjectileData.onHitSpell,
 				.hitEnemies = hitEnemies,
 				.activeTime = spellProjectileData.activeTime,
@@ -134,18 +134,18 @@ void updateProjectiles(float deltaTime) {
 						true /*awayFromPlayer*/
 					);
 				}
-				curProjectile->hitCount--;
 				int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
 				int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
 				if (curProjectile->onHitSpell != SPELL_NONE) {
 					castSpellDirect(curProjectile->onHitSpell, particleX, particleY, atan2f(deltaY, deltaX));
 				}
-				if (curProjectile->hitCount <= 0) {
+				if (curProjectile->pierceCount <= 0) {
 					curProjectile->active = 0;
 					ParticleType hitParticle = curProjectile->spellProjectileData.hitParticle;
 					spawnParticle(hitParticle, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
 					continue;
 				}
+				curProjectile->pierceCount--;
 			}
 		}
 
