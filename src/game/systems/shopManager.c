@@ -48,6 +48,8 @@ static int shopDescOffset;
 static int maxDescOffset;
 static int selectedShopOptionIndex;
 
+static const char *ROMAN_NUMERALS[] = { "", "I", "II", "III", "IV", "V" };
+
 ShopPageData createShopPage(char *name, char *desc, char* type, LCDBitmap *icon, Language language) {
     LCDFont *fontTitle = fontTitleEN;
     LCDFont *fontSub = fontSubEN;
@@ -90,14 +92,22 @@ ShopPageData createRuneShopPage(RuneType runeType, Language language) {
     char *name = getRuneName(runeType, language);
     char *desc = getRuneDescription(runeType, language);
     char *type = language == LANGUAGE_JP ? "ルーン" : "Rune";
-    return createShopPage(name, desc, type, BITMAPS[getRuneIconIndex(runeType)], language);
+    int nextLevel = getRuneLevel(runeType) + 1;
+    char nameWithLevel[64];
+    snprintf(nameWithLevel, sizeof(nameWithLevel), "%s %s", name, ROMAN_NUMERALS[nextLevel]);
+    return createShopPage(nameWithLevel, desc, type, BITMAPS[getRuneIconIndex(runeType)], language);
 }
 
 void createShopOptions(void) {
     Stack optionsStack;
     stackInit(&optionsStack);
+    ClassType currentClass = getCurrentClassType();
     for (int i = RUNE_TYPE_NONE + 1; i < RUNE_TYPE_COUNT; i++) {
-        if (runeIsOwned((RuneType)i)) {
+        if (runeIsMaxLevel((RuneType)i)) {
+            continue;
+        }
+        RuneClassFilter filter = getRuneClassFilter((RuneType)i);
+        if (filter != 0 && !(filter & (1 << currentClass))) {
             continue;
         }
         stackPush(&optionsStack, i);

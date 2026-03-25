@@ -15,7 +15,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "敵を倒すと体力を回復する。",
         .iconIndex = BITMAP_RUNE_VAMPIRISM,
         .textureIndex = TEXTURE_RUNE_VAMPIRISM,
-        .primaryValue = 6 // Health gained
+        .primaryBaseValue = 2,
+        .primaryPerLevel = 2,
+        .maxLevel = 3
     },
     [RUNE_TYPE_WINGED_BOOTS] = {
         .nameEN = "Winged Boots",
@@ -24,8 +26,11 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "ダッシュの回数を増やし、ダッシュのクールダウン時間を短縮する。",
         .iconIndex = BITMAP_RUNE_WINGED_BOOTS,
         .textureIndex = TEXTURE_RUNE_WINGED_BOOTS,
-        .primaryValue   = 1.0f, // Dash charge rate increase %
-        .secondaryValue = 3 // Dash count increase
+        .primaryBaseValue   = 0.33f,
+        .primaryPerLevel    = 0.33f,
+        .secondaryBaseValue = 1,
+        .secondaryPerLevel  = 1,
+        .maxLevel = 3
     },
     [RUNE_TYPE_HEALTHY] = {
         .nameEN = "Healthy",
@@ -34,7 +39,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "最大体力が増加する。",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 50 // Health increase
+        .primaryBaseValue = 15,
+        .primaryPerLevel = 15,
+        .maxLevel = 3
     },
     [RUNE_TYPE_SWIFT] = {
         .nameEN = "Swift",
@@ -43,7 +50,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "移動速度が増加する。",
         .iconIndex = BITMAP_RUNE_SWIFT,
         .textureIndex = TEXTURE_RUNE_SWIFT,
-        .primaryValue = 0.7f // Speed increase %
+        .primaryBaseValue = 0.25f,
+        .primaryPerLevel = 0.25f,
+        .maxLevel = 3
     },
     [RUNE_TYPE_DAGGER] = {
         .nameEN = "Dagger",
@@ -52,7 +61,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 8,
+        .primaryBaseValue = 3,
+        .primaryPerLevel = 3,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary = modifySpellDamage
@@ -64,7 +75,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 8,
+        .primaryBaseValue = 3,
+        .primaryPerLevel = 3,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary = modifySpellDamage
@@ -76,7 +89,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 0.5f, // 50% cooldown reduction
+        .primaryBaseValue = 0.8f,
+        .primaryPerLevel = -0.15f,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifySpellCooldown
@@ -88,7 +103,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 0.5f, // 50% cooldown reduction
+        .primaryBaseValue = 0.8f,
+        .primaryPerLevel = -0.15f,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifySpellCooldown
@@ -100,7 +117,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 2.0f, // 2x projectile speed increase
+        .primaryBaseValue = 1.3f,
+        .primaryPerLevel = 0.35f,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifyProjectileSpeed,
@@ -113,7 +132,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 2.0f, // 2x projectile speed increase
+        .primaryBaseValue = 1.3f,
+        .primaryPerLevel = 0.35f,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifyProjectileSpeed,
@@ -126,8 +147,11 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 0.4f, // Knockback time increase
-        .secondaryValue = 1.0f, // Knockback amount increase
+        .primaryBaseValue   = 0.15f,
+        .primaryPerLevel    = 0.15f,
+        .secondaryBaseValue = 0.35f,
+        .secondaryPerLevel  = 0.35f,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation   = MODIFY_OP_ADD,
         .secondaryModifyOperation = MODIFY_OP_ADD,
@@ -141,8 +165,11 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 0.4f, // Knockback time increase
-        .secondaryValue = 1.5f, // Knockback amount increase
+        .primaryBaseValue   = 0.15f,
+        .primaryPerLevel    = 0.15f,
+        .secondaryBaseValue = 0.5f,
+        .secondaryPerLevel  = 0.5f,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation   = MODIFY_OP_ADD,
         .secondaryModifyOperation = MODIFY_OP_ADD,
@@ -156,8 +183,11 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 1.5f, // Slow time increase
-        .secondaryValue = 0.7f, // Slow amount increase
+        .primaryBaseValue   = 0.5f,
+        .primaryPerLevel    = 0.5f,
+        .secondaryBaseValue = 0.25f,
+        .secondaryPerLevel  = 0.25f,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation   = MODIFY_OP_ADD,
         .secondaryModifyOperation = MODIFY_OP_ADD,
@@ -172,8 +202,11 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 1.5f, // Slow time increase
-        .secondaryValue = 0.7f, // Slow amount increase
+        .primaryBaseValue   = 0.5f,
+        .primaryPerLevel    = 0.5f,
+        .secondaryBaseValue = 0.25f,
+        .secondaryPerLevel  = 0.25f,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation   = MODIFY_OP_ADD,
         .secondaryModifyOperation = MODIFY_OP_ADD,
@@ -188,7 +221,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 3,
+        .primaryBaseValue = 1,
+        .primaryPerLevel = 1,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary = modifyProjectileHitCount,
@@ -201,7 +236,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue = 3,
+        .primaryBaseValue = 1,
+        .primaryPerLevel = 1,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary = modifyProjectileHitCount,
@@ -214,8 +251,10 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 2, // Additional projectile count
-        .secondaryValue = 15 * (PI / 180), // Set spread angle in radians
+        .primaryBaseValue   = 2,
+        .primaryPerLevel    = 2,
+        .secondaryBaseValue = 15 * (PI / 180),
+        .maxLevel = 2,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation   = MODIFY_OP_ADD,
         .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
@@ -230,8 +269,10 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 2, // Additional projectile count
-        .secondaryValue = 15 * (PI / 180), // Set spread angle in radians
+        .primaryBaseValue   = 2,
+        .primaryPerLevel    = 2,
+        .secondaryBaseValue = 15 * (PI / 180),
+        .maxLevel = 2,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation   = MODIFY_OP_ADD,
         .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
@@ -246,8 +287,10 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 2, // Repeat count increase
-        .secondaryValue = 0.5f, // Repeat activation time set
+        .primaryBaseValue   = 2,
+        .primaryPerLevel    = 1,
+        .secondaryBaseValue = 0.5f,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation   = MODIFY_OP_ADD,
         .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
@@ -262,8 +305,10 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryValue   = 2, // Repeat count increase
-        .secondaryValue = 0.5f, // Repeat activation time set
+        .primaryBaseValue   = 2,
+        .primaryPerLevel    = 1,
+        .secondaryBaseValue = 0.5f,
+        .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation   = MODIFY_OP_ADD,
         .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
@@ -273,45 +318,68 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     }
 };
 
-bool ownedRunes[RUNE_TYPE_COUNT];
+int runeLevels[RUNE_TYPE_COUNT];
 
 void initRunes(void) {
     for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
-        ownedRunes[i] = false;
+        runeLevels[i] = 0;
     }
 
     // == Testing runes ==
-    // addRune(RUNE_TYPE_DAGGER);
-    // addRune(RUNE_TYPE_BROADSWORD);
-    // addRune(RUNE_TYPE_POCKET_WATCH);
-    // addRune(RUNE_TYPE_HOURGLASS);
-    // addRune(RUNE_TYPE_SLING);
-    // addRune(RUNE_TYPE_LONGBOW);
-    // addRune(RUNE_TYPE_COPPER_PAN);
-    // addRune(RUNE_TYPE_IRON_GAUNTLET);
-    // addRune(RUNE_TYPE_FROST_SHARD);
-    // addRune(RUNE_TYPE_ICE_LANCE);
-    // addRune(RUNE_TYPE_NEEDLE_AND_THREAD);
-    // addRune(RUNE_TYPE_HAMMER_AND_NAILS);
-    // addRune(RUNE_TYPE_QUARTZ_SHARD);
-    // addRune(RUNE_TYPE_QUARTZ_CLUSTER);
-    addRune(RUNE_TYPE_ENCHANTED_BRANCH);
-    addRune(RUNE_TYPE_ARCANE_STAFF);
-
+    // setRuneLevel(RUNE_TYPE_DAGGER, 1);
+    // setRuneLevel(RUNE_TYPE_BROADSWORD, 1);
+    // setRuneLevel(RUNE_TYPE_POCKET_WATCH, 1);
+    // setRuneLevel(RUNE_TYPE_HOURGLASS, 1);
+    // setRuneLevel(RUNE_TYPE_SLING, 1);
+    // setRuneLevel(RUNE_TYPE_LONGBOW, 1);
+    // setRuneLevel(RUNE_TYPE_COPPER_PAN, 1);
+    // setRuneLevel(RUNE_TYPE_IRON_GAUNTLET, 1);
+    // setRuneLevel(RUNE_TYPE_FROST_SHARD, 1);
+    // setRuneLevel(RUNE_TYPE_ICE_LANCE, 1);
+    // setRuneLevel(RUNE_TYPE_NEEDLE_AND_THREAD, 1);
+    // setRuneLevel(RUNE_TYPE_HAMMER_AND_NAILS, 1);
+    // setRuneLevel(RUNE_TYPE_QUARTZ_SHARD, 1);
+    // setRuneLevel(RUNE_TYPE_QUARTZ_CLUSTER, 1);
+    setRuneLevel(RUNE_TYPE_ENCHANTED_BRANCH, 1);
+    setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
 }
 
 bool runeIsOwned(RuneType type) {
-    return ownedRunes[type];
+    return runeLevels[type] > 0;
 }
 
 void addRune(RuneType type) {
-    if (runeIsOwned(type)) {
+    if (runeIsMaxLevel(type)) {
         return;
     }
 
-    ownedRunes[type] = true;
+    runeLevels[type]++;
 
     recalculateRuneEffectsToSpells();
+}
+
+void setRuneLevel(RuneType type, int level) {
+    if (level < 0) {
+        level = 0;
+    }
+    if (level > RUNE_DATA[type].maxLevel) {
+        level = RUNE_DATA[type].maxLevel;
+    }
+    runeLevels[type] = level;
+
+    recalculateRuneEffectsToSpells();
+}
+
+int getRuneLevel(RuneType type) {
+    return runeLevels[type];
+}
+
+int getRuneMaxLevel(RuneType type) {
+    return RUNE_DATA[type].maxLevel;
+}
+
+bool runeIsMaxLevel(RuneType type) {
+    return runeLevels[type] >= RUNE_DATA[type].maxLevel;
 }
 
 char *getRuneName(RuneType type, Language language) {
@@ -338,25 +406,32 @@ int getRuneTextureIndex(RuneType type) {
     return RUNE_DATA[type].textureIndex;
 }
 
+RuneClassFilter getRuneClassFilter(RuneType type) {
+    return RUNE_DATA[type].classFilter;
+}
+
 float getRuneValue(RuneType type) {
-    if (!ownedRunes[type]) {
+    int level = runeLevels[type];
+    if (level <= 0) {
         return 0;
     }
-    return RUNE_DATA[type].primaryValue;
+    return RUNE_DATA[type].primaryBaseValue + RUNE_DATA[type].primaryPerLevel * (level - 1);
 }
 
 float getRuneSecondaryValue(RuneType type) {
-    if (!ownedRunes[type]) {
+    int level = runeLevels[type];
+    if (level <= 0) {
         return 0;
     }
-    return RUNE_DATA[type].secondaryValue;
+    return RUNE_DATA[type].secondaryBaseValue + RUNE_DATA[type].secondaryPerLevel * (level - 1);
 }
 
 void applyRuneEffectsToSpells(void) {
     const ClassData *classData = getCurrentClassData();
     for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
         RuneType runeType = (RuneType)i;
-        if (!ownedRunes[runeType]) {
+        int level = runeLevels[runeType];
+        if (level <= 0) {
             continue;
         }
         RuneData *rune = &RUNE_DATA[runeType];
@@ -366,7 +441,7 @@ void applyRuneEffectsToSpells(void) {
         SpellData *basicSpell   = &spellData[classData->basicSpell];
         SpellData *specialSpell = &spellData[classData->specialSpell];
         if (rune->applySpellModifierPrimary) {
-            float value = rune->primaryValue;
+            float value = rune->primaryBaseValue + rune->primaryPerLevel * (level - 1);
             if (rune->spellTarget == RUNE_SPELL_TARGET_BASIC || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
                 rune->applySpellModifierPrimary(basicSpell, value, rune->primaryModifyOperation);
             }
@@ -375,7 +450,7 @@ void applyRuneEffectsToSpells(void) {
             }
         }
         if (rune->applySpellModifierSecondary) {
-            float value = rune->secondaryValue;
+            float value = rune->secondaryBaseValue + rune->secondaryPerLevel * (level - 1);
             if (rune->spellTarget == RUNE_SPELL_TARGET_BASIC || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
                 rune->applySpellModifierSecondary(basicSpell, value, rune->secondaryModifyOperation);
             }

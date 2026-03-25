@@ -1,8 +1,18 @@
 - Test the new runes
 - Add leveling back into rune system
+  - X Implementation
+  - X UI (display level)
+  - Description value insert
 - New Runes
+  - Add on hook rune system (every X hits, on damage, on X casts, timer, on dash count)
+    - Code implementation
+    - UI
   - Black hole (every X specials)
 - Skip rune option
+- Improve enemy AI
+- Update boss AI
+  - New attack patterns
+  - Second phase
 - Rune art
 - Character selection screen
 - Tutorial

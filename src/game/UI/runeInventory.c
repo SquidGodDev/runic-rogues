@@ -54,14 +54,19 @@ static int maxDescScrollOffset;
 static PDButtons heldDir;
 static float holdTimer;
 
+static const char *ROMAN_NUMERALS[] = { "", "I", "II", "III", "IV", "V" };
+
 static RunePageData getRunePage(RuneType runeType) {
     if (runePageCached[runeType]) {
         return runePageCache[runeType];
     }
 
-    char *nameEN = getRuneName(runeType, LANGUAGE_EN);
+    int level = getRuneLevel(runeType);
+    char nameEN[64];
+    char nameJP[64];
+    snprintf(nameEN, sizeof(nameEN), "%s %s", getRuneName(runeType, LANGUAGE_EN), ROMAN_NUMERALS[level]);
+    snprintf(nameJP, sizeof(nameJP), "%s %s", getRuneName(runeType, LANGUAGE_JP), ROMAN_NUMERALS[level]);
     char *descEN = getRuneDescription(runeType, LANGUAGE_EN);
-    char *nameJP = getRuneName(runeType, LANGUAGE_JP);
     char *descJP = getRuneDescription(runeType, LANGUAGE_JP);
 
     // EN bitmap

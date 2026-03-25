@@ -52,23 +52,31 @@ typedef struct RuneData {
     char *descriptionJP;
     int iconIndex;
     int textureIndex;
-    float primaryValue;
-    float secondaryValue;
+    float primaryBaseValue;
+    float primaryPerLevel;
+    float secondaryBaseValue;
+    float secondaryPerLevel;
+    int maxLevel;
     RuneSpellTarget spellTarget;
     ModifyOperation primaryModifyOperation;
     ModifyOperation secondaryModifyOperation;
     void (*applySpellModifierPrimary)(struct SpellData *spell, float value, ModifyOperation operation);
     void (*applySpellModifierSecondary)(struct SpellData *spell, float value, ModifyOperation operation);
-    RuneClassFilter classFilter;  // Bitmask of classes this rune can appear in the shop for
+    RuneClassFilter classFilter;
 } RuneData;
 
 void initRunes(void);
 bool runeIsOwned(RuneType type);
 void addRune(RuneType type);
+void setRuneLevel(RuneType type, int level);
+int getRuneLevel(RuneType type);
+int getRuneMaxLevel(RuneType type);
+bool runeIsMaxLevel(RuneType type);
 char *getRuneName(RuneType type, Language language);
 char *getRuneDescription(RuneType type, Language language);
 int getRuneIconIndex(RuneType type);
 int getRuneTextureIndex(RuneType type);
+RuneClassFilter getRuneClassFilter(RuneType type);
 float getRuneValue(RuneType type);
 float getRuneSecondaryValue(RuneType type);
 void applyRuneEffectsToSpells(void);
