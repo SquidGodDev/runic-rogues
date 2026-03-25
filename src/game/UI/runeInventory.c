@@ -66,8 +66,8 @@ static RunePageData getRunePage(RuneType runeType) {
     char nameJP[64];
     snprintf(nameEN, sizeof(nameEN), "%s %s", getRuneName(runeType, LANGUAGE_EN), ROMAN_NUMERALS[level]);
     snprintf(nameJP, sizeof(nameJP), "%s %s", getRuneName(runeType, LANGUAGE_JP), ROMAN_NUMERALS[level]);
-    char *descEN = getRuneDescription(runeType, LANGUAGE_EN);
-    char *descJP = getRuneDescription(runeType, LANGUAGE_JP);
+    char *descEN = getRuneDescription(runeType, LANGUAGE_EN, level);
+    char *descJP = getRuneDescription(runeType, LANGUAGE_JP, level);
 
     // EN bitmap
     {

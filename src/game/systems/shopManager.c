@@ -90,9 +90,9 @@ ShopPageData createShopPage(char *name, char *desc, char* type, LCDBitmap *icon,
 
 ShopPageData createRuneShopPage(RuneType runeType, Language language) {
     char *name = getRuneName(runeType, language);
-    char *desc = getRuneDescription(runeType, language);
     char *type = language == LANGUAGE_JP ? "ルーン" : "Rune";
     int nextLevel = getRuneLevel(runeType) + 1;
+    char *desc = getRuneDescription(runeType, language, nextLevel);
     char nameWithLevel[64];
     snprintf(nameWithLevel, sizeof(nameWithLevel), "%s %s", name, ROMAN_NUMERALS[nextLevel]);
     return createShopPage(nameWithLevel, desc, type, BITMAPS[getRuneIconIndex(runeType)], language);

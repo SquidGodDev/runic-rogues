@@ -11,7 +11,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_VAMPIRISM] = {
         .nameEN = "Vampirism",
         .nameJP = "ヴァンパイリズム",
-        .descriptionEN = "Gain health when an enemy is defeated.",
+        .descriptionEN = "Gain {1} health when an enemy is defeated.",
         .descriptionJP = "敵を倒すと体力を回復する。",
         .iconIndex = BITMAP_RUNE_VAMPIRISM,
         .textureIndex = TEXTURE_RUNE_VAMPIRISM,
@@ -22,7 +22,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_WINGED_BOOTS] = {
         .nameEN = "Winged Boots",
         .nameJP = "ウィングブーツ",
-        .descriptionEN = "Increase number of dashes and lowers dash cooldown.",
+        .descriptionEN = "Gain {2} extra dash charge(s) and lower dash cooldown.",
         .descriptionJP = "ダッシュの回数を増やし、ダッシュのクールダウン時間を短縮する。",
         .iconIndex = BITMAP_RUNE_WINGED_BOOTS,
         .textureIndex = TEXTURE_RUNE_WINGED_BOOTS,
@@ -35,7 +35,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_HEALTHY] = {
         .nameEN = "Healthy",
         .nameJP = "ヘルシー",
-        .descriptionEN = "Increases maximum health.",
+        .descriptionEN = "Increases maximum health by {1}.",
         .descriptionJP = "最大体力が増加する。",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -46,18 +46,19 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_SWIFT] = {
         .nameEN = "Swift",
         .nameJP = "スウィフト",
-        .descriptionEN = "Increases movement speed.",
+        .descriptionEN = "Increases movement speed by {1}%.",
         .descriptionJP = "移動速度が増加する。",
         .iconIndex = BITMAP_RUNE_SWIFT,
         .textureIndex = TEXTURE_RUNE_SWIFT,
         .primaryBaseValue = 0.25f,
         .primaryPerLevel = 0.25f,
-        .maxLevel = 3
+        .maxLevel = 3,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY
     },
     [RUNE_TYPE_DAGGER] = {
         .nameEN = "Dagger",
         .nameJP = "",
-        .descriptionEN = "Increases basic spell damage.",
+        .descriptionEN = "Basic spell deals {1} extra damage.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -71,7 +72,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_BROADSWORD] = {
         .nameEN = "Broadsword",
         .nameJP = "",
-        .descriptionEN = "Increases special spell damage.",
+        .descriptionEN = "Special spell deals {1} extra damage.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -85,7 +86,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_POCKET_WATCH] = {
         .nameEN = "Pocket Watch",
         .nameJP = "",
-        .descriptionEN = "Reduces basic spell cooldown.",
+        .descriptionEN = "Reduces basic spell cooldown to {1}% of normal.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -99,7 +100,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_HOURGLASS] = {
         .nameEN = "Hourglass",
         .nameJP = "",
-        .descriptionEN = "Reduces special spell cooldown.",
+        .descriptionEN = "Reduces special spell cooldown to {1}% of normal.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -113,7 +114,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_SLING] = {
         .nameEN = "Sling",
         .nameJP = "",
-        .descriptionEN = "Increases basic spell projectile speed.",
+        .descriptionEN = "Increases basic spell projectile speed by {1}%.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -128,7 +129,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_LONGBOW] = {
         .nameEN = "Longbow",
         .nameJP = "",
-        .descriptionEN = "Increases special spell projectile speed.",
+        .descriptionEN = "Increases special spell projectile speed by {1}%.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -217,7 +218,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_NEEDLE_AND_THREAD] = {
         .nameEN = "Needle and Thread",
         .nameJP = "",
-        .descriptionEN = "Basic spell projectiles pierce through enemies.",
+        .descriptionEN = "Basic spell projectiles pierce through {1} additional enemies.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -232,7 +233,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_HAMMER_AND_NAILS] = {
         .nameEN = "Hammer and Nails",
         .nameJP = "",
-        .descriptionEN = "Special spell projectiles pierce through enemies.",
+        .descriptionEN = "Special spell projectiles pierce through {1} additional enemies.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -247,7 +248,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_QUARTZ_SHARD] = {
         .nameEN = "Quartz Shard",
         .nameJP = "",
-        .descriptionEN = "Basic spell fires additional spread of projectiles.",
+        .descriptionEN = "Basic spell fires {1} additional projectiles in a spread.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -265,7 +266,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_QUARTZ_CLUSTER] = {
         .nameEN = "Quartz Cluster",
         .nameJP = "",
-        .descriptionEN = "Special spell fires additional spread of projectiles.",
+        .descriptionEN = "Special spell fires {1} additional projectiles in a spread.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -283,7 +284,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_ENCHANTED_BRANCH] = {
         .nameEN = "Enchanted Branch",
         .nameJP = "",
-        .descriptionEN = "Basic spells fire additional times.",
+        .descriptionEN = "Basic spells fire {1} additional times.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -301,7 +302,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_ARCANE_STAFF] = {
         .nameEN = "Arcane Staff",
         .nameJP = "",
-        .descriptionEN = "Special spells fire additional times.",
+        .descriptionEN = "Special spells fire {1} additional times.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
@@ -326,6 +327,9 @@ void initRunes(void) {
     }
 
     // == Testing runes ==
+    // setRuneLevel(RUNE_TYPE_VAMPIRISM, 1);
+    // setRuneLevel(RUNE_TYPE_HEALTHY, 1);
+    // setRuneLevel(RUNE_TYPE_SWIFT, 1);
     // setRuneLevel(RUNE_TYPE_DAGGER, 1);
     // setRuneLevel(RUNE_TYPE_BROADSWORD, 1);
     // setRuneLevel(RUNE_TYPE_POCKET_WATCH, 1);
@@ -390,12 +394,64 @@ char *getRuneName(RuneType type, Language language) {
     }
 }
 
-char *getRuneDescription(RuneType type, Language language) {
-    if (language == LANGUAGE_EN) {
-        return RUNE_DATA[type].descriptionEN;
-    } else {
-        return RUNE_DATA[type].descriptionJP;
+static char descBufferEN[256];
+static char descBufferJP[256];
+
+static void strReplaceFirst(char *buf, const char *token, const char *replacement) {
+    char *pos = strstr(buf, token);
+    if (pos == NULL) {
+        return;
     }
+    size_t tokenLen = strlen(token);
+    size_t repLen   = strlen(replacement);
+    size_t restLen  = strlen(pos + tokenLen);
+    memmove(pos + repLen, pos + tokenLen, restLen + 1);
+    memcpy(pos, replacement, repLen);
+}
+
+char *getRuneDescription(RuneType type, Language language, int runeLevel) {
+    const RuneData *rune = &RUNE_DATA[type];
+    const char *tmpl = (language == LANGUAGE_EN) ? rune->descriptionEN : rune->descriptionJP;
+    char *buf        = (language == LANGUAGE_EN) ? descBufferEN : descBufferJP;
+
+    if (strstr(tmpl, "{1}") == NULL && strstr(tmpl, "{2}") == NULL) {
+        return (char *)tmpl;
+    }
+
+    strncpy(buf, tmpl, 255);
+    buf[255] = '\0';
+
+    if (runeLevel < 1) {
+        runeLevel = 1;
+    }
+
+    if (strstr(buf, "{1}") != NULL) {
+        float pv = rune->primaryBaseValue + rune->primaryPerLevel * (runeLevel - 1);
+        char pvStr[32];
+        if (rune->primaryModifyOperation == MODIFY_OP_MULTIPLY) {
+            snprintf(pvStr, sizeof(pvStr), "%d", (int)roundf(pv * 100));
+        } else if ((float)(int)pv == pv) {
+            snprintf(pvStr, sizeof(pvStr), "%d", (int)pv);
+        } else {
+            snprintf(pvStr, sizeof(pvStr), "%.1f", (double)pv);
+        }
+        strReplaceFirst(buf, "{1}", pvStr);
+    }
+
+    if (strstr(buf, "{2}") != NULL) {
+        float sv = rune->secondaryBaseValue + rune->secondaryPerLevel * (runeLevel - 1);
+        char svStr[32];
+        if (rune->secondaryModifyOperation == MODIFY_OP_MULTIPLY) {
+            snprintf(svStr, sizeof(svStr), "%d", (int)roundf(sv * 100));
+        } else if ((float)(int)sv == sv) {
+            snprintf(svStr, sizeof(svStr), "%d", (int)sv);
+        } else {
+            snprintf(svStr, sizeof(svStr), "%.1f", (double)sv);
+        }
+        strReplaceFirst(buf, "{2}", svStr);
+    }
+
+    return buf;
 }
 
 int getRuneIconIndex(RuneType type) {

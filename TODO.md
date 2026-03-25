@@ -1,8 +1,7 @@
 - Test the new runes
-- Add leveling back into rune system
-  - X Implementation
-  - X UI (display level)
-  - Description value insert
+- Change certain spell modifiers to be 0-based instead of 1-based
+  - Repeat projectile shots
+  - Piercing
 - New Runes
   - Add on hook rune system (every X hits, on damage, on X casts, timer, on dash count)
     - Code implementation

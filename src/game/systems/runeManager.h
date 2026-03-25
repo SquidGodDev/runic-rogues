@@ -73,7 +73,7 @@ int getRuneLevel(RuneType type);
 int getRuneMaxLevel(RuneType type);
 bool runeIsMaxLevel(RuneType type);
 char *getRuneName(RuneType type, Language language);
-char *getRuneDescription(RuneType type, Language language);
+char *getRuneDescription(RuneType type, Language language, int runeLevel);
 int getRuneIconIndex(RuneType type);
 int getRuneTextureIndex(RuneType type);
 RuneClassFilter getRuneClassFilter(RuneType type);
