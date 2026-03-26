@@ -138,7 +138,7 @@ static void drawRuneInventory(void) {
 
     if (ownedRuneCount > 0) {
         pd->graphics->setClipRect(0, 0, SCREEN_WIDTH, RUNE_ROW_CLIP_BOTTOM);
-        for (int i = 0; i < ownedRuneCount; i++) {
+        for (int i = ownedRuneCount - 1; i >= 0; i--) {
             float iconCenterX = RUNE_ROW_CENTER_X + (i - animCursorIndex) * RUNE_ROW_STRIDE;
             if (iconCenterX < -RUNE_ROW_ICON_SIZE || iconCenterX > SCREEN_WIDTH + RUNE_ROW_ICON_SIZE) {
                 continue;
