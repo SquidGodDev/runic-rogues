@@ -4,7 +4,7 @@
 #include "game/player/spells/spells.h"
 #include "game/systems/runeManager.h"
 
-#define SHOP_DESC_MAX_WIDTH 145
+#define SHOP_DESC_MAX_WIDTH 177
 #define SHOP_DESC_MAX_HEIGHT 50
 
 typedef struct ShopItem {

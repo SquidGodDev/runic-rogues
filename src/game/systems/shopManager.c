@@ -26,13 +26,13 @@ typedef struct ShopPageData {
 
 #define SHOP_OPTION_COUNT 3
 
-#define SHOP_PAGE_X 18
+#define SHOP_PAGE_X 2
 #define SHOP_PAGE_Y 50
 #define SHOP_DESC_X SHOP_PAGE_X + 5
 #define SHOP_DESC_Y SHOP_PAGE_Y + 6
-#define SHOP_ICON_BASE_X 15
 #define SHOP_ICON_BASE_Y 12
 #define SHOP_ICON_SPACING 71
+#define SHOP_ICON_SIZE 28
 
 #define SHOP_TITLE_DESC_SPACING 6
 
@@ -221,7 +221,7 @@ void drawShop(float deltaTime) {
     }
 
     for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
-        int optionIconX = SHOP_ICON_BASE_X + i * SHOP_ICON_SPACING;
+        int optionIconX = (SCREEN_WIDTH / 2 - SHOP_ICON_SIZE / 2) + (i - 1) * SHOP_ICON_SPACING;
         int optionIconY = SHOP_ICON_BASE_Y;
         ShopItem shopItem = shopItems[i];
         pd->graphics->drawBitmap(BITMAPS[shopItem.iconIndex], optionIconX, optionIconY, kBitmapUnflipped);
