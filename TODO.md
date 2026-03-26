@@ -1,13 +1,11 @@
 - Test the new runes
-- Change certain spell modifiers to be 0-based instead of 1-based
-  - Repeat projectile shots
-  - Piercing
 - New Runes
   - Add on hook rune system (every X hits, on damage, on X casts, timer, on dash count)
     - Code implementation
     - UI
   - Black hole (every X specials)
 - Skip rune option
+- Widen rune shop desc box
 - Improve enemy AI
 - Update boss AI
   - New attack patterns

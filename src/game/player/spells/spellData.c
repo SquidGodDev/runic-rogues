@@ -158,7 +158,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .useInitialCastAngle = true,
         .repeatData = (RepeatData){
             .activationTime = 0.1f,
-            .repeatCount = 5
+            .repeatCount = 4
         },
         .projectileData = (SpellProjectileData) {
             .speed = 300.0f,
@@ -243,7 +243,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .damage = 5,
         .repeatData = (RepeatData){
             .activationTime = 0.2f,
-            .repeatCount = 3
+            .repeatCount = 2
         },
         .projectileData = (SpellProjectileData) {
             .speed = 125.0f,

@@ -288,7 +288,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryBaseValue   = 2,
+        .primaryBaseValue   = 1,
         .primaryPerLevel    = 1,
         .secondaryBaseValue = 0.5f,
         .maxLevel = 3,
@@ -306,7 +306,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryBaseValue   = 2,
+        .primaryBaseValue   = 1,
         .primaryPerLevel    = 1,
         .secondaryBaseValue = 0.5f,
         .maxLevel = 3,
@@ -340,12 +340,12 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_IRON_GAUNTLET, 1);
     // setRuneLevel(RUNE_TYPE_FROST_SHARD, 1);
     // setRuneLevel(RUNE_TYPE_ICE_LANCE, 1);
-    setRuneLevel(RUNE_TYPE_NEEDLE_AND_THREAD, 1);
-    setRuneLevel(RUNE_TYPE_HAMMER_AND_NAILS, 1);
+    // setRuneLevel(RUNE_TYPE_NEEDLE_AND_THREAD, 1);
+    // setRuneLevel(RUNE_TYPE_HAMMER_AND_NAILS, 1);
     // setRuneLevel(RUNE_TYPE_QUARTZ_SHARD, 1);
     // setRuneLevel(RUNE_TYPE_QUARTZ_CLUSTER, 1);
-    // setRuneLevel(RUNE_TYPE_ENCHANTED_BRANCH, 1);
-    // setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
+    setRuneLevel(RUNE_TYPE_ENCHANTED_BRANCH, 1);
+    setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
 }
 
 bool runeIsOwned(RuneType type) {

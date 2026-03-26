@@ -199,7 +199,7 @@ bool castSpell(int index) {
         spellCastData[index] = (SpellCastData) {
             .spell = spell,
             .maxCooldown = data->cooldown,
-            .castTime = data->repeatData.activationTime * data->repeatData.repeatCount,
+            .castTime = data->repeatData.activationTime * (data->repeatData.repeatCount + 1),
             .activationTime = data->repeatData.activationTime,
             .activationCount = 0,
             .initialCastAngle = playerAngle
