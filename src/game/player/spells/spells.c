@@ -279,7 +279,7 @@ void modifyProjectileSpeed(SpellData *spell, float value, ModifyOperation operat
             spell->projectileData.speed += value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->projectileData.speed *= value;
+            spell->projectileData.speed *= 1.0f + value;
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->projectileData.speed == 0.0f) {
@@ -295,7 +295,7 @@ void modifyProjectileAcceleration(SpellData *spell, float value, ModifyOperation
             spell->projectileData.acceleration += value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->projectileData.acceleration *= value;
+            spell->projectileData.acceleration *= 1.0f + value;
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->projectileData.acceleration == 0.0f) {
@@ -466,7 +466,7 @@ void modifySpellCooldown(SpellData *spell, float value, ModifyOperation operatio
             spell->cooldown += value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->cooldown *= value;
+            spell->cooldown *= 1.0f + value;
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->cooldown == 0.0f) {

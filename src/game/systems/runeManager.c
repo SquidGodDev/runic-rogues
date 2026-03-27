@@ -86,11 +86,11 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_POCKET_WATCH] = {
         .nameEN = "Pocket Watch",
         .nameJP = "",
-        .descriptionEN = "Reduces basic spell cooldown to {1}% of normal.",
+        .descriptionEN = "Reduces basic spell cooldown by {1}%.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryBaseValue = 0.8f,
+        .primaryBaseValue = -0.2f,
         .primaryPerLevel = -0.15f,
         .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
@@ -100,11 +100,11 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_HOURGLASS] = {
         .nameEN = "Hourglass",
         .nameJP = "",
-        .descriptionEN = "Reduces special spell cooldown to {1}% of normal.",
+        .descriptionEN = "Reduces special spell cooldown by {1}%.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryBaseValue = 0.8f,
+        .primaryBaseValue = -0.2f,
         .primaryPerLevel = -0.15f,
         .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
@@ -118,7 +118,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryBaseValue = 1.3f,
+        .primaryBaseValue = 0.3f,
         .primaryPerLevel = 0.35f,
         .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
@@ -133,7 +133,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryBaseValue = 1.3f,
+        .primaryBaseValue = 0.3f,
         .primaryPerLevel = 0.35f,
         .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
@@ -344,8 +344,8 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_HAMMER_AND_NAILS, 1);
     // setRuneLevel(RUNE_TYPE_QUARTZ_SHARD, 1);
     // setRuneLevel(RUNE_TYPE_QUARTZ_CLUSTER, 1);
-    setRuneLevel(RUNE_TYPE_ENCHANTED_BRANCH, 1);
-    setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
+    // setRuneLevel(RUNE_TYPE_ENCHANTED_BRANCH, 1);
+    // setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
 }
 
 bool runeIsOwned(RuneType type) {
@@ -426,7 +426,7 @@ char *getRuneDescription(RuneType type, Language language, int runeLevel) {
     }
 
     if (strstr(buf, "{1}") != NULL) {
-        float pv = rune->primaryBaseValue + rune->primaryPerLevel * (runeLevel - 1);
+        float pv = fabsf(rune->primaryBaseValue + rune->primaryPerLevel * (runeLevel - 1));
         char pvStr[32];
         if (rune->primaryModifyOperation == MODIFY_OP_MULTIPLY) {
             snprintf(pvStr, sizeof(pvStr), "%d", (int)roundf(pv * 100));
@@ -439,7 +439,7 @@ char *getRuneDescription(RuneType type, Language language, int runeLevel) {
     }
 
     if (strstr(buf, "{2}") != NULL) {
-        float sv = rune->secondaryBaseValue + rune->secondaryPerLevel * (runeLevel - 1);
+        float sv = fabsf(rune->secondaryBaseValue + rune->secondaryPerLevel * (runeLevel - 1));
         char svStr[32];
         if (rune->secondaryModifyOperation == MODIFY_OP_MULTIPLY) {
             snprintf(svStr, sizeof(svStr), "%d", (int)roundf(sv * 100));

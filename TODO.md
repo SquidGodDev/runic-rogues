@@ -1,13 +1,13 @@
+- Improve enemy AI
+- Update boss AI
+  - New attack patterns
+  - Second phase
 - Test the new runes
 - New Runes
   - Add on hook rune system (every X hits, on damage, on X casts, timer, on dash count)
     - Code implementation
     - UI
   - Black hole (every X specials)
-- Improve enemy AI
-- Update boss AI
-  - New attack patterns
-  - Second phase
 - Rune art
 - Character selection screen
 - Tutorial
