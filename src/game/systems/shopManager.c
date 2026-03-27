@@ -25,14 +25,19 @@ typedef struct ShopPageData {
 } ShopPageData;
 
 #define SHOP_OPTION_COUNT 3
+#define SHOP_SKIP_OPTION_INDEX SHOP_OPTION_COUNT
 
 #define SHOP_PAGE_X 2
 #define SHOP_PAGE_Y 50
 #define SHOP_DESC_X SHOP_PAGE_X + 5
 #define SHOP_DESC_Y SHOP_PAGE_Y + 6
+#define SHOP_ICON_BASE_X 17
 #define SHOP_ICON_BASE_Y 12
-#define SHOP_ICON_SPACING 71
+#define SHOP_ICON_SPACING 39
+#define SHOP_ICON_SKIP_SPACING 60
 #define SHOP_ICON_SIZE 28
+#define SHOP_ICON_RAISE_AMOUNT 4
+#define SHOP_ICON_LERP_SPEED 12.0f
 
 #define SHOP_TITLE_DESC_SPACING 6
 
@@ -47,6 +52,13 @@ static float shopTransitionTime;
 static int shopDescOffset;
 static int maxDescOffset;
 static int selectedShopOptionIndex;
+
+static LCDBitmap *skipDescBitmapEN = NULL;
+static LCDBitmap *skipDescBitmapJP = NULL;
+static int skipDescHeightEN;
+static int skipDescHeightJP;
+
+static float iconYOffsets[SHOP_SKIP_OPTION_INDEX + 1];
 
 static const char *ROMAN_NUMERALS[] = { "", "I", "II", "III", "IV", "V" };
 
@@ -135,6 +147,19 @@ void createShopOptions(void) {
         };
         shopItems[i] = shopItem;
     }
+
+    if (skipDescBitmapEN != NULL) {
+        pd->graphics->freeBitmap(skipDescBitmapEN);
+    }
+    if (skipDescBitmapJP != NULL) {
+        pd->graphics->freeBitmap(skipDescBitmapJP);
+    }
+    ShopPageData skipPageEN = createShopPage("Skip", "Skip rune selection for this level up.", "Skip", NULL, LANGUAGE_EN);
+    ShopPageData skipPageJP = createShopPage("スキップ", "このレベルアップのルーン選択をスキップします。", "Skip", NULL, LANGUAGE_JP);
+    skipDescBitmapEN = skipPageEN.shopDescBitmap;
+    skipDescHeightEN = skipPageEN.descHeight;
+    skipDescBitmapJP = skipPageJP.shopDescBitmap;
+    skipDescHeightJP = skipPageJP.descHeight;
 }
 
 bool adjustShopDescOffset(int delta) {
@@ -151,6 +176,10 @@ bool adjustShopDescOffset(int delta) {
 void resetShopDescOffset(void) {
     shopDescOffset = 0;
 
+    if (selectedShopOptionIndex == SHOP_SKIP_OPTION_INDEX) {
+        maxDescOffset = 0;
+        return;
+    }
     ShopItem curShopItem = shopItems[selectedShopOptionIndex];
     int descHeight = SETTINGS.language == LANGUAGE_JP ? curShopItem.descHeightJP : curShopItem.descHeightEN;
     maxDescOffset = descHeight - SHOP_DESC_MAX_HEIGHT > 0 ? descHeight - SHOP_DESC_MAX_HEIGHT : 0;
@@ -169,6 +198,9 @@ void initShop(void) {
     pd->graphics->popContext();
     createShopOptions();
     selectedShopOptionIndex = 1;
+    for (int i = 0; i <= SHOP_SKIP_OPTION_INDEX; i++) {
+        iconYOffsets[i] = 0;
+    }
     resetShopDescOffset();
     setGameState(GAME_STATE_SHOP);
 }
@@ -220,24 +252,44 @@ void drawShop(float deltaTime) {
         pd->graphics->setDrawOffset(0, 0);
     }
 
+    int iconXPositions[SHOP_SKIP_OPTION_INDEX + 1];
+    int iconBitmapIndices[SHOP_SKIP_OPTION_INDEX + 1];
     for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
-        int optionIconX = (SCREEN_WIDTH / 2 - SHOP_ICON_SIZE / 2) + (i - 1) * SHOP_ICON_SPACING;
-        int optionIconY = SHOP_ICON_BASE_Y;
-        ShopItem shopItem = shopItems[i];
-        pd->graphics->drawBitmap(BITMAPS[shopItem.iconIndex], optionIconX, optionIconY, kBitmapUnflipped);
+        iconXPositions[i] = SHOP_ICON_BASE_X + i * SHOP_ICON_SPACING;
+        iconBitmapIndices[i] = shopItems[i].iconIndex;
+    }
+    iconXPositions[SHOP_SKIP_OPTION_INDEX] = SHOP_ICON_BASE_X + (SHOP_OPTION_COUNT - 1) * SHOP_ICON_SPACING + SHOP_ICON_SKIP_SPACING;
+    iconBitmapIndices[SHOP_SKIP_OPTION_INDEX] = BITMAP_SHOP_SKIP_ICON;
+
+    for (int i = 0; i <= SHOP_SKIP_OPTION_INDEX; i++) {
+        float targetY = (i == selectedShopOptionIndex && i != SHOP_SKIP_OPTION_INDEX) ? -SHOP_ICON_RAISE_AMOUNT : 0;
+        iconYOffsets[i] = lerp(iconYOffsets[i], targetY, SHOP_ICON_LERP_SPEED * deltaTime);
+        int iconX = iconXPositions[i];
+        int iconY = SHOP_ICON_BASE_Y + (int)iconYOffsets[i];
+        pd->graphics->drawBitmap(BITMAPS[iconBitmapIndices[i]], iconX, iconY, kBitmapUnflipped);
         if (i == selectedShopOptionIndex) {
-            pd->graphics->drawBitmap(BITMAPS[BITMAP_SHOP_CURSOR], optionIconX - 4, optionIconY - 4, kBitmapUnflipped);
+            LCDBitmap *cursorBitmap = i == SHOP_SKIP_OPTION_INDEX ? BITMAPS[BITMAP_SHOP_SKIP_CURSOR] : BITMAPS[BITMAP_SHOP_CURSOR];
+            pd->graphics->drawBitmap(cursorBitmap, iconX - 4, iconY - 4, kBitmapUnflipped);
         }
     }
 
-    ShopItem curShopItem = shopItems[selectedShopOptionIndex];
     LCDBitmap *shopDescBitmap;
     int descHeight;
     pd->graphics->drawBitmap(BITMAPS[BITMAP_SHOP_POPUP_BACKGROUND], SHOP_PAGE_X, SHOP_PAGE_Y, kBitmapUnflipped);
-    if (SETTINGS.language == LANGUAGE_JP) {
+    if (selectedShopOptionIndex == SHOP_SKIP_OPTION_INDEX) {
+        if (SETTINGS.language == LANGUAGE_JP) {
+            shopDescBitmap = skipDescBitmapJP;
+            descHeight = skipDescHeightJP;
+        } else {
+            shopDescBitmap = skipDescBitmapEN;
+            descHeight = skipDescHeightEN;
+        }
+    } else if (SETTINGS.language == LANGUAGE_JP) {
+        ShopItem curShopItem = shopItems[selectedShopOptionIndex];
         shopDescBitmap = curShopItem.shopDescBitmapJP;
         descHeight = curShopItem.descHeightJP;
     } else {
+        ShopItem curShopItem = shopItems[selectedShopOptionIndex];
         shopDescBitmap = curShopItem.shopDescBitmapEN;
         descHeight = curShopItem.descHeightEN;
     }
@@ -282,6 +334,10 @@ void updateShop(float deltaTime) {
                 pd->graphics->freeBitmap(shopItems[i].shopDescBitmapEN);
                 pd->graphics->freeBitmap(shopItems[i].shopDescBitmapJP);
             }
+            pd->graphics->freeBitmap(skipDescBitmapEN);
+            skipDescBitmapEN = NULL;
+            pd->graphics->freeBitmap(skipDescBitmapJP);
+            skipDescBitmapJP = NULL;
             return;
         }
     }
@@ -301,7 +357,7 @@ void updateShop(float deltaTime) {
             resetShopDescOffset();
         }
     } else if (pushed & kButtonRight) {
-        if (selectedShopOptionIndex < SHOP_OPTION_COUNT - 1) {
+        if (selectedShopOptionIndex < SHOP_SKIP_OPTION_INDEX) {
             selectedShopOptionIndex++;
             resetShopDescOffset();
         }
@@ -319,7 +375,9 @@ void updateShop(float deltaTime) {
     }
 
     if (pushed & kButtonA) {
-        selectShopItem(shopItems[selectedShopOptionIndex]);
+        if (selectedShopOptionIndex != SHOP_SKIP_OPTION_INDEX) {
+            selectShopItem(shopItems[selectedShopOptionIndex]);
+        }
         shopState = SHOP_STATE_EXITING;
         shopTransitionTime = SHOP_TRANSITION_OUT_DURATION;
     }

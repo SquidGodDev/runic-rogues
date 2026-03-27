@@ -4,8 +4,6 @@
     - Code implementation
     - UI
   - Black hole (every X specials)
-- Skip rune option
-- Widen rune shop desc box
 - Improve enemy AI
 - Update boss AI
   - New attack patterns

@@ -78,6 +78,8 @@ const char *bitmapPathStrings[] = {
 	"images/UI/prompts/restPrompt_JP",
 	"images/shop/shopPopupBackground",
 	"images/shop/cursor",
+	"images/shop/skipCursor",
+	"images/shop/skipIcon",
 	"images/UI/prompts/bossHealthBar",
 	"images/UI/prompts/elderBossTitle",
 	"images/UI/prompts/elderBossTitle_JP",
