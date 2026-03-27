@@ -38,6 +38,7 @@ typedef struct ShopPageData {
 #define SHOP_ICON_SIZE 28
 #define SHOP_ICON_RAISE_AMOUNT 4
 #define SHOP_ICON_LERP_SPEED 12.0f
+#define SHOP_CURSOR_LERP_SPEED 20.0f
 
 #define SHOP_TITLE_DESC_SPACING 6
 
@@ -59,6 +60,7 @@ static int skipDescHeightEN;
 static int skipDescHeightJP;
 
 static float iconYOffsets[SHOP_SKIP_OPTION_INDEX + 1];
+static float cursorX;
 
 static const char *ROMAN_NUMERALS[] = { "", "I", "II", "III", "IV", "V" };
 
@@ -198,6 +200,7 @@ void initShop(void) {
     pd->graphics->popContext();
     createShopOptions();
     selectedShopOptionIndex = 1;
+    cursorX = (float)(SHOP_ICON_BASE_X + selectedShopOptionIndex * SHOP_ICON_SPACING);
     for (int i = 0; i <= SHOP_SKIP_OPTION_INDEX; i++) {
         iconYOffsets[i] = 0;
     }
@@ -261,6 +264,9 @@ void drawShop(float deltaTime) {
     iconXPositions[SHOP_SKIP_OPTION_INDEX] = SHOP_ICON_BASE_X + (SHOP_OPTION_COUNT - 1) * SHOP_ICON_SPACING + SHOP_ICON_SKIP_SPACING;
     iconBitmapIndices[SHOP_SKIP_OPTION_INDEX] = BITMAP_SHOP_SKIP_ICON;
 
+    float targetCursorX = (float)iconXPositions[selectedShopOptionIndex];
+    cursorX = lerp(cursorX, targetCursorX, SHOP_CURSOR_LERP_SPEED * deltaTime);
+
     for (int i = 0; i <= SHOP_SKIP_OPTION_INDEX; i++) {
         float targetY = (i == selectedShopOptionIndex && i != SHOP_SKIP_OPTION_INDEX) ? -SHOP_ICON_RAISE_AMOUNT : 0;
         iconYOffsets[i] = lerp(iconYOffsets[i], targetY, SHOP_ICON_LERP_SPEED * deltaTime);
@@ -269,7 +275,7 @@ void drawShop(float deltaTime) {
         pd->graphics->drawBitmap(BITMAPS[iconBitmapIndices[i]], iconX, iconY, kBitmapUnflipped);
         if (i == selectedShopOptionIndex) {
             LCDBitmap *cursorBitmap = i == SHOP_SKIP_OPTION_INDEX ? BITMAPS[BITMAP_SHOP_SKIP_CURSOR] : BITMAPS[BITMAP_SHOP_CURSOR];
-            pd->graphics->drawBitmap(cursorBitmap, iconX - 4, iconY - 4, kBitmapUnflipped);
+            pd->graphics->drawBitmap(cursorBitmap, (int)cursorX - 4, iconY - 4, kBitmapUnflipped);
         }
     }
 
