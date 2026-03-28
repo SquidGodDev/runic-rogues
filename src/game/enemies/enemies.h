@@ -110,19 +110,6 @@ int playerInAttackDetectionRange(int enemyIndex);
 int playerInAttackDistance(int enemyIndex);
 void transitionToState(Enemy *enemy, EnemyState newState);
 
-// Generic enemy update functions
-void proximityEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
-void meleeEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
-void projectileEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
-void rushEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
-void turretEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
-void mummyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
-void serpentUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
-
-// Boss update functions
-void elderBossUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
-void wraithBossUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
-
 void initEnemies(void);
 int getEnemiesDefeated(void);
 int getActiveEnemyCount(void);
