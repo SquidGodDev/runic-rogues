@@ -6,7 +6,6 @@
 #include "game/player/player.h"
 #include "game/entities/projectiles.h"
 #include "game/enemies/enemies.h"
-#include "game/enemies/enemyInternal.h"
 
 #define WRAITH_BOSS_PREP_TIME 1.0f
 #define WRAITH_BOSS_ATTACK1_TIME 2.5f

@@ -6,7 +6,6 @@
 #include "game/player/player.h"
 #include "game/rendering/particles.h"
 #include "game/enemies/enemies.h"
-#include "game/enemies/enemyInternal.h"
 
 #define ELDER_BOSS_PREP_TIME 2.0f
 #define ELDER_BOSS_ATTACK2_COUNT 5
