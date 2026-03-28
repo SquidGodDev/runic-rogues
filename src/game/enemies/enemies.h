@@ -63,6 +63,7 @@ typedef struct Enemy {
 	float knockbackTimeRemaining;
 	float knockbackAmount;
 	bool knockbackAwayFromPlayer;
+	int phase;
 } Enemy;
 
 extern Enemy enemies[MAX_ENEMY_COUNT];
