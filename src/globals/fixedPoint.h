@@ -20,4 +20,6 @@ typedef int32_t fixed_t;
 
 // Arithmetic (FP_MUL uses 64-bit intermediate -> SMULL on ARM)
 #define FP_MUL(a, b)       ((fixed_t)(((int64_t)(a) * (int64_t)(b)) >> FP_SHIFT))
-#define FP_DIV(a, b)       ((fixed_t)(((int64_t)(a) << FP_SHIFT) / (int64_t)(b)))
+// FP_DIV uses float to avoid __aeabi_ldivmod (64-bit integer division).
+// Float has 23-bit mantissa, sufficient for Q16.16's 16 fractional bits.
+#define FP_DIV(a, b)       ((fixed_t)((float)(a) / (float)(b) * (float)FP_ONE))

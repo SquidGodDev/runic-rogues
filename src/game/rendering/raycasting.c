@@ -64,27 +64,9 @@ static inline fixed_t fpCos(int index) {
 
 // Integer sqrt of a Q16.16 distance-squared value. Uses 64-bit to avoid overflow
 // for large map distances. Result is Q16.16.
-static fixed_t fixedSqrt(int64_t x) {
-	if (x <= 0) {
-		return 0;
-	}
-	uint64_t val = (uint64_t)x;
-	uint64_t result = 0;
-	uint64_t bit = (uint64_t)1 << 62;
-	while (bit > val) {
-		bit >>= 2;
-	}
-	while (bit != 0) {
-		if (val >= result + bit) {
-			val -= result + bit;
-			result = (result >> 1) + bit;
-		} else {
-			result >>= 1;
-		}
-		bit >>= 2;
-	}
-	// Input is Q16.16, sqrt halves format to Q8.8, shift left 8 to get Q16.16
-	return (fixed_t)(result << 8);
+static inline fixed_t fixedSqrt(int64_t distSq) {
+	// distSq = d^2 * 65536 (Q16.16). Shift right to get d^2 as int32, take fastSqrt to get d.
+	return FLOAT_TO_FP(fastSqrt((float)(int32_t)(distSq >> FP_SHIFT)));
 }
 
 void initRaycasting(void) {
