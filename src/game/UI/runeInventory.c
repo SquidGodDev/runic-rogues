@@ -62,10 +62,10 @@ static RunePageData getRunePage(RuneType runeType) {
     }
 
     int level = getRuneLevel(runeType);
-    char nameEN[64];
-    char nameJP[64];
-    snprintf(nameEN, sizeof(nameEN), "%s %s", getRuneName(runeType, LANGUAGE_EN), ROMAN_NUMERALS[level]);
-    snprintf(nameJP, sizeof(nameJP), "%s %s", getRuneName(runeType, LANGUAGE_JP), ROMAN_NUMERALS[level]);
+    char *nameEN = NULL;
+    char *nameJP = NULL;
+    pd->system->formatString(&nameEN, "%s %s", getRuneName(runeType, LANGUAGE_EN), ROMAN_NUMERALS[level]);
+    pd->system->formatString(&nameJP, "%s %s", getRuneName(runeType, LANGUAGE_JP), ROMAN_NUMERALS[level]);
     char *descEN = getRuneDescription(runeType, LANGUAGE_EN, level);
     char *descJP = getRuneDescription(runeType, LANGUAGE_JP, level);
 
@@ -91,6 +91,7 @@ static RunePageData getRunePage(RuneType runeType) {
                                          0, titleH + 6, RUNE_DESC_WIDTH, descH,
                                          kWrapWord, kAlignTextLeft);
         pd->graphics->popContext();
+        pd->system->realloc(nameEN, 0);
         runePageCache[runeType].pageBitmapEN = bmp;
         runePageCache[runeType].pageHeightEN = totalH;
     }
@@ -117,6 +118,7 @@ static RunePageData getRunePage(RuneType runeType) {
                                          0, titleH + 6, RUNE_DESC_WIDTH, descH,
                                          kWrapWord, kAlignTextLeft);
         pd->graphics->popContext();
+        pd->system->realloc(nameJP, 0);
         runePageCache[runeType].pageBitmapJP = bmp;
         runePageCache[runeType].pageHeightJP = totalH;
     }

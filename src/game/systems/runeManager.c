@@ -427,28 +427,32 @@ char *getRuneDescription(RuneType type, Language language, int runeLevel) {
 
     if (strstr(buf, "{1}") != NULL) {
         float pv = fabsf(rune->primaryBaseValue + rune->primaryPerLevel * (runeLevel - 1));
-        char pvStr[32];
+        char *pvStr = NULL;
         if (rune->primaryModifyOperation == MODIFY_OP_MULTIPLY) {
-            snprintf(pvStr, sizeof(pvStr), "%d", (int)roundf(pv * 100));
+            pd->system->formatString(&pvStr, "%d", (int)roundf(pv * 100));
         } else if ((float)(int)pv == pv) {
-            snprintf(pvStr, sizeof(pvStr), "%d", (int)pv);
+            pd->system->formatString(&pvStr, "%d", (int)pv);
         } else {
-            snprintf(pvStr, sizeof(pvStr), "%.1f", (double)pv);
+            int tenths = (int)roundf(pv * 10);
+            pd->system->formatString(&pvStr, "%d.%d", tenths / 10, tenths % 10);
         }
         strReplaceFirst(buf, "{1}", pvStr);
+        pd->system->realloc(pvStr, 0);
     }
 
     if (strstr(buf, "{2}") != NULL) {
         float sv = fabsf(rune->secondaryBaseValue + rune->secondaryPerLevel * (runeLevel - 1));
-        char svStr[32];
+        char *svStr = NULL;
         if (rune->secondaryModifyOperation == MODIFY_OP_MULTIPLY) {
-            snprintf(svStr, sizeof(svStr), "%d", (int)roundf(sv * 100));
+            pd->system->formatString(&svStr, "%d", (int)roundf(sv * 100));
         } else if ((float)(int)sv == sv) {
-            snprintf(svStr, sizeof(svStr), "%d", (int)sv);
+            pd->system->formatString(&svStr, "%d", (int)sv);
         } else {
-            snprintf(svStr, sizeof(svStr), "%.1f", (double)sv);
+            int tenths = (int)roundf(sv * 10);
+            pd->system->formatString(&svStr, "%d.%d", tenths / 10, tenths % 10);
         }
         strReplaceFirst(buf, "{2}", svStr);
+        pd->system->realloc(svStr, 0);
     }
 
     return buf;
