@@ -1,8 +1,10 @@
 #define TARGET_EXTENSION 1
 #include "pd_api.h"
+#include <math.h>
 
 #include "globals/globals.h"
 #include "globals/helpers.h"
+#include "globals/fixedPoint.h"
 #include "game/entities/entities.h"
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
@@ -15,10 +17,24 @@
 #define CEILING_RENDER_CONSTANT 65 * SCREEN_WIDTH / 200 // Lower scales larger, higher scales smaller
 #define FRAME_BUFFER_INTS_PER_ROW 13 // ceil(LCD_COLUMNS / 32)
 
+#define TRIG_TABLE_SIZE  1024
+#define TRIG_TABLE_MASK  (TRIG_TABLE_SIZE - 1)
+#define TRIG_QUARTER     (TRIG_TABLE_SIZE / 4)
+
 static uint8_t *wallTexture;
 static uint8_t *ceilingTexture;
 static uint8_t *floorTexture;
 static uint8_t *gateTexture;
+
+static fixed_t sinTable[TRIG_TABLE_SIZE];
+static fixed_t invDyTable[HALF_SCREEN_HEIGHT];
+
+typedef struct RowFogData {
+	uint8_t *fogPattern;
+	int skipCeilingFloor;
+	int inFog;
+} RowFogData;
+static RowFogData rowFogTable[HALF_SCREEN_HEIGHT];
 
 // Cacheline is 32 bytes (256 bits)
 typedef struct LineData {
@@ -26,11 +42,50 @@ typedef struct LineData {
 	uint16_t textureX;
 	uint32_t lineOffset;
 	uint8_t *wallTexture;
-	float textureYStep; // 32 bits
-	float textureYModifier; // 32 bits
-	float ceilingXModifier;
-	float ceilingYModifier;
+	fixed_t textureYStep;
+	fixed_t textureYModifier;
+	fixed_t ceilingXModifier;
+	fixed_t ceilingYModifier;
 } LineData;
+
+static inline int angleToIndex(float radians) {
+	float normalized = radians * (TRIG_TABLE_SIZE / (2.0f * PI));
+	int index = (int)normalized;
+	return index & TRIG_TABLE_MASK;
+}
+
+static inline fixed_t fpSin(int index) {
+	return sinTable[index & TRIG_TABLE_MASK];
+}
+
+static inline fixed_t fpCos(int index) {
+	return sinTable[(index + TRIG_QUARTER) & TRIG_TABLE_MASK];
+}
+
+// Integer sqrt of a Q16.16 distance-squared value. Uses 64-bit to avoid overflow
+// for large map distances. Result is Q16.16.
+static fixed_t fixedSqrt(int64_t x) {
+	if (x <= 0) {
+		return 0;
+	}
+	uint64_t val = (uint64_t)x;
+	uint64_t result = 0;
+	uint64_t bit = (uint64_t)1 << 62;
+	while (bit > val) {
+		bit >>= 2;
+	}
+	while (bit != 0) {
+		if (val >= result + bit) {
+			val -= result + bit;
+			result = (result >> 1) + bit;
+		} else {
+			result >>= 1;
+		}
+		bit >>= 2;
+	}
+	// Input is Q16.16, sqrt halves format to Q8.8, shift left 8 to get Q16.16
+	return (fixed_t)(result << 8);
+}
 
 void initRaycasting(void) {
 	AreaData curAreaData = getCurrentAreaData();
@@ -38,11 +93,36 @@ void initRaycasting(void) {
 	ceilingTexture = curAreaData.ceilingTexture;
 	floorTexture = curAreaData.floorTexture;
 	gateTexture = curAreaData.gateTexture;
+
+	for (int i = 0; i < TRIG_TABLE_SIZE; i++) {
+		float angle = (float)i * 2.0f * PI / TRIG_TABLE_SIZE;
+		sinTable[i] = FLOAT_TO_FP(sinf(angle));
+	}
+
+	for (int y = 0; y < HALF_SCREEN_HEIGHT; y++) {
+		float rowDist = (float)HALF_SCREEN_HEIGHT / (HALF_SCREEN_HEIGHT - y);
+		float invDy = 1.0f / (y - HALF_SCREEN_HEIGHT);
+		invDyTable[y] = FLOAT_TO_FP(invDy);
+
+		float ceilingDist = rowDist * CELL_SIZE;
+		RowFogData *fogData = &rowFogTable[y];
+		fogData->skipCeilingFloor = ceilingDist > FOG_MAX_DIST;
+		if (ceilingDist < FOG_MIN_DIST) {
+			fogData->inFog = 0;
+			fogData->fogPattern = NULL;
+		} else if (ceilingDist <= FOG_MAX_DIST) {
+			fogData->inFog = 1;
+			int fogPatternIndex = (int)((ceilingDist - FOG_MIN_DIST) / FOG_STEP);
+			fogData->fogPattern = fogPatterns[fogPatternIndex];
+		} else {
+			fogData->inFog = 0;
+			fogData->fogPattern = NULL;
+		}
+	}
 }
 
 void renderScene(void)
 {
-	int cellSize = CELL_SIZE;
 	int cellSizeBit = 4;
 	int mapSize = MAP_WIDTH * MAP_HEIGHT;
 
@@ -53,6 +133,11 @@ void renderScene(void)
 	float rayInterval = FOV_RAD / rayCount;
 	float rayAngle = playerAngle - rayInterval * rayCount / 2;
 
+	fixed_t playerX_fp = FLOAT_TO_FP(playerX);
+	fixed_t playerY_fp = FLOAT_TO_FP(playerY);
+
+	int playerAngleIndex = angleToIndex(playerAngle);
+
 	for (int ray = 0; ray < rayCount; ray++) {
 		if (rayAngle < 0) {
 			rayAngle += 2 * PI;
@@ -60,48 +145,54 @@ void renderScene(void)
 			rayAngle -= 2 * PI;
 		}
 
-		float rayX = playerX;
-		float rayY = playerY;
-		float xOffset = 0;
-		float yOffset = 0;
-		int depthOfField = 0;
-		int maxDistance = 10000000;
+		int rayAngleIndex = angleToIndex(rayAngle);
 
-		float sinAngle = sinf(rayAngle);
-		float cosAngle = cosf(rayAngle);
+		fixed_t rayX = playerX_fp;
+		fixed_t rayY = playerY_fp;
+		fixed_t xOffset = 0;
+		fixed_t yOffset = 0;
+		int depthOfField = 0;
+		// Sentinel: larger than any possible Q16.16 squared distance on the map.
+		// Q16.16 distSq for distance d = d^2 * 65536. Max map dist ~475 units → ~14.8B.
+		int64_t maxDistSq = 9999999999LL;
+
+		fixed_t sinAngle = fpSin(rayAngleIndex);
+		fixed_t cosAngle = fpCos(rayAngleIndex);
 
 		// === Check for horizontal lines ===
-		float horizontalRayX = 0.0f, horizontalRayY = 0.0f;
-		float horizontalDistance = maxDistance;
-		float rayPerpendicularSlope = -cosAngle / sinAngle;
+		fixed_t horizontalRayX = 0, horizontalRayY = 0;
+		int64_t horizontalDistance = maxDistSq;
 
-		if (rayAngle == 0 || rayAngle == PI) {
+		if (sinAngle == 0) {
 			// Looking straight left or right
 			depthOfField = MAX_FIELD_DEPTH;
-			rayX = playerX;
-			rayY = playerY;
-		} else if (rayAngle > PI) {
-			// Looking up
-			rayY = (float)(((int)playerY >> cellSizeBit) << cellSizeBit) - 0.0001f;
-			rayX = (playerY - rayY) * rayPerpendicularSlope + playerX;
-			yOffset = -cellSize;
-			xOffset = -yOffset * rayPerpendicularSlope;
-		} else if (rayAngle < PI && rayAngle > 0) {
-			// Looking down
-			rayY = (((int)playerY >> cellSizeBit) << cellSizeBit) + cellSize;
-			rayX = (playerY - rayY) * rayPerpendicularSlope + playerX;
-			yOffset = cellSize;
-			xOffset = -yOffset * rayPerpendicularSlope;
+		} else {
+			fixed_t rayPerpendicularSlope = FP_DIV(-cosAngle, sinAngle);
+
+			if (sinAngle < 0) {
+				// Looking up
+				rayY = INT_TO_FP((FP_TO_INT(playerY_fp) >> cellSizeBit) << cellSizeBit) - 1;
+				rayX = FP_MUL(playerY_fp - rayY, rayPerpendicularSlope) + playerX_fp;
+				yOffset = -INT_TO_FP(CELL_SIZE);
+				xOffset = FP_MUL(-yOffset, rayPerpendicularSlope);
+			} else {
+				// Looking down
+				rayY = INT_TO_FP(((FP_TO_INT(playerY_fp) >> cellSizeBit) << cellSizeBit) + CELL_SIZE);
+				rayX = FP_MUL(playerY_fp - rayY, rayPerpendicularSlope) + playerX_fp;
+				yOffset = INT_TO_FP(CELL_SIZE);
+				xOffset = FP_MUL(-yOffset, rayPerpendicularSlope);
+			}
 		}
 
 		while (depthOfField < MAX_FIELD_DEPTH) {
-			int mapX = (int)rayX >> cellSizeBit;
-			int mapY = (int)rayY >> cellSizeBit;
+			int mapX = FP_TO_INT(rayX) >> cellSizeBit;
+			int mapY = FP_TO_INT(rayY) >> cellSizeBit;
 			int mapIndex = (mapY * MAP_WIDTH) + mapX;
 			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] > 0) {
-				// Hit wall
 				depthOfField = MAX_FIELD_DEPTH;
-				horizontalDistance = distanceSquared(playerX, playerY, rayX, rayY);
+				int64_t dx = (int64_t)(playerX_fp - rayX);
+				int64_t dy = (int64_t)(playerY_fp - rayY);
+				horizontalDistance = (dx * dx + dy * dy) >> FP_SHIFT;
 				horizontalRayX = rayX;
 				horizontalRayY = rayY;
 			} else {
@@ -113,36 +204,43 @@ void renderScene(void)
 
 		// === Check for vertical lines ===
 		depthOfField = 0;
-		float verticalRayX = 0.0f, verticalRayY = 0.0f;
-		float verticalDistance = maxDistance;
-		float rayNegSlope = -sinAngle / cosAngle;
+		rayX = playerX_fp;
+		rayY = playerY_fp;
+		xOffset = 0;
+		yOffset = 0;
+		fixed_t verticalRayX = 0, verticalRayY = 0;
+		int64_t verticalDistance = maxDistSq;
 
-		if (rayAngle == P2 || rayAngle == P3) {
+		if (cosAngle == 0) {
 			// Looking straight up or down
 			depthOfField = MAX_FIELD_DEPTH;
-			rayX = playerX;
-			rayY = playerY;
-		} else if (rayAngle > P2 && rayAngle < P3) {
-			// Looking left
-			rayX = (float)(((int)playerX >> cellSizeBit) << cellSizeBit) - 0.0001f;
-			rayY = (playerX - rayX) * rayNegSlope + playerY;
-			xOffset = -cellSize;
-			yOffset = -xOffset * rayNegSlope;
-		} else if (rayAngle < P2 || rayAngle > P3) {
-			// Looking right
-			rayX = (((int)playerX >> cellSizeBit) << cellSizeBit) + cellSize;
-			rayY = (playerX - rayX) * rayNegSlope + playerY;
-			xOffset = cellSize;
-			yOffset = -xOffset * rayNegSlope;
+		} else {
+			fixed_t rayNegSlope = FP_DIV(-sinAngle, cosAngle);
+
+			if (cosAngle < 0) {
+				// Looking left
+				rayX = INT_TO_FP((FP_TO_INT(playerX_fp) >> cellSizeBit) << cellSizeBit) - 1;
+				rayY = FP_MUL(playerX_fp - rayX, rayNegSlope) + playerY_fp;
+				xOffset = -INT_TO_FP(CELL_SIZE);
+				yOffset = FP_MUL(-xOffset, rayNegSlope);
+			} else {
+				// Looking right
+				rayX = INT_TO_FP(((FP_TO_INT(playerX_fp) >> cellSizeBit) << cellSizeBit) + CELL_SIZE);
+				rayY = FP_MUL(playerX_fp - rayX, rayNegSlope) + playerY_fp;
+				xOffset = INT_TO_FP(CELL_SIZE);
+				yOffset = FP_MUL(-xOffset, rayNegSlope);
+			}
 		}
 
 		while (depthOfField < MAX_FIELD_DEPTH) {
-			int mapX = (int)rayX >> cellSizeBit;
-			int mapY = (int)rayY >> cellSizeBit;
+			int mapX = FP_TO_INT(rayX) >> cellSizeBit;
+			int mapY = FP_TO_INT(rayY) >> cellSizeBit;
 			int mapIndex = (mapY * MAP_WIDTH) + mapX;
 			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] > 0) {
-				depthOfField = MAX_FIELD_DEPTH; // Hit wall
-				verticalDistance = distanceSquared(playerX, playerY, rayX, rayY);
+				depthOfField = MAX_FIELD_DEPTH;
+				int64_t dx = (int64_t)(playerX_fp - rayX);
+				int64_t dy = (int64_t)(playerY_fp - rayY);
+				verticalDistance = (dx * dx + dy * dy) >> FP_SHIFT;
 				verticalRayX = rayX;
 				verticalRayY = rayY;
 			} else {
@@ -153,22 +251,23 @@ void renderScene(void)
 		}
 
 		LineData curLineData;
-		float rayDistance = maxDistance;
+		curLineData.wallTexture = wallTexture;
+		fixed_t rayDistance = fixedSqrt(maxDistSq);
 		int isShaded = 0;
 		if (verticalDistance < horizontalDistance) {
 			rayX = verticalRayX;
 			rayY = verticalRayY;
-			rayDistance = fastSqrt(verticalDistance);
+			rayDistance = fixedSqrt(verticalDistance);
 		} else if (horizontalDistance < verticalDistance) {
 			rayX = horizontalRayX;
 			rayY = horizontalRayY;
-			rayDistance = fastSqrt(horizontalDistance);
+			rayDistance = fixedSqrt(horizontalDistance);
 			isShaded = 1;
 		}
 
 		int wallType = MAP_WALL;
-		int mapX = (int)rayX >> cellSizeBit;
-		int mapY = (int)rayY >> cellSizeBit;
+		int mapX = FP_TO_INT(rayX) >> cellSizeBit;
+		int mapY = FP_TO_INT(rayY) >> cellSizeBit;
 		int mapIndex = (mapY * MAP_WIDTH) + mapX;
 		if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] > 0) {
 			wallType = map[mapIndex];
@@ -181,23 +280,18 @@ void renderScene(void)
 		}
 
 		// Fix fisheye
-		float offsetAngle = playerAngle - rayAngle;
-		if (offsetAngle < 0) {
-			offsetAngle += 2 * PI;
-		} else if (offsetAngle > 2 * PI) {
-			offsetAngle -= 2 * PI;
-		}
-		float fixedOffsetAngle = cosf(offsetAngle);
-		rayDistance = rayDistance * fixedOffsetAngle;
+		int offsetAngleIndex = playerAngleIndex - rayAngleIndex;
+		fixed_t fixedOffsetAngle = fpCos(offsetAngleIndex);
+		rayDistance = FP_MUL(rayDistance, fixedOffsetAngle);
 
-		curLineData.ceilingXModifier = cosAngle * CEILING_RENDER_CONSTANT * CELL_SIZE / fixedOffsetAngle;
-		curLineData.ceilingYModifier = sinAngle * CEILING_RENDER_CONSTANT * CELL_SIZE / fixedOffsetAngle;
+		curLineData.ceilingXModifier = FP_DIV(FP_MUL(cosAngle, INT_TO_FP(CEILING_RENDER_CONSTANT * CELL_SIZE)), fixedOffsetAngle);
+		curLineData.ceilingYModifier = FP_DIV(FP_MUL(sinAngle, INT_TO_FP(CEILING_RENDER_CONSTANT * CELL_SIZE)), fixedOffsetAngle);
 
-		if (verticalDistance > (maxDistance - 1) && horizontalDistance > (maxDistance - 1)) {
+		if (verticalDistance >= maxDistSq && horizontalDistance >= maxDistSq) {
 			curLineData.lineHeight = 0;
 			curLineData.lineOffset = HALF_SCREEN_HEIGHT;
 			lineData[ray] = curLineData;
-			zBuffer[ray] = rayDistance;
+			zBuffer[ray] = FP_TO_INT(rayDistance);
 
 			rayAngle += rayInterval;
 			continue;
@@ -206,36 +300,36 @@ void renderScene(void)
 		// === Draw 3D Walls ===
 
 		// Get wall slice draw height
-		float lineHeight = (cellSize * SCREEN_HEIGHT) / rayDistance;
-		curLineData.lineHeight = (int)lineHeight;
+		fixed_t lineHeight = FP_DIV(INT_TO_FP(CELL_SIZE * SCREEN_HEIGHT), rayDistance);
+		curLineData.lineHeight = FP_TO_INT(lineHeight);
 
-		float textureYStep = ENVIRONMENT_TEXTURE_SIZE / lineHeight;
-		float textureYOffset = 0;
-		if (lineHeight > SCREEN_HEIGHT) {
-			textureYOffset = (lineHeight - SCREEN_HEIGHT) / 2.0f;
-			lineHeight = SCREEN_HEIGHT;
+		fixed_t textureYStep = FP_DIV(INT_TO_FP(ENVIRONMENT_TEXTURE_SIZE), lineHeight);
+		fixed_t textureYOffset = 0;
+		if (lineHeight > INT_TO_FP(SCREEN_HEIGHT)) {
+			textureYOffset = (lineHeight - INT_TO_FP(SCREEN_HEIGHT)) >> 1;
+			lineHeight = INT_TO_FP(SCREEN_HEIGHT);
 		}
-		float lineOffset = (SCREEN_HEIGHT >> 1) - lineHeight / 2;
+		fixed_t lineOffset = INT_TO_FP(SCREEN_HEIGHT >> 1) - (lineHeight >> 1);
 		curLineData.textureYStep = textureYStep;
-		curLineData.textureYModifier = textureYOffset * textureYStep - textureYStep * lineOffset;
-		curLineData.lineOffset = (int)lineOffset;
+		curLineData.textureYModifier = FP_MUL(textureYOffset, textureYStep) - FP_MUL(textureYStep, lineOffset);
+		curLineData.lineOffset = FP_TO_INT(lineOffset);
 
 		int textureX;
 		if (isShaded == 1) {
-			textureX = ((int)rayX) % ENVIRONMENT_TEXTURE_SIZE;
+			textureX = FP_TO_INT(rayX) % ENVIRONMENT_TEXTURE_SIZE;
 			if (rayAngle < PI) {
 				textureX = ENVIRONMENT_TEXTURE_SIZE - textureX - 1;
 			}
 			textureX += 16;
 		} else {
-			textureX = ((int)rayY) % ENVIRONMENT_TEXTURE_SIZE;
+			textureX = FP_TO_INT(rayY) % ENVIRONMENT_TEXTURE_SIZE;
 			if (rayAngle > P2 && rayAngle < P3) {
 				textureX = ENVIRONMENT_TEXTURE_SIZE - textureX - 1;
 			}
 		}
 		curLineData.textureX = textureX;
 		lineData[ray] = curLineData;
-		zBuffer[ray] = rayDistance;
+		zBuffer[ray] = FP_TO_INT(rayDistance);
 
 		rayAngle += rayInterval;
 	}
@@ -244,25 +338,23 @@ void renderScene(void)
 
 	int maxDrawInt = ceilf((float)SCREEN_WIDTH / 32);
 	int bitRemainder = SCREEN_WIDTH % 32;
+	fixed_t texClampMax = INT_TO_FP(ENVIRONMENT_TEXTURE_SIZE - 1);
 	uint32_t *frameBuffer = (uint32_t *)pd->graphics->getFrame();
 	for (int drawY = 0; drawY < SCREEN_HEIGHT; drawY++) {
-		// Horizontal distance from the camera to the floor for the current row.
-		// 0.5 is the z position exactly in the middle between floor and ceiling.
-		float rowDistance = (float)HALF_SCREEN_HEIGHT / (HALF_SCREEN_HEIGHT - drawY);
-		float invDy = 1.0f / (drawY - HALF_SCREEN_HEIGHT);
-
+		fixed_t invDy = 0;
+		int skipCeilingFloor = 0;
 		int inFog = 0;
-		float ceilingDistance = rowDistance * CELL_SIZE;
-		int skipCeilingFloor = ceilingDistance > FOG_MAX_DIST;
 		int fogRow = drawY % 8;
 		int fogShade = 0;
-		if (ceilingDistance < FOG_MIN_DIST) {
-			inFog = 0;
-		} else if (ceilingDistance <= FOG_MAX_DIST) {
-			inFog = 1;
-			int fogPatternIndex = (ceilingDistance - FOG_MIN_DIST) / FOG_STEP;
-			uint8_t *fogPattern = fogPatterns[fogPatternIndex];
-			fogShade = fogPattern[fogRow];
+
+		if (drawY < HALF_SCREEN_HEIGHT) {
+			invDy = invDyTable[drawY];
+			RowFogData *fogData = &rowFogTable[drawY];
+			skipCeilingFloor = fogData->skipCeilingFloor;
+			inFog = fogData->inFog;
+			if (inFog) {
+				fogShade = fogData->fogPattern[fogRow];
+			}
 		}
 
 		for (int drawInt32 = 0; drawInt32 < maxDrawInt; drawInt32++) {
@@ -271,28 +363,32 @@ void renderScene(void)
 			int floorFrameBufferIndex = (SCREEN_HEIGHT - drawY - 1) * FRAME_BUFFER_INTS_PER_ROW + drawInt32;
 			uint32_t curFloorDrawInt = 0;
 			int drawBitMax = drawInt32 == (maxDrawInt - 1) ? bitRemainder : 32;
-			int drawIntOffset = drawInt32 << 5; // multiply by 32
+			int drawIntOffset = drawInt32 << 5;
 			for (int drawBit = 0; drawBit < drawBitMax; drawBit++) {
 				uint8_t drawColor;
 				int drawX = drawIntOffset + drawBit;
-				int fogShadeBit = (drawX + fogOffset) & 7; // mod 8
+				int fogShadeBit = (drawX + fogOffset) & 7;
 
 				LineData *curLineData = &lineData[drawX];
 				int lineHeight = curLineData->lineHeight;
 				int lineOffset = curLineData->lineOffset;
 				uint8_t *curWallTexture = curLineData->wallTexture;
 
-				float textureYModifier = curLineData->textureYModifier;
-				textureYModifier = textureYModifier > ENVIRONMENT_TEXTURE_SIZE - 1 ? ENVIRONMENT_TEXTURE_SIZE - 1 : textureYModifier;
+				fixed_t textureYModifier = curLineData->textureYModifier;
+				if (textureYModifier > texClampMax) {
+					textureYModifier = texClampMax;
+				} else if (textureYModifier < 0) {
+					textureYModifier = 0;
+				}
 				lineData[drawX].textureYModifier += curLineData->textureYStep;
 
 				if (drawY < lineOffset) {
 					int fogReject = skipCeilingFloor | ((fogShade >> fogShadeBit) & inFog);
-					float textureCoordX = playerX - curLineData->ceilingXModifier * invDy;
-					float textureCoordY = playerY - curLineData->ceilingYModifier * invDy;
+					fixed_t textureCoordX = playerX_fp - FP_MUL(curLineData->ceilingXModifier, invDy);
+					fixed_t textureCoordY = playerY_fp - FP_MUL(curLineData->ceilingYModifier, invDy);
 
-					uint32_t textureX = (uint32_t)(textureCoordX) & (CELL_SIZE - 1);
-					uint32_t textureY = (uint32_t)(textureCoordY) & (CELL_SIZE - 1);
+					uint32_t textureX = FP_TO_INT(textureCoordX) & (CELL_SIZE - 1);
+					uint32_t textureY = FP_TO_INT(textureCoordY) & (CELL_SIZE - 1);
 
 					// Draw ceiling
 					uint32_t textureIndex = textureX + (textureY << 4);
@@ -319,12 +415,12 @@ void renderScene(void)
 							continue;
 						}
 					}
-	
-					uint32_t textureY = (int)(textureYModifier + 0.5f);
+
+					uint32_t textureY = (uint32_t)FP_TO_INT_ROUND(textureYModifier);
 					drawColor = curWallTexture[textureX + (textureY << 4)];
 
-					uint32_t fogShade = wallDistance < FOG_MIN_DIST ? 0 : fogPatterns[((int)wallDistance - FOG_MIN_DIST) / FOG_STEP][fogRow];
-					if ((fogShade >> fogShadeBit) & 1) {
+					uint32_t wallFogShade = wallDistance < FOG_MIN_DIST ? 0 : fogPatterns[(wallDistance - FOG_MIN_DIST) / FOG_STEP][fogRow];
+					if ((wallFogShade >> fogShadeBit) & 1) {
 						drawColor = 0;
 					}
 				}
