@@ -36,7 +36,6 @@ typedef struct RowFogData {
 } RowFogData;
 static RowFogData rowFogTable[HALF_SCREEN_HEIGHT];
 
-// Cacheline is 32 bytes (256 bits)
 typedef struct LineData {
 	uint16_t lineHeight;
 	uint16_t textureX;
@@ -46,6 +45,7 @@ typedef struct LineData {
 	fixed_t textureYModifier;
 	fixed_t ceilingXModifier;
 	fixed_t ceilingYModifier;
+	uint8_t *wallFogPattern;
 } LineData;
 
 static inline int angleToIndex(float radians) {
@@ -272,6 +272,7 @@ void renderScene(void)
 		if (verticalDistance >= maxDistSq && horizontalDistance >= maxDistSq) {
 			curLineData.lineHeight = 0;
 			curLineData.lineOffset = HALF_SCREEN_HEIGHT;
+			curLineData.wallFogPattern = NULL;
 			lineData[ray] = curLineData;
 			zBuffer[ray] = FP_TO_INT(rayDistance);
 
@@ -310,8 +311,14 @@ void renderScene(void)
 			}
 		}
 		curLineData.textureX = textureX;
+		int wallDist = FP_TO_INT(rayDistance);
+		if (wallDist < FOG_MIN_DIST || wallDist > FOG_MAX_DIST) {
+			curLineData.wallFogPattern = NULL;
+		} else {
+			curLineData.wallFogPattern = fogPatterns[(wallDist - FOG_MIN_DIST) / FOG_STEP];
+		}
 		lineData[ray] = curLineData;
-		zBuffer[ray] = FP_TO_INT(rayDistance);
+		zBuffer[ray] = wallDist;
 
 		rayAngle += rayInterval;
 	}
@@ -383,8 +390,8 @@ void renderScene(void)
 					// Floor - we already drew this when we drew the ceiling
 					continue;
 				} else {
-					int wallDistance = zBuffer[drawX];
-					if (wallDistance > FOG_MAX_DIST) {
+					uint8_t *wallFog = curLineData->wallFogPattern;
+					if (wallFog == NULL && zBuffer[drawX] > FOG_MAX_DIST) {
 						curDrawInt &= ~(1 << (31 - (drawBit & 31)));
 						continue;
 					}
@@ -401,8 +408,7 @@ void renderScene(void)
 					uint32_t textureY = (uint32_t)FP_TO_INT_ROUND(textureYModifier);
 					drawColor = curWallTexture[textureX + (textureY << 4)];
 
-					uint32_t wallFogShade = wallDistance < FOG_MIN_DIST ? 0 : fogPatterns[(wallDistance - FOG_MIN_DIST) / FOG_STEP][fogRow];
-					if ((wallFogShade >> fogShadeBit) & 1) {
+					if (wallFog != NULL && ((wallFog[fogRow] >> fogShadeBit) & 1)) {
 						drawColor = 0;
 					}
 				}
