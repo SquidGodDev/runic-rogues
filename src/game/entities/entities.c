@@ -72,8 +72,8 @@ void renderEntities(int *zBuffer) {
     fixed_t dirY_fp    = FLOAT_TO_FP(dirY);
 
     uint8_t *frameBufferU8 = (uint8_t *)pd->graphics->getFrame();
-    int entityOrder[queuedEntities];
-    fixed_t entityDistances[queuedEntities];
+    static int entityOrder[MAX_ENTITY_COUNT];
+    static fixed_t entityDistances[MAX_ENTITY_COUNT];
     for (int i = 0; i < queuedEntities; i++) {
         entityOrder[i] = i;
         Entity *curEntity = &entities[i];
@@ -145,7 +145,7 @@ void renderEntities(int *zBuffer) {
             if (drawStartX < 0) { drawStartX = 0; }
             if (drawEndX >= SCREEN_WIDTH) { drawEndX = SCREEN_WIDTH; }
 
-            int textureYCache[SCREEN_HEIGHT];
+            static int textureYCache[SCREEN_HEIGHT];
 
             int textureYStep_fp8 = (ENTITY_TEXTURE_SIZE << 8) / entityHeight;
             int d0 = ((drawStartY - screenYOffset) << 8) - fixedPointScreenHeight + fixedPointEntityHeight;
@@ -163,27 +163,29 @@ void renderEntities(int *zBuffer) {
             int unclampedDrawStartX = -halfEntityWidth + entityScreenX;
             int textureXAccum_fp8 = (drawStartX - unclampedDrawStartX) * textureXStep_fp8;
 
+            int fogEnabled = entityDistance >= FOG_MIN_DIST;
+
             for (int drawX = drawStartX; drawX < drawEndX; drawX++, textureXAccum_fp8 += textureXStep_fp8) {
                 if (entityDistance < zBuffer[drawX]) {
-                    int fogShadeBit = drawX % 8;
                     int textureX = textureXAccum_fp8 >> 8;
                     if (textureX < curEntity->textureMinX || textureX > curEntity->textureMaxX) {
                         continue;
                     }
+                    int byteIndex = drawX >> 3;
+                    uint8_t bitMask = 1 << (7 - (drawX & 7));
+                    int fogShadeBit = drawX & 7;
                     for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
                         int textureYIndex = textureYCache[drawY];
                         if (textureYIndex == -2) {
                             continue;
                         }
 
-                        int fogRow = drawY % 8;
-                        int fogShade = entityDistance < FOG_MIN_DIST ? 0 : fogPattern[fogRow];
-                        int inFog = (fogShade >> fogShadeBit) & 1;
+                        int inFog = fogEnabled && ((fogPattern[drawY & 7] >> fogShadeBit) & 1);
                         uint8_t color = entityTexture[textureYIndex + textureX];
                         if (!inFog && ((hitFlash && color < 2) || color == 1)) {
-                            frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] |= (1 << (7 - (drawX & 7)));
+                            frameBufferU8[drawY * LCD_ROWSIZE + byteIndex] |= bitMask;
                         } else if (color == 0) {
-                            frameBufferU8[drawY * LCD_ROWSIZE + (drawX >> 3)] &= ~(1 << (7 - (drawX & 7)));
+                            frameBufferU8[drawY * LCD_ROWSIZE + byteIndex] &= ~bitMask;
                         }
                     }
                 }
