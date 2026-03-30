@@ -2,6 +2,7 @@
 #include "pd_api.h"
 
 #include "globals/globals.h"
+#include "globals/helpers.h"
 #include "game/map/map.h"
 #include "game/enemies/enemies.h"
 #include "game/enemies/enemyAI.h"
@@ -28,6 +29,7 @@
 
 #define MIN_DIST_TO_PLAYER 5
 #define ENEMY_SEPARATION_RADIUS 20
+#define ENEMY_SEPARATION_RADIUS_SQ (ENEMY_SEPARATION_RADIUS * ENEMY_SEPARATION_RADIUS)
 #define ENEMY_SEPARATION_FORCE 0.3f
 #define WALL_CHECK_DISTANCE 4
 #define WALL_AVOID_FORCE 0.1f
@@ -307,33 +309,35 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 void moveEnemy(Enemy *enemy, int enemyIndex, float targetX, float targetY, float moveSpeed) {
 	float dx = (targetX - enemy->x);
 	float dy = (targetY - enemy->y);
-	float distToTarget = sqrtf(dx*dx + dy*dy);
+	float distToTargetSq = dx * dx + dy * dy;
 
-	if (distToTarget < MIN_DIST_TO_PLAYER) {
-		return;	
+	if (distToTargetSq < MIN_DIST_TO_PLAYER * MIN_DIST_TO_PLAYER) {
+		return;
 	}
 
-	dx /= distToTarget;
-	dy /= distToTarget;
+	float invDistToTarget = fastRsqrt(distToTargetSq);
+	dx *= invDistToTarget;
+	dy *= invDistToTarget;
 
 	// Repulsion from other enemies
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-		if (i == enemyIndex || !enemies[i].active) continue;
-		Enemy other = enemies[i];
+		if (i == enemyIndex || !enemies[i].active) {
+			continue;
+		}
+		Enemy *other = &enemies[i];
 
-		float otherX = enemy->x - other.x;
-		float otherY = enemy->y - other.y;
-		float distSquared = otherX*otherX + otherY*otherY;
+		float otherX = enemy->x - other->x;
+		float otherY = enemy->y - other->y;
+		float distSquared = otherX * otherX + otherY * otherY;
 
-		if (distSquared < ENEMY_SEPARATION_RADIUS * ENEMY_SEPARATION_RADIUS && distSquared > 0.01f) {
-			float dist = sqrtf(distSquared);
-			if (dist > 0.01f) {
-				otherX /= dist;
-				otherY /= dist;
-				float force = ENEMY_SEPARATION_FORCE * (1.0f - dist / ENEMY_SEPARATION_RADIUS);
-				dx += otherX * force;
-				dy += otherY * force;
-			}
+		if (distSquared < ENEMY_SEPARATION_RADIUS_SQ && distSquared > 0.01f) {
+			float invDist = fastRsqrt(distSquared);
+			float dist = distSquared * invDist;
+			otherX *= invDist;
+			otherY *= invDist;
+			float force = ENEMY_SEPARATION_FORCE * (1.0f - dist / ENEMY_SEPARATION_RADIUS);
+			dx += otherX * force;
+			dy += otherY * force;
 		}
 	}
 
@@ -351,10 +355,11 @@ void moveEnemy(Enemy *enemy, int enemyIndex, float targetX, float targetY, float
 	}
 
 	// Normalize final direction vector
-	float magnitude = sqrtf(dx*dx + dy*dy);
-	if (magnitude > 0.01f) {
-		dx = (dx / magnitude) * moveSpeed;
-		dy = (dy / magnitude) * moveSpeed;
+	float magnitudeSq = dx * dx + dy * dy;
+	if (magnitudeSq > 0.01f) {
+		float invMagnitude = fastRsqrt(magnitudeSq);
+		dx = dx * invMagnitude * moveSpeed;
+		dy = dy * invMagnitude * moveSpeed;
 	}
 
 	// Apply movement
