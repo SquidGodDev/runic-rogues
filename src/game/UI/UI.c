@@ -114,8 +114,7 @@ void drawHealth(void) {
     pd->system->realloc(healthString, 0);
 }
 
-void drawEntityToMinimap(float entityX, float entityY, uint8_t *texture, float playerAngleCos, float playerAngleSin) {
-    uint8_t* frameBuffer = pd->graphics->getFrame();
+void drawEntityToMinimap(float entityX, float entityY, uint8_t *texture, float playerAngleCos, float playerAngleSin, uint8_t *frameBuffer) {
     float distSquaredToPlayer = distanceSquared(playerX, playerY, entityX, entityY);
     if (distSquaredToPlayer <= ENTITY_CHECK_DISTANCE) {
         float entityVectorX = (playerX - entityX - 0.5f);
@@ -191,6 +190,7 @@ void drawMinimap(void) {
     }
 
     // == Entity layer ==
+    uint8_t *entityFrameBuffer = pd->graphics->getFrame();
     float playerAngleCos = cosf(rotatedPlayerAngle + PI);
     float playerAngleSin = sinf(rotatedPlayerAngle + PI);
     // Draw enemies
@@ -200,7 +200,7 @@ void drawMinimap(void) {
             continue;
         }
 
-        drawEntityToMinimap(curEnemy.x, curEnemy.y, TEXTURES[TEXTURE_MINIMAP_ENEMY], playerAngleCos, playerAngleSin);
+        drawEntityToMinimap(curEnemy.x, curEnemy.y, TEXTURES[TEXTURE_MINIMAP_ENEMY], playerAngleCos, playerAngleSin, entityFrameBuffer);
     }
     
     // Draw interactables
@@ -211,9 +211,9 @@ void drawMinimap(void) {
         }
 
         if (curInteractable.type == INTERACTABLE_TYPE_EXIT) {
-            drawEntityToMinimap(curInteractable.x, curInteractable.y, TEXTURES[TEXTURE_MINIMAP_EXIT], playerAngleCos, playerAngleSin);
+            drawEntityToMinimap(curInteractable.x, curInteractable.y, TEXTURES[TEXTURE_MINIMAP_EXIT], playerAngleCos, playerAngleSin, entityFrameBuffer);
         } else if (curInteractable.type == INTERACTABLE_TYPE_CAMPFIRE || curInteractable.type == INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE) {
-            drawEntityToMinimap(curInteractable.x, curInteractable.y, TEXTURES[TEXTURE_MINIMAP_CAMPFIRE], playerAngleCos, playerAngleSin);
+            drawEntityToMinimap(curInteractable.x, curInteractable.y, TEXTURES[TEXTURE_MINIMAP_CAMPFIRE], playerAngleCos, playerAngleSin, entityFrameBuffer);
         }
     }
     // Draw projectiles
@@ -223,7 +223,7 @@ void drawMinimap(void) {
             continue;
         }
 
-        drawEntityToMinimap(curProjectile.x, curProjectile.y, TEXTURES[TEXTURE_MINIMAP_PROJECTILE], playerAngleCos, playerAngleSin);
+        drawEntityToMinimap(curProjectile.x, curProjectile.y, TEXTURES[TEXTURE_MINIMAP_PROJECTILE], playerAngleCos, playerAngleSin, entityFrameBuffer);
     }
     // Draw warnings
     for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {
@@ -232,7 +232,7 @@ void drawMinimap(void) {
             continue;
         }
 
-        drawEntityToMinimap(curParticle.x, curParticle.y, TEXTURES[TEXTURE_MINIMAP_WARNING], playerAngleCos, playerAngleSin);
+        drawEntityToMinimap(curParticle.x, curParticle.y, TEXTURES[TEXTURE_MINIMAP_WARNING], playerAngleCos, playerAngleSin, entityFrameBuffer);
     }
     // Draw pickups
     for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
@@ -241,7 +241,7 @@ void drawMinimap(void) {
             continue;
         }
 
-        drawEntityToMinimap(curPickup.x, curPickup.y, TEXTURES[TEXTURE_MINIMAP_CARD], playerAngleCos, playerAngleSin);
+        drawEntityToMinimap(curPickup.x, curPickup.y, TEXTURES[TEXTURE_MINIMAP_CARD], playerAngleCos, playerAngleSin, entityFrameBuffer);
     }
     // == End of entity layer ==
 }
