@@ -145,28 +145,33 @@ void renderEntities(int *zBuffer) {
             if (drawStartX < 0) { drawStartX = 0; }
             if (drawEndX >= SCREEN_WIDTH) { drawEndX = SCREEN_WIDTH; }
 
-            int textureYCache[SCREEN_HEIGHT] = { [0 ... SCREEN_HEIGHT - 1] = -1 };
+            int textureYCache[SCREEN_HEIGHT];
 
-            for (int drawX = drawStartX; drawX < drawEndX; drawX++) {
+            int textureYStep_fp8 = (ENTITY_TEXTURE_SIZE << 8) / entityHeight;
+            int d0 = ((drawStartY - screenYOffset) << 8) - fixedPointScreenHeight + fixedPointEntityHeight;
+            int textureYAccum_fp8 = (d0 * ENTITY_TEXTURE_SIZE) / entityHeight;
+            for (int drawY = drawStartY; drawY < drawEndY; drawY++, textureYAccum_fp8 += textureYStep_fp8) {
+                int textureY = textureYAccum_fp8 >> 8;
+                if (textureY < curEntity->textureMinY || textureY > curEntity->textureMaxY) {
+                    textureYCache[drawY] = -2;
+                } else {
+                    textureYCache[drawY] = ENTITY_TEXTURE_SIZE * textureY + frameOffset;
+                }
+            }
+
+            int textureXStep_fp8 = (ENTITY_TEXTURE_SIZE << 8) / entityWidth;
+            int unclampedDrawStartX = -halfEntityWidth + entityScreenX;
+            int textureXAccum_fp8 = (drawStartX - unclampedDrawStartX) * textureXStep_fp8;
+
+            for (int drawX = drawStartX; drawX < drawEndX; drawX++, textureXAccum_fp8 += textureXStep_fp8) {
                 if (entityDistance < zBuffer[drawX]) {
                     int fogShadeBit = drawX % 8;
-                    int textureX = (int)(((drawX - screenXOffset - (-(entityWidth >> 1) + entityScreenX)) << 8) * ENTITY_TEXTURE_SIZE / entityWidth) >> 8;
+                    int textureX = textureXAccum_fp8 >> 8;
                     if (textureX < curEntity->textureMinX || textureX > curEntity->textureMaxX) {
                         continue;
                     }
                     for (int drawY = drawStartY; drawY < drawEndY; drawY++) {
                         int textureYIndex = textureYCache[drawY];
-                        if (textureYIndex == -1) {
-                            int d = ((drawY - screenYOffset) << 8) - fixedPointScreenHeight + fixedPointEntityHeight; // 256 and 128 factors to avoid floats
-                            int textureY = ((d * ENTITY_TEXTURE_SIZE) / entityHeight) >> 8;
-                            if (textureY < curEntity->textureMinY || textureY > curEntity->textureMaxY) {
-                                textureYIndex = -2; // mark to skip
-                            } else {
-                                textureYIndex = ENTITY_TEXTURE_SIZE * textureY + frameOffset;
-                            }
-                            textureYCache[drawY] = textureYIndex;
-                        }
-
                         if (textureYIndex == -2) {
                             continue;
                         }
