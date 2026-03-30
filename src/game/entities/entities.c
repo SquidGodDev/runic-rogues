@@ -2,6 +2,7 @@
 #include "pd_api.h"
 
 #include "globals/globals.h"
+#include "globals/fixedPoint.h"
 #include "globals/helpers.h"
 #include "game/enemies/enemies.h"
 #include "game/entities/entities.h"
@@ -15,15 +16,15 @@
 static int queuedEntities = 0;
 
 typedef struct Entity {
-    float x;
-    float y;
+    fixed_t x;
+    fixed_t y;
     uint32_t type;
     uint32_t index;
     uint8_t *texture;
     int textureMinX;
     int textureMaxX;
     int textureMinY;
-    int textureMaxY;    
+    int textureMaxY;
     int animationFrame;
 } Entity;
 
@@ -31,14 +32,15 @@ Entity entities[MAX_ENTITY_COUNT] = { 0 };
 
 typedef struct EntityPair {
     int order;
-    float dist;
+    fixed_t dist;
 } EntityPair;
 
 int entityPairComparison(const void *a, const void *b) {
-    return ((EntityPair *)b)->dist - ((EntityPair *)a)->dist;
+    fixed_t diff = ((EntityPair *)b)->dist - ((EntityPair *)a)->dist;
+    return (diff > 0) - (diff < 0);
 }
 
-void sortEntities(int *order, float *dist, int count) {
+void sortEntities(int *order, fixed_t *dist, int count) {
     EntityPair entityPairs[count];
     for (int i = 0; i < count; i++) {
         entityPairs[i].order = order[i];
@@ -62,14 +64,22 @@ void renderEntities(int *zBuffer) {
         return;
     }
 
+    fixed_t playerX_fp = FLOAT_TO_FP(playerX);
+    fixed_t playerY_fp = FLOAT_TO_FP(playerY);
+    fixed_t planeX_fp  = FLOAT_TO_FP(planeX);
+    fixed_t planeY_fp  = FLOAT_TO_FP(planeY);
+    fixed_t dirX_fp    = FLOAT_TO_FP(dirX);
+    fixed_t dirY_fp    = FLOAT_TO_FP(dirY);
+
     uint8_t *frameBufferU8 = (uint8_t *)pd->graphics->getFrame();
     int entityOrder[queuedEntities];
-    float entityDistances[queuedEntities];
+    fixed_t entityDistances[queuedEntities];
     for (int i = 0; i < queuedEntities; i++) {
         entityOrder[i] = i;
         Entity *curEntity = &entities[i];
-        float entityDistance = distanceSquared(playerX, playerY, curEntity->x, curEntity->y);
-        entityDistances[i] = entityDistance;
+        int64_t dx = (int64_t)(playerX_fp - curEntity->x);
+        int64_t dy = (int64_t)(playerY_fp - curEntity->y);
+        entityDistances[i] = (fixed_t)((dx * dx + dy * dy) >> FP_SHIFT);
     }
     sortEntities(entityOrder, entityDistances, queuedEntities);
 
@@ -77,7 +87,8 @@ void renderEntities(int *zBuffer) {
     // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
     // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
     // [ planeY   dirY ]                                          [ -planeY  planeX ]
-    float inverseDeterminant = 1.0f / (planeX * dirY - dirX * planeY);
+    fixed_t determinant = FP_MUL(planeX_fp, dirY_fp) - FP_MUL(dirX_fp, planeY_fp);
+    fixed_t inverseDeterminant = FP_DIV(FP_ONE, determinant);
     int fixedPointScreenHeight = SCREEN_HEIGHT << 7;
     for (int i = 0; i < queuedEntities; i++) {
         Entity *curEntity = &entities[entityOrder[i]];
@@ -91,29 +102,29 @@ void renderEntities(int *zBuffer) {
             hitFlash = enemies[curEntity->index].hitFlashTime > 0;
         }
 
-        float entityX = (curEntity->x - playerX) / CELL_SIZE;
-        float entityY = (curEntity->y - playerY) / CELL_SIZE;
+        fixed_t entityX = (curEntity->x - playerX_fp) >> 4;
+        fixed_t entityY = (curEntity->y - playerY_fp) >> 4;
 
-        float transformY = inverseDeterminant * (-planeY * entityX + planeX * entityY);
+        fixed_t transformY = FP_MUL(inverseDeterminant, FP_MUL(planeX_fp, entityY) - FP_MUL(planeY_fp, entityX));
         if (transformY > 0) {
-            float invTransformY = fastDiv(1, transformY);
-            float transformX = inverseDeterminant * (dirX * entityY - dirY * entityX);
-            float entityDistance = transformY * CELL_SIZE;
+            fixed_t invTransformY = FP_DIV(FP_ONE, transformY);
+            fixed_t transformX = FP_MUL(inverseDeterminant, FP_MUL(dirX_fp, entityY) - FP_MUL(dirY_fp, entityX));
+            int entityDistance = FP_TO_INT(transformY * CELL_SIZE);
             if (entityDistance > FOG_MAX_DIST) {
                 continue;
             }
 
-            int fogPatternIndex = (entityDistance - FOG_MIN_DIST) / FOG_STEP;
+            int fogPatternIndex = entityDistance < FOG_MIN_DIST ? 0 : (entityDistance - FOG_MIN_DIST) / FOG_STEP;
             uint8_t *fogPattern = fogPatterns[fogPatternIndex];
 
-            int entityHeight = abs((int)((float)SCREEN_HEIGHT * invTransformY));
+            int entityHeight = (int)ABS(((int64_t)SCREEN_HEIGHT * invTransformY) >> FP_SHIFT);
             int entityWidth = entityHeight;
 
             int halfEntityWidth = (entityWidth >> 1);
             int halfEntityHeight = (entityHeight >> 1);
             int screenXOffset = 0;//anchorTopLeft ? halfEntityWidth / 2 : 0;
             int screenYOffset = anchorTopLeft ? halfEntityHeight / 2 : 0;
-            int entityScreenX = (int)((float)(HALF_SCREEN_WIDTH) * (1 + transformX * invTransformY));
+            int entityScreenX = FP_TO_INT((fixed_t)(HALF_SCREEN_WIDTH) * (FP_ONE + FP_MUL(transformX, invTransformY)));
 
             int drawStartY = -halfEntityHeight + HALF_SCREEN_HEIGHT;
             int drawEndY = halfEntityHeight + HALF_SCREEN_HEIGHT;
@@ -184,9 +195,9 @@ void addEntityToRenderQueue(float x, float y, int type, int index, int textureIn
     }
     uint8_t *texture = TEXTURES[textureIndex];
     TextureBounds *bounds = TEXTURE_BOUNDS[textureIndex];
-    Entity curEntity = (struct Entity){ 
-        .x = x,
-        .y = y,
+    Entity curEntity = (struct Entity){
+        .x = FLOAT_TO_FP(x),
+        .y = FLOAT_TO_FP(y),
         .type = type,
         .index = index,
         .texture = texture,
