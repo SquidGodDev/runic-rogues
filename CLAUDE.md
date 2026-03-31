@@ -70,6 +70,10 @@ Two game states: `GAME_STATE_ACTIVE` (normal play) and `GAME_STATE_SHOP` (level-
 
 `src/globals/helpers.h/c` — Fixed-size Queue (30), Stack (30, with shuffle), Set (53-slot hash). Math: `fastSqrt()`, `fastRsqrt()` (Quake-style), easing functions (`easeOutCubic`, `easeOutBack`), `lerp()`.
 
+## Code Style
+
+- Always use braces `{}` for if/else bodies, even single-line ones — no braceless one-liners
+
 ## Key Constants (globals.h)
 
 | Constant | Value |
