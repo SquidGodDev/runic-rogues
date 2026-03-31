@@ -320,10 +320,12 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
 };
 
 int runeLevels[RUNE_TYPE_COUNT];
+float runeTriggerCounters[RUNE_TYPE_COUNT];
 
 void initRunes(void) {
     for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
         runeLevels[i] = 0;
+        runeTriggerCounters[i] = 0.0f;
     }
 
     // == Testing runes ==
@@ -517,6 +519,34 @@ void applyRuneEffectsToSpells(void) {
             if (rune->spellTarget == RUNE_SPELL_TARGET_SPECIAL || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
                 rune->applySpellModifierSecondary(specialSpell, value, rune->secondaryModifyOperation);
             }
+        }
+    }
+}
+
+void signalRuneTrigger(RuneTriggerType type, float amount) {
+    if (type == RUNE_TRIGGER_NONE) {
+        return;
+    }
+    for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
+        int level = runeLevels[i];
+        if (level <= 0) {
+            continue;
+        }
+        RuneData *rune = &RUNE_DATA[i];
+        if (rune->triggerType != type) {
+            continue;
+        }
+        if (rune->triggerCallback == NULL) {
+            continue;
+        }
+        float threshold = rune->triggerBaseValue + rune->triggerPerLevel * (level - 1);
+        if (threshold <= 0.0f) {
+            continue;
+        }
+        runeTriggerCounters[i] += amount;
+        if (runeTriggerCounters[i] >= threshold) {
+            runeTriggerCounters[i] -= threshold;
+            rune->triggerCallback(level);
         }
     }
 }

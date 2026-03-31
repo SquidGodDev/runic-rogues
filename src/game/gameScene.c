@@ -88,6 +88,7 @@ void initGameScene(void)
 void updateGameScene(float deltaTime)
 {
 	if (gameState == GAME_STATE_ACTIVE) {
+		signalRuneTrigger(RUNE_TRIGGER_TIME, deltaTime);
 		updatePickups(deltaTime);
 		updateSpells(deltaTime);
 		updatePlayer(deltaTime);

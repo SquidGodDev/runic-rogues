@@ -672,10 +672,12 @@ bool damageEnemy(int index, int damage) {
 
 	EnemyData curEnemyData = enemyData[curEnemy.type];
 	curEnemy.hitFlashTime = HIT_FLASH_TIME;
+	signalRuneTrigger(RUNE_TRIGGER_DAMAGE_ENEMY, 1.0f);
 	curEnemy.health -= damage;
 	playSound(SFX_ENEMY_HIT);
 
 	if (curEnemy.health <= 0) {
+		signalRuneTrigger(RUNE_TRIGGER_KILL_ENEMY, 1.0f);
 		playSound(SFX_ENEMY_DEATH);
 		bool summonsMinions = enemyDeathEffect(index);
 

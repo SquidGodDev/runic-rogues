@@ -216,11 +216,19 @@ bool castSpell(int index) {
 }
 
 bool castBasicSpell(void) {
-    return castSpell(BASIC_SPELL_INDEX);
+    bool cast = castSpell(BASIC_SPELL_INDEX);
+    if (cast) {
+        signalRuneTrigger(RUNE_TRIGGER_BASIC_CAST, 1.0f);
+    }
+    return cast;
 }
 
 bool castSpecialSpell(void) {
-    return castSpell(SPECIAL_SPELL_INDEX);
+    bool cast = castSpell(SPECIAL_SPELL_INDEX);
+    if (cast) {
+        signalRuneTrigger(RUNE_TRIGGER_SPECIAL_CAST, 1.0f);
+    }
+    return cast;
 }
 
 void updateSpells(float deltaTime) {

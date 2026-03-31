@@ -45,6 +45,18 @@ typedef enum RuneSpellTarget {
     RUNE_SPELL_TARGET_BOTH
 } RuneSpellTarget;
 
+typedef enum RuneTriggerType {
+    RUNE_TRIGGER_NONE,
+    RUNE_TRIGGER_TIME,
+    RUNE_TRIGGER_BASIC_CAST,
+    RUNE_TRIGGER_SPECIAL_CAST,
+    RUNE_TRIGGER_DASH,
+    RUNE_TRIGGER_DAMAGED,
+    RUNE_TRIGGER_DAMAGE_ENEMY,
+    RUNE_TRIGGER_KILL_ENEMY,
+    RUNE_TRIGGER_EXPERIENCE
+} RuneTriggerType;
+
 typedef struct RuneData {
     char *nameEN;
     char *nameJP;
@@ -63,6 +75,10 @@ typedef struct RuneData {
     void (*applySpellModifierPrimary)(struct SpellData *spell, float value, ModifyOperation operation);
     void (*applySpellModifierSecondary)(struct SpellData *spell, float value, ModifyOperation operation);
     RuneClassFilter classFilter;
+    RuneTriggerType triggerType;
+    float triggerBaseValue;
+    float triggerPerLevel;
+    void (*triggerCallback)(int runeLevel);
 } RuneData;
 
 void initRunes(void);
@@ -80,3 +96,4 @@ RuneClassFilter getRuneClassFilter(RuneType type);
 float getRuneValue(RuneType type);
 float getRuneSecondaryValue(RuneType type);
 void applyRuneEffectsToSpells(void);
+void signalRuneTrigger(RuneTriggerType type, float amount);
