@@ -6,6 +6,12 @@
 #include "game/settings/settings.h"
 #include "game/player/spells/spells.h"
 #include "game/player/classes/classData.h"
+#include "game/systems/chainLightningManager.h"
+#include "game/player/player.h"
+
+static void thunderStoneCallback(int runeLevel) {
+    startChainLightningOnNearestEnemy(playerX, playerY, CELL_SIZE * 5, 10, runeLevel);
+}
 
 RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_VAMPIRISM] = {
@@ -316,6 +322,21 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .applySpellModifierPrimary   = modifyRepeatCount,
         .applySpellModifierSecondary = modifyRepeatActivationTime,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
+    },
+    [RUNE_TYPE_THUNDER_STONE] = {
+        .nameEN = "Thunder Stone",
+        .nameJP = "",
+        .descriptionEN = "Strike a nearby enemy with lightning every {T}s, chaining to {1} enemies for 10 damage.",
+        .descriptionJP = "",
+        .iconIndex = BITMAP_RUNE_HEALTHY,
+        .textureIndex = TEXTURE_RUNE_HEALTHY,
+        .primaryBaseValue   = 1,
+        .primaryPerLevel    = 1,
+        .maxLevel = 3,
+        .triggerType = RUNE_TRIGGER_TIME,
+        .triggerBaseValue = 5.0f,
+        .triggerPerLevel  = 0.0f,
+        .triggerCallback  = thunderStoneCallback
     }
 };
 
@@ -348,6 +369,7 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_QUARTZ_CLUSTER, 1);
     // setRuneLevel(RUNE_TYPE_ENCHANTED_BRANCH, 1);
     // setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
+    // setRuneLevel(RUNE_TYPE_THUNDER_STONE, 1);
 }
 
 bool runeIsOwned(RuneType type) {
