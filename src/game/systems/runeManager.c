@@ -9,8 +9,8 @@
 #include "game/systems/chainLightningManager.h"
 #include "game/player/player.h"
 
-static void thunderStoneCallback(int runeLevel) {
-    startChainLightningOnNearestEnemy(playerX, playerY, CELL_SIZE * 5, 10, runeLevel);
+static void thunderStoneCallback(float primaryValue, float secondaryValue) {
+    startChainLightningOnNearestEnemy(playerX, playerY, CELL_SIZE * 5, (int)primaryValue, (int)secondaryValue);
 }
 
 RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
@@ -326,12 +326,14 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_THUNDER_STONE] = {
         .nameEN = "Thunder Stone",
         .nameJP = "",
-        .descriptionEN = "Strike a nearby enemy with lightning every {T}s, chaining to {1} enemies for 10 damage.",
+        .descriptionEN = "Strike a nearby enemy with lightning every {T}s for {1} damage, chaining to {2} enemies.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .textureIndex = TEXTURE_RUNE_HEALTHY,
-        .primaryBaseValue   = 1,
-        .primaryPerLevel    = 1,
+        .primaryBaseValue   = 10, // damage
+        .primaryPerLevel    = 0,
+        .secondaryBaseValue = 1, // chain count
+        .secondaryPerLevel  = 1,
         .maxLevel = 3,
         .triggerType = RUNE_TRIGGER_TIME,
         .triggerBaseValue = 5.0f,
@@ -581,7 +583,9 @@ void signalRuneTrigger(RuneTriggerType type, float amount) {
         runeTriggerCounters[i] += amount;
         if (runeTriggerCounters[i] >= threshold) {
             runeTriggerCounters[i] -= threshold;
-            rune->triggerCallback(level);
+            float primaryValue = rune->primaryBaseValue + rune->primaryPerLevel * (level - 1);
+            float secondaryValue = rune->secondaryBaseValue + rune->secondaryPerLevel * (level - 1);
+            rune->triggerCallback(primaryValue, secondaryValue);
         }
     }
 }

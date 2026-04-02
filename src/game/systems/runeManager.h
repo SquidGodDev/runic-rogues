@@ -79,7 +79,7 @@ typedef struct RuneData {
     RuneTriggerType triggerType;
     float triggerBaseValue;
     float triggerPerLevel;
-    void (*triggerCallback)(int runeLevel);
+    void (*triggerCallback)(float primaryValue, float secondaryValue);
 } RuneData;
 
 void initRunes(void);
