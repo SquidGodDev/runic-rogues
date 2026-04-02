@@ -416,7 +416,7 @@ char *getRuneDescription(RuneType type, Language language, int runeLevel) {
     const char *tmpl = (language == LANGUAGE_EN) ? rune->descriptionEN : rune->descriptionJP;
     char *buf        = (language == LANGUAGE_EN) ? descBufferEN : descBufferJP;
 
-    if (strstr(tmpl, "{1}") == NULL && strstr(tmpl, "{2}") == NULL) {
+    if (strstr(tmpl, "{1}") == NULL && strstr(tmpl, "{2}") == NULL && strstr(tmpl, "{T}") == NULL) {
         return (char *)tmpl;
     }
 
@@ -455,6 +455,19 @@ char *getRuneDescription(RuneType type, Language language, int runeLevel) {
         }
         strReplaceFirst(buf, "{2}", svStr);
         pd->system->realloc(svStr, 0);
+    }
+
+    if (strstr(buf, "{T}") != NULL) {
+        float tv = fabsf(rune->triggerBaseValue + rune->triggerPerLevel * (runeLevel - 1));
+        char *tvStr = NULL;
+        if ((float)(int)tv == tv) {
+            pd->system->formatString(&tvStr, "%d", (int)tv);
+        } else {
+            int tenths = (int)roundf(tv * 10);
+            pd->system->formatString(&tvStr, "%d.%d", tenths / 10, tenths % 10);
+        }
+        strReplaceFirst(buf, "{T}", tvStr);
+        pd->system->realloc(tvStr, 0);
     }
 
     return buf;
