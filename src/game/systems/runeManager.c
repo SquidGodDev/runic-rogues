@@ -117,8 +117,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifySpellCooldown
     },
-    [RUNE_TYPE_SLING] = {
-        .nameEN = "Sling",
+    [RUNE_TYPE_SLINGSHOT] = {
+        .nameEN = "Slingshot",
         .nameJP = "",
         .descriptionEN = "Increases basic spell projectile speed by {1}%.",
         .descriptionJP = "",
@@ -359,7 +359,7 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_BROADSWORD, 1);
     // setRuneLevel(RUNE_TYPE_POCKET_WATCH, 1);
     // setRuneLevel(RUNE_TYPE_HOURGLASS, 1);
-    // setRuneLevel(RUNE_TYPE_SLING, 1);
+    // setRuneLevel(RUNE_TYPE_SLINGSHOT, 1);
     // setRuneLevel(RUNE_TYPE_LONGBOW, 1);
     // setRuneLevel(RUNE_TYPE_COPPER_PAN, 1);
     // setRuneLevel(RUNE_TYPE_IRON_GAUNTLET, 1);
