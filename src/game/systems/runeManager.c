@@ -147,8 +147,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .applySpellModifierPrimary = modifyProjectileSpeed,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
-    [RUNE_TYPE_COPPER_PAN] = {
-        .nameEN = "Copper Pan",
+    [RUNE_TYPE_BEAR_PAW] = {
+        .nameEN = "Bear Paw",
         .nameJP = "",
         .descriptionEN = "Basic spell hits knock enemies back further.",
         .descriptionJP = "",
@@ -361,7 +361,7 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_HOURGLASS, 1);
     // setRuneLevel(RUNE_TYPE_SLINGSHOT, 1);
     // setRuneLevel(RUNE_TYPE_LONGBOW, 1);
-    // setRuneLevel(RUNE_TYPE_COPPER_PAN, 1);
+    // setRuneLevel(RUNE_TYPE_BEAR_PAW, 1);
     // setRuneLevel(RUNE_TYPE_IRON_GAUNTLET, 1);
     // setRuneLevel(RUNE_TYPE_FROST_SHARD, 1);
     // setRuneLevel(RUNE_TYPE_ICE_LANCE, 1);
