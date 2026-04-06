@@ -96,10 +96,6 @@ void swapSpells(int spellIndex1, int spellIndex2) {
     spellDeck[spellIndex2] = temp;
 }
 
-int getSpellPickupTextureIndex(Spell spell) {
-    return spellData[spell].pickupTextureIndex;
-}
-
 LCDBitmap* getSpellIcon(Spell spell) {
     return BITMAPS[spellData[spell].spellIconIndex];
 }

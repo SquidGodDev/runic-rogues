@@ -83,7 +83,6 @@ typedef struct SpellData {
     char* name_jp;
     char* description;
     char* description_jp;
-    int pickupTextureIndex;
     int spellIconIndex;
     void (*cast)(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast);
     float cooldown;
@@ -134,7 +133,6 @@ Spell *getSpellDeck(void);
 bool spellInDeck(Spell spell);
 void addSpellToDeck(Spell spell);
 void swapSpells(int spellIndex1, int spellIndex2);
-int getSpellPickupTextureIndex(Spell spell);
 LCDBitmap* getSpellIcon(Spell spell);
 Spell getDeckSpell(int index);
 Spell getBasicSpell(void);
