@@ -64,7 +64,6 @@ typedef struct RuneData {
     char *descriptionEN;
     char *descriptionJP;
     int iconIndex;
-    int textureIndex;
     float primaryBaseValue;
     float primaryPerLevel;
     float secondaryBaseValue;
@@ -92,7 +91,6 @@ bool runeIsMaxLevel(RuneType type);
 char *getRuneName(RuneType type, Language language);
 char *getRuneDescription(RuneType type, Language language, int runeLevel);
 int getRuneIconIndex(RuneType type);
-int getRuneTextureIndex(RuneType type);
 RuneClassFilter getRuneClassFilter(RuneType type);
 float getRuneValue(RuneType type);
 float getRuneSecondaryValue(RuneType type);

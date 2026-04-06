@@ -20,7 +20,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionEN = "Gain {1} health when an enemy is defeated.",
         .descriptionJP = "敵を倒すと体力を回復する。",
         .iconIndex = BITMAP_RUNE_VAMPIRISM,
-        .textureIndex = TEXTURE_RUNE_VAMPIRISM,
         .primaryBaseValue = 2,
         .primaryPerLevel = 2,
         .maxLevel = 3
@@ -31,7 +30,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionEN = "Gain {2} extra dash charge(s) and lower dash cooldown.",
         .descriptionJP = "ダッシュの回数を増やし、ダッシュのクールダウン時間を短縮する。",
         .iconIndex = BITMAP_RUNE_WINGED_BOOTS,
-        .textureIndex = TEXTURE_RUNE_WINGED_BOOTS,
         .primaryBaseValue   = 0.33f,
         .primaryPerLevel    = 0.33f,
         .secondaryBaseValue = 1,
@@ -44,7 +42,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionEN = "Increases maximum health by {1}.",
         .descriptionJP = "最大体力が増加する。",
         .iconIndex = BITMAP_RUNE_HEALTHY,
-        .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryBaseValue = 15,
         .primaryPerLevel = 15,
         .maxLevel = 3
@@ -55,7 +52,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionEN = "Increases movement speed by {1}%.",
         .descriptionJP = "移動速度が増加する。",
         .iconIndex = BITMAP_RUNE_SWIFT,
-        .textureIndex = TEXTURE_RUNE_SWIFT,
         .primaryBaseValue = 0.25f,
         .primaryPerLevel = 0.25f,
         .maxLevel = 3,
@@ -313,7 +309,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .descriptionEN = "Strike a nearby enemy with lightning every {T}s for {1} damage, chaining to {2} enemies.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HEALTHY,
-        .textureIndex = TEXTURE_RUNE_HEALTHY,
         .primaryBaseValue   = 10, // damage
         .primaryPerLevel    = 0,
         .secondaryBaseValue = 1, // chain count
@@ -483,10 +478,6 @@ char *getRuneDescription(RuneType type, Language language, int runeLevel) {
 
 int getRuneIconIndex(RuneType type) {
     return RUNE_DATA[type].iconIndex;
-}
-
-int getRuneTextureIndex(RuneType type) {
-    return RUNE_DATA[type].textureIndex;
 }
 
 RuneClassFilter getRuneClassFilter(RuneType type) {
