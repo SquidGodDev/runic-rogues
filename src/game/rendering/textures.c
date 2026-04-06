@@ -225,9 +225,7 @@ void loadTexture(int textureIndex) {
 void initTextures(void)
 {
 	for (int i = 0; i < TEXTURE_COUNT; i++) {
-		if (i < TEXTURE_SPELL_NONE) {
-			loadTexture(i);
-		}
+		loadTexture(i);
 	}
 
 	// Check if the number of bitmap paths matches the defined count
