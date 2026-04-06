@@ -103,7 +103,23 @@ const char *bitmapPathStrings[] = {
 	"images/runes/vampirism",
 	"images/runes/wingedBoots",
 	"images/runes/healthy",
-	"images/runes/swift"
+	"images/runes/swift",
+	"images/runes/dagger",
+	"images/runes/broadsword",
+	"images/runes/pocketWatch",
+	"images/runes/hourglass",
+	"images/runes/slingshot",
+	"images/runes/longbow",
+	"images/runes/bearPaw",
+	"images/runes/ironGauntlet",
+	"images/runes/frostShard",
+	"images/runes/iceLance",
+	"images/runes/needleAndThread",
+	"images/runes/hammerAndNails",
+	"images/runes/magnifyingGlass",
+	"images/runes/quartzCluster",
+	"images/runes/enchantedAmulet",
+	"images/runes/arcaneStaff"
 };
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];

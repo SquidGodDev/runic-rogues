@@ -3,14 +3,21 @@
   - New attack patterns
   - Second phase
 - Test the new runes
+- Buff system + HUD UI
+- Trigger Rune HUD UI
 - New Runes
-  - Add on hook rune system (every X hits, on damage, on X casts, timer, on dash count)
-    - Code implementation
-    - UI
+  - Trigger runes
+    - On basic cast
+    - On special cast
+    - On dash
+    - On damaged
+    - On damage enemy
+    - On kill enemy
+    - On xp pickup
   - Black hole (every X specials)
-- Rune art
 - Character selection screen
+  - 3D models
+  - Blender -> 1-bit 2D
 - Tutorial
 - Music
 - SFX
-- Rendering optimization (minimize floating point)
