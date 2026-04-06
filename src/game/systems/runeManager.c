@@ -251,8 +251,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .applySpellModifierPrimary = modifyProjectilePierceCount,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
-    [RUNE_TYPE_QUARTZ_SHARD] = {
-        .nameEN = "Quartz Shard",
+    [RUNE_TYPE_MAGNIFYING_GLASS] = {
+        .nameEN = "Magnifying Glass",
         .nameJP = "",
         .descriptionEN = "Basic spell fires {1} additional projectiles in a spread.",
         .descriptionJP = "",
@@ -287,8 +287,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .applySpellModifierSecondary = modifyProjectileSpreadAngle,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
-    [RUNE_TYPE_ENCHANTED_BRANCH] = {
-        .nameEN = "Enchanted Branch",
+    [RUNE_TYPE_ENCHANTED_AMULET] = {
+        .nameEN = "Enchanted Amulet",
         .nameJP = "",
         .descriptionEN = "Basic spells fire {1} additional times.",
         .descriptionJP = "",
@@ -367,9 +367,9 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_ICE_LANCE, 1);
     // setRuneLevel(RUNE_TYPE_NEEDLE_AND_THREAD, 1);
     // setRuneLevel(RUNE_TYPE_HAMMER_AND_NAILS, 1);
-    // setRuneLevel(RUNE_TYPE_QUARTZ_SHARD, 1);
+    // setRuneLevel(RUNE_TYPE_MAGNIFYING_GLASS, 1);
     // setRuneLevel(RUNE_TYPE_QUARTZ_CLUSTER, 1);
-    // setRuneLevel(RUNE_TYPE_ENCHANTED_BRANCH, 1);
+    // setRuneLevel(RUNE_TYPE_ENCHANTED_AMULET, 1);
     // setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
     // setRuneLevel(RUNE_TYPE_THUNDER_STONE, 1);
 }
