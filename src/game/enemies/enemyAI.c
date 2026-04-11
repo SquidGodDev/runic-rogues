@@ -30,7 +30,7 @@ void proximityEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, b
 	if (playerInAttackDistance(index)) {
 		if (curEnemy->attackCooldown <= 0) {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
-			damagePlayer(curEnemyData->attackDamage);
+			damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
 		}
 	} else {
 		curEnemy->attackCooldown = curEnemyData->attackCooldown;
@@ -61,7 +61,7 @@ void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			if (!curEnemy->attackedPlayer && playerInAttackDistance(index)) {
 				curEnemy->attackedPlayer = true;
-				damagePlayer(curEnemyData->attackDamage);
+				damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
 			}
 		}
 
@@ -134,7 +134,7 @@ void rushEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
 		// Damage player if nearby while rushing
 		if (playerInAttackDistance(index)) {
-			damagePlayer(curEnemyData->attackDamage);
+			damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
 		}
 
 		// Once rush timer is over, transition back to idle state
@@ -274,7 +274,7 @@ void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			if (playerInAttackDistance(index)) {
 				curEnemy->attackedPlayer = true;
-				damagePlayer(curEnemyData->attackDamage);
+				damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
 			}
 		}
 
@@ -292,7 +292,7 @@ void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->attackCooldown <= 0 && playerInAttackDistance(index)) {
 		curEnemy->attackCooldown = curEnemyData->attackCooldown;
-		damagePlayer(curEnemyData->attackDamage);
+		damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
 	}
 
 	if (curEnemy->state == ENEMY_STATE_IDLE) {

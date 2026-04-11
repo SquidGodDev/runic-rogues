@@ -111,7 +111,7 @@ void updateProjectiles(float deltaTime) {
 				float distSquared = distanceSquared(curProjectile->x, curProjectile->y, playerX, playerY);
 				if (distSquared < ENEMY_PROJECTILE_COLLISION_RANGE) {
 					collided = true;
-					damagePlayer(curProjectile->damage);
+					damagePlayerFromDirection(curProjectile->damage, curProjectile->x, curProjectile->y);
 				}
 			} else {
 				collided = checkEnemyCollision(

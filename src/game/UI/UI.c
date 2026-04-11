@@ -49,6 +49,27 @@
 
 #define ICON_SIZE 6
 
+#define MAX_DAMAGE_INDICATORS 4
+#define DAMAGE_INDICATOR_FLASH_TIME 0.3f
+#define DAMAGE_INDICATOR_HOLD_TIME  0.2f
+#define DAMAGE_INDICATOR_FADE_TIME  0.3f
+#define DAMAGE_INDICATOR_DURATION   (DAMAGE_INDICATOR_FLASH_TIME + DAMAGE_INDICATOR_HOLD_TIME + DAMAGE_INDICATOR_FADE_TIME)
+#define DAMAGE_INDICATOR_RADIUS 30
+#define DAMAGE_INDICATOR_ARC_SPAN 0.8f
+#define DAMAGE_INDICATOR_ARC_SEGMENTS 8
+#define DAMAGE_INDICATOR_THICKNESS 3
+#define DAMAGE_INDICATOR_OUTLINE 3
+#define DAMAGE_INDICATOR_ARROW_LENGTH 8
+#define DAMAGE_INDICATOR_ARROW_SPREAD 5
+
+typedef struct DamageIndicator {
+    float sourceX;
+    float sourceY;
+    float timer;
+} DamageIndicator;
+
+static DamageIndicator damageIndicators[MAX_DAMAGE_INDICATORS];
+
 static float screenShakeTime;
 static int shakeMagnitude;
 
@@ -81,6 +102,10 @@ void initUI(void) {
 
     exitActive = false;
 
+    for (int i = 0; i < MAX_DAMAGE_INDICATORS; i++) {
+        damageIndicators[i].timer = 0;
+    }
+
     popupImagetableIndex = -1;
 
     for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
@@ -93,6 +118,148 @@ void initUI(void) {
             .frameTime = 0.0f,
             .currentFrameTime = 0.0f
         };
+    }
+}
+
+void addDamageIndicator(float sourceX, float sourceY) {
+    // Find an empty slot or the oldest indicator
+    int bestIndex = 0;
+    float lowestTimer = damageIndicators[0].timer;
+    for (int i = 0; i < MAX_DAMAGE_INDICATORS; i++) {
+        if (damageIndicators[i].timer <= 0) {
+            bestIndex = i;
+            break;
+        }
+        if (damageIndicators[i].timer < lowestTimer) {
+            lowestTimer = damageIndicators[i].timer;
+            bestIndex = i;
+        }
+    }
+    damageIndicators[bestIndex].sourceX = sourceX;
+    damageIndicators[bestIndex].sourceY = sourceY;
+    damageIndicators[bestIndex].timer = DAMAGE_INDICATOR_DURATION;
+}
+
+static void drawDamageIndicators(float deltaTime) {
+    for (int i = 0; i < MAX_DAMAGE_INDICATORS; i++) {
+        if (damageIndicators[i].timer <= 0) {
+            continue;
+        }
+        damageIndicators[i].timer -= deltaTime;
+        if (damageIndicators[i].timer <= 0) {
+            damageIndicators[i].timer = 0;
+            continue;
+        }
+
+        float elapsed = DAMAGE_INDICATOR_DURATION - damageIndicators[i].timer;
+        float fade;
+
+        if (elapsed < DAMAGE_INDICATOR_FLASH_TIME) {
+            // Flash phase: on/off cycles
+            float cycleTime = DAMAGE_INDICATOR_FLASH_TIME / 3.0f;
+            if (fmodf(elapsed, cycleTime) >= cycleTime / 2.0f) {
+                continue;
+            }
+            fade = 1.0f;
+        } else if (elapsed < DAMAGE_INDICATOR_FLASH_TIME + DAMAGE_INDICATOR_HOLD_TIME) {
+            // Hold phase: fully visible
+            fade = 1.0f;
+        } else {
+            // Fade phase: shrink to zero
+            float fadeElapsed = elapsed - DAMAGE_INDICATOR_FLASH_TIME - DAMAGE_INDICATOR_HOLD_TIME;
+            fade = 1.0f - fadeElapsed / DAMAGE_INDICATOR_FADE_TIME;
+        }
+
+        if (fade <= 0) {
+            continue;
+        }
+
+        // Recompute angle each frame so it tracks player turning
+        float angle = atan2f(damageIndicators[i].sourceY - playerY, damageIndicators[i].sourceX - playerX) - playerAngle;
+        while (angle > PI) {
+            angle -= 2 * PI;
+        }
+        while (angle < -PI) {
+            angle += 2 * PI;
+        }
+
+        // Draw arc around screen center pointing toward damage source
+        float screenAngle = angle - PI / 2;
+
+        float cx = SCREEN_WIDTH / 2.0f;
+        float cy = SCREEN_HEIGHT / 2.0f;
+        float arcSpan = DAMAGE_INDICATOR_ARC_SPAN * fade;
+        float radius = DAMAGE_INDICATOR_RADIUS;
+        float innerR = radius - DAMAGE_INDICATOR_THICKNESS / 2.0f;
+        float outerR = radius + DAMAGE_INDICATOR_THICKNESS / 2.0f;
+        float step = arcSpan / DAMAGE_INDICATOR_ARC_SEGMENTS;
+
+        // Black outline: expanded arc behind the white one
+        float outInnerR = innerR - DAMAGE_INDICATOR_OUTLINE;
+        float outOuterR = outerR + DAMAGE_INDICATOR_OUTLINE;
+        float outArcSpan = arcSpan + step * 3;
+        float outStep = outArcSpan / (DAMAGE_INDICATOR_ARC_SEGMENTS + 3);
+        for (int s = 0; s < DAMAGE_INDICATOR_ARC_SEGMENTS + 3; s++) {
+            float a0 = screenAngle - outArcSpan / 2.0f + s * outStep;
+            float a1 = a0 + outStep;
+            int ox0 = (int)(cx + cosf(a0) * outInnerR);
+            int oy0 = (int)(cy + sinf(a0) * outInnerR);
+            int ox1 = (int)(cx + cosf(a1) * outInnerR);
+            int oy1 = (int)(cy + sinf(a1) * outInnerR);
+            int ox2 = (int)(cx + cosf(a0) * outOuterR);
+            int oy2 = (int)(cy + sinf(a0) * outOuterR);
+            int ox3 = (int)(cx + cosf(a1) * outOuterR);
+            int oy3 = (int)(cy + sinf(a1) * outOuterR);
+            pd->graphics->fillTriangle(ox0, oy0, ox1, oy1, ox2, oy2, kColorBlack);
+            pd->graphics->fillTriangle(ox1, oy1, ox2, oy2, ox3, oy3, kColorBlack);
+        }
+
+        // Arrow geometry
+        float arrowLength = DAMAGE_INDICATOR_ARROW_LENGTH * fade;
+        float arrowSpread = DAMAGE_INDICATOR_ARROW_SPREAD * fade;
+        bool drawArrow = arrowLength > 1 && arrowSpread > 1;
+        float dirX = cosf(screenAngle);
+        float dirY = sinf(screenAngle);
+        float perpX = -dirY;
+        float perpY = dirX;
+
+        // Black outline arrow (drawn before white arc so it layers correctly)
+        if (drawArrow) {
+            int outTipX = (int)(cx + dirX * (outerR + arrowLength + DAMAGE_INDICATOR_OUTLINE));
+            int outTipY = (int)(cy + dirY * (outerR + arrowLength + DAMAGE_INDICATOR_OUTLINE));
+            int outBx1 = (int)(cx + dirX * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) + perpX * (arrowSpread + DAMAGE_INDICATOR_OUTLINE));
+            int outBy1 = (int)(cy + dirY * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) + perpY * (arrowSpread + DAMAGE_INDICATOR_OUTLINE));
+            int outBx2 = (int)(cx + dirX * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) - perpX * (arrowSpread + DAMAGE_INDICATOR_OUTLINE));
+            int outBy2 = (int)(cy + dirY * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) - perpY * (arrowSpread + DAMAGE_INDICATOR_OUTLINE));
+            pd->graphics->fillTriangle(outTipX, outTipY, outBx1, outBy1, outBx2, outBy2, kColorBlack);
+        }
+
+        // White arc on top of all outlines
+        for (int s = 0; s < DAMAGE_INDICATOR_ARC_SEGMENTS; s++) {
+            float a0 = screenAngle - arcSpan / 2.0f + s * step;
+            float a1 = a0 + step;
+            int ix0 = (int)(cx + cosf(a0) * innerR);
+            int iy0 = (int)(cy + sinf(a0) * innerR);
+            int ix1 = (int)(cx + cosf(a1) * innerR);
+            int iy1 = (int)(cy + sinf(a1) * innerR);
+            int ix2 = (int)(cx + cosf(a0) * outerR);
+            int iy2 = (int)(cy + sinf(a0) * outerR);
+            int ix3 = (int)(cx + cosf(a1) * outerR);
+            int iy3 = (int)(cy + sinf(a1) * outerR);
+            pd->graphics->fillTriangle(ix0, iy0, ix1, iy1, ix2, iy2, kColorWhite);
+            pd->graphics->fillTriangle(ix1, iy1, ix2, iy2, ix3, iy3, kColorWhite);
+        }
+
+        // White arrow on top of all outlines
+        if (drawArrow) {
+            int tipX = (int)(cx + dirX * (outerR + arrowLength));
+            int tipY = (int)(cy + dirY * (outerR + arrowLength));
+            int bx1 = (int)(cx + dirX * (outerR - 1) + perpX * arrowSpread);
+            int by1 = (int)(cy + dirY * (outerR - 1) + perpY * arrowSpread);
+            int bx2 = (int)(cx + dirX * (outerR - 1) - perpX * arrowSpread);
+            int by2 = (int)(cy + dirY * (outerR - 1) - perpY * arrowSpread);
+            pd->graphics->fillTriangle(tipX, tipY, bx1, by1, bx2, by2, kColorWhite);
+        }
     }
 }
 
@@ -482,6 +649,7 @@ void drawUI(float deltaTime) {
     drawInteractablePrompt();
     drawLevelTimer();
     drawExperienceBar();
+    drawDamageIndicators(deltaTime);
 }
 
 void screenShake(ScreenShakeStrength strength) {

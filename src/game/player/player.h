@@ -14,5 +14,6 @@ int getPlayerInteractableIndex(void);
 void playerDash(void);
 void healPlayer(float amount);
 void damagePlayer(float amount);
+void damagePlayerFromDirection(float amount, float sourceX, float sourceY);
 void drawWeapon(float deltaTime);
 void updatePlayer(float deltaTime);

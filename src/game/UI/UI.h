@@ -14,4 +14,5 @@ void resetShopDescOffset(void);
 void setSpellOverlay(int index, int bitmapTableIndex, float frameTime, int drawX, int drawY);
 void clearSpellOverlay(int index);
 void setArrowPosition(int worldX, int worldY);
+void addDamageIndicator(float sourceX, float sourceY);
 void screenShake(ScreenShakeStrength strength);

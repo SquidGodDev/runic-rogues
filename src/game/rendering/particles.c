@@ -152,7 +152,7 @@ void updateParticles(float deltaTime) {
 			if (curParticle->enemyParticle) {
 				float distSquared = distanceSquared(curParticle->x, curParticle->y, playerX, playerY);
 				if (distSquared < data->damageRadius * data->damageRadius) {
-					damagePlayer(data->damage);
+					damagePlayerFromDirection(data->damage, curParticle->x, curParticle->y);
 				}
 			} else {
 				damageEnemiesInArea(curParticle->x, curParticle->y, data->damageRadius, data->damage);

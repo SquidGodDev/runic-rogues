@@ -506,6 +506,14 @@ void damagePlayer(float amount) {
     }
 }
 
+void damagePlayerFromDirection(float amount, float sourceX, float sourceY) {
+    if (playerState.hitInvincibility > 0 || playerState.dead) {
+        return;
+    }
+    addDamageIndicator(sourceX, sourceY);
+    damagePlayer(amount);
+}
+
 void drawWeapon(float deltaTime) {
 	float lerpSpeed = 0.2f;
 	weaponAnimation.drawX = lerp(weaponAnimation.drawX, weaponAnimation.targetDrawX, lerpSpeed);
