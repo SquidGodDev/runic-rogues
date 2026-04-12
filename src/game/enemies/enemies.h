@@ -113,6 +113,7 @@ void transitionToState(Enemy *enemy, EnemyState newState);
 void initEnemies(void);
 int getEnemiesDefeated(void);
 int getActiveEnemyCount(void);
+int getAliveNonMinionEnemyCount(void);
 int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion);
 void updateEnemies(float deltaTime);
 float getBossHealthPercentage(void);

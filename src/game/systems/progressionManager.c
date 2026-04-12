@@ -11,7 +11,8 @@
 #include "game/map/map.h"
 #include "game/UI/UI.h"
 
-#define LEVEL_UP_EXPERIENCE_BASE 1.0f //10.0f
+#define LEVEL_UP_EXPERIENCE_BASE 10.0f
+#define LEVEL_UP_EXPERIENCE_SCALING 2.0f
 
 static RoomType currentRoomType;
 static Area currentArea;
@@ -56,13 +57,13 @@ void resetProgressionManagerRoomState(void) {
 }
 
 float getExperiencePercentToNextLevel(void) {
-    float levelUpExp = LEVEL_UP_EXPERIENCE_BASE * (curLevel + 1);
+    float levelUpExp = LEVEL_UP_EXPERIENCE_BASE * (curLevel + LEVEL_UP_EXPERIENCE_SCALING);
     return experience / levelUpExp;
 }
 
 void addExperience(float amount) {
     experience += amount;
-    float levelUpExp = LEVEL_UP_EXPERIENCE_BASE * (curLevel + 1);
+    float levelUpExp = LEVEL_UP_EXPERIENCE_BASE * (curLevel + LEVEL_UP_EXPERIENCE_SCALING);
     if (experience >= levelUpExp) {
         experience -= levelUpExp;
         curLevel++;

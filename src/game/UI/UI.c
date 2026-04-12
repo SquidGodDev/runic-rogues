@@ -592,25 +592,33 @@ void drawPopup(float deltaTime) {
     }
 }
 
-void drawLevelTimer(void) {
-    float levelTime = getLevelTimer();
-    if (levelTime <= 0) {
+void drawWaveInfo(void) {
+    if (getBossActive() || isRoomCompleted()) {
         return;
     }
 
-    int minutes = (int)(levelTime / 60);
-    int seconds = (int)(levelTime) % 60;
-
-    char *timeString;
-    pd->system->formatString(&timeString, "%02d:%02d", minutes, seconds);
+    int tracking = -1;
     pd->graphics->pushContext(NULL);
         pd->graphics->setFont(fontSubEN);
-        int tracking = -1;
         pd->graphics->setTextTracking(tracking);
-        int textWidth = pd->graphics->getTextWidth(fontSubEN, timeString, strlen(timeString), kUTF8Encoding, tracking);
-        pd->graphics->drawText(timeString, strlen(timeString), kUTF8Encoding, MINIMAP_X - textWidth / 2, 55);
+
+        int wave = getCurrentWave() + 1;
+        int total = getTotalWaves();
+        char *waveString;
+        pd->system->formatString(&waveString, "Wave %d/%d", wave, total);
+        pd->graphics->drawText(waveString, strlen(waveString), kUTF8Encoding, 4, 14);
+        pd->system->realloc(waveString, 0);
+
+        float levelTime = getLevelTimer();
+        if (levelTime > 0) {
+            int minutes = (int)(levelTime / 60);
+            int seconds = (int)(levelTime) % 60;
+            char *timeString;
+            pd->system->formatString(&timeString, "%02d:%02d", minutes, seconds);
+            pd->graphics->drawText(timeString, strlen(timeString), kUTF8Encoding, 4, 24);
+            pd->system->realloc(timeString, 0);
+        }
     pd->graphics->popContext();
-    pd->system->realloc(timeString, 0);
 }
 
 void drawExperienceBar(void) {
@@ -643,11 +651,11 @@ void drawUI(float deltaTime) {
     drawSpellOverlay(deltaTime);
     drawWeapon(deltaTime);
     drawSpellUI();
-    drawMinimap();
+    // drawMinimap();
     drawExitArrow();
     drawPopup(deltaTime);
     drawInteractablePrompt();
-    drawLevelTimer();
+    drawWaveInfo();
     drawExperienceBar();
     drawDamageIndicators(deltaTime);
 }
