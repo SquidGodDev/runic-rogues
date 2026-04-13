@@ -123,19 +123,6 @@ void initPlayer(void) {
 	dirX = 1;
 	dirY = 0;
 
-	playerAngle = pd->system->getCrankAngle() * CRANK_SENSITIVITY;
-	if (playerAngle < 0) {
-		playerAngle += 2 * PI;
-	} else if (playerAngle >= 2 * PI) {
-		playerAngle -= 2 * PI;
-	}
-	float oldDirX = dirX;
-	dirX = dirX * cosf(playerAngle) - dirY * sinf(playerAngle);
-	dirY = oldDirX * sinf(playerAngle) + dirY * cosf(playerAngle);
-	float oldPlaneX = planeX;
-	planeX = planeX * cosf(playerAngle) - planeY * sinf(playerAngle);
-	planeY = oldPlaneX * sinf(playerAngle) + planeY * cosf(playerAngle);
-
 	movementStats = (PlayerMovementStats) {
 		.turnAcceleration = 5.0f,
 		.turnDrag = 12.5f,
