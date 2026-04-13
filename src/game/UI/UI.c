@@ -447,6 +447,10 @@ void setArrowPosition(int worldX, int worldY) {
     exitWorldY = worldY;
 }
 
+void clearArrow(void) {
+    exitActive = false;
+}
+
 void drawExitArrow(void) {
     if (!exitActive) {
         return;
@@ -592,7 +596,7 @@ void drawPopup(float deltaTime) {
     }
 }
 
-void drawWaveInfo(void) {
+void drawRoomInfo(void) {
     if (getBossActive() || isRoomCompleted()) {
         return;
     }
@@ -602,22 +606,16 @@ void drawWaveInfo(void) {
         pd->graphics->setFont(fontSubEN);
         pd->graphics->setTextTracking(tracking);
 
-        int wave = getCurrentWave() + 1;
-        int total = getTotalWaves();
-        char *waveString;
-        pd->system->formatString(&waveString, "Wave %d/%d", wave, total);
-        pd->graphics->drawText(waveString, strlen(waveString), kUTF8Encoding, 4, 14);
-        pd->system->realloc(waveString, 0);
-
-        float levelTime = getLevelTimer();
-        if (levelTime > 0) {
-            int minutes = (int)(levelTime / 60);
-            int seconds = (int)(levelTime) % 60;
-            char *timeString;
-            pd->system->formatString(&timeString, "%02d:%02d", minutes, seconds);
-            pd->graphics->drawText(timeString, strlen(timeString), kUTF8Encoding, 4, 24);
-            pd->system->realloc(timeString, 0);
+        char *roomString;
+        int roomIndex = getCurrentRoomIndex();
+        int totalRooms = getDungeonRoomCount();
+        if (roomIndex >= totalRooms - 1) {
+            pd->system->formatString(&roomString, "Boss");
+        } else {
+            pd->system->formatString(&roomString, "Room %d/%d", roomIndex + 1, totalRooms - 1);
         }
+        pd->graphics->drawText(roomString, strlen(roomString), kUTF8Encoding, 4, 14);
+        pd->system->realloc(roomString, 0);
     pd->graphics->popContext();
 }
 
@@ -655,7 +653,7 @@ void drawUI(float deltaTime) {
     drawExitArrow();
     drawPopup(deltaTime);
     drawInteractablePrompt();
-    drawWaveInfo();
+    drawRoomInfo();
     drawExperienceBar();
     drawDamageIndicators(deltaTime);
 }

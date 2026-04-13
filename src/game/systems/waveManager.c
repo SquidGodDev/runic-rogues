@@ -5,14 +5,13 @@
 #include "game/systems/progressionManager.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
+#include "game/UI/UI.h"
 
 #define WAVES_PER_ROOM 5
 #define MAX_WAVE_SLOTS 12
 #define ELITE_ENEMY_TYPE_COUNT 4
-#define WAVE_SPAWN_STAGGER 0.15f
-#define WAVE_TRANSITION_DELAY 2.0f
-#define PRE_WAVE_DELAY 1.5f
-#define LEVEL_TIME_LIMIT (4.0f * 60.0f)
+#define WAVE_SPAWN_STAGGER 0.0f
+#define PRE_WAVE_DELAY 0.0f
 
 typedef enum EnemyRole {
     ROLE_BASIC,
@@ -40,7 +39,7 @@ typedef enum WaveState {
     WAVE_STATE_PRE_WAVE,
     WAVE_STATE_SPAWNING,
     WAVE_STATE_ACTIVE,
-    WAVE_STATE_TRANSITION,
+    WAVE_STATE_ROOM_TRANSITION,
     WAVE_STATE_BOSS
 } WaveState;
 
@@ -84,11 +83,12 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
 
 static WaveState waveState;
 static int currentWave;
-static float levelTimer;
+static int currentRoomIndex;
 static float staggerTimer;
 static int spawnIndex;
 static float transitionTimer;
 static bool bossActive;
+static int arrowTargetRoom;
 static EnemyType spawnQueue[MAX_WAVE_SLOTS];
 static int spawnQueueSize;
 
@@ -117,7 +117,7 @@ static void resolveWaveEnemies(int waveIndex) {
 
 static void spawnBoss(void) {
     AreaEnemyPool *pool = &areaPools[getCurrentArea()];
-    Point spawnPosition = getRandomEnemySpawnPosition();
+    Point spawnPosition = getRoomWorldCenter(DUNGEON_ROOM_COUNT - 1);
     killAllNonBossEnemies();
     spawnEnemy(pool->bossType, spawnPosition.x, spawnPosition.y, false /*isMinion*/);
     waveState = WAVE_STATE_BOSS;
@@ -131,13 +131,14 @@ static void beginWaveSpawning(void) {
 }
 
 void initWaveManager(void) {
-    waveState = WAVE_STATE_PRE_WAVE;
+    waveState = WAVE_STATE_ROOM_TRANSITION;
     currentWave = 0;
-    levelTimer = LEVEL_TIME_LIMIT;
+    currentRoomIndex = 0;
     staggerTimer = 0.0f;
     spawnIndex = 0;
     transitionTimer = PRE_WAVE_DELAY;
     bossActive = false;
+    arrowTargetRoom = -1;
     spawnQueueSize = 0;
 }
 
@@ -149,10 +150,6 @@ void setBossActive(bool active) {
     bossActive = active;
 }
 
-float getLevelTimer(void) {
-    return levelTimer;
-}
-
 int getCurrentWave(void) {
     return currentWave;
 }
@@ -161,14 +158,12 @@ int getTotalWaves(void) {
     return WAVES_PER_ROOM;
 }
 
+int getCurrentRoomIndex(void) {
+    return currentRoomIndex;
+}
+
 void updateWaveManager(float deltaTime) {
     if (bossActive || isRoomCompleted()) {
-        return;
-    }
-
-    levelTimer -= deltaTime;
-    if (levelTimer <= 0) {
-        spawnBoss();
         return;
     }
 
@@ -183,7 +178,7 @@ void updateWaveManager(float deltaTime) {
         case WAVE_STATE_SPAWNING:
             staggerTimer -= deltaTime;
             if (staggerTimer <= 0 && spawnIndex < spawnQueueSize) {
-                Point spawnPosition = getRandomEnemySpawnPosition();
+                Point spawnPosition = getRoomSpawnPosition(currentRoomIndex, spawnIndex);
                 spawnEnemy(spawnQueue[spawnIndex], spawnPosition.x, spawnPosition.y, false /*isMinion*/);
                 spawnIndex++;
                 staggerTimer = WAVE_SPAWN_STAGGER;
@@ -194,23 +189,39 @@ void updateWaveManager(float deltaTime) {
             break;
 
         case WAVE_STATE_ACTIVE:
-            if (getAliveNonMinionEnemyCount() == 0) {
+            if (getActiveEnemyCount() == 0) {
                 currentWave++;
-                if (currentWave >= WAVES_PER_ROOM) {
-                    spawnBoss();
-                } else {
-                    waveState = WAVE_STATE_TRANSITION;
-                    transitionTimer = WAVE_TRANSITION_DELAY;
-                }
+                int gateIndex = (currentWave >= WAVES_PER_ROOM) ? WAVE_ROOM_COUNT - 1 : currentWave - 1;
+                openRoomGate(gateIndex);
+                int targetRoom = (currentWave >= WAVES_PER_ROOM) ? DUNGEON_ROOM_COUNT - 1 : currentWave;
+                Point targetCenter = getRoomWorldCenter(targetRoom);
+                setArrowPosition(targetCenter.x, targetCenter.y);
+                arrowTargetRoom = targetRoom;
+                waveState = WAVE_STATE_ROOM_TRANSITION;
             }
             break;
 
-        case WAVE_STATE_TRANSITION:
-            transitionTimer -= deltaTime;
-            if (transitionTimer <= 0) {
-                beginWaveSpawning();
+        case WAVE_STATE_ROOM_TRANSITION: {
+            int targetRoom = (currentWave >= WAVES_PER_ROOM) ? DUNGEON_ROOM_COUNT - 1 : currentWave;
+            if (getPlayerCurrentRoom() == targetRoom) {
+                clearArrow();
+                arrowTargetRoom = -1;
+                if (currentWave == 0) {
+                    closeEntranceGate();
+                } else {
+                    int gateIndex = (currentWave >= WAVES_PER_ROOM) ? WAVE_ROOM_COUNT - 1 : currentWave - 1;
+                    closeRoomGate(gateIndex);
+                }
+                if (currentWave >= WAVES_PER_ROOM) {
+                    spawnBoss();
+                } else {
+                    currentRoomIndex = targetRoom;
+                    waveState = WAVE_STATE_PRE_WAVE;
+                    transitionTimer = PRE_WAVE_DELAY;
+                }
             }
             break;
+        }
 
         case WAVE_STATE_BOSS:
             break;

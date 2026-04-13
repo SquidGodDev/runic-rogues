@@ -329,8 +329,9 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				transitionToState(curEnemy, ENEMY_STATE_IDLE);
 				curEnemy->stateTimer = WRAITH_BOSS_ATTACK3_TIME;
 				curEnemy->nextState = WRAITH_STATE_DASH;
-				curEnemy->targetX = MAP_WIDTH / 2 * CELL_SIZE;
-				curEnemy->targetY = MAP_HEIGHT / 2 * CELL_SIZE;
+				Point bossRoomCenter = getRoomWorldCenter(DUNGEON_ROOM_COUNT - 1);
+				curEnemy->targetX = bossRoomCenter.x;
+				curEnemy->targetY = bossRoomCenter.y;
 				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x, curEnemy->y, true /*isMinion*/);
 				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x - CELL_SIZE, curEnemy->y, true /*isMinion*/);
 				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x + CELL_SIZE, curEnemy->y, true /*isMinion*/);

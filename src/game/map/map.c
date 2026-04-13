@@ -7,9 +7,11 @@
 #include "game/systems/progressionManager.h"
 #include "game/entities/pickups.h"
 #include "game/UI/UI.h"
+#include "game/player/player.h"
 
 #define PLAYDATE_SDK 1
 
+// Campfire room layout (unchanged)
 typedef struct RoomLayout {
     int mapWidth;
     int mapHeight;
@@ -17,62 +19,54 @@ typedef struct RoomLayout {
     Point exitMapPosition;
 } RoomLayout;
 
-#define CAMPFIRE_ROOM_WIDTH MAP_WIDTH / 2
-#define CAMPFIRE_ROOM_HEIGHT MAP_HEIGHT / 2
+static RoomLayout campfireLayout = {
+    .mapWidth = 14,
+    .mapHeight = 5,
+    .playerSpawnMapPosition = {.x = 1, .y = 2},
+    .exitMapPosition = {.x = 10, .y = 2}
+};
+
 #define MAP_PADDING 4
 
-RoomLayout roomLayouts[ROOM_TYPE_COUNT] = {
-    [ROOM_TYPE_ENEMY] = (RoomLayout){
-        .mapWidth = MAP_WIDTH,
-        .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
-        .exitMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
-    },
-    [ROOM_TYPE_ELITE] = (RoomLayout){
-        .mapWidth = MAP_WIDTH,
-        .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
-        .exitMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
-    },
-    [ROOM_TYPE_CAMPFIRE] = (RoomLayout){
-        .mapWidth = 14,
-        .mapHeight = 5,
-        .playerSpawnMapPosition = {.x = 1, .y = 2},
-        .exitMapPosition = {.x = 10, .y = 2}
-    },
-    [ROOM_TYPE_BOSS] = (RoomLayout){
-        .mapWidth = MAP_WIDTH,
-        .mapHeight = MAP_HEIGHT,
-        .playerSpawnMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_HEIGHT / 2},
-        .exitMapPosition = {.x = MAP_WIDTH / 2, .y = MAP_PADDING - 3}
-    }
-};
+// Multi-room dungeon data
+typedef struct DungeonRoom {
+    int interiorMinX, interiorMinY;
+    int interiorMaxX, interiorMaxY;
+    int centerX, centerY;
+} DungeonRoom;
+
+#define MAX_GATE_CELLS 15
+
+typedef struct RoomGate {
+    int cellCount;
+    Point cells[MAX_GATE_CELLS];
+} RoomGate;
+
+static DungeonRoom dungeonRooms[DUNGEON_ROOM_COUNT];
+static RoomGate roomGates[DUNGEON_ROOM_COUNT - 1];
+static RoomGate entranceGate;
 
 static RoomType curRoomType;
 
 int map[MAP_WIDTH * MAP_HEIGHT];
 
-typedef struct Rect {
-    int x, y, width, height;
-} Rect;
-
-typedef struct Node {
-    Rect region;
-    Rect room;
-    struct Node* left;
-    struct Node* right;
-} Node;
-
 void printMap(void) {
     for (int y = 0; y < MAP_HEIGHT; y++) {
-        char rowString[MAP_WIDTH * 2];
+        char rowString[MAP_WIDTH * 2 + 1];
         for (int x = 0; x < MAP_WIDTH; x++) {
             int mapValue = map[y * MAP_WIDTH + x];
-            rowString[x*2] = mapValue == 1 ? '#' : '.';
+            if (mapValue == MAP_GATE) {
+                rowString[x*2] = 'G';
+            } else if (mapValue == MAP_WALL) {
+                rowString[x*2] = '#';
+            } else {
+                rowString[x*2] = '.';
+            }
             rowString[x*2 + 1] = ' ';
         }
+        rowString[MAP_WIDTH * 2] = '\0';
         #if PLAYDATE_SDK
-            pd->system->logToConsole("%s\n", rowString);
+            pd->system->logToConsole("%s", rowString);
         #else
             printf("%s\n", rowString);
         #endif
@@ -91,102 +85,161 @@ void setCell(int x, int y, int value) {
     }
 }
 
+static void carveRoom(int minX, int minY, int maxX, int maxY) {
+    for (int y = minY; y <= maxY; y++) {
+        for (int x = minX; x <= maxX; x++) {
+            setCell(x, y, MAP_FLOOR);
+        }
+    }
+}
+
 void encloseMapInWalls(int width, int height) {
     for (int x = MAP_PADDING; x < width - MAP_PADDING; x++) {
         if (x == width / 2) {
-            setCell(x, MAP_PADDING, MAP_GATE); // Top row
-            setCell(x, height - MAP_PADDING - 1, MAP_GATE); // Bottom row
+            setCell(x, MAP_PADDING, MAP_GATE);
+            setCell(x, height - MAP_PADDING - 1, MAP_GATE);
         } else {
-            setCell(x, MAP_PADDING, MAP_WALL); // Top row
-            setCell(x, height - MAP_PADDING - 1, MAP_WALL); // Bottom row
+            setCell(x, MAP_PADDING, MAP_WALL);
+            setCell(x, height - MAP_PADDING - 1, MAP_WALL);
         }
     }
     for (int y = MAP_PADDING; y < height - MAP_PADDING; y++) {
         if (y == height / 2) {
-            setCell(MAP_PADDING, y, MAP_GATE); // Left column
-            setCell(width - MAP_PADDING - 1, y, MAP_GATE); // Right column
+            setCell(MAP_PADDING, y, MAP_GATE);
+            setCell(width - MAP_PADDING - 1, y, MAP_GATE);
         } else {
-            setCell(MAP_PADDING, y, MAP_WALL); // Left column
-            setCell(width - MAP_PADDING - 1, y, MAP_WALL); // Right column
+            setCell(MAP_PADDING, y, MAP_WALL);
+            setCell(width - MAP_PADDING - 1, y, MAP_WALL);
         }
     }
 }
 
+static void generateMultiRoomDungeon(void) {
+    fillMap(MAP_WALL);
+
+    // Start hallway: x=[1,5] floor, y=5. Entrance gate tracks x=5 to close behind player.
+    for (int x = 1; x <= 5; x++) {
+        setCell(x, 5, MAP_FLOOR);
+    }
+    entranceGate = (RoomGate){ .cellCount = 1 };
+    entranceGate.cells[0] = (Point){.x = 5, .y = 5};
+
+    // Wave rooms: 5 rooms of 9x9 interior, stride 14 (9 room + 5 hallway)
+    int waveRoomInteriorSize = 9;
+    int hallwayLength = 5;
+    for (int i = 0; i < WAVE_ROOM_COUNT; i++) {
+        int minX = 6 + i * (waveRoomInteriorSize + hallwayLength);
+        int minY = 1;
+        int maxX = minX + waveRoomInteriorSize - 1;
+        int maxY = minY + waveRoomInteriorSize - 1;
+        dungeonRooms[i] = (DungeonRoom){
+            .interiorMinX = minX, .interiorMinY = minY,
+            .interiorMaxX = maxX, .interiorMaxY = maxY,
+            .centerX = (minX + maxX) / 2, .centerY = (minY + maxY) / 2
+        };
+        carveRoom(minX, minY, maxX, maxY);
+    }
+
+    // Boss room: 15x15 interior, below Room 4 (minX=62, maxX=70, centerX=66, maxY=9)
+    // Entrance hallway at y=[10,14], boss room starts at y=15
+    dungeonRooms[DUNGEON_ROOM_COUNT - 1] = (DungeonRoom){
+        .interiorMinX = 59, .interiorMinY = 15,
+        .interiorMaxX = 73, .interiorMaxY = 29,
+        .centerX = 66, .centerY = 22
+    };
+    carveRoom(59, 15, 73, 29);
+
+    // Inter-room gates: 5-cell hallways (1 gate column + 4 wall columns), 1 cell wide at centerY
+    for (int i = 0; i < WAVE_ROOM_COUNT - 1; i++) {
+        int gateX = dungeonRooms[i].interiorMaxX + 1;
+        int gateY = dungeonRooms[i].centerY;
+        int cellIdx = 0;
+        RoomGate gate = { .cellCount = 0 };
+
+        // Front column: MAP_GATE
+        setCell(gateX, gateY, MAP_GATE);
+        gate.cells[cellIdx++] = (Point){.x = gateX, .y = gateY};
+        // Hallway columns: remain MAP_WALL, opened with gate
+        for (int dx = 1; dx <= 4; dx++) {
+            gate.cells[cellIdx++] = (Point){.x = gateX + dx, .y = gateY};
+        }
+        gate.cellCount = cellIdx;
+        roomGates[i] = gate;
+    }
+
+    // Boss gate: 5-cell vertical hallway (1 gate row + 4 wall rows), 3 cells wide
+    // Centered at x=66 (room 4 centerX), connecting room 4 bottom to boss room top
+    {
+        int hallMinX = 65;
+        int hallMaxX = 67;
+        int gateY = dungeonRooms[WAVE_ROOM_COUNT - 1].interiorMaxY + 1;
+        int cellIdx = 0;
+        RoomGate gate = { .cellCount = 0 };
+
+        // Front row: MAP_GATE
+        for (int x = hallMinX; x <= hallMaxX; x++) {
+            setCell(x, gateY, MAP_GATE);
+            gate.cells[cellIdx++] = (Point){.x = x, .y = gateY};
+        }
+        // Hallway rows: remain MAP_WALL, opened with gate
+        for (int dy = 1; dy <= 4; dy++) {
+            for (int x = hallMinX; x <= hallMaxX; x++) {
+                gate.cells[cellIdx++] = (Point){.x = x, .y = gateY + dy};
+            }
+        }
+        gate.cellCount = cellIdx;
+        roomGates[WAVE_ROOM_COUNT - 1] = gate;
+    }
+}
+
+static void generateCampfireDungeon(void) {
+    fillMap(MAP_FLOOR);
+    int width = campfireLayout.mapWidth;
+    int height = campfireLayout.mapHeight;
+    encloseMapInWalls(width, height);
+    addInteractable(width / 3, height / 2, INTERACTABLE_TYPE_CAMPFIRE);
+    spawnExit();
+}
+
 Point getPlayerSpawnMapPosition(void) {
-    return roomLayouts[curRoomType].playerSpawnMapPosition;
+    if (curRoomType == ROOM_TYPE_CAMPFIRE) {
+        return campfireLayout.playerSpawnMapPosition;
+    }
+    return (Point){.x = 1, .y = 5};
 }
 
 Point getExitMapPosition(void) {
-    return roomLayouts[curRoomType].exitMapPosition;
-}
-
-Point getRandomEnemySpawnPosition(void) {
-    int x, y;
-    int randNum = randInt(0, 3);
-    int width = roomLayouts[curRoomType].mapWidth;
-    int height = roomLayouts[curRoomType].mapHeight;
-    if (randNum == 0) {
-        x = (MAP_PADDING + 1) * CELL_SIZE;
-        y = (height / 2) * CELL_SIZE + CELL_SIZE / 2;
-    } else if (randNum == 1) {
-        x = (width / 2) * CELL_SIZE + CELL_SIZE / 2;
-        y = (MAP_PADDING + 1) * CELL_SIZE;
-    } else if (randNum == 2) {
-        x = (width - MAP_PADDING - 1) * CELL_SIZE;
-        y = (height / 2) * CELL_SIZE + CELL_SIZE / 2;
-    } else {
-        x = (width / 2) * CELL_SIZE + CELL_SIZE / 2;
-        y = (height - MAP_PADDING - 1) * CELL_SIZE;
+    if (curRoomType == ROOM_TYPE_CAMPFIRE) {
+        return campfireLayout.exitMapPosition;
     }
-    return (Point){.x = x, .y = y};
-}
-
-Point getBossSpawnPosition(void) {
-    int width = roomLayouts[curRoomType].mapWidth;
-    int height = roomLayouts[curRoomType].mapHeight;
-    int x = (width - MAP_PADDING - 1) * CELL_SIZE;
-    int y = (height / 2) * CELL_SIZE + CELL_SIZE / 2;
-    return (Point){.x = x, .y = y};
+    // Exit in the boss room, offset south of center
+    DungeonRoom *bossRoom = &dungeonRooms[DUNGEON_ROOM_COUNT - 1];
+    return (Point){.x = bossRoom->centerX, .y = bossRoom->interiorMaxY - 1};
 }
 
 Point getShopMapPosition(void) {
-    return (Point){.x = MAP_WIDTH / 2, .y = MAP_PADDING - 1};
+    // Place shop at the north wall of the first wave room
+    return (Point){.x = dungeonRooms[0].centerX, .y = dungeonRooms[0].interiorMinY - 1};
 }
 
-void carveOutExitArea(void) {
-    setCell(MAP_WIDTH / 2, MAP_PADDING, MAP_FLOOR);
-    setCell(MAP_WIDTH / 2 - 1, MAP_PADDING, MAP_FLOOR);
-    setCell(MAP_WIDTH / 2 + 1, MAP_PADDING, MAP_FLOOR);
-    setCell(MAP_WIDTH / 2 - 2, MAP_PADDING - 1, MAP_WALL);
-    setCell(MAP_WIDTH / 2 - 2, MAP_PADDING - 2, MAP_WALL);
-    setCell(MAP_WIDTH / 2 - 2, MAP_PADDING - 3, MAP_WALL);
-    setCell(MAP_WIDTH / 2 - 1, MAP_PADDING - 3, MAP_WALL);
-    setCell(MAP_WIDTH / 2 - 1, MAP_PADDING - 4, MAP_WALL);
-    setCell(MAP_WIDTH / 2 + 2, MAP_PADDING - 1, MAP_WALL);
-    setCell(MAP_WIDTH / 2 + 2, MAP_PADDING - 2, MAP_WALL);
-    setCell(MAP_WIDTH / 2 + 2, MAP_PADDING - 3, MAP_WALL);
-    setCell(MAP_WIDTH / 2 + 1, MAP_PADDING - 3, MAP_WALL);
-    setCell(MAP_WIDTH / 2 + 1, MAP_PADDING - 4, MAP_WALL);
-    setCell(MAP_WIDTH / 2, MAP_PADDING - 4, MAP_WALL);
+static void carveOutExitArea(void) {
+    DungeonRoom *bossRoom = &dungeonRooms[DUNGEON_ROOM_COUNT - 1];
+    int exitX = bossRoom->centerX;
+    int exitBaseY = bossRoom->interiorMaxY;
+
+    // Carve a small alcove south of the boss room for the exit
+    setCell(exitX, exitBaseY + 1, MAP_FLOOR);
+    setCell(exitX - 1, exitBaseY + 1, MAP_WALL);
+    setCell(exitX + 1, exitBaseY + 1, MAP_WALL);
 }
 
 void spawnExit(void) {
-    carveOutExitArea();
+    if (curRoomType != ROOM_TYPE_CAMPFIRE) {
+        carveOutExitArea();
+    }
     Point exitMapPosition = getExitMapPosition();
     addInteractable(exitMapPosition.x, exitMapPosition.y, INTERACTABLE_TYPE_EXIT);
     setArrowPosition(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);
-}
-
-void generateSquareDungeon(void) {
-    fillMap(MAP_FLOOR);
-    int width = roomLayouts[curRoomType].mapWidth;
-    int height = roomLayouts[curRoomType].mapHeight;
-    encloseMapInWalls(width, height);
-
-    if (curRoomType == ROOM_TYPE_CAMPFIRE) {
-        addInteractable(width / 3, height / 2, INTERACTABLE_TYPE_CAMPFIRE);
-        spawnExit();
-    }
 }
 
 void getRandomEmptyMapPosition(int *mapX, int *mapY) {
@@ -198,12 +251,102 @@ void getRandomEmptyMapPosition(int *mapX, int *mapY) {
 
 void initMap(void) {
     curRoomType = getCurrentRoomType();
-    generateSquareDungeon();
+    if (curRoomType == ROOM_TYPE_CAMPFIRE) {
+        generateCampfireDungeon();
+    } else {
+        generateMultiRoomDungeon();
+    }
     // printMap();
 }
 
 int isBlocked(int x, int y) {
     return map[y * MAP_WIDTH + x] != 0;
+}
+
+// --- Dungeon room query functions ---
+
+int getDungeonRoomCount(void) {
+    return DUNGEON_ROOM_COUNT;
+}
+
+Point getRoomCenter(int roomIndex) {
+    return (Point){.x = dungeonRooms[roomIndex].centerX, .y = dungeonRooms[roomIndex].centerY};
+}
+
+Point getRoomWorldCenter(int roomIndex) {
+    return (Point){
+        .x = dungeonRooms[roomIndex].centerX * CELL_SIZE + CELL_SIZE / 2,
+        .y = dungeonRooms[roomIndex].centerY * CELL_SIZE + CELL_SIZE / 2
+    };
+}
+
+Point getRoomSpawnPosition(int roomIndex, int spawnSlot) {
+    DungeonRoom *room = &dungeonRooms[roomIndex];
+    // Anchor spawns at the far side of the room (away from the left-side entrance hallway)
+    int fx = room->interiorMaxX - 2;
+    int cy = room->centerY;
+    int mapX, mapY;
+
+    switch (spawnSlot) {
+        case 0: mapX = fx;     mapY = cy;     break;
+        case 1: mapX = fx - 1; mapY = cy - 1; break;
+        case 2: mapX = fx + 1; mapY = cy - 1; break;
+        case 3: mapX = fx - 1; mapY = cy + 1; break;
+        case 4: mapX = fx + 1; mapY = cy + 1; break;
+        case 5: mapX = fx - 2; mapY = cy;     break;
+        case 6: mapX = fx + 2; mapY = cy;     break;
+        case 7: mapX = fx;     mapY = cy - 2; break;
+        case 8: mapX = fx;     mapY = cy + 2; break;
+        default: {
+            mapX = randInt((room->interiorMinX + room->interiorMaxX) / 2, room->interiorMaxX - 1);
+            mapY = randInt(room->interiorMinY + 1, room->interiorMaxY - 1);
+            break;
+        }
+    }
+
+    // Clamp to interior
+    if (mapX < room->interiorMinX) { mapX = room->interiorMinX; }
+    if (mapX > room->interiorMaxX) { mapX = room->interiorMaxX; }
+    if (mapY < room->interiorMinY) { mapY = room->interiorMinY; }
+    if (mapY > room->interiorMaxY) { mapY = room->interiorMaxY; }
+
+    return (Point){
+        .x = mapX * CELL_SIZE + CELL_SIZE / 2,
+        .y = mapY * CELL_SIZE + CELL_SIZE / 2
+    };
+}
+
+void closeEntranceGate(void) {
+    for (int i = 0; i < entranceGate.cellCount; i++) {
+        setCell(entranceGate.cells[i].x, entranceGate.cells[i].y, MAP_WALL);
+    }
+}
+
+void openRoomGate(int gateIndex) {
+    RoomGate *gate = &roomGates[gateIndex];
+    for (int i = 0; i < gate->cellCount; i++) {
+        setCell(gate->cells[i].x, gate->cells[i].y, MAP_FLOOR);
+    }
+}
+
+void closeRoomGate(int gateIndex) {
+    RoomGate *gate = &roomGates[gateIndex];
+    for (int i = 0; i < gate->cellCount; i++) {
+        setCell(gate->cells[i].x, gate->cells[i].y, MAP_WALL);
+    }
+}
+
+int getPlayerCurrentRoom(void) {
+    int cellX = (int)playerX / CELL_SIZE;
+    int cellY = (int)playerY / CELL_SIZE;
+    for (int i = 0; i < DUNGEON_ROOM_COUNT; i++) {
+        DungeonRoom *room = &dungeonRooms[i];
+        if (cellX >= room->interiorMinX && cellX <= room->interiorMaxX &&
+            cellY >= room->interiorMinY && cellY <= room->interiorMaxY) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 // From James Howard's Catacombs of the Damned: https://github.com/jhhoward/Arduboy3D
@@ -377,7 +520,7 @@ void castRayToWall(float x1, float y1, float x2, float y2, float *targetX, float
     return;
 }
 
-#define MAX_FIELD_DEPTH 12
+#define MAX_FIELD_DEPTH 24
 Point checkRayCollision(float startX, float startY, float angle, float distance) {
     float rayX = startX;
     float rayY = startY;
@@ -488,28 +631,3 @@ Point checkRayCollision(float startX, float startY, float angle, float distance)
     Point hitPoint = { rayX, rayY };
     return hitPoint;
 }
-
-
-/* Lua program to create basic map
-================================
-local width = 20
-local height = 12
-
-for h = 1, height do
-    local rowString = ""
-    for w = 1, width do
-        local cell = "0, "
-        if w == width then
-        if h == height then
-            cell = "1"
-        else
-            cell = "1,"
-        end
-        elseif h == 1 or h == height or w == 1 then
-            cell = "1, "
-        end
-        rowString = rowString .. cell
-    end
-    print(rowString)
-end
-*/
