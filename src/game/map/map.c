@@ -222,22 +222,8 @@ Point getShopMapPosition(void) {
     return (Point){.x = dungeonRooms[0].centerX, .y = dungeonRooms[0].interiorMinY - 1};
 }
 
-static void carveOutExitArea(void) {
-    DungeonRoom *bossRoom = &dungeonRooms[DUNGEON_ROOM_COUNT - 1];
-    int exitX = bossRoom->centerX;
-    int exitBaseY = bossRoom->interiorMaxY;
-
-    // Carve a small alcove south of the boss room for the exit
-    setCell(exitX, exitBaseY + 1, MAP_FLOOR);
-    setCell(exitX - 1, exitBaseY + 1, MAP_WALL);
-    setCell(exitX + 1, exitBaseY + 1, MAP_WALL);
-}
-
 void spawnExit(void) {
-    if (curRoomType != ROOM_TYPE_CAMPFIRE) {
-        carveOutExitArea();
-    }
-    Point exitMapPosition = getExitMapPosition();
+    Point exitMapPosition = getRoomCenter(DUNGEON_ROOM_COUNT - 1);
     addInteractable(exitMapPosition.x, exitMapPosition.y, INTERACTABLE_TYPE_EXIT);
     setArrowPosition(exitMapPosition.x * CELL_SIZE + CELL_SIZE / 2, exitMapPosition.y * CELL_SIZE + CELL_SIZE / 2);
 }
