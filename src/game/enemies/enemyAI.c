@@ -363,6 +363,93 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	}
 }
 
-#undef WRAITH_STATE_DASH
-#undef WRAITH_STATE_PROJECTILE
-#undef WRAITH_STATE_SUMMON
+// === Circling charge constants ===
+#define CIRCLING_RANGE   48.0f   // ~3 cells: distance at which enemy starts circling/pausing
+#define ORBIT_RADIUS     48.0f   // orbit distance from player during circling
+#define ORBIT_LEAD       0.15f   // radians ahead of current angle for orbit target (must keep target > 5 units from enemy)
+#define STUN_DURATION    1.5f    // seconds stunned after charge
+#define CIRCLE_TIME_MIN  1.2f    // min seconds in PREP before charge
+#define CIRCLE_TIME_MAX  2.8f    // max seconds in PREP before charge
+
+static void setupCharge(Enemy *curEnemy) {
+    float wallX, wallY;
+    castRayToWall(curEnemy->x, curEnemy->y, playerX, playerY, &wallX, &wallY);
+    curEnemy->targetX = wallX;
+    curEnemy->targetY = wallY;
+    curEnemy->attackedPlayer = false;
+}
+
+void circlingChargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+    if (curEnemy->state == ENEMY_STATE_IDLE) {
+        float distSq = distanceSquared(curEnemy->x, curEnemy->y, playerX, playerY);
+        if (distSq <= CIRCLING_RANGE * CIRCLING_RANGE) {
+            curEnemy->stateCount = (randInt(0, 1) == 0) ? 1 : -1;
+            curEnemy->stateTimer = randFloat(CIRCLE_TIME_MIN, CIRCLE_TIME_MAX);
+            transitionToState(curEnemy, ENEMY_STATE_PREP);
+        } else {
+            moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+        }
+    } else if (curEnemy->state == ENEMY_STATE_PREP) {
+        float dx = curEnemy->x - playerX;
+        float dy = curEnemy->y - playerY;
+        float angle = atan2f(dy, dx) + ORBIT_LEAD * curEnemy->stateCount;
+        float orbitX = playerX + cosf(angle) * ORBIT_RADIUS;
+        float orbitY = playerY + sinf(angle) * ORBIT_RADIUS;
+        moveEnemy(curEnemy, index, orbitX, orbitY, curEnemyData->moveSpeed);
+
+        if (curEnemy->stateTimer <= 0) {
+            setupCharge(curEnemy);
+            transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+        }
+    } else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+        if (playerInAttackDistance(index) && !curEnemy->attackedPlayer) {
+            curEnemy->attackedPlayer = true;
+            damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
+        }
+        moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
+        float dtx = curEnemy->targetX - curEnemy->x;
+        float dty = curEnemy->targetY - curEnemy->y;
+        if (dtx * dtx + dty * dty <= 64.0f) {
+            curEnemy->stateTimer = STUN_DURATION;
+            transitionToState(curEnemy, ENEMY_STATE_ATTACK_2);
+        }
+    } else if (curEnemy->state == ENEMY_STATE_ATTACK_2) {
+        if (curEnemy->stateTimer <= 0) {
+            transitionToState(curEnemy, ENEMY_STATE_IDLE);
+        }
+    }
+}
+
+void chargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+    if (curEnemy->state == ENEMY_STATE_IDLE) {
+        float distSq = distanceSquared(curEnemy->x, curEnemy->y, playerX, playerY);
+        if (distSq <= CIRCLING_RANGE * CIRCLING_RANGE) {
+            curEnemy->stateCount = (randInt(0, 1) == 0) ? 1 : -1;
+            curEnemy->stateTimer = randFloat(CIRCLE_TIME_MIN, CIRCLE_TIME_MAX);
+            transitionToState(curEnemy, ENEMY_STATE_PREP);
+        } else {
+            moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+        }
+    } else if (curEnemy->state == ENEMY_STATE_PREP) {
+        if (curEnemy->stateTimer <= 0) {
+            setupCharge(curEnemy);
+            transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+        }
+    } else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+        if (playerInAttackDistance(index) && !curEnemy->attackedPlayer) {
+            curEnemy->attackedPlayer = true;
+            damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
+        }
+        moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
+        float dtx = curEnemy->targetX - curEnemy->x;
+        float dty = curEnemy->targetY - curEnemy->y;
+        if (dtx * dtx + dty * dty <= 64.0f) {
+            curEnemy->stateTimer = STUN_DURATION;
+            transitionToState(curEnemy, ENEMY_STATE_ATTACK_2);
+        }
+    } else if (curEnemy->state == ENEMY_STATE_ATTACK_2) {
+        if (curEnemy->stateTimer <= 0) {
+            transitionToState(curEnemy, ENEMY_STATE_IDLE);
+        }
+    }
+}
