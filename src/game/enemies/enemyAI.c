@@ -44,11 +44,12 @@ void proximityEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, b
 
 void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
-		// Start attacking if player is in range
+		// Begin prep phase if player is in range and cooldown is ready
 		if (playerInAttackDetectionRange(index)) {
 			if (curEnemy->attackCooldown <= 0) {
 				curEnemy->attackCooldown = curEnemyData->attackCooldown;
-				transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+				curEnemy->stateTimer = curEnemyData->prepTime;
+				transitionToState(curEnemy, ENEMY_STATE_PREP);
 			}
 		} else {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
@@ -56,6 +57,10 @@ void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 
 		// Move towards player
 		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+	} else if (curEnemy->state == ENEMY_STATE_PREP) {
+		if (curEnemy->stateTimer <= 0) {
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+		}
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
 		// Damage player once attack animation passes active frame
 		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
@@ -65,10 +70,16 @@ void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 			}
 		}
 
-		// Transition back to idle state after attack animation ends
+		// Transition to post attack state after attack animation ends
 		if (attackAnimationReset) {
 			curEnemy->attackedPlayer = false;
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			curEnemy->stateTimer = curEnemyData->postAttackTime;
+			curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
+			transitionToState(curEnemy, ENEMY_STATE_POST_ATTACK);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_POST_ATTACK) {
+		if (curEnemy->stateTimer <= 0) {
 			transitionToState(curEnemy, ENEMY_STATE_IDLE);
 		}
 	}

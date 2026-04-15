@@ -101,15 +101,19 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_SKELETON] = (EnemyData){
 		.name = "Skeleton",
 		.health = 50,
-		.attackDetectionRange = 15,
-		.attackDistance = 20,
+		.attackDetectionRange = 25,
+		.attackDistance = 25,
 		.attackDamage = 20,
 		.attackCooldown = 1.0f,
 		.moveSpeed = 0.25f,
+		.prepTime = 1.5f,
+		.postAttackTime = 1.0f,
 		.textureIndex = TEXTURE_SKELETON,
 		.idleFrameEnd = 6,
-		.attackFrameStart = 7,
-		.attackFrameEnd = 14,
+		.prepFrameStart = 7,
+		.prepFrameEnd = 11,
+		.attackFrameStart = 12,
+		.attackFrameEnd = 15,
 		.attackActiveFrame = 12,
 		.deathFrameStart = 16,
 		.deathFrameEnd = 19,
@@ -233,9 +237,13 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDamage = 30,
 		.attackCooldown = 0,
 		.moveSpeed = 0.4f,
+		.prepTime = 0.5f,
+		.postAttackTime = 1.0f,
 		.textureIndex = TEXTURE_LIVING_ARMOR,
 		.idleFrameEnd = 6,
-		.attackFrameStart = 7,
+		.prepFrameStart = 7,
+		.prepFrameEnd = 11,
+		.attackFrameStart = 12,
 		.attackFrameEnd = 16,
 		.attackActiveFrame = 12,
 		.deathFrameStart = 17,
@@ -526,6 +534,9 @@ bool updateEnemyAnimation(Enemy *curEnemy, EnemyData *curEnemyData, float deltaT
 				curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
 				attackAnimationReset = true;
 			}
+		} else if (curEnemy->state == ENEMY_STATE_POST_ATTACK) {
+			// Hold last frame of attack animation
+			curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
 		} else if (curEnemy->state == ENEMY_STATE_DEAD) {
 			if (curEnemy->animationFrame >= curEnemyData->deathFrameEnd) {
 				curEnemy->active = 0;
