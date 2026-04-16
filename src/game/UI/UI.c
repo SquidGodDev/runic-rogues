@@ -224,13 +224,17 @@ static void drawDamageIndicators(float deltaTime) {
         float perpY = dirX;
 
         // Black outline arrow (drawn before white arc so it layers correctly)
+        // Offset vertices along edge normals so outline thickness matches the arc
         if (drawArrow) {
-            int outTipX = (int)(cx + dirX * (outerR + arrowLength + DAMAGE_INDICATOR_OUTLINE));
-            int outTipY = (int)(cy + dirY * (outerR + arrowLength + DAMAGE_INDICATOR_OUTLINE));
-            int outBx1 = (int)(cx + dirX * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) + perpX * (arrowSpread + DAMAGE_INDICATOR_OUTLINE));
-            int outBy1 = (int)(cy + dirY * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) + perpY * (arrowSpread + DAMAGE_INDICATOR_OUTLINE));
-            int outBx2 = (int)(cx + dirX * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) - perpX * (arrowSpread + DAMAGE_INDICATOR_OUTLINE));
-            int outBy2 = (int)(cy + dirY * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) - perpY * (arrowSpread + DAMAGE_INDICATOR_OUTLINE));
+            float sideLen = sqrtf((arrowLength + 1) * (arrowLength + 1) + arrowSpread * arrowSpread);
+            float tipOutline = DAMAGE_INDICATOR_OUTLINE * sideLen / arrowSpread;
+            float baseSpreadOutline = DAMAGE_INDICATOR_OUTLINE * (sideLen + arrowSpread) / (arrowLength + 1);
+            int outTipX = (int)(cx + dirX * (outerR + arrowLength + tipOutline));
+            int outTipY = (int)(cy + dirY * (outerR + arrowLength + tipOutline));
+            int outBx1 = (int)(cx + dirX * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) + perpX * (arrowSpread + baseSpreadOutline));
+            int outBy1 = (int)(cy + dirY * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) + perpY * (arrowSpread + baseSpreadOutline));
+            int outBx2 = (int)(cx + dirX * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) - perpX * (arrowSpread + baseSpreadOutline));
+            int outBy2 = (int)(cy + dirY * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) - perpY * (arrowSpread + baseSpreadOutline));
             pd->graphics->fillTriangle(outTipX, outTipY, outBx1, outBy1, outBx2, outBy2, kColorBlack);
         }
 
