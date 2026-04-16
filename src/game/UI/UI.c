@@ -51,7 +51,7 @@
 
 #define MAX_DAMAGE_INDICATORS 4
 #define DAMAGE_INDICATOR_FLASH_TIME 0.3f
-#define DAMAGE_INDICATOR_HOLD_TIME  0.2f
+#define DAMAGE_INDICATOR_HOLD_TIME  0.6f
 #define DAMAGE_INDICATOR_FADE_TIME  0.3f
 #define DAMAGE_INDICATOR_DURATION   (DAMAGE_INDICATOR_FLASH_TIME + DAMAGE_INDICATOR_HOLD_TIME + DAMAGE_INDICATOR_FADE_TIME)
 #define DAMAGE_INDICATOR_RADIUS 30
@@ -234,7 +234,12 @@ static void drawDamageIndicators(float deltaTime) {
             pd->graphics->fillTriangle(outTipX, outTipY, outBx1, outBy1, outBx2, outBy2, kColorBlack);
         }
 
-        // White arc on top of all outlines
+        // White arc on top of all outlines (checkerboard pattern)
+        LCDPattern diagonalPattern = {
+            0xB6, 0x6D, 0xDB, 0xB6, 0x6D, 0xDB, 0xB6, 0x6D,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+        };
+        LCDColor diagonalPatternColor = (LCDColor)diagonalPattern;
         for (int s = 0; s < DAMAGE_INDICATOR_ARC_SEGMENTS; s++) {
             float a0 = screenAngle - arcSpan / 2.0f + s * step;
             float a1 = a0 + step;
@@ -246,8 +251,8 @@ static void drawDamageIndicators(float deltaTime) {
             int iy2 = (int)(cy + sinf(a0) * outerR);
             int ix3 = (int)(cx + cosf(a1) * outerR);
             int iy3 = (int)(cy + sinf(a1) * outerR);
-            pd->graphics->fillTriangle(ix0, iy0, ix1, iy1, ix2, iy2, kColorWhite);
-            pd->graphics->fillTriangle(ix1, iy1, ix2, iy2, ix3, iy3, kColorWhite);
+            pd->graphics->fillTriangle(ix0, iy0, ix1, iy1, ix2, iy2, diagonalPatternColor);
+            pd->graphics->fillTriangle(ix1, iy1, ix2, iy2, ix3, iy3, diagonalPatternColor);
         }
 
         // White arrow on top of all outlines
@@ -258,7 +263,7 @@ static void drawDamageIndicators(float deltaTime) {
             int by1 = (int)(cy + dirY * (outerR - 1) + perpY * arrowSpread);
             int bx2 = (int)(cx + dirX * (outerR - 1) - perpX * arrowSpread);
             int by2 = (int)(cy + dirY * (outerR - 1) - perpY * arrowSpread);
-            pd->graphics->fillTriangle(tipX, tipY, bx1, by1, bx2, by2, kColorWhite);
+            pd->graphics->fillTriangle(tipX, tipY, bx1, by1, bx2, by2, diagonalPatternColor);
         }
     }
 }
@@ -649,7 +654,7 @@ void drawUI(float deltaTime) {
     drawSpellOverlay(deltaTime);
     drawWeapon(deltaTime);
     drawSpellUI();
-    // drawMinimap();
+    drawMinimap();
     drawExitArrow();
     drawPopup(deltaTime);
     drawInteractablePrompt();
