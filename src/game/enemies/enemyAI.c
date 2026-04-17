@@ -61,9 +61,20 @@ void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
 	} else if (curEnemy->state == ENEMY_STATE_PREP) {
 		if (curEnemy->stateTimer <= 0) {
+			// Lock in lunge direction toward the player at commit time
+			if (curEnemyData->abilityDataPrimary > 0) {
+				curEnemy->targetX = playerX;
+				curEnemy->targetY = playerY;
+				curEnemy->abilityCooldown = curEnemyData->abilityDataSecondary;
+			}
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
 		}
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		// Brief lunge toward locked target while the lunge timer is active
+		if (curEnemy->abilityCooldown > 0) {
+			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
+		}
+
 		// Damage player once attack animation passes active frame
 		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			if (!curEnemy->attackedPlayer && playerInAttackDistance(index)) {
