@@ -1,6 +1,7 @@
 #pragma once
 
 typedef enum Scene {
+    SCENE_LOADING,
     SCENE_CLASS_SELECT,
     SCENE_TITLE,
     SCENE_GAME,

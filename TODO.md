@@ -18,6 +18,7 @@
 - Character selection screen
   - 3D models
   - Blender -> 1-bit 2D
+- Re-do spell UI
 - Tutorial
 - Music
 - SFX

@@ -11,7 +11,6 @@ typedef enum GameState {
 extern GameState gameState;
 
 void setGameState(GameState newState);
-void initSystems(void);
 void initRunStart(void);
 void initGameScene(void);
 void updateGameScene(float deltaTime);

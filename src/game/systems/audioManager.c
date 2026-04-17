@@ -116,9 +116,34 @@ void createSynth(SFX sfx) {
     synths[sfx] = synth;
 }
 
-void initAudioManager(void) {
-    for (int i = 0; i < SFX_COUNT; i++) {
-        createSynth(i);
+// Scaffolding for future audio file loading. Populate these alongside SFX_FILE_COUNT
+// and MUSIC_COUNT in audioManager.h, then dispatch in loadAudioAsset below.
+// static const char *sfxFilePathStrings[SFX_FILE_COUNT] = { };
+// static AudioSample *sfxFiles[SFX_FILE_COUNT];
+// static const char *musicPathStrings[MUSIC_COUNT] = { };
+// static FilePlayer *musicFiles[MUSIC_COUNT];
+
+int getAudioAssetCount(void) {
+    return SFX_COUNT + SFX_FILE_COUNT + MUSIC_COUNT;
+}
+
+void loadAudioAsset(int step) {
+    if (step < SFX_COUNT) {
+        createSynth(step);
+        return;
+    }
+    step -= SFX_COUNT;
+
+    if (step < SFX_FILE_COUNT) {
+        // sfxFiles[step] = pd->sound->sample->load(sfxFilePathStrings[step]);
+        return;
+    }
+    step -= SFX_FILE_COUNT;
+
+    if (step < MUSIC_COUNT) {
+        // musicFiles[step] = pd->sound->fileplayer->newPlayer();
+        // pd->sound->fileplayer->loadIntoPlayer(musicFiles[step], musicPathStrings[step]);
+        return;
     }
 }
 

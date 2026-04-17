@@ -32,14 +32,6 @@ void setGameState(GameState newState) {
 	gameState = newState;
 }
 
-// Run when game is launched
-void initSystems(void)
-{
-	initTextures();
-	initSettings();
-	initAudioManager();
-}
-
 // Run at the start of every new run
 void initRunStart(void) {
 	setGameState(GAME_STATE_ACTIVE);

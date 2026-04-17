@@ -222,34 +222,58 @@ void loadTexture(int textureIndex) {
 	bitmapToTextureArray(textureBitmap, textureIndex);
 }
 
-void initTextures(void)
-{
-	for (int i = 0; i < TEXTURE_COUNT; i++) {
-		loadTexture(i);
-	}
+static const char *fontPathStrings[FONT_COUNT] = {
+	"fonts/m5x7-12",
+	"fonts/m6x11-12",
+	"fonts/KH-Dot-Kabutochou-16",
+	"fonts/KH-Dot-Kodenmachou-12"
+};
+static LCDFont **fontSlots[FONT_COUNT] = {
+	&fontSubEN,
+	&fontTitleEN,
+	&fontTitleJP,
+	&fontSubJP
+};
 
-	// Check if the number of bitmap paths matches the defined count
-	if (sizeof(bitmapPathStrings) / sizeof(bitmapPathStrings[0]) != BITMAP_PATHS_COUNT) {
-		pd->system->error("Bitmap path count does not match BITMAP_PATHS_COUNT");
-	}
-	for (int i = 0; i < BITMAP_PATHS_COUNT; i++) {
-		const char *outErr = NULL;
-		BITMAPS[i] = pd->graphics->loadBitmap(bitmapPathStrings[i], &outErr);
-		if (!BITMAPS[i]) {
-			pd->system->error(outErr);
+int getTextureAssetCount(void) {
+	return FONT_COUNT + TEXTURE_COUNT + BITMAP_PATHS_COUNT + BITMAP_TABLE_PATHS_COUNT;
+}
+
+void loadTextureAsset(int step) {
+	if (step == 0) {
+		if (sizeof(bitmapPathStrings) / sizeof(bitmapPathStrings[0]) != BITMAP_PATHS_COUNT) {
+			pd->system->error("Bitmap path count does not match BITMAP_PATHS_COUNT");
 		}
 	}
 
-	for (int i = 0; i < BITMAP_TABLE_PATHS_COUNT; i++) {
+	if (step < FONT_COUNT) {
+		*fontSlots[step] = pd->graphics->loadFont(fontPathStrings[step], NULL);
+		return;
+	}
+	step -= FONT_COUNT;
+
+	if (step < TEXTURE_COUNT) {
+		loadTexture(step);
+		return;
+	}
+	step -= TEXTURE_COUNT;
+
+	if (step < BITMAP_PATHS_COUNT) {
 		const char *outErr = NULL;
-		BITMAP_TABLES[i] = pd->graphics->loadBitmapTable(bitmapTablePathStrings[i], &outErr);
-		if (!BITMAP_TABLES[i]) {
+		BITMAPS[step] = pd->graphics->loadBitmap(bitmapPathStrings[step], &outErr);
+		if (!BITMAPS[step]) {
 			pd->system->error(outErr);
 		}
+		return;
 	}
+	step -= BITMAP_PATHS_COUNT;
 
-	fontTitleEN = pd->graphics->loadFont("fonts/m6x11-12", NULL);
-	fontTitleJP = pd->graphics->loadFont("fonts/KH-Dot-Kabutochou-16", NULL);
-	fontSubEN = pd->graphics->loadFont("fonts/m5x7-12", NULL);
-	fontSubJP = pd->graphics->loadFont("fonts/KH-Dot-Kodenmachou-12", NULL);
+	if (step < BITMAP_TABLE_PATHS_COUNT) {
+		const char *outErr = NULL;
+		BITMAP_TABLES[step] = pd->graphics->loadBitmapTable(bitmapTablePathStrings[step], &outErr);
+		if (!BITMAP_TABLES[step]) {
+			pd->system->error(outErr);
+		}
+		return;
+	}
 }

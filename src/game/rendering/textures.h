@@ -151,4 +151,7 @@ extern LCDFont *fontSubJP;
 
 extern uint8_t fogPatterns[FOG_LEVELS][8];
 
-void initTextures(void);
+#define FONT_COUNT 4
+
+int getTextureAssetCount(void);
+void loadTextureAsset(int step);

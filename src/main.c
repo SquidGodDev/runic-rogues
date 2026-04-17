@@ -3,7 +3,7 @@
 
 #include "globals/globals.h"
 #include "globals/sceneManager.h"
-#include "game/gameScene.h"
+#include "game/settings/settings.h"
 
 int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 {
@@ -15,7 +15,7 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 
 		srand(pd->system->getSecondsSinceEpoch(NULL));
 
-		initSystems();
+		initSettings();
 		initSceneManager();
 		pd->system->setUpdateCallback(updateSceneManager, NULL);
 	}
