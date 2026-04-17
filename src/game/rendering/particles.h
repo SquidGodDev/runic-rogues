@@ -23,6 +23,8 @@ typedef enum ParticleType {
 typedef struct Particle {
 	float x;
 	float y;
+	float sourceX;
+	float sourceY;
 	ParticleType type;
 	float animationTime;
 	int frameCount;
@@ -36,5 +38,5 @@ typedef struct Particle {
 extern Particle particles[MAX_PARTICLE_COUNT];
 
 void initParticles(void);
-void spawnParticle(ParticleType type, float x, float y, ParticleType spawnOnEndParticleType, bool enemyParticle);
+void spawnParticle(ParticleType type, float x, float y, float sourceX, float sourceY, ParticleType spawnOnEndParticleType, bool enemyParticle);
 void updateParticles(float deltaTime);

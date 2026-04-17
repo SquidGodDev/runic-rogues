@@ -95,7 +95,7 @@ void initParticles(void) {
 	}
 }
 
-void spawnParticle(ParticleType type, float x, float y, ParticleType spawnOnEndParticleType, bool enemyParticle) {
+void spawnParticle(ParticleType type, float x, float y, float sourceX, float sourceY, ParticleType spawnOnEndParticleType, bool enemyParticle) {
 	int newParticleIndex = -1;
 	for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {
 		if (!particles[i].active) {
@@ -114,6 +114,8 @@ void spawnParticle(ParticleType type, float x, float y, ParticleType spawnOnEndP
 	particles[newParticleIndex] = (struct Particle) {
 		.x = x,
 		.y = y,
+		.sourceX = sourceX,
+		.sourceY = sourceY,
 		.type = type,
 		.animationTime = data.animationTime,
 		.frameCount = data.frameCount,
@@ -141,7 +143,7 @@ void updateParticles(float deltaTime) {
 			if (curParticle->animationFrame >= curParticle->frameCount) {
 				curParticle->active = 0;
 				if (curParticle->spawnOnEndParticleType != PARTICLE_TYPE_NONE && !isRoomCompleted()) {
-					spawnParticle(curParticle->spawnOnEndParticleType, curParticle->x, curParticle->y, PARTICLE_TYPE_NONE, curParticle->enemyParticle);
+					spawnParticle(curParticle->spawnOnEndParticleType, curParticle->x, curParticle->y, curParticle->sourceX, curParticle->sourceY, PARTICLE_TYPE_NONE, curParticle->enemyParticle);
 				}
 				continue;
 			}
@@ -152,7 +154,7 @@ void updateParticles(float deltaTime) {
 			if (curParticle->enemyParticle) {
 				float distSquared = distanceSquared(curParticle->x, curParticle->y, playerX, playerY);
 				if (distSquared < data->damageRadius * data->damageRadius) {
-					damagePlayerFromDirection(data->damage, curParticle->x, curParticle->y);
+					damagePlayerFromDirection(data->damage, curParticle->sourceX, curParticle->sourceY);
 				}
 			} else {
 				damageEnemiesInArea(curParticle->x, curParticle->y, data->damageRadius, data->damage);

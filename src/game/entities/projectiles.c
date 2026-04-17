@@ -30,7 +30,7 @@ void initProjectiles(void) {
 	}
 }
 
-void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, SpellProjectileData spellProjectileData) {
+void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, SpellProjectileData spellProjectileData) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		if (!projectiles[i].active) {
 			Set *hitEnemies = projectiles[i].hitEnemies;
@@ -41,6 +41,8 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 			projectiles[i] = (Projectile) {
 				.x = x,
 				.y = y,
+				.sourceX = sourceX,
+				.sourceY = sourceY,
 				.deltaX = deltaX,
 				.deltaY = deltaY,
 				.speed = speed,
@@ -65,11 +67,11 @@ void fireProjectile(float x, float y, float deltaX, float deltaY, float speed, i
 }
 
 void firePlayerProjectile(float x, float y, float deltaX, float deltaY, int damage, SpellProjectileData spellProjectileData) {
-	fireProjectile(x, y, deltaX, deltaY, spellProjectileData.speed, damage, spellProjectileData.textureIndex, 0 /*isEnemy*/, spellProjectileData);
+	fireProjectile(x, y, x, y, deltaX, deltaY, spellProjectileData.speed, damage, spellProjectileData.textureIndex, 0 /*isEnemy*/, spellProjectileData);
 }
 
-void fireEnemyProjectile(float x, float y, float deltaX, float deltaY, float speed, int damage) {
-	fireProjectile(x, y, deltaX, deltaY, speed, damage, TEXTURE_ENEMY_PROJECTILE, 1 /*isEnemy*/, (SpellProjectileData){0});
+void fireEnemyProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, int damage) {
+	fireProjectile(x, y, sourceX, sourceY, deltaX, deltaY, speed, damage, TEXTURE_ENEMY_PROJECTILE, 1 /*isEnemy*/, (SpellProjectileData){0});
 }
 
 void updateProjectiles(float deltaTime) {
@@ -89,7 +91,7 @@ void updateProjectiles(float deltaTime) {
 				int particleY = curProjectile->y;
 				ParticleType timeoutParticle = curProjectile->spellProjectileData.timeoutParticle;
 				if (timeoutParticle != PARTICLE_TYPE_NONE) {
-					spawnParticle(timeoutParticle, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
+					spawnParticle(timeoutParticle, particleX, particleY, curProjectile->sourceX, curProjectile->sourceY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
 				}
 				continue;
 			}
@@ -104,14 +106,14 @@ void updateProjectiles(float deltaTime) {
 			int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
 			int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
 			ParticleType hitParticle = curProjectile->spellProjectileData.hitParticle;
-			spawnParticle(hitParticle, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
+			spawnParticle(hitParticle, particleX, particleY, curProjectile->sourceX, curProjectile->sourceY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
 		} else {
 			bool collided = false;
 			if (curProjectile->isEnemy) {
 				float distSquared = distanceSquared(curProjectile->x, curProjectile->y, playerX, playerY);
 				if (distSquared < ENEMY_PROJECTILE_COLLISION_RANGE) {
 					collided = true;
-					damagePlayerFromDirection(curProjectile->damage, curProjectile->x, curProjectile->y);
+					damagePlayerFromDirection(curProjectile->damage, curProjectile->sourceX, curProjectile->sourceY);
 				}
 			} else {
 				collided = checkEnemyCollision(
@@ -142,7 +144,7 @@ void updateProjectiles(float deltaTime) {
 				if (curProjectile->pierceCount <= 0) {
 					curProjectile->active = 0;
 					ParticleType hitParticle = curProjectile->spellProjectileData.hitParticle;
-					spawnParticle(hitParticle, particleX, particleY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
+					spawnParticle(hitParticle, particleX, particleY, curProjectile->sourceX, curProjectile->sourceY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
 					continue;
 				}
 				curProjectile->pierceCount--;

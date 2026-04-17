@@ -119,7 +119,7 @@ void projectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, 
 			float damage = curEnemyData->attackDamage;
 			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
-			fireEnemyProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage);
+			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage);
 		}
 
 		// Transition back to idle state after attack animation ends
@@ -219,7 +219,7 @@ void serpentUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool att
 				}
 				float offsetX = dx * (curEnemy->stateCount + 1) * CELL_SIZE / 2;
 				float offsetY = dy * (curEnemy->stateCount + 1) * CELL_SIZE / 2;
-				spawnParticle(PARTICLE_TYPE_SERPENT_TAIL, curEnemy->x + offsetX, curEnemy->y + offsetY, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+				spawnParticle(PARTICLE_TYPE_SERPENT_TAIL, curEnemy->x + offsetX, curEnemy->y + offsetY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
 				curEnemy->stateCount++;
 				curEnemy->stateTimer = curEnemyData->abilityDataSecondary;
 			}
@@ -247,7 +247,7 @@ void turretEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool
 			float damage = curEnemyData->attackDamage;
 			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
-			fireEnemyProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage);
+			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage);
 
 			curEnemy->stateCount += 1;
 			if (curEnemy->stateCount >= curEnemyData->abilityDataPrimary) {
@@ -273,7 +273,7 @@ void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 				for (int root = 1; root <= ELDER_BOSS_ATTACK2_COUNT; root++) {
 					float offsetX = dx * (float)(root * ELDER_BOSS_ATTACK2_SPACING);
 					float offsetY = dy * (float)(root * ELDER_BOSS_ATTACK2_SPACING);
-					spawnParticle(PARTICLE_TYPE_WARNING, curEnemy->x + offsetX, curEnemy->y + offsetY, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /* enemyParticle */);
+					spawnParticle(PARTICLE_TYPE_WARNING, curEnemy->x + offsetX, curEnemy->y + offsetY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /* enemyParticle */);
 				}
 			}
 
@@ -371,7 +371,7 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				float damage = curEnemyData->attackDamage;
 				float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 				float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
-				fireEnemyProjectile(projectileX, projectileY, deltaX, deltaY, projectileSpeed, damage);
+				fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage);
 			}
 		} else if (curEnemy->state == WRAITH_STATE_SUMMON) {
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
