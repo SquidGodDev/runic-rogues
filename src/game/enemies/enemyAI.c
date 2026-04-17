@@ -7,6 +7,7 @@
 #include "game/player/player.h"
 #include "game/entities/projectiles.h"
 #include "game/rendering/particles.h"
+#include "game/UI/UI.h"
 
 // === Elder Boss constants ===
 #define ELDER_BOSS_PREP_TIME 2.0f
@@ -50,6 +51,7 @@ void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				curEnemy->attackCooldown = curEnemyData->attackCooldown;
 				curEnemy->stateTimer = curEnemyData->prepTime;
 				transitionToState(curEnemy, ENEMY_STATE_PREP);
+				addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemyData->prepTime);
 			}
 		} else {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
@@ -91,6 +93,7 @@ void projectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, 
 		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 		}
 
 		// Choose a random target position to move towards
@@ -261,6 +264,7 @@ void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 		} else if (curEnemy->stateTimer <= 0) {
 			curEnemy->stateTimer = ELDER_BOSS_PREP_TIME;
 			transitionToState(curEnemy, ENEMY_STATE_PREP);
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, ELDER_BOSS_PREP_TIME);
 
 			for (int dir = 0; dir < 8; dir++) {
 				float angle = dir * (PI / 4);
@@ -310,6 +314,7 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		if (curEnemy->stateTimer <= 0) {
 			transitionToState(curEnemy, ENEMY_STATE_PREP);
 			curEnemy->stateTimer = WRAITH_BOSS_PREP_TIME;
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, WRAITH_BOSS_PREP_TIME);
 		}
 	} else if (curEnemy->state == ENEMY_STATE_PREP) {
 		if (curEnemy->stateTimer <= 0) {
@@ -397,6 +402,7 @@ void circlingChargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int ind
             curEnemy->stateCount = (randInt(0, 1) == 0) ? 1 : -1;
             curEnemy->stateTimer = randFloat(CIRCLE_TIME_MIN, CIRCLE_TIME_MAX);
             transitionToState(curEnemy, ENEMY_STATE_PREP);
+            addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemy->stateTimer);
         } else {
             moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
         }
@@ -438,6 +444,7 @@ void chargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool
             curEnemy->stateCount = (randInt(0, 1) == 0) ? 1 : -1;
             curEnemy->stateTimer = randFloat(CIRCLE_TIME_MIN, CIRCLE_TIME_MAX);
             transitionToState(curEnemy, ENEMY_STATE_PREP);
+            addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemy->stateTimer);
         } else {
             moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
         }

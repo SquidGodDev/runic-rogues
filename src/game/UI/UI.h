@@ -16,4 +16,5 @@ void clearSpellOverlay(int index);
 void setArrowPosition(int worldX, int worldY);
 void clearArrow(void);
 void addDamageIndicator(float sourceX, float sourceY);
+void addAttackIntentIndicator(float sourceX, float sourceY, float duration);
 void screenShake(ScreenShakeStrength strength);

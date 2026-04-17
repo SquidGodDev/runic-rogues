@@ -49,26 +49,42 @@
 
 #define ICON_SIZE 6
 
-#define MAX_DAMAGE_INDICATORS 4
+#define MAX_DIRECTION_INDICATORS 10
+
 #define DAMAGE_INDICATOR_FLASH_TIME 0.3f
 #define DAMAGE_INDICATOR_HOLD_TIME  0.6f
 #define DAMAGE_INDICATOR_FADE_TIME  0.3f
 #define DAMAGE_INDICATOR_DURATION   (DAMAGE_INDICATOR_FLASH_TIME + DAMAGE_INDICATOR_HOLD_TIME + DAMAGE_INDICATOR_FADE_TIME)
-#define DAMAGE_INDICATOR_RADIUS 30
-#define DAMAGE_INDICATOR_ARC_SPAN 0.8f
-#define DAMAGE_INDICATOR_ARC_SEGMENTS 8
-#define DAMAGE_INDICATOR_THICKNESS 3
-#define DAMAGE_INDICATOR_OUTLINE 3
-#define DAMAGE_INDICATOR_ARROW_LENGTH 8
-#define DAMAGE_INDICATOR_ARROW_SPREAD 5
 
-typedef struct DamageIndicator {
+#define ATTACK_INTENT_FADE_IN_TIME  0.0f
+#define ATTACK_INTENT_FLASH_TIME    1.0f
+#define ATTACK_INTENT_FADE_OUT_TIME 0.3f
+#define ATTACK_INTENT_MIN_DURATION  (ATTACK_INTENT_FADE_IN_TIME + ATTACK_INTENT_FLASH_TIME + ATTACK_INTENT_FADE_OUT_TIME)
+
+#define DAMAGE_INDICATOR_RADIUS 22
+#define ATTACK_INTENT_INDICATOR_RADIUS 30
+#define INDICATOR_RADIUS 30
+#define INDICATOR_ARC_SPAN 0.6f
+#define INDICATOR_ARC_SEGMENTS 8
+#define INDICATOR_THICKNESS 3
+#define INDICATOR_OUTLINE 3
+#define INDICATOR_ARROW_LENGTH 8
+#define INDICATOR_ARROW_SPREAD 5
+
+typedef enum {
+    INDICATOR_TYPE_DAMAGE,
+    INDICATOR_TYPE_ATTACK_INTENT,
+} IndicatorType;
+
+typedef struct DirectionIndicator {
     float sourceX;
     float sourceY;
     float timer;
-} DamageIndicator;
+    float totalDuration;
+    IndicatorType type;
+} DirectionIndicator;
 
-static DamageIndicator damageIndicators[MAX_DAMAGE_INDICATORS];
+static DirectionIndicator directionIndicators[MAX_DIRECTION_INDICATORS];
 
 static float screenShakeTime;
 static int shakeMagnitude;
@@ -102,8 +118,8 @@ void initUI(void) {
 
     exitActive = false;
 
-    for (int i = 0; i < MAX_DAMAGE_INDICATORS; i++) {
-        damageIndicators[i].timer = 0;
+    for (int i = 0; i < MAX_DIRECTION_INDICATORS; i++) {
+        directionIndicators[i].timer = 0;
     }
 
     popupImagetableIndex = -1;
@@ -121,61 +137,109 @@ void initUI(void) {
     }
 }
 
-void addDamageIndicator(float sourceX, float sourceY) {
+static void addDirectionIndicator(float sourceX, float sourceY, IndicatorType type, float duration) {
     // Find an empty slot or the oldest indicator
     int bestIndex = 0;
-    float lowestTimer = damageIndicators[0].timer;
-    for (int i = 0; i < MAX_DAMAGE_INDICATORS; i++) {
-        if (damageIndicators[i].timer <= 0) {
+    float lowestTimer = directionIndicators[0].timer;
+    for (int i = 0; i < MAX_DIRECTION_INDICATORS; i++) {
+        if (directionIndicators[i].timer <= 0) {
             bestIndex = i;
             break;
         }
-        if (damageIndicators[i].timer < lowestTimer) {
-            lowestTimer = damageIndicators[i].timer;
+        if (directionIndicators[i].timer < lowestTimer) {
+            lowestTimer = directionIndicators[i].timer;
             bestIndex = i;
         }
     }
-    damageIndicators[bestIndex].sourceX = sourceX;
-    damageIndicators[bestIndex].sourceY = sourceY;
-    damageIndicators[bestIndex].timer = DAMAGE_INDICATOR_DURATION;
+    directionIndicators[bestIndex].sourceX = sourceX;
+    directionIndicators[bestIndex].sourceY = sourceY;
+    directionIndicators[bestIndex].timer = duration;
+    directionIndicators[bestIndex].totalDuration = duration;
+    directionIndicators[bestIndex].type = type;
 }
 
-static void drawDamageIndicators(float deltaTime) {
-    for (int i = 0; i < MAX_DAMAGE_INDICATORS; i++) {
-        if (damageIndicators[i].timer <= 0) {
-            continue;
-        }
-        damageIndicators[i].timer -= deltaTime;
-        if (damageIndicators[i].timer <= 0) {
-            damageIndicators[i].timer = 0;
-            continue;
-        }
+void addDamageIndicator(float sourceX, float sourceY) {
+    addDirectionIndicator(sourceX, sourceY, INDICATOR_TYPE_DAMAGE, DAMAGE_INDICATOR_DURATION);
+}
 
-        float elapsed = DAMAGE_INDICATOR_DURATION - damageIndicators[i].timer;
-        float fade;
+void addAttackIntentIndicator(float sourceX, float sourceY, float duration) {
+    if (duration < ATTACK_INTENT_MIN_DURATION) {
+        duration = ATTACK_INTENT_MIN_DURATION;
+    }
+    addDirectionIndicator(sourceX, sourceY, INDICATOR_TYPE_ATTACK_INTENT, duration);
+}
 
+// Returns false if the indicator should be skipped this frame (flash off-cycle).
+// Otherwise writes a 0..1 scale factor into outFade.
+static bool computeIndicatorFade(DirectionIndicator *ind, float *outFade) {
+    float elapsed = ind->totalDuration - ind->timer;
+    if (ind->type == INDICATOR_TYPE_DAMAGE) {
         if (elapsed < DAMAGE_INDICATOR_FLASH_TIME) {
-            // Flash phase: on/off cycles
             float cycleTime = DAMAGE_INDICATOR_FLASH_TIME / 3.0f;
             if (fmodf(elapsed, cycleTime) >= cycleTime / 2.0f) {
-                continue;
+                return false;
             }
-            fade = 1.0f;
+            *outFade = 1.0f;
         } else if (elapsed < DAMAGE_INDICATOR_FLASH_TIME + DAMAGE_INDICATOR_HOLD_TIME) {
-            // Hold phase: fully visible
-            fade = 1.0f;
+            *outFade = 1.0f;
         } else {
-            // Fade phase: shrink to zero
             float fadeElapsed = elapsed - DAMAGE_INDICATOR_FLASH_TIME - DAMAGE_INDICATOR_HOLD_TIME;
-            fade = 1.0f - fadeElapsed / DAMAGE_INDICATOR_FADE_TIME;
+            *outFade = 1.0f - fadeElapsed / DAMAGE_INDICATOR_FADE_TIME;
+        }
+    } else {
+        float fadeOutStart = ind->totalDuration - ATTACK_INTENT_FADE_OUT_TIME;
+        if (elapsed < ATTACK_INTENT_FADE_IN_TIME) {
+            *outFade = elapsed / ATTACK_INTENT_FADE_IN_TIME;
+        } else if (elapsed < ATTACK_INTENT_FADE_IN_TIME + ATTACK_INTENT_FLASH_TIME) {
+            float flashElapsed = elapsed - ATTACK_INTENT_FADE_IN_TIME;
+            float cycleTime = ATTACK_INTENT_FLASH_TIME / 3.0f;
+            if (fmodf(flashElapsed, cycleTime) >= cycleTime / 2.0f) {
+                return false;
+            }
+            *outFade = 1.0f;
+        } else if (elapsed < fadeOutStart) {
+            *outFade = 1.0f;
+        } else {
+            *outFade = (ind->totalDuration - elapsed) / ATTACK_INTENT_FADE_OUT_TIME;
+        }
+    }
+    return true;
+}
+
+static void drawDirectionIndicators(float deltaTime) {
+    LCDPattern diagonalPattern = {
+        0xB6, 0x6D, 0xDB, 0xB6, 0x6D, 0xDB, 0xB6, 0x6D,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+    };
+
+    for (int i = 0; i < MAX_DIRECTION_INDICATORS; i++) {
+        DirectionIndicator *ind = &directionIndicators[i];
+        if (ind->timer <= 0) {
+            continue;
+        }
+        ind->timer -= deltaTime;
+        if (ind->timer <= 0) {
+            ind->timer = 0;
+            continue;
         }
 
+        float fade;
+        if (!computeIndicatorFade(ind, &fade)) {
+            continue;
+        }
         if (fade <= 0) {
             continue;
         }
 
+        LCDColor fillColor;
+        if (ind->type == INDICATOR_TYPE_ATTACK_INTENT) {
+            fillColor = (LCDColor)kColorWhite;
+        } else {
+            fillColor = (LCDColor)diagonalPattern;
+        }
+
         // Recompute angle each frame so it tracks player turning
-        float angle = atan2f(damageIndicators[i].sourceY - playerY, damageIndicators[i].sourceX - playerX) - playerAngle;
+        float angle = atan2f(ind->sourceY - playerY, ind->sourceX - playerX) - playerAngle;
         while (angle > PI) {
             angle -= 2 * PI;
         }
@@ -183,83 +247,83 @@ static void drawDamageIndicators(float deltaTime) {
             angle += 2 * PI;
         }
 
-        // Draw arc around screen center pointing toward damage source
+        // Draw arc around screen center pointing toward source
         float screenAngle = angle - PI / 2;
 
         float cx = SCREEN_WIDTH / 2.0f;
         float cy = SCREEN_HEIGHT / 2.0f;
-        float arcSpan = DAMAGE_INDICATOR_ARC_SPAN * fade;
-        float radius = DAMAGE_INDICATOR_RADIUS;
-        float innerR = radius - DAMAGE_INDICATOR_THICKNESS / 2.0f;
-        float outerR = radius + DAMAGE_INDICATOR_THICKNESS / 2.0f;
-        float step = arcSpan / DAMAGE_INDICATOR_ARC_SEGMENTS;
+        float arcSpan = INDICATOR_ARC_SPAN * fade;
+        float radius = ind->type == INDICATOR_TYPE_ATTACK_INTENT ? ATTACK_INTENT_INDICATOR_RADIUS : DAMAGE_INDICATOR_RADIUS;
+        float innerR = radius - INDICATOR_THICKNESS / 2.0f;
+        float outerR = radius + INDICATOR_THICKNESS / 2.0f;
+        float step = arcSpan / INDICATOR_ARC_SEGMENTS;
 
-        // Black outline: expanded arc behind the white one
-        float outInnerR = innerR - DAMAGE_INDICATOR_OUTLINE;
-        float outOuterR = outerR + DAMAGE_INDICATOR_OUTLINE;
+        // Black outline: expanded arc behind the filled one
+        bool drawArc = ind->type == INDICATOR_TYPE_DAMAGE || ind->type == INDICATOR_TYPE_ATTACK_INTENT;
+        float outInnerR = innerR - INDICATOR_OUTLINE;
+        float outOuterR = outerR + INDICATOR_OUTLINE;
         float outArcSpan = arcSpan + step * 3;
-        float outStep = outArcSpan / (DAMAGE_INDICATOR_ARC_SEGMENTS + 3);
-        for (int s = 0; s < DAMAGE_INDICATOR_ARC_SEGMENTS + 3; s++) {
-            float a0 = screenAngle - outArcSpan / 2.0f + s * outStep;
-            float a1 = a0 + outStep;
-            int ox0 = (int)(cx + cosf(a0) * outInnerR);
-            int oy0 = (int)(cy + sinf(a0) * outInnerR);
-            int ox1 = (int)(cx + cosf(a1) * outInnerR);
-            int oy1 = (int)(cy + sinf(a1) * outInnerR);
-            int ox2 = (int)(cx + cosf(a0) * outOuterR);
-            int oy2 = (int)(cy + sinf(a0) * outOuterR);
-            int ox3 = (int)(cx + cosf(a1) * outOuterR);
-            int oy3 = (int)(cy + sinf(a1) * outOuterR);
-            pd->graphics->fillTriangle(ox0, oy0, ox1, oy1, ox2, oy2, kColorBlack);
-            pd->graphics->fillTriangle(ox1, oy1, ox2, oy2, ox3, oy3, kColorBlack);
+        float outStep = outArcSpan / (INDICATOR_ARC_SEGMENTS + 3);
+        if (drawArc) {
+            for (int s = 0; s < INDICATOR_ARC_SEGMENTS + 3; s++) {
+                float a0 = screenAngle - outArcSpan / 2.0f + s * outStep;
+                float a1 = a0 + outStep;
+                int ox0 = (int)(cx + cosf(a0) * outInnerR);
+                int oy0 = (int)(cy + sinf(a0) * outInnerR);
+                int ox1 = (int)(cx + cosf(a1) * outInnerR);
+                int oy1 = (int)(cy + sinf(a1) * outInnerR);
+                int ox2 = (int)(cx + cosf(a0) * outOuterR);
+                int oy2 = (int)(cy + sinf(a0) * outOuterR);
+                int ox3 = (int)(cx + cosf(a1) * outOuterR);
+                int oy3 = (int)(cy + sinf(a1) * outOuterR);
+                pd->graphics->fillTriangle(ox0, oy0, ox1, oy1, ox2, oy2, kColorBlack);
+                pd->graphics->fillTriangle(ox1, oy1, ox2, oy2, ox3, oy3, kColorBlack);
+            }
         }
 
         // Arrow geometry
-        float arrowLength = DAMAGE_INDICATOR_ARROW_LENGTH * fade;
-        float arrowSpread = DAMAGE_INDICATOR_ARROW_SPREAD * fade;
-        bool drawArrow = arrowLength > 1 && arrowSpread > 1;
+        float arrowLength = INDICATOR_ARROW_LENGTH * fade;
+        float arrowSpread = INDICATOR_ARROW_SPREAD * fade;
+        bool drawArrow = ind->type == INDICATOR_TYPE_ATTACK_INTENT && arrowLength > 1 && arrowSpread > 1;
         float dirX = cosf(screenAngle);
         float dirY = sinf(screenAngle);
         float perpX = -dirY;
         float perpY = dirX;
 
-        // Black outline arrow (drawn before white arc so it layers correctly)
+        // Black outline arrow (drawn before filled arc so it layers correctly)
         // Offset vertices along edge normals so outline thickness matches the arc
         if (drawArrow) {
             float sideLen = sqrtf((arrowLength + 1) * (arrowLength + 1) + arrowSpread * arrowSpread);
-            float tipOutline = DAMAGE_INDICATOR_OUTLINE * sideLen / arrowSpread;
-            float baseSpreadOutline = DAMAGE_INDICATOR_OUTLINE * (sideLen + arrowSpread) / (arrowLength + 1);
+            float tipOutline = INDICATOR_OUTLINE * sideLen / arrowSpread;
+            float baseSpreadOutline = INDICATOR_OUTLINE * (sideLen + arrowSpread) / (arrowLength + 1);
             int outTipX = (int)(cx + dirX * (outerR + arrowLength + tipOutline));
             int outTipY = (int)(cy + dirY * (outerR + arrowLength + tipOutline));
-            int outBx1 = (int)(cx + dirX * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) + perpX * (arrowSpread + baseSpreadOutline));
-            int outBy1 = (int)(cy + dirY * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) + perpY * (arrowSpread + baseSpreadOutline));
-            int outBx2 = (int)(cx + dirX * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) - perpX * (arrowSpread + baseSpreadOutline));
-            int outBy2 = (int)(cy + dirY * (outerR - DAMAGE_INDICATOR_OUTLINE - 1) - perpY * (arrowSpread + baseSpreadOutline));
+            int outBx1 = (int)(cx + dirX * (outerR - INDICATOR_OUTLINE - 1) + perpX * (arrowSpread + baseSpreadOutline));
+            int outBy1 = (int)(cy + dirY * (outerR - INDICATOR_OUTLINE - 1) + perpY * (arrowSpread + baseSpreadOutline));
+            int outBx2 = (int)(cx + dirX * (outerR - INDICATOR_OUTLINE - 1) - perpX * (arrowSpread + baseSpreadOutline));
+            int outBy2 = (int)(cy + dirY * (outerR - INDICATOR_OUTLINE - 1) - perpY * (arrowSpread + baseSpreadOutline));
             pd->graphics->fillTriangle(outTipX, outTipY, outBx1, outBy1, outBx2, outBy2, kColorBlack);
         }
 
-        // White arc on top of all outlines (checkerboard pattern)
-        LCDPattern diagonalPattern = {
-            0xB6, 0x6D, 0xDB, 0xB6, 0x6D, 0xDB, 0xB6, 0x6D,
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
-        };
-        LCDColor diagonalPatternColor = (LCDColor)diagonalPattern;
-        for (int s = 0; s < DAMAGE_INDICATOR_ARC_SEGMENTS; s++) {
-            float a0 = screenAngle - arcSpan / 2.0f + s * step;
-            float a1 = a0 + step;
-            int ix0 = (int)(cx + cosf(a0) * innerR);
-            int iy0 = (int)(cy + sinf(a0) * innerR);
-            int ix1 = (int)(cx + cosf(a1) * innerR);
-            int iy1 = (int)(cy + sinf(a1) * innerR);
-            int ix2 = (int)(cx + cosf(a0) * outerR);
-            int iy2 = (int)(cy + sinf(a0) * outerR);
-            int ix3 = (int)(cx + cosf(a1) * outerR);
-            int iy3 = (int)(cy + sinf(a1) * outerR);
-            pd->graphics->fillTriangle(ix0, iy0, ix1, iy1, ix2, iy2, diagonalPatternColor);
-            pd->graphics->fillTriangle(ix1, iy1, ix2, iy2, ix3, iy3, diagonalPatternColor);
+        // Filled arc on top of outlines
+        if (drawArc) {
+            for (int s = 0; s < INDICATOR_ARC_SEGMENTS; s++) {
+                float a0 = screenAngle - arcSpan / 2.0f + s * step;
+                float a1 = a0 + step;
+                int ix0 = (int)(cx + cosf(a0) * innerR);
+                int iy0 = (int)(cy + sinf(a0) * innerR);
+                int ix1 = (int)(cx + cosf(a1) * innerR);
+                int iy1 = (int)(cy + sinf(a1) * innerR);
+                int ix2 = (int)(cx + cosf(a0) * outerR);
+                int iy2 = (int)(cy + sinf(a0) * outerR);
+                int ix3 = (int)(cx + cosf(a1) * outerR);
+                int iy3 = (int)(cy + sinf(a1) * outerR);
+                pd->graphics->fillTriangle(ix0, iy0, ix1, iy1, ix2, iy2, fillColor);
+                pd->graphics->fillTriangle(ix1, iy1, ix2, iy2, ix3, iy3, fillColor);
+            }
         }
 
-        // White arrow on top of all outlines
+        // Filled arrow on top of outlines
         if (drawArrow) {
             int tipX = (int)(cx + dirX * (outerR + arrowLength));
             int tipY = (int)(cy + dirY * (outerR + arrowLength));
@@ -267,7 +331,7 @@ static void drawDamageIndicators(float deltaTime) {
             int by1 = (int)(cy + dirY * (outerR - 1) + perpY * arrowSpread);
             int bx2 = (int)(cx + dirX * (outerR - 1) - perpX * arrowSpread);
             int by2 = (int)(cy + dirY * (outerR - 1) - perpY * arrowSpread);
-            pd->graphics->fillTriangle(tipX, tipY, bx1, by1, bx2, by2, diagonalPatternColor);
+            pd->graphics->fillTriangle(tipX, tipY, bx1, by1, bx2, by2, fillColor);
         }
     }
 }
@@ -658,13 +722,13 @@ void drawUI(float deltaTime) {
     drawSpellOverlay(deltaTime);
     drawWeapon(deltaTime);
     drawSpellUI();
-    drawMinimap();
+    // drawMinimap();
     drawExitArrow();
     drawPopup(deltaTime);
     drawInteractablePrompt();
     drawRoomInfo();
     drawExperienceBar();
-    drawDamageIndicators(deltaTime);
+    drawDirectionIndicators(deltaTime);
 }
 
 void screenShake(ScreenShakeStrength strength) {
