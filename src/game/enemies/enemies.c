@@ -50,7 +50,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
-		.health = 30,
+		.health = 40,
 		.attackDetectionRange = 55,
 		.attackDistance = 10,
 		.attackDamage = 15,
@@ -69,7 +69,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_SLIME] = (EnemyData){
 		.name = "Slime",
-		.health = 40,
+		.health = 80,
 		.attackDetectionRange = 10,
 		.attackDistance = 15,
 		.attackDamage = 15,
@@ -85,7 +85,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
 		.name = "Baby Slime",
-		.health = 20,
+		.health = 50,
 		.attackDetectionRange = 35,
 		.attackDistance = 20,
 		.attackDamage = 5,
@@ -107,7 +107,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_SKELETON] = (EnemyData){
 		.name = "Skeleton",
-		.health = 50,
+		.health = 100,
 		.attackDetectionRange = 25,
 		.attackDistance = 15,
 		.attackDamage = 20,
@@ -129,12 +129,12 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_SERPENT] = (EnemyData){
 		.name = "Serpent",
-		.health = 40,
+		.health = 80,
 		.attackDetectionRange = 35,
 		.attackDamage = 10,
 		.attackCooldown = 8.0f,
 		.moveSpeed = 0.3f,
-		.abilityDataPrimary = 4, // Tail attack count
+		.abilityDataPrimary = 5, // Tail attack count
 		.abilityDataSecondary = 0.3f, // Tail attack interval
 		.textureIndex = TEXTURE_SERPENT,
 		.idleFrameEnd = 12,
@@ -185,7 +185,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_RAT] = (EnemyData){
 		.name = "Rat",
-		.health = 30,
+		.health = 60,
 		.attackDetectionRange = 10,
 		.attackDistance = 15,
 		.attackDamage = 5,
@@ -200,7 +200,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_IMP] = (EnemyData){
 		.name = "Imp",
-		.health = 40,
+		.health = 70,
 		.attackDetectionRange = 45,
 		.attackDamage = 10,
 		.attackCooldown = 8.0f,
@@ -219,7 +219,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_FLYING_TOME] = (EnemyData){
 		.name = "Flying Tome",
-		.health = 60,
+		.health = 80,
 		.attackDetectionRange = 55,
 		.attackDistance = 10,
 		.attackDamage = 20,
@@ -238,7 +238,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_LIVING_ARMOR] = (EnemyData){
 		.name = "Living Armor",
-		.health = 100,
+		.health = 120,
 		.attackDetectionRange = 22,
 		.attackDistance = 25,
 		.attackDamage = 30,
@@ -261,7 +261,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_MUMMY] = (EnemyData){
 		.name = "Mummy",
-		.health = 60,
+		.health = 80,
 		.attackDetectionRange = 60,
 		.attackDamage = 12,
 		.attackCooldown = 4.0f,

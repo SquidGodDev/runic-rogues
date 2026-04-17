@@ -187,11 +187,16 @@ void mummyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attac
 	}
 }
 
+// === Serpent constants ===
+#define SERPENT_TAIL_SPREAD_ANGLE_DEG 30.0f
+#define SERPENT_TAIL_SPREAD_ANGLE_RAD (SERPENT_TAIL_SPREAD_ANGLE_DEG * PI / 180.0f)
+
 void serpentUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 		}
 
 		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
@@ -217,9 +222,22 @@ void serpentUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool att
 					dx /= length;
 					dy /= length;
 				}
-				float offsetX = dx * (curEnemy->stateCount + 1) * CELL_SIZE / 2;
-				float offsetY = dy * (curEnemy->stateCount + 1) * CELL_SIZE / 2;
+				float distance = (curEnemy->stateCount + 1) * CELL_SIZE / 2;
+				float offsetX = dx * distance;
+				float offsetY = dy * distance;
 				spawnParticle(PARTICLE_TYPE_SERPENT_TAIL, curEnemy->x + offsetX, curEnemy->y + offsetY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+
+				// (Use when increasing enemy difficulty) Fire off two additional tail particles spread out at angles from the main tail
+				// float cosSpread = cosf(SERPENT_TAIL_SPREAD_ANGLE_RAD);
+				// float sinSpread = sinf(SERPENT_TAIL_SPREAD_ANGLE_RAD);
+				// float leftDx = dx * cosSpread - dy * sinSpread;
+				// float leftDy = dx * sinSpread + dy * cosSpread;
+				// spawnParticle(PARTICLE_TYPE_SERPENT_TAIL, curEnemy->x + leftDx * distance, curEnemy->y + leftDy * distance, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+
+				// float rightDx = dx * cosSpread + dy * sinSpread;
+				// float rightDy = -dx * sinSpread + dy * cosSpread;
+				// spawnParticle(PARTICLE_TYPE_SERPENT_TAIL, curEnemy->x + rightDx * distance, curEnemy->y + rightDy * distance, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+				
 				curEnemy->stateCount++;
 				curEnemy->stateTimer = curEnemyData->abilityDataSecondary;
 			}
