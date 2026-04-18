@@ -39,6 +39,7 @@ typedef enum WaveState {
     WAVE_STATE_PRE_WAVE,
     WAVE_STATE_SPAWNING,
     WAVE_STATE_ACTIVE,
+    WAVE_STATE_POPUP_WAIT,
     WAVE_STATE_ROOM_TRANSITION,
     WAVE_STATE_BOSS
 } WaveState;
@@ -63,10 +64,10 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
     },
     [AREA_LOST_ARCHIVES] = {
         .basicType = ENEMY_TYPE_RAT,
-        .eliteTypes = {ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_LIVING_ARMOR, ENEMY_TYPE_MUMMY, ENEMY_TYPE_BAT},
+        .eliteTypes = {ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_LIVING_ARMOR, ENEMY_TYPE_MUMMY, ENEMY_TYPE_IMP},
         .tankTypes = {ENEMY_TYPE_LIVING_ARMOR, ENEMY_TYPE_MUMMY},
         .tankTypeCount = 2,
-        .specialTypes = {ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_BAT},
+        .specialTypes = {ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_IMP},
         .specialTypeCount = 2,
         .bossType = ENEMY_TYPE_WRAITH_BOSS,
     },
@@ -162,8 +163,23 @@ int getCurrentRoomIndex(void) {
     return currentRoomIndex;
 }
 
+void roomCompleted(void) {
+    showRoomClearedPopup();
+    currentWave++;
+    waveState = WAVE_STATE_POPUP_WAIT;
+}
+
+void onShopCompleted(void) {
+    int gateIndex = (currentWave >= WAVES_PER_ROOM) ? WAVE_ROOM_COUNT - 1 : currentWave - 1;
+    openRoomGate(gateIndex);
+    int targetRoom = (currentWave >= WAVES_PER_ROOM) ? DUNGEON_ROOM_COUNT - 1 : currentWave;
+    Point targetCenter = getRoomWorldCenter(targetRoom);
+    setArrowPosition(targetCenter.x, targetCenter.y);
+    arrowTargetRoom = targetRoom;
+}
+
 void updateWaveManager(float deltaTime) {
-    if (bossActive || isRoomCompleted()) {
+    if (bossActive || isAreaCompleted()) {
         return;
     }
 
@@ -190,13 +206,13 @@ void updateWaveManager(float deltaTime) {
 
         case WAVE_STATE_ACTIVE:
             if (getActiveEnemyCount() == 0) {
-                currentWave++;
-                int gateIndex = (currentWave >= WAVES_PER_ROOM) ? WAVE_ROOM_COUNT - 1 : currentWave - 1;
-                openRoomGate(gateIndex);
-                int targetRoom = (currentWave >= WAVES_PER_ROOM) ? DUNGEON_ROOM_COUNT - 1 : currentWave;
-                Point targetCenter = getRoomWorldCenter(targetRoom);
-                setArrowPosition(targetCenter.x, targetCenter.y);
-                arrowTargetRoom = targetRoom;
+                roomCompleted();
+            }
+            break;
+
+        case WAVE_STATE_POPUP_WAIT:
+            if (!isPopupActive()) {
+                initShop();
                 waveState = WAVE_STATE_ROOM_TRANSITION;
             }
             break;

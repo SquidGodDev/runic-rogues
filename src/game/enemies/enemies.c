@@ -719,9 +719,10 @@ bool damageEnemy(int index, int damage) {
 		if (index == bossIndex) {
 			killAllNonBossEnemies();
 			setBossActive(false);
-			setRoomCompleted(true);
+			setAreaCompleted(true);
 		} else if (!summonsMinions) {
-			spawnPickup(curEnemy.x, curEnemy.y, PICKUP_TYPE_XP_ORB);
+			// Removed in favor of shop on each room completion
+			// spawnPickup(curEnemy.x, curEnemy.y, PICKUP_TYPE_XP_ORB);
 		}
 
 		if (index != bossIndex && !curEnemy.isMinion) {

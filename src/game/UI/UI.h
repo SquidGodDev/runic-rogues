@@ -18,3 +18,4 @@ void clearArrow(void);
 void addDamageIndicator(float sourceX, float sourceY);
 void addAttackIntentIndicator(float sourceX, float sourceY, float duration);
 void screenShake(ScreenShakeStrength strength);
+bool isPopupActive(void);

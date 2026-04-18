@@ -6,6 +6,7 @@
 #include "game/gameScene.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/waveManager.h"
 #include "game/systems/runeManager.h"
 #include "game/settings/settings.h"
 #include "game/rendering/textures.h"
@@ -338,6 +339,8 @@ void updateShop(float deltaTime) {
         if (shopTransitionTime <= 0) {
             shopTransitionTime = 0;
             setGameState(GAME_STATE_ACTIVE);
+            checkAndSpawnPendingExit();
+            onShopCompleted();
             for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
                 pd->graphics->freeBitmap(shopItems[i].shopDescBitmapEN);
                 pd->graphics->freeBitmap(shopItems[i].shopDescBitmapJP);

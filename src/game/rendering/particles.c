@@ -142,7 +142,7 @@ void updateParticles(float deltaTime) {
 			curParticle->animationFrame += 1;
 			if (curParticle->animationFrame >= curParticle->frameCount) {
 				curParticle->active = 0;
-				if (curParticle->spawnOnEndParticleType != PARTICLE_TYPE_NONE && !isRoomCompleted()) {
+				if (curParticle->spawnOnEndParticleType != PARTICLE_TYPE_NONE && !isAreaCompleted()) {
 					spawnParticle(curParticle->spawnOnEndParticleType, curParticle->x, curParticle->y, curParticle->sourceX, curParticle->sourceY, PARTICLE_TYPE_NONE, curParticle->enemyParticle);
 				}
 				continue;

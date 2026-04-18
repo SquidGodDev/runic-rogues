@@ -21,8 +21,9 @@ static float experience;
 static int curLevel;
 
 static int currentRoom = 0;
-static bool roomCompleted;
+static bool areaCompleted;
 static bool bossDefeated;
+static bool pendingExitSpawn;
 
 void initProgressionManager(void) {
     currentArea = AREA_ECHOING_CAVERNS;
@@ -52,8 +53,9 @@ void initProgressionManager(void) {
 }
 
 void resetProgressionManagerRoomState(void) {
-    roomCompleted = false;
+    areaCompleted = false;
     bossDefeated = false;
+    pendingExitSpawn = false;
 }
 
 float getExperiencePercentToNextLevel(void) {
@@ -87,16 +89,22 @@ RoomType getCurrentRoomType(void) {
     return currentRoomType;
 }
 
-void setRoomCompleted(bool completed) {
-    roomCompleted = completed;
+void setAreaCompleted(bool completed) {
+    areaCompleted = completed;
     if (completed) {
-        spawnExit();
-        showRoomClearedPopup();
+        pendingExitSpawn = true;
     }
 }
 
-bool isRoomCompleted(void) {
-    return roomCompleted;
+void checkAndSpawnPendingExit(void) {
+    if (pendingExitSpawn) {
+        pendingExitSpawn = false;
+        spawnExit();
+    }
+}
+
+bool isAreaCompleted(void) {
+    return areaCompleted;
 }
 
 void incrementToNextRoom(void) {

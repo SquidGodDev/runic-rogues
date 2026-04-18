@@ -652,6 +652,10 @@ void showRoomClearedPopup(void) {
     popupFrameTime = 0.05f;
 }
 
+bool isPopupActive(void) {
+    return popupImagetableIndex != -1;
+}
+
 void drawPopup(float deltaTime) {
     if (popupImagetableIndex != -1) {
         popupCurFrameTime += deltaTime;
@@ -670,7 +674,7 @@ void drawPopup(float deltaTime) {
 }
 
 void drawRoomInfo(void) {
-    if (getBossActive() || isRoomCompleted()) {
+    if (getBossActive() || isAreaCompleted()) {
         return;
     }
 
@@ -727,7 +731,7 @@ void drawUI(float deltaTime) {
     drawPopup(deltaTime);
     drawInteractablePrompt();
     drawRoomInfo();
-    drawExperienceBar();
+    // drawExperienceBar();
     drawDirectionIndicators(deltaTime);
 }
 

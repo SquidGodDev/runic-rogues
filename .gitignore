@@ -6,5 +6,5 @@
 /build
 .sentry-native
 .vscode
-.claude/settings.local.json
+.claude
 **__record
