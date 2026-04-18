@@ -152,6 +152,7 @@ void rushEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 			curEnemy->targetX = targetX;
 			curEnemy->targetY = targetY;
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 		}
 
 		// Move towards player at regular speed when idle
@@ -168,8 +169,18 @@ void rushEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 			transitionToState(curEnemy, ENEMY_STATE_IDLE);
 		}
 
-		// Move towards target position at rush speed
-		moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
+		// Decelerate from initial speed to zero over the rush duration (quadratic falloff)
+		float totalDuration = curEnemyData->abilityDataSecondary;
+		float progress = 1.0f - (curEnemy->abilityCooldown / totalDuration);
+		if (progress < 0.0f) {
+			progress = 0.0f;
+		}
+		if (progress > 1.0f) {
+			progress = 1.0f;
+		}
+		float remaining = 1.0f - progress;
+		float speed = curEnemyData->abilityDataPrimary * remaining * remaining;
+		moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, speed);
 	}
 }
 
@@ -412,29 +423,75 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 #define CIRCLING_RANGE   48.0f   // ~3 cells: distance at which enemy starts circling/pausing
 #define ORBIT_RADIUS     48.0f   // orbit distance from player during circling
 #define ORBIT_LEAD       0.15f   // radians ahead of current angle for orbit target (must keep target > 5 units from enemy)
-#define STUN_DURATION    1.5f    // seconds stunned after charge
-#define CIRCLE_TIME_MIN  1.2f    // min seconds in PREP before charge
-#define CIRCLE_TIME_MAX  2.8f    // max seconds in PREP before charge
 
-static void setupCharge(Enemy *curEnemy) {
+static void setupCharge(Enemy *curEnemy, EnemyData *curEnemyData, float chargeDistance) {
     float wallX, wallY;
     castRayToWall(curEnemy->x, curEnemy->y, playerX, playerY, &wallX, &wallY);
-    curEnemy->targetX = wallX;
-    curEnemy->targetY = wallY;
+    float dx = wallX - curEnemy->x;
+    float dy = wallY - curEnemy->y;
+    float wallDist = sqrtf(dx * dx + dy * dy);
+    float dist = (chargeDistance < wallDist) ? chargeDistance : wallDist;
+    if (wallDist > 0.0f) {
+        float nx = dx / wallDist;
+        float ny = dy / wallDist;
+        curEnemy->targetX = curEnemy->x + nx * dist;
+        curEnemy->targetY = curEnemy->y + ny * dist;
+    } else {
+        curEnemy->targetX = curEnemy->x;
+        curEnemy->targetY = curEnemy->y;
+    }
     curEnemy->attackedPlayer = false;
+    // Trapezoidal (accel+coast+decel) total time estimate: 1.5 × (dist / speed_per_frame / fps)
+    float totalDuration = dist / (curEnemyData->abilityDataPrimary * (float)TARGET_FPS) * 1.5f;
+    curEnemy->stateTimer = totalDuration;      // countdown: 0 signals charge end
+    curEnemy->abilityCooldown = -totalDuration; // negative so auto-decrement is skipped; used as reference in ATTACK_1
+}
+
+static void chargeEnemyIdle(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
+    float distSq = distanceSquared(curEnemy->x, curEnemy->y, playerX, playerY);
+    if (distSq <= CIRCLING_RANGE * CIRCLING_RANGE) {
+        curEnemy->stateCount = (randInt(0, 1) == 0) ? 1 : -1;
+        curEnemy->stateTimer = curEnemyData->prepTime;
+        transitionToState(curEnemy, ENEMY_STATE_PREP);
+        addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemy->stateTimer);
+    } else {
+        moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+    }
+}
+
+static void chargeEnemyAttack(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
+    if (playerInAttackDistance(index) && !curEnemy->attackedPlayer) {
+        curEnemy->attackedPlayer = true;
+        damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
+    }
+    float totalDuration = -curEnemy->abilityCooldown;
+    if (totalDuration < 0.001f) {
+        curEnemy->stateTimer = curEnemyData->postAttackTime;
+        transitionToState(curEnemy, ENEMY_STATE_POST_ATTACK);
+        return;
+    }
+    float progressRatio = 1.0f - curEnemy->stateTimer / totalDuration;
+    if (progressRatio < 0.0f) { progressRatio = 0.0f; }
+    if (progressRatio > 1.0f) { progressRatio = 1.0f; }
+    float maxSpeed = curEnemyData->abilityDataPrimary;
+    float speed;
+    if (progressRatio < 0.25f) {
+        speed = maxSpeed * (progressRatio / 0.25f);
+    } else if (progressRatio < 0.75f) {
+        speed = maxSpeed;
+    } else {
+        speed = maxSpeed * ((1.0f - progressRatio) / 0.25f);
+    }
+    moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, speed);
+    if (curEnemy->stateTimer <= 0.0f) {
+        curEnemy->stateTimer = curEnemyData->postAttackTime;
+        transitionToState(curEnemy, ENEMY_STATE_POST_ATTACK);
+    }
 }
 
 void circlingChargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
     if (curEnemy->state == ENEMY_STATE_IDLE) {
-        float distSq = distanceSquared(curEnemy->x, curEnemy->y, playerX, playerY);
-        if (distSq <= CIRCLING_RANGE * CIRCLING_RANGE) {
-            curEnemy->stateCount = (randInt(0, 1) == 0) ? 1 : -1;
-            curEnemy->stateTimer = randFloat(CIRCLE_TIME_MIN, CIRCLE_TIME_MAX);
-            transitionToState(curEnemy, ENEMY_STATE_PREP);
-            addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemy->stateTimer);
-        } else {
-            moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
-        }
+        chargeEnemyIdle(curEnemy, curEnemyData, index);
     } else if (curEnemy->state == ENEMY_STATE_PREP) {
         float dx = curEnemy->x - playerX;
         float dy = curEnemy->y - playerY;
@@ -444,22 +501,12 @@ void circlingChargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int ind
         moveEnemy(curEnemy, index, orbitX, orbitY, curEnemyData->moveSpeed);
 
         if (curEnemy->stateTimer <= 0) {
-            setupCharge(curEnemy);
+            setupCharge(curEnemy, curEnemyData, curEnemyData->abilityDataSecondary);
             transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
         }
     } else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
-        if (playerInAttackDistance(index) && !curEnemy->attackedPlayer) {
-            curEnemy->attackedPlayer = true;
-            damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
-        }
-        moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
-        float dtx = curEnemy->targetX - curEnemy->x;
-        float dty = curEnemy->targetY - curEnemy->y;
-        if (dtx * dtx + dty * dty <= 64.0f) {
-            curEnemy->stateTimer = STUN_DURATION;
-            transitionToState(curEnemy, ENEMY_STATE_ATTACK_2);
-        }
-    } else if (curEnemy->state == ENEMY_STATE_ATTACK_2) {
+        chargeEnemyAttack(curEnemy, curEnemyData, index);
+    } else if (curEnemy->state == ENEMY_STATE_POST_ATTACK) {
         if (curEnemy->stateTimer <= 0) {
             transitionToState(curEnemy, ENEMY_STATE_IDLE);
         }
@@ -468,33 +515,15 @@ void circlingChargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int ind
 
 void chargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
     if (curEnemy->state == ENEMY_STATE_IDLE) {
-        float distSq = distanceSquared(curEnemy->x, curEnemy->y, playerX, playerY);
-        if (distSq <= CIRCLING_RANGE * CIRCLING_RANGE) {
-            curEnemy->stateCount = (randInt(0, 1) == 0) ? 1 : -1;
-            curEnemy->stateTimer = randFloat(CIRCLE_TIME_MIN, CIRCLE_TIME_MAX);
-            transitionToState(curEnemy, ENEMY_STATE_PREP);
-            addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemy->stateTimer);
-        } else {
-            moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
-        }
+        chargeEnemyIdle(curEnemy, curEnemyData, index);
     } else if (curEnemy->state == ENEMY_STATE_PREP) {
         if (curEnemy->stateTimer <= 0) {
-            setupCharge(curEnemy);
+            setupCharge(curEnemy, curEnemyData, curEnemyData->abilityDataSecondary);
             transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
         }
     } else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
-        if (playerInAttackDistance(index) && !curEnemy->attackedPlayer) {
-            curEnemy->attackedPlayer = true;
-            damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
-        }
-        moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
-        float dtx = curEnemy->targetX - curEnemy->x;
-        float dty = curEnemy->targetY - curEnemy->y;
-        if (dtx * dtx + dty * dty <= 64.0f) {
-            curEnemy->stateTimer = STUN_DURATION;
-            transitionToState(curEnemy, ENEMY_STATE_ATTACK_2);
-        }
-    } else if (curEnemy->state == ENEMY_STATE_ATTACK_2) {
+        chargeEnemyAttack(curEnemy, curEnemyData, index);
+    } else if (curEnemy->state == ENEMY_STATE_POST_ATTACK) {
         if (curEnemy->stateTimer <= 0) {
             transitionToState(curEnemy, ENEMY_STATE_IDLE);
         }
