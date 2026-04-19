@@ -485,7 +485,7 @@ static void chargeEnemyAttack(Enemy *curEnemy, EnemyData *curEnemyData, int inde
     moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, speed);
     if (curEnemy->stateTimer <= 0.0f) {
         curEnemy->stateTimer = curEnemyData->postAttackTime;
-        transitionToState(curEnemy, ENEMY_STATE_POST_ATTACK);
+        transitionToState(curEnemy, ENEMY_STATE_ATTACK_2);
     }
 }
 
@@ -506,7 +506,7 @@ void circlingChargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int ind
         }
     } else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
         chargeEnemyAttack(curEnemy, curEnemyData, index);
-    } else if (curEnemy->state == ENEMY_STATE_POST_ATTACK) {
+    } else if (curEnemy->state == ENEMY_STATE_ATTACK_2) {
         if (curEnemy->stateTimer <= 0) {
             transitionToState(curEnemy, ENEMY_STATE_IDLE);
         }
@@ -523,7 +523,7 @@ void chargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool
         }
     } else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
         chargeEnemyAttack(curEnemy, curEnemyData, index);
-    } else if (curEnemy->state == ENEMY_STATE_POST_ATTACK) {
+    } else if (curEnemy->state == ENEMY_STATE_ATTACK_2) {
         if (curEnemy->stateTimer <= 0) {
             transitionToState(curEnemy, ENEMY_STATE_IDLE);
         }
