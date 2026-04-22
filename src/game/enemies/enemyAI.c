@@ -10,11 +10,43 @@
 #include "game/UI/UI.h"
 
 // === Elder Boss constants ===
-#define ELDER_BOSS_PREP_TIME 2.0f
+#define ELDER_BOSS_IDLE_TIME 5.0f
+#define ELDER_BOSS_PREP_TIME 5.0f
 #define ELDER_BOSS_ATTACK2_COUNT 5
 #define ELDER_BOSS_ATTACK2_SPACING CELL_SIZE
+#define ELDER_BOSS_DASH_PREP_TIME       1.5f
+#define ELDER_BOSS_DASH_DISTANCE        (CELL_SIZE * 2.0f)
+#define ELDER_BOSS_DASH_COUNT           5
+#define ELDER_BOSS_DASH_PREP_HOLD_FRAME 25  // 0-indexed
+#define ELDER_BOSS_DASH_EXEC_HOLD_FRAME 28  // 0-indexed
+#define ELDER_BOSS_PROJECTILE_WAVES     5
+#define ELDER_BOSS_PROJECTILES_PER_WAVE 8
+#define ELDER_BOSS_PROJECTILE_COOLDOWN  0.2f
+#define ELDER_BOSS_PROJECTILE_DAMAGE    10
+#define ELDER_BOSS_WAVE_ANGLE_OFFSET    (5.0f * PI / 180.0f)
+#define ELDER_BOSS_SUMMON_COUNT         5
+#define ELDER_BOSS_SUMMON_RADIUS        (CELL_SIZE * 2.0f)
+#define ELDER_BOSS_SUMMON_TIME          2.0f
+#define ELDER_BOSS_PROJECTILE_INTENT_TIME 0.5f
+
+typedef enum ElderPhase {
+	ELDER_PHASE_SUMMON,
+	ELDER_PHASE_ROOT,
+	ELDER_PHASE_PROJECTILES,
+	ELDER_PHASE_DASH,
+	ELDER_PHASE_COUNT
+} ElderPhase;
+
+// Phase-discriminated state aliases. DASH_PREP shares ATTACK_1; ROOT_CAST/DASH_EXEC share ATTACK_2.
+#define ELDER_STATE_SUMMON     ENEMY_STATE_PREP
+#define ELDER_STATE_DASH_PREP  ENEMY_STATE_ATTACK_1
+#define ELDER_STATE_ROOT_CAST  ENEMY_STATE_ATTACK_2
+#define ELDER_STATE_DASH_EXEC  ENEMY_STATE_ATTACK_2
+#define ELDER_STATE_PROJECTILE ENEMY_STATE_ATTACK_3
 
 // === Wraith Boss constants ===
+
+#define WRAITH_BOSS_IDLE_TIME 2.0f
 #define WRAITH_BOSS_PREP_TIME 1.0f
 #define WRAITH_BOSS_ATTACK1_TIME 2.5f
 #define WRAITH_BOSS_ATTACK2_TIME 2.0f
@@ -297,51 +329,180 @@ void turretEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool
 	}
 }
 
+// Forward declarations for charge helpers defined later in this file.
+static void setupCharge(Enemy *curEnemy, EnemyData *curEnemyData, float chargeDistance);
+static float chargeSpeedAt(float progressRatio, float maxSpeed);
+
+static void elderSpawnRootWarnings(Enemy *curEnemy) {
+	for (int dir = 0; dir < 8; dir++) {
+		float angle = dir * (PI / 4);
+		float dx = cosf(angle);
+		float dy = sinf(angle);
+		for (int root = 1; root <= ELDER_BOSS_ATTACK2_COUNT; root++) {
+			float offsetX = dx * (float)(root * ELDER_BOSS_ATTACK2_SPACING);
+			float offsetY = dy * (float)(root * ELDER_BOSS_ATTACK2_SPACING);
+			spawnParticle(PARTICLE_TYPE_WARNING, curEnemy->x + offsetX, curEnemy->y + offsetY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /*enemyParticle*/);
+		}
+	}
+}
+
+static void elderSpawnSummons(Enemy *curEnemy) {
+	// Role indices: 0=basic, 1=elite, 2=special, 3=tank
+	static const int roleOrder[ELDER_BOSS_SUMMON_COUNT] = {0, 0, 0, 1, 2};
+	for (int i = 0; i < ELDER_BOSS_SUMMON_COUNT; i++) {
+		float angle = randFloat(0.0f, 2.0f * PI);
+		float radius = randFloat(0.0f, ELDER_BOSS_SUMMON_RADIUS);
+		float sx = curEnemy->x + cosf(angle) * radius;
+		float sy = curEnemy->y + sinf(angle) * radius;
+		EnemyType type;
+		switch (roleOrder[i]) {
+			case 1:  type = getRandomEliteEnemyType();   break;
+			case 2:  type = getRandomSpecialEnemyType(); break;
+			case 3:  type = getRandomTankEnemyType();    break;
+			default: type = getRandomBasicEnemyType();   break;
+		}
+		spawnEnemy(type, (int)sx, (int)sy, true /*isMinion*/);
+	}
+}
+
+static void elderFireProjectileWave(Enemy *curEnemy, EnemyData *curEnemyData, int waveIndex) {
+	float angleOffset = (float)waveIndex * ELDER_BOSS_WAVE_ANGLE_OFFSET;
+	for (int i = 0; i < ELDER_BOSS_PROJECTILES_PER_WAVE; i++) {
+		float angle = angleOffset + i * (2.0f * PI / (float)ELDER_BOSS_PROJECTILES_PER_WAVE);
+		float dx = cosf(angle);
+		float dy = sinf(angle);
+		float px = curEnemy->x + dx * PROJECTILE_OFFSET;
+		float py = curEnemy->y + dy * PROJECTILE_OFFSET;
+		fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, dx, dy, curEnemyData->abilityDataSecondary, ELDER_BOSS_PROJECTILE_DAMAGE);
+	}
+}
+
+static void elderBeginNextPhase(Enemy *curEnemy) {
+	curEnemy->phase = (curEnemy->phase + 1) % ELDER_PHASE_COUNT;
+	curEnemy->stateCount = 0;
+	curEnemy->attackedPlayer = false;
+
+	switch ((ElderPhase)curEnemy->phase) {
+		case ELDER_PHASE_SUMMON:
+			transitionToState(curEnemy, ELDER_STATE_SUMMON);
+			curEnemy->stateTimer = ELDER_BOSS_SUMMON_TIME;
+			elderSpawnSummons(curEnemy);
+			break;
+		case ELDER_PHASE_ROOT:
+			transitionToState(curEnemy, ENEMY_STATE_PREP);
+			curEnemy->stateTimer = ELDER_BOSS_PREP_TIME;
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, ELDER_BOSS_PREP_TIME);
+			elderSpawnRootWarnings(curEnemy);
+			break;
+		case ELDER_PHASE_PROJECTILES:
+			transitionToState(curEnemy, ENEMY_STATE_PREP);
+			curEnemy->abilityCooldown = ELDER_BOSS_PROJECTILE_INTENT_TIME; // delay wave 0 until the warning indicator lands
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, ELDER_BOSS_PROJECTILE_INTENT_TIME);
+			break;
+		case ELDER_PHASE_DASH:
+			transitionToState(curEnemy, ELDER_STATE_DASH_PREP);
+			curEnemy->stateTimer = ELDER_BOSS_DASH_PREP_TIME;
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, ELDER_BOSS_DASH_PREP_TIME);
+			break;
+		default:
+			break;
+	}
+}
+
 void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
-		if (playerInAttackDetectionRange(index)) {
-			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
-		} else if (curEnemy->stateTimer <= 0) {
-			curEnemy->stateTimer = ELDER_BOSS_PREP_TIME;
-			transitionToState(curEnemy, ENEMY_STATE_PREP);
-			addAttackIntentIndicator(curEnemy->x, curEnemy->y, ELDER_BOSS_PREP_TIME);
-
-			for (int dir = 0; dir < 8; dir++) {
-				float angle = dir * (PI / 4);
-				float dx = cosf(angle);
-				float dy = sinf(angle);
-				for (int root = 1; root <= ELDER_BOSS_ATTACK2_COUNT; root++) {
-					float offsetX = dx * (float)(root * ELDER_BOSS_ATTACK2_SPACING);
-					float offsetY = dy * (float)(root * ELDER_BOSS_ATTACK2_SPACING);
-					spawnParticle(PARTICLE_TYPE_WARNING, curEnemy->x + offsetX, curEnemy->y + offsetY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /* enemyParticle */);
-				}
-			}
-
+		if (curEnemy->stateTimer <= 0) {
+			elderBeginNextPhase(curEnemy);
 		} else {
 			moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
 		}
-	} else if (curEnemy->state == ENEMY_STATE_PREP) {
-		if (curEnemy->stateTimer <= 0) {
-			curEnemy->stateTimer = ELDER_BOSS_IDLE_TIME;
-			curEnemy->state = ENEMY_STATE_IDLE;
+		return;
+	}
+
+	ElderPhase phase = (ElderPhase)curEnemy->phase;
+
+	if (curEnemy->state == ENEMY_STATE_PREP) {
+		if (phase == ELDER_PHASE_SUMMON) {
+			// PREP state holds on prepFrameEnd-1 and never sets attackAnimationReset,
+			// so exit on a timer instead.
+			if (curEnemy->stateTimer <= 0) {
+				transitionToState(curEnemy, ENEMY_STATE_IDLE);
+				curEnemy->stateTimer = ELDER_BOSS_IDLE_TIME;
+			}
+		} else if (phase == ELDER_PHASE_PROJECTILES) {
+			if (curEnemy->stateCount < ELDER_BOSS_PROJECTILE_WAVES && curEnemy->abilityCooldown <= 0) {
+				elderFireProjectileWave(curEnemy, curEnemyData, curEnemy->stateCount);
+				curEnemy->stateCount++;
+				curEnemy->abilityCooldown = ELDER_BOSS_PROJECTILE_COOLDOWN;
+			}
+			if (curEnemy->stateCount >= ELDER_BOSS_PROJECTILE_WAVES && curEnemy->abilityCooldown <= 0) {
+				transitionToState(curEnemy, ENEMY_STATE_IDLE);
+				curEnemy->stateTimer = ELDER_BOSS_IDLE_TIME;
+			}
+		} else {
+			// Root: warning particles were spawned on entry; wait out the prep then rest.
+			if (curEnemy->stateTimer <= 0) {
+				transitionToState(curEnemy, ENEMY_STATE_IDLE);
+				curEnemy->stateTimer = ELDER_BOSS_IDLE_TIME;
+			}
 		}
-	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
-		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
-			if (playerInAttackDistance(index)) {
+		return;
+	}
+
+	if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		if (phase == ELDER_PHASE_DASH) {
+			// Dash prep: hold animation on frame 21 (0-indexed 20)
+			if (curEnemy->animationFrame > ELDER_BOSS_DASH_PREP_HOLD_FRAME) {
+				curEnemy->animationFrame = ELDER_BOSS_DASH_PREP_HOLD_FRAME;
+			}
+			if (curEnemy->stateTimer <= 0) {
+				setupCharge(curEnemy, curEnemyData, ELDER_BOSS_DASH_DISTANCE);
+				transitionToState(curEnemy, ELDER_STATE_DASH_EXEC);
+				// Resume mid-animation at frame 21 so the next tick lands on frame 22.
+				curEnemy->animationFrame = ELDER_BOSS_DASH_PREP_HOLD_FRAME;
+				curEnemy->animationTime = curEnemyData->frameTime;
+			}
+		}
+		return;
+	}
+
+	if (curEnemy->state == ENEMY_STATE_ATTACK_2) {
+		if (phase == ELDER_PHASE_ROOT) {
+			if (attackAnimationReset) {
+				transitionToState(curEnemy, ENEMY_STATE_IDLE);
+				curEnemy->stateTimer = ELDER_BOSS_IDLE_TIME;
+			}
+		} else if (phase == ELDER_PHASE_DASH) {
+			// Dash attack plays frames 22-24 and holds on frame 24 for the rest of the dash.
+			if (curEnemy->animationFrame > ELDER_BOSS_DASH_EXEC_HOLD_FRAME) {
+				curEnemy->animationFrame = ELDER_BOSS_DASH_EXEC_HOLD_FRAME;
+			}
+			float totalDuration = -curEnemy->abilityCooldown;
+			if (totalDuration > 0.001f) {
+				float progressRatio = 1.0f - curEnemy->stateTimer / totalDuration;
+				float speed = chargeSpeedAt(progressRatio, curEnemyData->abilityDataPrimary);
+				moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, speed);
+			}
+			if (!curEnemy->attackedPlayer && playerInAttackDistance(index)) {
 				curEnemy->attackedPlayer = true;
 				damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
 			}
-		}
-
-		if (attackAnimationReset) {
-			curEnemy->attackedPlayer = false;
-			if (playerInAttackDetectionRange(index)) {
-				transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
-			} else {
-				transitionToState(curEnemy, ENEMY_STATE_IDLE);
+			if (curEnemy->stateTimer <= 0.0f) {
+				curEnemy->stateCount++;
+				if (curEnemy->stateCount < ELDER_BOSS_DASH_COUNT) {
+					transitionToState(curEnemy, ELDER_STATE_DASH_PREP);
+					curEnemy->stateTimer = ELDER_BOSS_DASH_PREP_TIME;
+					curEnemy->attackedPlayer = false;
+					addAttackIntentIndicator(curEnemy->x, curEnemy->y, ELDER_BOSS_DASH_PREP_TIME);
+				} else {
+					transitionToState(curEnemy, ENEMY_STATE_IDLE);
+					curEnemy->stateTimer = ELDER_BOSS_IDLE_TIME;
+				}
 			}
 		}
+		return;
 	}
+
 }
 
 void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
@@ -424,6 +585,19 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 #define ORBIT_RADIUS     48.0f   // orbit distance from player during circling
 #define ORBIT_LEAD       0.15f   // radians ahead of current angle for orbit target (must keep target > 5 units from enemy)
 
+// Trapezoidal speed curve: accelerate 0-25%, coast 25-75%, decelerate 75-100%.
+static float chargeSpeedAt(float progressRatio, float maxSpeed) {
+    if (progressRatio < 0.0f) { progressRatio = 0.0f; }
+    if (progressRatio > 1.0f) { progressRatio = 1.0f; }
+    if (progressRatio < 0.25f) {
+        return maxSpeed * (progressRatio / 0.25f);
+    } else if (progressRatio < 0.75f) {
+        return maxSpeed;
+    } else {
+        return maxSpeed * ((1.0f - progressRatio) / 0.25f);
+    }
+}
+
 static void setupCharge(Enemy *curEnemy, EnemyData *curEnemyData, float chargeDistance) {
     float wallX, wallY;
     castRayToWall(curEnemy->x, curEnemy->y, playerX, playerY, &wallX, &wallY);
@@ -471,17 +645,7 @@ static void chargeEnemyAttack(Enemy *curEnemy, EnemyData *curEnemyData, int inde
         return;
     }
     float progressRatio = 1.0f - curEnemy->stateTimer / totalDuration;
-    if (progressRatio < 0.0f) { progressRatio = 0.0f; }
-    if (progressRatio > 1.0f) { progressRatio = 1.0f; }
-    float maxSpeed = curEnemyData->abilityDataPrimary;
-    float speed;
-    if (progressRatio < 0.25f) {
-        speed = maxSpeed * (progressRatio / 0.25f);
-    } else if (progressRatio < 0.75f) {
-        speed = maxSpeed;
-    } else {
-        speed = maxSpeed * ((1.0f - progressRatio) / 0.25f);
-    }
+    float speed = chargeSpeedAt(progressRatio, curEnemyData->abilityDataPrimary);
     moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, speed);
     if (curEnemy->stateTimer <= 0.0f) {
         curEnemy->stateTimer = curEnemyData->postAttackTime;

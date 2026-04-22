@@ -1,5 +1,4 @@
 - Improve enemy AI (new attack patterns)
-  - Bat prep art
   - Turret
   - Rush follow for a bit, then slow down
   - Bomb laying
@@ -13,6 +12,7 @@
 - Buff system + HUD UI
 - Trigger Rune HUD UI
 - New Runes
+  - Start rune for each class
   - Trigger runes
     - On basic cast
     - On special cast

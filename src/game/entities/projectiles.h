@@ -3,7 +3,7 @@
 #include "globals/helpers.h"
 #include "game/player/spells/spells.h"
 
-#define MAX_PROJECTILE_COUNT 20
+#define MAX_PROJECTILE_COUNT 100
 
 typedef struct Projectile {
 	float x;

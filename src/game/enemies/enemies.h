@@ -8,8 +8,6 @@
 #define PROJECTILE_OFFSET 3 // Distance ahead of enemy to spawn projectiles
 
 // Boss spawn timers — also used by spawnEnemy() in enemies.c
-#define ELDER_BOSS_IDLE_TIME 4.0f
-#define WRAITH_BOSS_IDLE_TIME 2.0f
 
 typedef enum EnemyType
 {

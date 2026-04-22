@@ -141,10 +141,32 @@ void initWaveManager(void) {
     bossActive = false;
     arrowTargetRoom = -1;
     spawnQueueSize = 0;
+    #if DEBUG_SKIP_TO_BOSS
+        spawnBoss();
+    #endif
 }
 
 bool getBossActive(void) {
     return bossActive;
+}
+
+EnemyType getRandomBasicEnemyType(void) {
+    return areaPools[getCurrentArea()].basicType;
+}
+
+EnemyType getRandomEliteEnemyType(void) {
+    AreaEnemyPool *pool = &areaPools[getCurrentArea()];
+    return pool->eliteTypes[randInt(0, ELITE_ENEMY_TYPE_COUNT - 1)];
+}
+
+EnemyType getRandomTankEnemyType(void) {
+    AreaEnemyPool *pool = &areaPools[getCurrentArea()];
+    return pool->tankTypes[randInt(0, pool->tankTypeCount - 1)];
+}
+
+EnemyType getRandomSpecialEnemyType(void) {
+    AreaEnemyPool *pool = &areaPools[getCurrentArea()];
+    return pool->specialTypes[randInt(0, pool->specialTypeCount - 1)];
 }
 
 void setBossActive(bool active) {

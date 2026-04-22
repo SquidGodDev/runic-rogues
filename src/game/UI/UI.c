@@ -163,9 +163,8 @@ void addDamageIndicator(float sourceX, float sourceY) {
 }
 
 void addAttackIntentIndicator(float sourceX, float sourceY, float duration) {
-    if (duration < ATTACK_INTENT_MIN_DURATION) {
-        duration = ATTACK_INTENT_MIN_DURATION;
-    }
+    // Changed my mind on the attack intent indicator duration, it looks better if it doesn't linger too long for long prep times
+    duration = ATTACK_INTENT_MIN_DURATION;
     addDirectionIndicator(sourceX, sourceY, INDICATOR_TYPE_ATTACK_INTENT, duration);
 }
 

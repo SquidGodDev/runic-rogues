@@ -173,20 +173,22 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_ELDER_BOSS] = (EnemyData){
 		.name = "Elder Boss",
 		.health = 700,
-		.attackDetectionRange = 20,
-		.attackDistance = 20,
+		.attackDetectionRange = 10,
+		.attackDistance = 10,
 		.attackDamage = 20,
 		.attackCooldown = 1.5f,
 		.moveSpeed = 0.4f,
+		.abilityDataPrimary = 2.0f, // Dash speed
+		.abilityDataSecondary = 25.0f, // Projectile speed
 		.textureIndex = TEXTURE_ELDER_BOSS,
 		.idleFrameEnd = 14,
 		.prepFrameStart = 15,
-		.prepFrameEnd = 17,
-		.attackFrameStart = 18,
-		.attackFrameEnd = 26,
-		.attackActiveFrame = 22,
-		.deathFrameStart = 27,
-		.deathFrameEnd = 30,
+		.prepFrameEnd = 22,
+		.attackFrameStart = 23,
+		.attackFrameEnd = 31,
+		.attackActiveFrame = 27,
+		.deathFrameStart = 32,
+		.deathFrameEnd = 35,
 		.frameTime = 0.15f,
 		.update = elderBossUpdate,
 		.knockbackResistant = true
@@ -427,11 +429,11 @@ int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 	if (enemyType == ENEMY_TYPE_WRAITH_BOSS) {
 		bossIndex = newEnemyIndex;
 		setBossActive(true);
-		enemies[newEnemyIndex].stateTimer = WRAITH_BOSS_IDLE_TIME;
+		enemies[newEnemyIndex].stateTimer = 2.0f; // Initial idle time before first attack
 	} else if (enemyType == ENEMY_TYPE_ELDER_BOSS) {
 		bossIndex = newEnemyIndex;
 		setBossActive(true);
-		enemies[newEnemyIndex].stateTimer = ELDER_BOSS_IDLE_TIME;
+		enemies[newEnemyIndex].stateTimer = 2.0f; // Initial idle time before first attack
 	}
 
 	return newEnemyIndex;
