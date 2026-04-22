@@ -155,14 +155,65 @@ typedef enum ElderAttackCycle {
 #define ELDER_STATE_DASH_EXEC  ENEMY_STATE_ATTACK_2
 #define ELDER_STATE_PROJECTILE ENEMY_STATE_ATTACK_3
 
-// === Wraith Boss constants ===
-#define WRAITH_BOSS_IDLE_TIME 2.0f
-#define WRAITH_BOSS_PREP_TIME 1.0f
-#define WRAITH_BOSS_DASH_TIME 2.5f
-#define WRAITH_BOSS_PROJECTILE_TIME 2.0f
-#define WRAITH_BOSS_SUMMON_TIME 5.0f
-#define WRAITH_BOSS_RUSH_COUNT 3
-#define WRAITH_BOSS_PROJECTILE_COOLDOWN 0.5f
+// === Wraith Boss properties ===
+typedef struct WraithBossProperties {
+	float idleTime;
+	float prepTime;
+	float dashTime;
+	float projectileTime;
+	float summonTime;
+	int   rushCount;
+	float projectileCooldown;
+} WraithBossProperties;
+
+static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BOSS_PHASE_COUNT] = {
+	// Difficulty 0
+	{
+		// Phase 0
+		{
+			.idleTime           = 2.0f,
+			.prepTime           = 1.0f,
+			.dashTime           = 2.5f,
+			.projectileTime     = 2.0f,
+			.summonTime         = 5.0f,
+			.rushCount          = 3,
+			.projectileCooldown = 0.5f,
+		},
+		// Phase 1 — placeholder copy of phase 0
+		{
+			.idleTime           = 2.0f,
+			.prepTime           = 1.0f,
+			.dashTime           = 2.5f,
+			.projectileTime     = 2.0f,
+			.summonTime         = 5.0f,
+			.rushCount          = 3,
+			.projectileCooldown = 0.5f,
+		},
+	},
+	// Difficulty 1 — placeholder copies of difficulty 0
+	{
+		{
+			.idleTime           = 2.0f,
+			.prepTime           = 1.0f,
+			.dashTime           = 2.5f,
+			.projectileTime     = 2.0f,
+			.summonTime         = 5.0f,
+			.rushCount          = 3,
+			.projectileCooldown = 0.5f,
+		},
+		{
+			.idleTime           = 2.0f,
+			.prepTime           = 1.0f,
+			.dashTime           = 2.5f,
+			.projectileTime     = 2.0f,
+			.summonTime         = 5.0f,
+			.rushCount          = 3,
+			.projectileCooldown = 0.5f,
+		},
+	},
+};
+
+static const WraithBossProperties *wraithProperties;
 
 #define WRAITH_STATE_DASH        ENEMY_STATE_ATTACK_1
 #define WRAITH_STATE_PROJECTILE  ENEMY_STATE_ATTACK_2
@@ -641,6 +692,8 @@ void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 }
 
 void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	wraithProperties = &WRAITH_BOSS_PROPERTIES[0][curEnemy->phase];
+
 	if (curEnemy->attackCooldown <= 0 && playerInAttackDistance(index)) {
 		curEnemy->attackCooldown = curEnemyData->attackCooldown;
 		damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
@@ -649,15 +702,15 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		if (curEnemy->stateTimer <= 0) {
 			transitionToState(curEnemy, ENEMY_STATE_PREP);
-			curEnemy->stateTimer = WRAITH_BOSS_PREP_TIME;
-			addAttackIntentIndicator(curEnemy->x, curEnemy->y, WRAITH_BOSS_PREP_TIME);
+			curEnemy->stateTimer = wraithProperties->prepTime;
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, wraithProperties->prepTime);
 		}
 	} else if (curEnemy->state == ENEMY_STATE_PREP) {
 		if (curEnemy->stateTimer <= 0) {
 			if (curEnemy->nextState == WRAITH_STATE_DASH) {
 				// == Dash attack ==
 				transitionToState(curEnemy, WRAITH_STATE_DASH);
-				curEnemy->stateTimer = WRAITH_BOSS_DASH_TIME;
+				curEnemy->stateTimer = wraithProperties->dashTime;
 				curEnemy->stateCount++;
 
 				// Project line towards player and set target to first wall hit
@@ -667,19 +720,19 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				curEnemy->targetY = targetY;
 
 				// Rush attack 3 times
-				if (curEnemy->stateCount >= WRAITH_BOSS_RUSH_COUNT) {
+				if (curEnemy->stateCount >= wraithProperties->rushCount) {
 					curEnemy->stateCount = 0;
 					curEnemy->nextState = WRAITH_STATE_PROJECTILE;
 				}
 			} else if (curEnemy->nextState == WRAITH_STATE_PROJECTILE) {
 				// == Projectile attack ==
 				transitionToState(curEnemy, WRAITH_STATE_PROJECTILE);
-				curEnemy->stateTimer = WRAITH_BOSS_PROJECTILE_TIME;
+				curEnemy->stateTimer = wraithProperties->projectileTime;
 				curEnemy->nextState = WRAITH_STATE_SUMMON;
 			} else if (curEnemy->nextState == WRAITH_STATE_SUMMON) {
 				// == Summon wraiths ==
 				transitionToState(curEnemy, ENEMY_STATE_IDLE);
-				curEnemy->stateTimer = WRAITH_BOSS_SUMMON_TIME;
+				curEnemy->stateTimer = wraithProperties->summonTime;
 				curEnemy->nextState = WRAITH_STATE_DASH;
 				Point bossRoomCenter = getRoomWorldCenter(DUNGEON_ROOM_COUNT - 1);
 				curEnemy->targetX = bossRoomCenter.x;
@@ -692,14 +745,14 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	} else if (curEnemy->state == WRAITH_STATE_DASH || curEnemy->state == WRAITH_STATE_PROJECTILE || curEnemy->state == WRAITH_STATE_SUMMON) {
 		if (curEnemy->stateTimer <= 0) {
 			transitionToState(curEnemy, ENEMY_STATE_IDLE);
-			curEnemy->stateTimer = WRAITH_BOSS_IDLE_TIME;
+			curEnemy->stateTimer = wraithProperties->idleTime;
 		}
 
 		if (curEnemy->state == WRAITH_STATE_DASH) {
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
 		} else if (curEnemy->state == WRAITH_STATE_PROJECTILE) {
 			if (curEnemy->attackCooldown <= 0) {
-				curEnemy->attackCooldown = WRAITH_BOSS_PROJECTILE_COOLDOWN;
+				curEnemy->attackCooldown = wraithProperties->projectileCooldown;
 				float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy->x, curEnemy->y));
 				float deltaX = (playerX - curEnemy->x) / distanceToPlayer;
 				float deltaY = (playerY - curEnemy->y) / distanceToPlayer;
