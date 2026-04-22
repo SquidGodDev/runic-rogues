@@ -178,8 +178,6 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDamage = 20,
 		.attackCooldown = 1.5f,
 		.moveSpeed = 0.4f,
-		.abilityDataPrimary = 2.0f, // Dash speed
-		.abilityDataSecondary = 25.0f, // Projectile speed
 		.textureIndex = TEXTURE_ELDER_BOSS,
 		.idleFrameEnd = 14,
 		.prepFrameStart = 15,
@@ -423,7 +421,8 @@ int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 		.attackedPlayer = false,
 		.slowTime = 0,
 		.slowAmount = 0,
-		.phase = 0
+		.phase = 0,
+		.attackCycle = 0
 	};
 
 	if (enemyType == ENEMY_TYPE_WRAITH_BOSS) {
