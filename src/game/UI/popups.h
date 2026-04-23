@@ -4,6 +4,7 @@
 
 typedef enum PopupType {
     POPUP_ROOM_CLEARED,
+    POPUP_AREA_CLEARED,
     POPUP_TYPE_COUNT,
 } PopupType;
 
