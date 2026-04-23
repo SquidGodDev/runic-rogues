@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/UI/popups.h"
+
 typedef enum ScreenShakeStrength {
     SCREEN_SHAKE_LIGHT,
     SCREEN_SHAKE_MEDIUM,
@@ -8,7 +10,7 @@ typedef enum ScreenShakeStrength {
 
 void initUI(void);
 void drawUI(float deltaTime);
-void showRoomClearedPopup(void);
+void showPopup(PopupType type);
 bool adjustShopDescOffset(int delta);
 void resetShopDescOffset(void);
 void setSpellOverlay(int index, int bitmapTableIndex, float frameTime, int drawX, int drawY);

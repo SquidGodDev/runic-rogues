@@ -75,7 +75,6 @@ ShopPageData createShopPage(char *name, char *desc, char* type, LCDBitmap *icon,
     if (language == LANGUAGE_JP) {
         fontTitle = fontTitleJP;
         fontSub = fontSubJP;
-        drawMode = kDrawModeFillWhite;
         tracking = 1;
         leading = 2;
     }
@@ -160,7 +159,7 @@ void createShopOptions(void) {
         pd->graphics->freeBitmap(skipDescBitmapJP);
     }
     ShopPageData skipPageEN = createShopPage("Skip", "Skip rune selection for this level up.", "Skip", NULL, LANGUAGE_EN);
-    ShopPageData skipPageJP = createShopPage("スキップ", "このレベルアップのルーン選択をスキップします。", "Skip", NULL, LANGUAGE_JP);
+    ShopPageData skipPageJP = createShopPage("スキップ", "ルーン選択をスキップします。", "Skip", NULL, LANGUAGE_JP);
     skipDescBitmapEN = skipPageEN.shopDescBitmap;
     skipDescHeightEN = skipPageEN.descHeight;
     skipDescBitmapJP = skipPageJP.shopDescBitmap;

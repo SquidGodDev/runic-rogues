@@ -17,7 +17,7 @@
 #define MAP_HEIGHT 32
 
 // Set to 1 to skip directly to the boss room on game start
-#define DEBUG_SKIP_TO_BOSS 1
+#define DEBUG_SKIP_TO_BOSS 0
 
 #define FOG_LEVELS 16
 #define FOG_STEP 6

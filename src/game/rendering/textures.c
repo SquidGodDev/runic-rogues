@@ -3,6 +3,7 @@
 
 #include "globals/globals.h"
 #include "game/rendering/textures.h"
+#include "game/UI/popups.h"
 
 uint8_t* TEXTURES[TEXTURE_COUNT];
 TextureBounds* TEXTURE_BOUNDS[TEXTURE_COUNT];
@@ -125,8 +126,6 @@ const char *bitmapPathStrings[] = {
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];
 const char *bitmapTablePathStrings[] = {
 	"images/UI/prompts/exitArrow",
-	"images/UI/popups/roomClearedEN",
-	"images/UI/popups/roomClearedJP",
 	"images/spells/overlays/arcLightningOverlay",
 	"images/player/hand",
 	"images/player/sword",
@@ -223,15 +222,15 @@ void loadTexture(int textureIndex) {
 }
 
 static const char *fontPathStrings[FONT_COUNT] = {
-	"fonts/m5x7-12",
 	"fonts/m6x11-12",
-	"fonts/KH-Dot-Kabutochou-16",
-	"fonts/KH-Dot-Kodenmachou-12"
+	"fonts/KH-Dot-Kabutochou-16-Outline",
+	"fonts/m5x7-12",
+	"fonts/KH-Dot-Kodenmachou-12-Outline"
 };
 static LCDFont **fontSlots[FONT_COUNT] = {
-	&fontSubEN,
 	&fontTitleEN,
 	&fontTitleJP,
+	&fontSubEN,
 	&fontSubJP
 };
 
@@ -273,6 +272,9 @@ void loadTextureAsset(int step) {
 		BITMAP_TABLES[step] = pd->graphics->loadBitmapTable(bitmapTablePathStrings[step], &outErr);
 		if (!BITMAP_TABLES[step]) {
 			pd->system->error(outErr);
+		}
+		if (step == BITMAP_TABLE_PATHS_COUNT - 1) {
+			initPopups();
 		}
 		return;
 	}

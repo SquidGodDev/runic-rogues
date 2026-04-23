@@ -1,8 +1,6 @@
 #define TARGET_EXTENSION 1
 #include "pd_api.h"
 
-#include <string.h>
-
 #include "globals/globals.h"
 #include "globals/sceneManager.h"
 #include "title/loadingScene.h"

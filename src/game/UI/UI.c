@@ -93,11 +93,10 @@ static bool exitActive;
 static int exitWorldX;
 static int exitWorldY;
 
-static int popupImagetableIndex;
+static PopupType popupType;
 static int popupFrame;
-static int popupMaxFrame;
 static float popupCurFrameTime;
-static float popupFrameTime;
+static bool popupActive;
 
 typedef struct SpellOverlay {
     LCDBitmapTable *bitmapTable;
@@ -122,7 +121,7 @@ void initUI(void) {
         directionIndicators[i].timer = 0;
     }
 
-    popupImagetableIndex = -1;
+    popupActive = false;
 
     for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         spellOverlays[i] = (SpellOverlay) {
@@ -639,35 +638,30 @@ void drawSpellOverlay(float deltaTime) {
     }
 }
 
-void showRoomClearedPopup(void) {
-    if (SETTINGS.language == LANGUAGE_EN) {
-        popupImagetableIndex = BITMAP_TABLE_ROOM_CLEARED_POPUP_EN;
-    } else if (SETTINGS.language == LANGUAGE_JP) {
-        popupImagetableIndex = BITMAP_TABLE_ROOM_CLEARED_POPUP_JP;
-    }
-    popupMaxFrame = 30;
+void showPopup(PopupType type) {
+    popupType = type;
     popupFrame = 0;
     popupCurFrameTime = 0;
-    popupFrameTime = 0.05f;
+    popupActive = true;
 }
 
 bool isPopupActive(void) {
-    return popupImagetableIndex != -1;
+    return popupActive;
 }
 
 void drawPopup(float deltaTime) {
-    if (popupImagetableIndex != -1) {
+    if (popupActive) {
         popupCurFrameTime += deltaTime;
-        if (popupCurFrameTime >= popupFrameTime) {
+        if (popupCurFrameTime >= POPUP_FRAME_TIME) {
             popupCurFrameTime = 0;
             popupFrame++;
-            if (popupFrame >= popupMaxFrame) {
-                popupImagetableIndex = -1;
+            if (popupFrame >= POPUP_MAX_FRAME) {
+                popupActive = false;
                 return;
             }
         }
 
-        LCDBitmap *popupBitmap = pd->graphics->getTableBitmap(BITMAP_TABLES[popupImagetableIndex], popupFrame);
+        LCDBitmap *popupBitmap = getPopupBitmap(popupType, popupFrame);
         drawCenteredBitmap(popupBitmap, 100, 60);
     }
 }

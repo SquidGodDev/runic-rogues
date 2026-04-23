@@ -6,6 +6,7 @@
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
 #include "game/UI/UI.h"
+#include "game/systems/shopManager.h"
 
 #define WAVES_PER_ROOM 5
 #define MAX_WAVE_SLOTS 12
@@ -186,7 +187,7 @@ int getCurrentRoomIndex(void) {
 }
 
 void roomCompleted(void) {
-    showRoomClearedPopup();
+    showPopup(POPUP_ROOM_CLEARED);
     currentWave++;
     waveState = WAVE_STATE_POPUP_WAIT;
 }

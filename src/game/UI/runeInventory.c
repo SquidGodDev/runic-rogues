@@ -113,7 +113,7 @@ static RunePageData getRunePage(RuneType runeType) {
             pd->graphics->setFont(fontSubJP);
             pd->graphics->setTextTracking(tracking);
             pd->graphics->setTextLeading(leading);
-            pd->graphics->setDrawMode(kDrawModeFillWhite);
+            pd->graphics->setDrawMode(kDrawModeCopy);
             pd->graphics->drawTextInRect(descJP, strlen(descJP), kUTF8Encoding,
                                          0, titleH + 6, RUNE_DESC_WIDTH, descH,
                                          kWrapWord, kAlignTextLeft);
