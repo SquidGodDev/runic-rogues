@@ -671,18 +671,18 @@ void drawRoomInfo(void) {
         return;
     }
 
-    int tracking = -1;
     pd->graphics->pushContext(NULL);
-        pd->graphics->setFont(fontSubEN);
-        pd->graphics->setTextTracking(tracking);
+        bool isJP = SETTINGS.language == LANGUAGE_JP;
+        pd->graphics->setFont(isJP ? fontSubJP : fontSubEN);
+        pd->graphics->setTextTracking(isJP ? 0 : -1);
 
         char *roomString;
         int roomIndex = getCurrentRoomIndex();
         int totalRooms = getDungeonRoomCount();
         if (roomIndex >= totalRooms - 1) {
-            pd->system->formatString(&roomString, "Boss");
+            pd->system->formatString(&roomString, isJP ? "ボス部屋" : "Boss");
         } else {
-            pd->system->formatString(&roomString, "Room %d/%d", roomIndex + 1, totalRooms - 1);
+            pd->system->formatString(&roomString, isJP ? "部屋 %d/%d" : "Room %d/%d", roomIndex + 1, totalRooms - 1);
         }
         pd->graphics->drawText(roomString, strlen(roomString), kUTF8Encoding, 4, 14);
         pd->system->realloc(roomString, 0);
