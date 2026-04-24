@@ -15,6 +15,8 @@ typedef struct PopupDef {
 static const PopupDef POPUP_DEFS[POPUP_TYPE_COUNT] = {
     [POPUP_ROOM_CLEARED] = { "Room Cleared", "部屋クリア" },
     [POPUP_AREA_CLEARED] = { "Floor Cleared", "フロア クリア" },
+    [POPUP_ELDER_BOSS] = { "The Elder", "エルダー" },
+    [POPUP_WRAITH_BOSS] = { "The Wraith", "レイス" },
 };
 
 static const uint8_t POPUP_FADE_PATTERNS[POPUP_FADE_IN_FRAMES][8] = {

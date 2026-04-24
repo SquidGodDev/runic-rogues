@@ -7,6 +7,7 @@
 #include "game/map/map.h"
 #include "game/UI/UI.h"
 #include "game/systems/shopManager.h"
+#include "game/systems/bossCinematic.h"
 
 #define WAVES_PER_ROOM 5
 #define MAX_WAVE_SLOTS 12
@@ -121,8 +122,9 @@ static void spawnBoss(void) {
     AreaEnemyPool *pool = &areaPools[getCurrentArea()];
     Point spawnPosition = getRoomWorldCenter(DUNGEON_ROOM_COUNT - 1);
     killAllNonBossEnemies();
-    spawnEnemy(pool->bossType, spawnPosition.x, spawnPosition.y, false /*isMinion*/);
+    int bossIdx = spawnEnemy(pool->bossType, spawnPosition.x, spawnPosition.y, false /*isMinion*/);
     waveState = WAVE_STATE_BOSS;
+    startBossCinematic(bossIdx);
 }
 
 static void beginWaveSpawning(void) {
@@ -143,7 +145,14 @@ void initWaveManager(void) {
     arrowTargetRoom = -1;
     spawnQueueSize = 0;
     #if DEBUG_SKIP_TO_BOSS
-        spawnBoss();
+        // Place state as if the last wave room was cleared and the shop was closed:
+        // player in the last wave room, boss gate open, arrow pointing to the boss room.
+        currentWave = WAVES_PER_ROOM;
+        currentRoomIndex = WAVE_ROOM_COUNT - 1;
+        openRoomGate(WAVE_ROOM_COUNT - 1);
+        Point bossCenter = getRoomWorldCenter(DUNGEON_ROOM_COUNT - 1);
+        setArrowPosition(bossCenter.x, bossCenter.y);
+        arrowTargetRoom = DUNGEON_ROOM_COUNT - 1;
     #endif
 }
 
@@ -187,7 +196,7 @@ int getCurrentRoomIndex(void) {
 }
 
 void roomCompleted(void) {
-    showPopup(POPUP_ROOM_CLEARED);
+    showPopup(POPUP_ROOM_CLEARED, POPUP_POSITION_CENTER);
     currentWave++;
     waveState = WAVE_STATE_POPUP_WAIT;
 }
@@ -224,6 +233,9 @@ void updateWaveManager(float deltaTime) {
             }
             if (spawnIndex >= spawnQueueSize) {
                 waveState = WAVE_STATE_ACTIVE;
+                #if DEBUG_INSTANT_ROOM_CLEAR
+                    killAllNonBossEnemies();
+                #endif
             }
             break;
 

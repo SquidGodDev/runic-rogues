@@ -7,7 +7,7 @@ Settings SETTINGS;
 
 void initSettings(void) {
     SETTINGS = (Settings) {
-        .language = LANGUAGE_JP,
+        .language = LANGUAGE_EN,
         .drawMinimapWalls = 1
     };
 }

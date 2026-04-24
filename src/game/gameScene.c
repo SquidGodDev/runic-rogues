@@ -23,6 +23,7 @@
 #include "game/UI/runeInventory.h"
 #include "game/systems/timerManager.h"
 #include "game/systems/waveManager.h"
+#include "game/systems/bossCinematic.h"
 #include "game/settings/settings.h"
 
 PlaydateAPI *pd = NULL;
@@ -67,14 +68,14 @@ void initGameScene(void)
 	initMap();
 	initRaycasting();
 
-	// Wave Manager
-	initWaveManager();
-
 	// UI
 	initUI();
 
 	// Player
 	initPlayer();
+
+	// Wave Manager
+	initWaveManager();
 }
 
 void updateGameScene(float deltaTime)
@@ -96,6 +97,11 @@ void updateGameScene(float deltaTime)
 		updateShop(deltaTime);
 	} else if (gameState == GAME_STATE_RUNE_INVENTORY) {
 		updateRuneInventory(deltaTime);
+	} else if (gameState == GAME_STATE_BOSS_CINEMATIC) {
+		updateBossCinematic(deltaTime);
+		updateEnemies(deltaTime);
+		renderScene();
+		drawPopup(deltaTime);
 	}
 	
 	pd->system->drawFPS(185, 108);

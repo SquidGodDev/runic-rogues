@@ -8,6 +8,7 @@
 #include "game/entities/projectiles.h"
 #include "game/rendering/particles.h"
 #include "game/systems/waveManager.h"
+#include "game/systems/bossCinematic.h"
 #include "game/UI/UI.h"
 
 #define BOSS_DIFFICULTY_COUNT 2
@@ -595,6 +596,9 @@ static void elderBeginNextAttackCycle(Enemy *curEnemy) {
 }
 
 void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (isBossCinematicActive()) {
+		return;
+	}
 	elderProperties = &ELDER_BOSS_PROPERTIES[0][curEnemy->phase];
 
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
@@ -693,6 +697,9 @@ void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 }
 
 void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (isBossCinematicActive()) {
+		return;
+	}
 	wraithProperties = &WRAITH_BOSS_PROPERTIES[0][curEnemy->phase];
 
 	if (curEnemy->attackCooldown <= 0 && playerInAttackDistance(index)) {

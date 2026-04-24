@@ -94,6 +94,7 @@ static int exitWorldX;
 static int exitWorldY;
 
 static PopupType popupType;
+static PopupPosition popupPosition;
 static int popupFrame;
 static float popupCurFrameTime;
 static bool popupActive;
@@ -638,8 +639,9 @@ void drawSpellOverlay(float deltaTime) {
     }
 }
 
-void showPopup(PopupType type) {
+void showPopup(PopupType type, PopupPosition position) {
     popupType = type;
+    popupPosition = position;
     popupFrame = 0;
     popupCurFrameTime = 0;
     popupActive = true;
@@ -662,12 +664,25 @@ void drawPopup(float deltaTime) {
         }
 
         LCDBitmap *popupBitmap = getPopupBitmap(popupType, popupFrame);
-        drawCenteredBitmap(popupBitmap, 100, 60);
+        int popupY;
+        switch (popupPosition) {
+            case POPUP_POSITION_TOP:
+                popupY = 20;
+                break;
+            case POPUP_POSITION_BOTTOM:
+                popupY = 100;
+                break;
+            case POPUP_POSITION_CENTER:
+            default:
+                popupY = 60;
+                break;
+        }
+        drawCenteredBitmap(popupBitmap, 100, popupY);
     }
 }
 
 void drawRoomInfo(void) {
-    if (getBossActive() || isAreaCompleted()) {
+    if (isAreaCompleted()) {
         return;
     }
 

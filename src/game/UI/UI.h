@@ -10,7 +10,8 @@ typedef enum ScreenShakeStrength {
 
 void initUI(void);
 void drawUI(float deltaTime);
-void showPopup(PopupType type);
+void showPopup(PopupType type, PopupPosition position);
+void drawPopup(float deltaTime);
 bool adjustShopDescOffset(int delta);
 void resetShopDescOffset(void);
 void setSpellOverlay(int index, int bitmapTableIndex, float frameTime, int drawX, int drawY);

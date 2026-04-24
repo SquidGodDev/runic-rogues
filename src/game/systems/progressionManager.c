@@ -92,7 +92,7 @@ RoomType getCurrentRoomType(void) {
 void setAreaCompleted(bool completed) {
     areaCompleted = completed;
     if (completed) {
-        showPopup(POPUP_AREA_CLEARED);
+        showPopup(POPUP_AREA_CLEARED, POPUP_POSITION_CENTER);
         pendingExitSpawn = true;
     }
 }

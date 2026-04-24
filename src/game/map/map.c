@@ -206,8 +206,8 @@ Point getPlayerSpawnMapPosition(void) {
         return campfireLayout.playerSpawnMapPosition;
     }
     #if DEBUG_SKIP_TO_BOSS
-        DungeonRoom *bossRoom = &dungeonRooms[DUNGEON_ROOM_COUNT - 1];
-        return (Point){.x = bossRoom->centerX, .y = bossRoom->interiorMinY + 1};
+        DungeonRoom *lastWaveRoom = &dungeonRooms[WAVE_ROOM_COUNT - 1];
+        return (Point){.x = lastWaveRoom->interiorMinX + 1, .y = lastWaveRoom->centerY};
     #endif
     return (Point){.x = 1, .y = 5};
 }

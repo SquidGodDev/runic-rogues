@@ -427,11 +427,9 @@ int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 
 	if (enemyType == ENEMY_TYPE_WRAITH_BOSS) {
 		bossIndex = newEnemyIndex;
-		setBossActive(true);
 		enemies[newEnemyIndex].stateTimer = 2.0f; // Initial idle time before first attack
 	} else if (enemyType == ENEMY_TYPE_ELDER_BOSS) {
 		bossIndex = newEnemyIndex;
-		setBossActive(true);
 		enemies[newEnemyIndex].stateTimer = 2.0f; // Initial idle time before first attack
 	}
 
@@ -496,12 +494,6 @@ void transitionToState(Enemy *enemy, EnemyState newState) {
 		enemy->animationFrame = curEnemyData->deathFrameStart - 1;
 	}
 }
-
-
-
-
-
-
 
 void updateEnemyTimers(Enemy *curEnemy, float deltaTime) {
 	if (curEnemy->slowTime > 0) {

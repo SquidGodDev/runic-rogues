@@ -1,0 +1,150 @@
+#define TARGET_EXTENSION 1
+#include "pd_api.h"
+
+#include <math.h>
+
+#include "globals/globals.h"
+#include "globals/helpers.h"
+#include "game/gameScene.h"
+#include "game/player/player.h"
+#include "game/enemies/enemies.h"
+#include "game/UI/UI.h"
+#include "game/UI/popups.h"
+#include "game/systems/bossCinematic.h"
+
+// === Tunable cinematic parameters ===
+#define BOSS_CINEMATIC_DISTANCE_CELLS 3.0f
+#define BOSS_CINEMATIC_ZOOM_IN_TIME   1.5f
+#define BOSS_CINEMATIC_ZOOM_OUT_TIME  1.0f
+#define BOSS_CINEMATIC_HOLD_TIME      2.0f
+#define BOSS_CINEMATIC_ROTATE_TIME    5.0f
+#define BOSS_CINEMATIC_EASE           easeInOutQuad
+#define BOSS_CINEMATIC_ROTATION_DIR   1.0f
+// ====================================
+
+// Plane vector magnitude — must match initPlayer in player.c
+#define CAMERA_PLANE_MAGNITUDE 0.59f
+
+typedef enum {
+	BOSS_CINEMATIC_INACTIVE,
+	BOSS_CINEMATIC_ZOOM_IN,
+	BOSS_CINEMATIC_MIDDLE,
+	BOSS_CINEMATIC_ZOOM_OUT,
+} BossCinematicPhase;
+
+static BossCinematicPhase phase = BOSS_CINEMATIC_INACTIVE;
+static float phaseTimer;
+
+static float savedX, savedY, savedAngle;
+static float bossX, bossY;
+static float orbitStartAngle;
+static int bossEnemyIndex = -1;
+
+static float lerpAngleShortest(float a, float b, float t) {
+	float diff = fmodf(b - a + PI, 2.0f * PI);
+	if (diff < 0) {
+		diff += 2.0f * PI;
+	}
+	diff -= PI;
+	return a + diff * t;
+}
+
+static void setCameraGlobals(float x, float y, float angle) {
+	playerX = x;
+	playerY = y;
+	playerAngle = angle;
+	dirX = cosf(angle);
+	dirY = sinf(angle);
+	planeX = sinf(angle) * CAMERA_PLANE_MAGNITUDE;
+	planeY = -cosf(angle) * CAMERA_PLANE_MAGNITUDE;
+}
+
+bool isBossCinematicActive(void) {
+	return phase != BOSS_CINEMATIC_INACTIVE;
+}
+
+void startBossCinematic(int bossIndex) {
+	bossEnemyIndex = bossIndex;
+	savedX = playerX;
+	savedY = playerY;
+	savedAngle = playerAngle;
+
+	Enemy *boss = &enemies[bossIndex];
+	bossX = boss->x;
+	bossY = boss->y;
+
+	orbitStartAngle = atan2f(savedY - bossY, savedX - bossX);
+
+	transitionToState(boss, ENEMY_STATE_IDLE);
+
+	phase = BOSS_CINEMATIC_ZOOM_IN;
+	phaseTimer = 0;
+	setGameState(GAME_STATE_BOSS_CINEMATIC);
+}
+
+void updateBossCinematic(float deltaTime) {
+	if (phase == BOSS_CINEMATIC_INACTIVE) {
+		return;
+	}
+
+	phaseTimer += deltaTime;
+
+	float radius = BOSS_CINEMATIC_DISTANCE_CELLS * CELL_SIZE;
+	float orbitEndX = bossX + radius * cosf(orbitStartAngle);
+	float orbitEndY = bossY + radius * sinf(orbitStartAngle);
+	float faceBossAngleAtStart = orbitStartAngle + PI;
+
+	if (phase == BOSS_CINEMATIC_ZOOM_IN) {
+		float t = clampFloat(phaseTimer / BOSS_CINEMATIC_ZOOM_IN_TIME, 0, 1);
+		float e = BOSS_CINEMATIC_EASE(t);
+		float camX = savedX + (orbitEndX - savedX) * e;
+		float camY = savedY + (orbitEndY - savedY) * e;
+		float camAngle = lerpAngleShortest(savedAngle, faceBossAngleAtStart, e);
+		setCameraGlobals(camX, camY, camAngle);
+		if (phaseTimer >= BOSS_CINEMATIC_ZOOM_IN_TIME) {
+			Enemy *boss = &enemies[bossEnemyIndex];
+			transitionToState(boss, ENEMY_STATE_PREP);
+			phase = BOSS_CINEMATIC_MIDDLE;
+			phaseTimer = 0;
+			if (bossEnemyIndex >= 0) {
+				PopupType bossPopup = (enemies[bossEnemyIndex].type == ENEMY_TYPE_WRAITH_BOSS)
+					? POPUP_WRAITH_BOSS
+					: POPUP_ELDER_BOSS;
+				showPopup(bossPopup, POPUP_POSITION_TOP);
+			}
+		}
+	} else if (phase == BOSS_CINEMATIC_MIDDLE) {
+		// == For old rotation around boss ==
+		// float t = clampFloat(phaseTimer / BOSS_CINEMATIC_ROTATE_TIME, 0, 1);
+		// float orbitAngle = orbitStartAngle + BOSS_CINEMATIC_ROTATION_DIR * 2.0f * PI * t;
+		// float camX = bossX + radius * cosf(orbitAngle);
+		// float camY = bossY + radius * sinf(orbitAngle);
+		// float camAngle = orbitAngle + PI;
+		// setCameraGlobals(camX, camY, camAngle);
+		// if (phaseTimer >= BOSS_CINEMATIC_ROTATE_TIME) {
+		// 	phase = BOSS_CINEMATIC_ZOOM_OUT;
+		// 	phaseTimer = 0;
+		// }
+		setCameraGlobals(orbitEndX, orbitEndY, faceBossAngleAtStart);
+		if (phaseTimer >= BOSS_CINEMATIC_HOLD_TIME) {
+			phase = BOSS_CINEMATIC_ZOOM_OUT;
+			phaseTimer = 0;
+		}
+	} else if (phase == BOSS_CINEMATIC_ZOOM_OUT) {
+		float t = clampFloat(phaseTimer / BOSS_CINEMATIC_ZOOM_OUT_TIME, 0, 1);
+		float e = BOSS_CINEMATIC_EASE(t);
+		float camX = orbitEndX + (savedX - orbitEndX) * e;
+		float camY = orbitEndY + (savedY - orbitEndY) * e;
+		float camAngle = lerpAngleShortest(faceBossAngleAtStart, savedAngle, e);
+		setCameraGlobals(camX, camY, camAngle);
+		if (phaseTimer >= BOSS_CINEMATIC_ZOOM_OUT_TIME) {
+			setCameraGlobals(savedX, savedY, savedAngle);
+			if (bossEnemyIndex >= 0) {
+				enemies[bossEnemyIndex].stateTimer = 0;
+			}
+			phase = BOSS_CINEMATIC_INACTIVE;
+			setBossActive(true);
+			setGameState(GAME_STATE_ACTIVE);
+		}
+	}
+}
