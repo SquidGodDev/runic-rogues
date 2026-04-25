@@ -96,7 +96,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damageFrame = 0,
 		.damage = 0,
 		.damageRadius = 0,
-		.enemySpawnFrame = 9
+		.enemySpawnFrame = 11
 	},
 };
 
