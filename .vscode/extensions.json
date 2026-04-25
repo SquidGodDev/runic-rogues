@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "sumneko.lua",
+        "midouest.playdate-debug",
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools"
+    ]
+}

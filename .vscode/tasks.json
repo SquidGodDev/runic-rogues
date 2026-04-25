@@ -1,0 +1,168 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Kill Simulator",
+            "type": "shell",
+            "command": "taskkill",
+            "args": [
+                "/FI",
+                "'STATUS eq RUNNING'",
+                "/IM",
+                "PlaydateSimulator.exe",
+            ],
+            "problemMatcher": []
+        },
+        {
+            "type": "cmake",
+            "label": "CMake Sim",
+            "command": "build",
+            "targets": [
+                "ALL_BUILD"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Playdate: Build C for simulator",
+            "type": "shell",
+            "windows": {
+                "command": "cmd.exe",
+                "options": {
+                    "cwd": "${workspaceFolder}\\build\\build-sim",
+                    "env": {
+                        "__shellPath": "\"${env:VISUAL_STUDIO_TOOLS}\\vcvars64.bat\""
+                    }
+                },
+                "args": [
+                    "/c",
+                    "\"%__shellPath%",
+                    "^'&'",
+                    "nmake.exe\""
+                ]
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake Device",
+            "type": "shell",
+            "windows": {
+                "command": "cmd.exe",
+                "options": {
+                    "cwd": "${workspaceFolder}\\build\\build-device",
+                    "env": {
+                        "__makefileName": "\"NMake Makefiles\"",
+                        "__shellPath": "\"${env:VISUAL_STUDIO_TOOLS}\\vcvars64.bat\""
+                    }
+                },
+                "args": [
+                    "/c",
+                    "\"%__shellPath%",
+                    "^'&'",
+                    "cmake",
+                    "-DCMAKE_BUILD_TYPE=Release",
+                    "-G",
+                    "%__makefileName%",
+                    "..\\..",
+                    "--toolchain=${env:PLAYDATE_SDK_PATH}/C_API/buildsupport/arm.cmake\""
+                ]
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Playdate: Build C for device",
+            "type": "shell",
+            "windows": {
+                "command": "cmd.exe",
+                "options": {
+                    "cwd": "${workspaceFolder}\\build\\build-device",
+                    "env": {
+                        "__shellPath": "\"${env:VISUAL_STUDIO_TOOLS}\\vcvars64.bat\""
+                    }
+                },
+                "args": [
+                    "/c",
+                    "\"%__shellPath%",
+                    "^'&'",
+                    "nmake.exe\""
+                ]
+            },
+            "problemMatcher": [],
+        },
+        {
+            "label": "Playdate: Build Lua",
+            "type": "pdc",
+            "problemMatcher": [
+                "$pdc-lua",
+                "$pdc-external"
+            ],
+            "presentation": {
+                "revealProblems": "onProblem",
+                "panel": "shared",
+                "showReuseMessage": false
+            }
+        },
+        {
+            "label": "Playdate: Run",
+            "type": "playdate-simulator",
+            "problemMatcher": [
+                "$pdc-external"
+            ],
+            "kill": true,
+            "presentation": {
+                "revealProblems": "onProblem",
+                "panel": "shared",
+                "showReuseMessage": false
+            }
+        },
+        {
+            "label": "Playdate: Build Lua and Run",
+            "dependsOn": [
+                "Kill Simulator",
+                "Playdate: Build Lua",
+                "Playdate: Run"
+            ],
+            "dependsOrder": "sequence",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Simulator Build for C + Run",
+            "dependsOn": [
+                "Kill Simulator",
+                "CMake Sim",
+                // "Playdate: Build C for simulator",
+                "Playdate: Run"
+            ],
+            "dependsOrder": "sequence",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Debug Prelaunch Tasks",
+            "dependsOn": [
+                "Kill Simulator",
+                "Playdate: Build C for simulator"
+            ],
+            "dependsOrder": "sequence"
+        },
+        {
+            "label": "Device Build for C + Run",
+            "dependsOn": [
+                // "Kill Simulator",
+                // "CMake Device",
+                "Playdate: Build C for device",
+                "Playdate: Run"
+            ],
+            "dependsOrder": "sequence",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

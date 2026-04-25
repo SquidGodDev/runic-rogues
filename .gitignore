@@ -5,6 +5,5 @@
 *.dylib
 /build
 .sentry-native
-.vscode
 .claude
 **__record

@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${env:PLAYDATE_SDK_PATH}/C_API"
+            ],
+            "compilerPath": "C:/msys64/clang64/bin/clang.exe",
+            "cStandard": "c17",
+            "intelliSenseMode": "clang-arm64"
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,31 @@
+// Specifies what the debugger launch task should be
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Lua Debug",
+            "type": "playdate",
+            "request": "launch"
+        },
+        {
+            "name": "C Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${env:PLAYDATE_SDK_PATH}\\bin\\PlaydateSimulator.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
+            "preLaunchTask": "Debug Prelaunch Tasks"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Lua + C Debug",
+            "configurations": ["Lua Debug", "C Debug"],
+            "stopAll": true
+        }
+    ]
+}
