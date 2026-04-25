@@ -17,6 +17,7 @@ typedef enum ParticleType {
 	PARTICLE_TYPE_SERPENT_TAIL,
 	PARTICLE_TYPE_BOMB,
 	PARTICLE_TYPE_BLACK_HOLE,
+	PARTICLE_TYPE_SPAWN,
 	PARTICLE_TYPE_COUNT
 } ParticleType;
 
@@ -32,11 +33,14 @@ typedef struct Particle {
 	bool active;
 	bool enemyParticle;
 	bool appliedDamage;
+	bool spawnTriggered;
+	int pendingEnemyType;
 	ParticleType spawnOnEndParticleType;
 } Particle;
 
 extern Particle particles[MAX_PARTICLE_COUNT];
 
 void initParticles(void);
-void spawnParticle(ParticleType type, float x, float y, float sourceX, float sourceY, ParticleType spawnOnEndParticleType, bool enemyParticle);
+int spawnParticle(ParticleType type, float x, float y, float sourceX, float sourceY, ParticleType spawnOnEndParticleType, bool enemyParticle);
+void spawnEnemyWithSpawnParticle(int enemyType, float x, float y);
 void updateParticles(float deltaTime);

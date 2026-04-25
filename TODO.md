@@ -1,3 +1,6 @@
+- Boss
+  - Create mob summon particle
+  - Create death animation (cutscene?)
 - Improve enemy AI (new attack patterns)
   - Turret
   - Rush follow for a bit, then slow down

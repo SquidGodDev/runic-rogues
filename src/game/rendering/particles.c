@@ -4,6 +4,7 @@
 #include "globals/globals.h"
 #include "game/player/player.h"
 #include "game/entities/entities.h"
+#include "game/enemies/enemies.h"
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
 #include "game/systems/progressionManager.h"
@@ -15,6 +16,7 @@ typedef struct ParticleData {
 	int damageFrame;
 	int damage;
 	int damageRadius;
+	int enemySpawnFrame;
 } ParticleData;
 
 Particle particles[MAX_PARTICLE_COUNT] = {0};
@@ -86,7 +88,16 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damageFrame = 0,
 		.damage = 0,
 		.damageRadius = 0
-	}
+	},
+	[PARTICLE_TYPE_SPAWN] = {
+		.frameCount = 18,
+		.animationTime = 0.05f,
+		.textureIndex = TEXTURE_PARTICLE_SPAWN,
+		.damageFrame = 0,
+		.damage = 0,
+		.damageRadius = 0,
+		.enemySpawnFrame = 9
+	},
 };
 
 void initParticles(void) {
@@ -95,7 +106,7 @@ void initParticles(void) {
 	}
 }
 
-void spawnParticle(ParticleType type, float x, float y, float sourceX, float sourceY, ParticleType spawnOnEndParticleType, bool enemyParticle) {
+int spawnParticle(ParticleType type, float x, float y, float sourceX, float sourceY, ParticleType spawnOnEndParticleType, bool enemyParticle) {
 	int newParticleIndex = -1;
 	for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {
 		if (!particles[i].active) {
@@ -105,7 +116,7 @@ void spawnParticle(ParticleType type, float x, float y, float sourceX, float sou
 	}
 
 	if (newParticleIndex == -1) {
-		return;
+		return -1;
 	}
 
 	ParticleData data = particleData[type];
@@ -123,8 +134,18 @@ void spawnParticle(ParticleType type, float x, float y, float sourceX, float sou
 		.active = true,
 		.enemyParticle = enemyParticle,
 		.appliedDamage = false,
+		.spawnTriggered = false,
+		.pendingEnemyType = -1,
 		.spawnOnEndParticleType = spawnOnEndParticleType
 	};
+	return newParticleIndex;
+}
+
+void spawnEnemyWithSpawnParticle(int enemyType, float x, float y) {
+	int idx = spawnParticle(PARTICLE_TYPE_SPAWN, x, y, x, y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+	if (idx >= 0) {
+		particles[idx].pendingEnemyType = enemyType;
+	}
 }
 
 void updateParticles(float deltaTime) {
@@ -158,6 +179,15 @@ void updateParticles(float deltaTime) {
 				}
 			} else {
 				damageEnemiesInArea(curParticle->x, curParticle->y, data->damageRadius, data->damage);
+			}
+		}
+
+		if (data->enemySpawnFrame > 0 && curParticle->pendingEnemyType >= 0
+				&& curParticle->animationFrame >= data->enemySpawnFrame - 1
+				&& !curParticle->spawnTriggered) {
+			curParticle->spawnTriggered = true;
+			if (!isAreaCompleted()) {
+				spawnEnemy((EnemyType)curParticle->pendingEnemyType, (int)curParticle->x, (int)curParticle->y, true /*isMinion*/);
 			}
 		}
 

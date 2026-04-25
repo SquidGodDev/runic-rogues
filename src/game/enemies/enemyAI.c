@@ -541,7 +541,7 @@ static void elderSpawnSummons(Enemy *curEnemy) {
 					break;
 				}
 			}
-			spawnEnemy(type, (int)sx, (int)sy, true /*isMinion*/);
+			spawnEnemyWithSpawnParticle(type, sx, sy);
 		}
 	}
 }
