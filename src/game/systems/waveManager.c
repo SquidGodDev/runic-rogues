@@ -263,10 +263,11 @@ void updateWaveManager(float deltaTime) {
                     int gateIndex = (currentWave >= WAVES_PER_ROOM) ? WAVE_ROOM_COUNT - 1 : currentWave - 1;
                     closeRoomGate(gateIndex);
                 }
+
+                currentRoomIndex = targetRoom;
                 if (currentWave >= WAVES_PER_ROOM) {
                     spawnBoss();
                 } else {
-                    currentRoomIndex = targetRoom;
                     waveState = WAVE_STATE_PRE_WAVE;
                     transitionTimer = PRE_WAVE_DELAY;
                 }

@@ -683,7 +683,9 @@ void drawPopup(float deltaTime) {
 }
 
 void drawRoomInfo(void) {
-    if (isAreaCompleted()) {
+    int roomIndex = getCurrentRoomIndex();
+    int totalRooms = getDungeonRoomCount();
+    if (isAreaCompleted() || roomIndex >= totalRooms - 1) {
         return;
     }
 
@@ -693,8 +695,6 @@ void drawRoomInfo(void) {
         pd->graphics->setTextTracking(isJP ? 0 : -1);
 
         char *roomString;
-        int roomIndex = getCurrentRoomIndex();
-        int totalRooms = getDungeonRoomCount();
         if (roomIndex >= totalRooms - 1) {
             pd->system->formatString(&roomString, isJP ? "ボス部屋" : "Boss");
         } else {
