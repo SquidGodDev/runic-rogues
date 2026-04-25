@@ -18,6 +18,7 @@
 #include "game/settings/settings.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/waveManager.h"
+#include "game/systems/bossCinematic.h"
 
 #define drawPixel(frameBuffer, x, y) (frameBuffer[y * LCD_ROWSIZE + (x >> 3)] |= (1 << (7 - (x & 7))))
 
@@ -575,7 +576,7 @@ void drawSpellUI(void) {
 }
 
 void drawBossHealthBar(void) {
-    float healthPercentage = getBossHealthPercentage();
+    float healthPercentage = isBossCinematicActive() ? getBossCinematicProgress() : getBossHealthPercentage();
     int healthBarWidth = healthPercentage * 68;
 
     pd->graphics->drawBitmap(BITMAPS[BITMAP_BOSS_HEALTH_BAR], 64, 28, kBitmapUnflipped);
@@ -712,7 +713,7 @@ void drawExperienceBar(void) {
     pd->graphics->fillRect(0, 117, expBarWidth * experiencePercent, expBarHeight, kColorWhite);
 }
 
-void drawUI(float deltaTime) {
+void updateScreenShake(float deltaTime) {
     if (screenShakeTime > 0) {
         screenShakeTime -= deltaTime;
         if (screenShakeTime <= 0) {
@@ -725,9 +726,17 @@ void drawUI(float deltaTime) {
             pd->display->setOffset(shakeX, shakeY);
         }
     }
+}
+
+void drawUI(float deltaTime, bool duringCinematic) {
+    updateScreenShake(deltaTime);
 
     if (getBossActive()) {
         drawBossHealthBar();
+    }
+
+    if (duringCinematic) {
+        return;
     }
 
     drawHealth();

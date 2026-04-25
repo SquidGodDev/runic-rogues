@@ -63,6 +63,15 @@ bool isBossCinematicActive(void) {
 	return phase != BOSS_CINEMATIC_INACTIVE;
 }
 
+float getBossCinematicProgress(void) {
+	if (phase == BOSS_CINEMATIC_ZOOM_IN) {
+		return 0.0f;
+	} else if (phase == BOSS_CINEMATIC_MIDDLE) {
+		return clampFloat(phaseTimer / BOSS_CINEMATIC_HOLD_TIME, 0.0f, 1.0f);
+	}
+	return 1.0f;
+}
+
 void startBossCinematic(int bossIndex) {
 	bossEnemyIndex = bossIndex;
 	savedX = playerX;
@@ -102,11 +111,12 @@ void updateBossCinematic(float deltaTime) {
 		float camAngle = lerpAngleShortest(savedAngle, faceBossAngleAtStart, e);
 		setCameraGlobals(camX, camY, camAngle);
 		if (phaseTimer >= BOSS_CINEMATIC_ZOOM_IN_TIME) {
+			screenShake(SCREEN_SHAKE_MEDIUM);
 			Enemy *boss = &enemies[bossEnemyIndex];
 			transitionToState(boss, ENEMY_STATE_PREP);
 			phase = BOSS_CINEMATIC_MIDDLE;
 			phaseTimer = 0;
-			if (bossEnemyIndex >= 0) {
+			if (bossEnemyIndex >= 0 && enemies[bossEnemyIndex].phase == 0) {
 				PopupType bossPopup = (enemies[bossEnemyIndex].type == ENEMY_TYPE_WRAITH_BOSS)
 					? POPUP_WRAITH_BOSS
 					: POPUP_ELDER_BOSS;

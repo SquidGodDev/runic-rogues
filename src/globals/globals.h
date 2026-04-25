@@ -16,7 +16,7 @@
 #define MAP_WIDTH 76
 #define MAP_HEIGHT 32
 
-#define DEBUG_SKIP_TO_BOSS 0
+#define DEBUG_SKIP_TO_BOSS 1
 #define DEBUG_INSTANT_ROOM_CLEAR 0
 
 #define FOG_LEVELS 16

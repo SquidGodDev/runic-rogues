@@ -45,11 +45,11 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 		{
 			.idleTime           = 5.0f,
 			.prepTime           = 5.0f,
-			.attack2Count       = 5,
-			.attack2Spacing     = CELL_SIZE,
+			.attack2Count       = 4, // Root attack count
+			.attack2Spacing     = CELL_SIZE, // Root attack spacing
 			.dashPrepTime       = 1.5f,
 			.dashDistance       = CELL_SIZE * 2.0f,
-			.dashCount          = 5,
+			.dashCount          = 3,
 			.dashSpeed          = 2.0f,
 			.projectileWaves    = 5,
 			.projectilesPerWave = 8,
@@ -57,33 +57,33 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 			.projectileDamage   = 10,
 			.projectileSpeed    = 25.0f,
 			.waveAngleOffset    = 5.0f * PI / 180.0f,
-			.basicSpawnCount    = 3,
-			.eliteSpawnCount    = 1,
-			.specialSpawnCount  = 1,
+			.basicSpawnCount    = 5,
+			.eliteSpawnCount    = 0,
+			.specialSpawnCount  = 0,
 			.tankSpawnCount     = 0,
 			.summonRadius       = CELL_SIZE * 2.0f,
 			.summonTime         = 2.0f,
 		},
-		// Phase 1 — placeholder copy of phase 0
+		// Phase 1
 		{
-			.idleTime           = 5.0f,
-			.prepTime           = 5.0f,
-			.attack2Count       = 5,
-			.attack2Spacing     = CELL_SIZE,
-			.dashPrepTime       = 1.5f,
-			.dashDistance       = CELL_SIZE * 2.0f,
+			.idleTime           = 3.0f,
+			.prepTime           = 3.0f,
+			.attack2Count       = 7, // Root attack count
+			.attack2Spacing     = CELL_SIZE, // Root attack spacing
+			.dashPrepTime       = 1.0f,
+			.dashDistance       = CELL_SIZE * 3.0f,
 			.dashCount          = 5,
-			.dashSpeed          = 2.0f,
-			.projectileWaves    = 5,
+			.dashSpeed          = 2.5f,
+			.projectileWaves    = 8,
 			.projectilesPerWave = 8,
 			.projectileCooldown = 0.2f,
 			.projectileDamage   = 10,
-			.projectileSpeed    = 25.0f,
+			.projectileSpeed    = 35.0f,
 			.waveAngleOffset    = 5.0f * PI / 180.0f,
 			.basicSpawnCount    = 3,
-			.eliteSpawnCount    = 1,
+			.eliteSpawnCount    = 2,
 			.specialSpawnCount  = 1,
-			.tankSpawnCount     = 0,
+			.tankSpawnCount     = 1,
 			.summonRadius       = CELL_SIZE * 2.0f,
 			.summonTime         = 2.0f,
 		},
@@ -93,8 +93,8 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 		{
 			.idleTime           = 5.0f,
 			.prepTime           = 5.0f,
-			.attack2Count       = 5,
-			.attack2Spacing     = CELL_SIZE,
+			.attack2Count       = 5, // Root attack count
+			.attack2Spacing     = CELL_SIZE, // Root attack spacing
 			.dashPrepTime       = 1.5f,
 			.dashDistance       = CELL_SIZE * 2.0f,
 			.dashCount          = 5,
@@ -115,8 +115,8 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 		{
 			.idleTime           = 5.0f,
 			.prepTime           = 5.0f,
-			.attack2Count       = 5,
-			.attack2Spacing     = CELL_SIZE,
+			.attack2Count       = 5, // Root attack count
+			.attack2Spacing     = CELL_SIZE, // Root attack spacing
 			.dashPrepTime       = 1.5f,
 			.dashDistance       = CELL_SIZE * 2.0f,
 			.dashCount          = 5,

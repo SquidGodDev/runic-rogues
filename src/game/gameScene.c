@@ -92,7 +92,7 @@ void updateGameScene(float deltaTime)
 		updateWaveManager(deltaTime);
 		updateTimers(deltaTime);
 		renderScene();
-		drawUI(deltaTime);
+		drawUI(deltaTime, false /*duringCinematic*/);
 	} else if (gameState == GAME_STATE_SHOP) {
 		updateShop(deltaTime);
 	} else if (gameState == GAME_STATE_RUNE_INVENTORY) {
@@ -101,6 +101,7 @@ void updateGameScene(float deltaTime)
 		updateBossCinematic(deltaTime);
 		updateEnemies(deltaTime);
 		renderScene();
+		drawUI(deltaTime, true /*duringCinematic*/);
 		drawPopup(deltaTime);
 	}
 	

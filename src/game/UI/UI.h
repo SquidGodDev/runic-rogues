@@ -9,7 +9,7 @@ typedef enum ScreenShakeStrength {
 } ScreenShakeStrength;
 
 void initUI(void);
-void drawUI(float deltaTime);
+void drawUI(float deltaTime, bool duringCinematic);
 void showPopup(PopupType type, PopupPosition position);
 void drawPopup(float deltaTime);
 bool adjustShopDescOffset(int delta);
@@ -21,4 +21,5 @@ void clearArrow(void);
 void addDamageIndicator(float sourceX, float sourceY);
 void addAttackIntentIndicator(float sourceX, float sourceY, float duration);
 void screenShake(ScreenShakeStrength strength);
+void updateScreenShake(float deltaTime);
 bool isPopupActive(void);

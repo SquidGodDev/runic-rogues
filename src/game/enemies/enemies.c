@@ -16,6 +16,7 @@
 #include "game/systems/runeManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/waveManager.h"
+#include "game/systems/bossCinematic.h"
 
 #define SPAWN_TEST_ENEMY 0
 
@@ -702,6 +703,16 @@ bool damageEnemy(int index, int damage) {
 	playSound(SFX_ENEMY_HIT);
 
 	if (curEnemy.health <= 0) {
+		if (index == bossIndex && curEnemy.phase == 0) {
+			curEnemy.phase = 1;
+			curEnemy.health = curEnemyData.health;
+			curEnemy.hitFlashTime = 0;
+			enemies[index] = curEnemy;
+			killAllNonBossEnemies();
+			startBossCinematic(index);
+			return true;
+		}
+
 		signalRuneTrigger(RUNE_TRIGGER_KILL_ENEMY, 1.0f);
 		playSound(SFX_ENEMY_DEATH);
 		bool summonsMinions = enemyDeathEffect(index);
