@@ -26,6 +26,7 @@ void initLoadingScene(void) {
     totalSteps = textureCount + audioCount;
     stepsDone = 0;
     finished = false;
+    loadDefaultFont();
 }
 
 void updateLoadingScene(float deltaTime) {
@@ -53,6 +54,8 @@ void updateLoadingScene(float deltaTime) {
     const char *label;
     if (stepsDone >= totalSteps) {
         label = "Loaded!";
+    } else if (stepsDone < FONT_COUNT) {
+        label = "Loading fonts...";
     } else if (stepsDone < textureCount) {
         label = "Loading textures...";
     } else {

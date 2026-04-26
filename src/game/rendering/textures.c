@@ -235,6 +235,10 @@ static LCDFont **fontSlots[FONT_COUNT] = {
 	&fontSubJP
 };
 
+void loadDefaultFont(void) {
+	fontSubEN = pd->graphics->loadFont("fonts/m5x7-12", NULL);
+}
+
 int getTextureAssetCount(void) {
 	return FONT_COUNT + TEXTURE_COUNT + BITMAP_PATHS_COUNT + BITMAP_TABLE_PATHS_COUNT;
 }
@@ -247,6 +251,10 @@ void loadTextureAsset(int step) {
 	}
 
 	if (step < FONT_COUNT) {
+		if (*fontSlots[step]) {
+			return;
+		}
+
 		*fontSlots[step] = pd->graphics->loadFont(fontPathStrings[step], NULL);
 		return;
 	}

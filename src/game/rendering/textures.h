@@ -152,5 +152,6 @@ extern uint8_t fogPatterns[FOG_LEVELS][8];
 
 #define FONT_COUNT 4
 
+void loadDefaultFont(void);
 int getTextureAssetCount(void);
 void loadTextureAsset(int step);
