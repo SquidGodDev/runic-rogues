@@ -91,6 +91,11 @@ static inline float easeOutCubic(float x) {
     return 1.0f - t * t * t;
 }
 
+static inline float easeOutQuint(float x) {
+    float t = 1.0f - x;
+    return 1.0f - t * t * t * t * t;
+}
+
 static inline float easeInCubic(float x) {
     return x * x * x;
 }

@@ -187,7 +187,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackFrameEnd = 31,
 		.attackActiveFrame = 27,
 		.deathFrameStart = 32,
-		.deathFrameEnd = 35,
+		.deathFrameEnd = 41,
 		.frameTime = 0.15f,
 		.update = elderBossUpdate,
 		.knockbackResistant = true
@@ -724,8 +724,7 @@ bool damageEnemy(int index, int damage) {
 
 		if (index == bossIndex) {
 			killAllNonBossEnemies();
-			setBossActive(false);
-			setAreaCompleted(true);
+			startBossDeathCinematic(index);
 		} else if (!summonsMinions) {
 			// Removed in favor of shop on each room completion
 			// spawnPickup(curEnemy.x, curEnemy.y, PICKUP_TYPE_XP_ORB);

@@ -11,6 +11,8 @@
 #include "game/UI/UI.h"
 #include "game/UI/popups.h"
 #include "game/systems/bossCinematic.h"
+#include "game/systems/progressionManager.h"
+#include "game/systems/waveManager.h"
 
 // === Tunable cinematic parameters ===
 #define BOSS_CINEMATIC_DISTANCE_CELLS 3.0f
@@ -20,6 +22,11 @@
 #define BOSS_CINEMATIC_ROTATE_TIME    5.0f
 #define BOSS_CINEMATIC_EASE           easeInOutQuad
 #define BOSS_CINEMATIC_ROTATION_DIR   1.0f
+
+#define BOSS_DEATH_ZOOM_IN_TIME       1.5f
+#define BOSS_DEATH_ZOOM_OUT_TIME      1.5f
+#define BOSS_DEATH_SHAKE_DURATION     0.6f  // matches screenShake(MEDIUM) duration
+#define BOSS_DEATH_SHAKE_END_MAG      7.5f  // matches screenShake(MEDIUM) magnitude
 // ====================================
 
 // Plane vector magnitude — must match initPlayer in player.c
@@ -30,6 +37,9 @@ typedef enum {
 	BOSS_CINEMATIC_ZOOM_IN,
 	BOSS_CINEMATIC_MIDDLE,
 	BOSS_CINEMATIC_ZOOM_OUT,
+	BOSS_CINEMATIC_DEATH_ZOOM_IN,
+	BOSS_CINEMATIC_DEATH_HOLD,
+	BOSS_CINEMATIC_DEATH_ZOOM_OUT,
 } BossCinematicPhase;
 
 static BossCinematicPhase phase = BOSS_CINEMATIC_INACTIVE;
@@ -39,6 +49,7 @@ static float savedX, savedY, savedAngle;
 static float bossX, bossY;
 static float orbitStartAngle;
 static int bossEnemyIndex = -1;
+static float bossDeathHoldTime;
 
 static float lerpAngleShortest(float a, float b, float t) {
 	float diff = fmodf(b - a + PI, 2.0f * PI);
@@ -61,6 +72,12 @@ static void setCameraGlobals(float x, float y, float angle) {
 
 bool isBossCinematicActive(void) {
 	return phase != BOSS_CINEMATIC_INACTIVE;
+}
+
+bool isBossDeathCinematicActive(void) {
+	return phase == BOSS_CINEMATIC_DEATH_ZOOM_IN
+		|| phase == BOSS_CINEMATIC_DEATH_HOLD
+		|| phase == BOSS_CINEMATIC_DEATH_ZOOM_OUT;
 }
 
 float getBossCinematicProgress(void) {
@@ -87,6 +104,28 @@ void startBossCinematic(int bossIndex) {
 	transitionToState(boss, ENEMY_STATE_IDLE);
 
 	phase = BOSS_CINEMATIC_ZOOM_IN;
+	phaseTimer = 0;
+	setGameState(GAME_STATE_BOSS_CINEMATIC);
+}
+
+void startBossDeathCinematic(int bossIndex) {
+	bossEnemyIndex = bossIndex;
+	savedX = playerX;
+	savedY = playerY;
+	savedAngle = playerAngle;
+
+	Enemy *boss = &enemies[bossIndex];
+	bossX = boss->x;
+	bossY = boss->y;
+
+	// EnemyData *bd = &enemyData[boss->type];
+	// int frames = bd->deathFrameEnd - bd->deathFrameStart + 1;
+	// bossDeathHoldTime = frames * bd->frameTime;
+	bossDeathHoldTime = 0.0f;
+
+	orbitStartAngle = atan2f(savedY - bossY, savedX - bossX);
+
+	phase = BOSS_CINEMATIC_DEATH_ZOOM_IN;
 	phaseTimer = 0;
 	setGameState(GAME_STATE_BOSS_CINEMATIC);
 }
@@ -154,6 +193,41 @@ void updateBossCinematic(float deltaTime) {
 			}
 			phase = BOSS_CINEMATIC_INACTIVE;
 			setBossActive(true);
+			setGameState(GAME_STATE_ACTIVE);
+		}
+	} else if (phase == BOSS_CINEMATIC_DEATH_ZOOM_IN) {
+		float t = clampFloat(phaseTimer / BOSS_DEATH_ZOOM_IN_TIME, 0, 1);
+		float e = easeOutQuint(t);
+		float camX = savedX + (orbitEndX - savedX) * e;
+		float camY = savedY + (orbitEndY - savedY) * e;
+		float camAngle = lerpAngleShortest(savedAngle, faceBossAngleAtStart, e);
+		setCameraGlobals(camX, camY, camAngle);
+
+		float shakeMag = t * BOSS_DEATH_SHAKE_END_MAG;
+		screenShakeCustom(BOSS_DEATH_SHAKE_DURATION, shakeMag);
+
+		if (phaseTimer >= BOSS_DEATH_ZOOM_IN_TIME) {
+			phase = BOSS_CINEMATIC_DEATH_ZOOM_OUT;
+			phaseTimer = 0;
+		}
+	} else if (phase == BOSS_CINEMATIC_DEATH_HOLD) {
+		setCameraGlobals(orbitEndX, orbitEndY, faceBossAngleAtStart);
+		if (phaseTimer >= bossDeathHoldTime) {
+			phase = BOSS_CINEMATIC_DEATH_ZOOM_OUT;
+			phaseTimer = 0;
+		}
+	} else if (phase == BOSS_CINEMATIC_DEATH_ZOOM_OUT) {
+		float t = clampFloat(phaseTimer / BOSS_DEATH_ZOOM_OUT_TIME, 0, 1);
+		float e = BOSS_CINEMATIC_EASE(t);
+		float camX = orbitEndX + (savedX - orbitEndX) * e;
+		float camY = orbitEndY + (savedY - orbitEndY) * e;
+		float camAngle = lerpAngleShortest(faceBossAngleAtStart, savedAngle, e);
+		setCameraGlobals(camX, camY, camAngle);
+		if (phaseTimer >= BOSS_DEATH_ZOOM_OUT_TIME) {
+			setCameraGlobals(savedX, savedY, savedAngle);
+			phase = BOSS_CINEMATIC_INACTIVE;
+			setBossActive(false);
+			setAreaCompleted(true);
 			setGameState(GAME_STATE_ACTIVE);
 		}
 	}

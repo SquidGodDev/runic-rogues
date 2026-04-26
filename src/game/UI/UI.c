@@ -576,7 +576,14 @@ void drawSpellUI(void) {
 }
 
 void drawBossHealthBar(void) {
-    float healthPercentage = isBossCinematicActive() ? getBossCinematicProgress() : getBossHealthPercentage();
+    float healthPercentage;
+    if (isBossDeathCinematicActive()) {
+        healthPercentage = getBossHealthPercentage();
+    } else if (isBossCinematicActive()) {
+        healthPercentage = getBossCinematicProgress();
+    } else {
+        healthPercentage = getBossHealthPercentage();
+    }
     int healthBarWidth = healthPercentage * 68;
 
     pd->graphics->drawBitmap(BITMAPS[BITMAP_BOSS_HEALTH_BAR], 64, 28, kBitmapUnflipped);
@@ -767,4 +774,9 @@ void screenShake(ScreenShakeStrength strength) {
             shakeMagnitude = MAX_SCREEN_SHAKE_MAGNITUDE;
             break;
     }
+}
+
+void screenShakeCustom(float duration, float magnitude) {
+    screenShakeTime = duration;
+    shakeMagnitude = (int)magnitude;
 }
