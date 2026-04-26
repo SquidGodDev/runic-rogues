@@ -44,7 +44,7 @@ void initRunStart(void) {
 	initTimers();
 }
 
-// Run at the start of every room
+// Run at the start of every level
 void initGameScene(void)
 {	
 	setGameState(GAME_STATE_ACTIVE);

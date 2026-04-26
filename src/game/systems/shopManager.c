@@ -307,7 +307,7 @@ void drawShop(float deltaTime) {
 
     // Scrollbar
     if (maxDescOffset > 0) {
-        int scrollbarX = 173;
+        int scrollbarX = 189;
         int scrollbarY = 54;
         int scrollbarWidth = 5;
         int scrollbarHeight = 55;
