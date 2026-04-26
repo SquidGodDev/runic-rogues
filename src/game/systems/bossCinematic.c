@@ -25,6 +25,7 @@
 
 #define BOSS_DEATH_ZOOM_IN_TIME       1.5f
 #define BOSS_DEATH_ZOOM_OUT_TIME      1.5f
+#define BOSS_DEATH_HOLD_TIME          1.0f
 #define BOSS_DEATH_SHAKE_DURATION     0.6f  // matches screenShake(MEDIUM) duration
 #define BOSS_DEATH_SHAKE_END_MAG      7.5f  // matches screenShake(MEDIUM) magnitude
 // ====================================
@@ -49,7 +50,6 @@ static float savedX, savedY, savedAngle;
 static float bossX, bossY;
 static float orbitStartAngle;
 static int bossEnemyIndex = -1;
-static float bossDeathHoldTime;
 
 static float lerpAngleShortest(float a, float b, float t) {
 	float diff = fmodf(b - a + PI, 2.0f * PI);
@@ -109,6 +109,7 @@ void startBossCinematic(int bossIndex) {
 }
 
 void startBossDeathCinematic(int bossIndex) {
+	setBossActive(false);
 	bossEnemyIndex = bossIndex;
 	savedX = playerX;
 	savedY = playerY;
@@ -117,11 +118,6 @@ void startBossDeathCinematic(int bossIndex) {
 	Enemy *boss = &enemies[bossIndex];
 	bossX = boss->x;
 	bossY = boss->y;
-
-	// EnemyData *bd = &enemyData[boss->type];
-	// int frames = bd->deathFrameEnd - bd->deathFrameStart + 1;
-	// bossDeathHoldTime = frames * bd->frameTime;
-	bossDeathHoldTime = 0.0f;
 
 	orbitStartAngle = atan2f(savedY - bossY, savedX - bossX);
 
@@ -207,12 +203,12 @@ void updateBossCinematic(float deltaTime) {
 		screenShakeCustom(BOSS_DEATH_SHAKE_DURATION, shakeMag);
 
 		if (phaseTimer >= BOSS_DEATH_ZOOM_IN_TIME) {
-			phase = BOSS_CINEMATIC_DEATH_ZOOM_OUT;
+			phase = BOSS_CINEMATIC_DEATH_HOLD;
 			phaseTimer = 0;
 		}
 	} else if (phase == BOSS_CINEMATIC_DEATH_HOLD) {
 		setCameraGlobals(orbitEndX, orbitEndY, faceBossAngleAtStart);
-		if (phaseTimer >= bossDeathHoldTime) {
+		if (phaseTimer >= BOSS_DEATH_HOLD_TIME) {
 			phase = BOSS_CINEMATIC_DEATH_ZOOM_OUT;
 			phaseTimer = 0;
 		}
