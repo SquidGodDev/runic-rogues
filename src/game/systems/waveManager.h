@@ -9,6 +9,7 @@ int getCurrentWave(void);
 int getTotalWaves(void);
 int getCurrentRoomIndex(void);
 void onShopCompleted(void);
+void onBossDefeated(void);
 void updateWaveManager(float deltaTime);
 
 EnemyType getRandomBasicEnemyType(void);

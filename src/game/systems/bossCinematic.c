@@ -226,8 +226,7 @@ void updateBossCinematic(float deltaTime) {
 		if (phaseTimer >= BOSS_DEATH_ZOOM_OUT_TIME) {
 			setCameraGlobals(savedX, savedY, savedAngle);
 			phase = BOSS_CINEMATIC_INACTIVE;
-			setBossActive(false);
-			setAreaCompleted(true);
+			onBossDefeated();
 			setGameState(GAME_STATE_ACTIVE);
 		}
 	}

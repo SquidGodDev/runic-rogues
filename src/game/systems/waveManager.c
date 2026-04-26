@@ -43,7 +43,9 @@ typedef enum WaveState {
     WAVE_STATE_ACTIVE,
     WAVE_STATE_POPUP_WAIT,
     WAVE_STATE_ROOM_TRANSITION,
-    WAVE_STATE_BOSS
+    WAVE_STATE_BOSS,
+    WAVE_STATE_BOSS_POPUP_WAIT,
+    WAVE_STATE_BOSS_DONE
 } WaveState;
 
 static WaveTemplate waveTemplates[WAVES_PER_ROOM] = {
@@ -202,6 +204,9 @@ void roomCompleted(void) {
 }
 
 void onShopCompleted(void) {
+    if (isAreaCompleted()) {
+        return;
+    }
     int gateIndex = (currentWave >= WAVES_PER_ROOM) ? WAVE_ROOM_COUNT - 1 : currentWave - 1;
     openRoomGate(gateIndex);
     int targetRoom = (currentWave >= WAVES_PER_ROOM) ? DUNGEON_ROOM_COUNT - 1 : currentWave;
@@ -210,8 +215,17 @@ void onShopCompleted(void) {
     arrowTargetRoom = targetRoom;
 }
 
+void onBossDefeated(void) {
+    bossActive = false;
+    setAreaCompleted(true);
+    waveState = WAVE_STATE_BOSS_POPUP_WAIT;
+}
+
 void updateWaveManager(float deltaTime) {
-    if (bossActive || isAreaCompleted()) {
+    if (bossActive) {
+        return;
+    }
+    if (isAreaCompleted() && waveState != WAVE_STATE_BOSS_POPUP_WAIT) {
         return;
     }
 
@@ -276,6 +290,16 @@ void updateWaveManager(float deltaTime) {
         }
 
         case WAVE_STATE_BOSS:
+            break;
+
+        case WAVE_STATE_BOSS_POPUP_WAIT:
+            if (!isPopupActive()) {
+                initShop();
+                waveState = WAVE_STATE_BOSS_DONE;
+            }
+            break;
+
+        case WAVE_STATE_BOSS_DONE:
             break;
     }
 }
