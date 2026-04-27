@@ -2,11 +2,13 @@
 - Boss room entrance wall texture 3 doors
 - Update Wraith boss
 - Update area 2 enemy AI
-- Make health not regen - enemies drop health
 - Re-do spell UI
 - Tutorial
 - SFX
 # FULL RELEASE
+- Settings menu
+- JP Localization
+  - Make localization csv
 - Music
 - Area 3
   - New boss
@@ -33,3 +35,6 @@
 - Character selection screen
   - 3D models
   - Blender -> 1-bit 2D
+# Juice
+- Dash indicator lines
+- Enemy knockback
