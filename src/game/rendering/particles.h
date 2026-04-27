@@ -41,6 +41,7 @@ typedef struct Particle {
 extern Particle particles[MAX_PARTICLE_COUNT];
 
 void initParticles(void);
+void clearParticles(void);
 int spawnParticle(ParticleType type, float x, float y, float sourceX, float sourceY, ParticleType spawnOnEndParticleType, bool enemyParticle);
 void spawnEnemyWithSpawnParticle(int enemyType, float x, float y);
 void updateParticles(float deltaTime);

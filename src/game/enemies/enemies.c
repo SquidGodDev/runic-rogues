@@ -704,6 +704,7 @@ bool damageEnemy(int index, int damage) {
 
 	if (curEnemy.health <= 0) {
 		if (index == bossIndex && curEnemy.phase == 0) {
+			// Transition to phase 2 instead of dying
 			curEnemy.phase = 1;
 			curEnemy.health = curEnemyData.health;
 			curEnemy.hitFlashTime = 0;
@@ -723,6 +724,8 @@ bool damageEnemy(int index, int damage) {
 		curEnemy.hitFlashTime = 0;
 
 		if (index == bossIndex) {
+			clearProjectiles();
+			clearParticles();
 			killAllNonBossEnemies();
 			startBossDeathCinematic(index);
 		} else if (!summonsMinions) {

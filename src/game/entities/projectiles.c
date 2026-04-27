@@ -30,6 +30,12 @@ void initProjectiles(void) {
 	}
 }
 
+void clearProjectiles(void) {
+	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
+		projectiles[i].active = false;
+	}
+}
+
 void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, SpellProjectileData spellProjectileData) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		if (!projectiles[i].active) {

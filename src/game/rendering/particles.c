@@ -106,6 +106,12 @@ void initParticles(void) {
 	}
 }
 
+void clearParticles(void) {
+	for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {
+		particles[i].active = false;
+	}
+}
+
 int spawnParticle(ParticleType type, float x, float y, float sourceX, float sourceY, ParticleType spawnOnEndParticleType, bool enemyParticle) {
 	int newParticleIndex = -1;
 	for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {

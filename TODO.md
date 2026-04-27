@@ -1,17 +1,21 @@
-- Boss
-  - Create mob summon particle
-  - Create death animation (cutscene?)
+# DEMO
+- Boss room entrance wall texture 3 doors
+- Update Wraith boss
+- Update area 2 enemy AI
+- Make health not regen - enemies drop health
+- Re-do spell UI
+- Tutorial
+- SFX
+# FULL RELEASE
+- Music
+- Area 3
+  - New boss
+  - New enemies
 - Improve enemy AI (new attack patterns)
   - Turret
   - Rush follow for a bit, then slow down
   - Bomb laying
   - Bomb throwing
-- Update boss AI
-  - New attack patterns
-    - Waves of projectiles
-  - Second phase
-- Make health not regen - enemies drop health
-- Test the new runes
 - Buff system + HUD UI
 - Trigger Rune HUD UI
 - New Runes
@@ -29,7 +33,3 @@
 - Character selection screen
   - 3D models
   - Blender -> 1-bit 2D
-- Re-do spell UI
-- Tutorial
-- Music
-- SFX
