@@ -12,6 +12,7 @@
 #include "game/rendering/textures.h"
 #include "game/entities/interactables.h"
 #include "game/player/spells/spells.h"
+#include "game/player/player.h"
 #include "game/map/map.h"
 
 typedef enum ShopState {
@@ -137,6 +138,10 @@ void createShopOptions(void) {
         if (!stackIsEmpty(&optionsStack)) {
             shopRune = (RuneType)stackPop(&optionsStack);
         }
+        // Debug for testing rune in shop
+        // if (i == 0) {
+        //     shopRune = RUNE_TYPE_HEALTHY;
+        // }
         shopPageDataEN = createRuneShopPage(shopRune, LANGUAGE_EN);
         shopPageDataJP = createRuneShopPage(shopRune, LANGUAGE_JP);
         int iconIndex = getRuneIconIndex(shopRune);
@@ -213,6 +218,9 @@ void initShop(void) {
 void selectShopItem(ShopItem shopItem) {
     if (shopItem.runeType != RUNE_TYPE_NONE) {
         addRune(shopItem.runeType);
+        if (shopItem.runeType == RUNE_TYPE_HEALTHY) {
+            healPlayer(getRuneValue(shopItem.runeType));
+        }
     }
 }
 
