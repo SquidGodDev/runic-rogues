@@ -1,3 +1,0 @@
-SETTINGS = {
-    language = "en"
-}
