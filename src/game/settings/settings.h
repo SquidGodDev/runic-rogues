@@ -9,6 +9,7 @@ typedef struct Settings {
     Language language;
     bool drawMinimapWalls;
     bool spellButtonsReversed;
+    bool drawFPS;
 } Settings;
 
 extern Settings SETTINGS;

@@ -105,6 +105,9 @@ void updateGameScene(float deltaTime)
 		drawPopup(deltaTime);
 	}
 	
-	pd->system->drawFPS(185, 108);
+	if (SETTINGS.drawFPS) {
+		pd->graphics->fillRect(183, 106, 17, 14, kColorBlack);
+		pd->system->drawFPS(185, 108);
+	}
 	pd->lua->pushNil();
 }

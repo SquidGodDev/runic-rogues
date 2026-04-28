@@ -9,6 +9,7 @@ void initSettings(void) {
     SETTINGS = (Settings) {
         .language = LANGUAGE_EN,
         .drawMinimapWalls = true,
-        .spellButtonsReversed = false
+        .spellButtonsReversed = false,
+        .drawFPS = true
     };
 }
