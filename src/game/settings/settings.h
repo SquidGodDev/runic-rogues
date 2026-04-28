@@ -7,7 +7,8 @@ typedef enum Language {
 
 typedef struct Settings {
     Language language;
-    int drawMinimapWalls;
+    bool drawMinimapWalls;
+    bool spellButtonsReversed;
 } Settings;
 
 extern Settings SETTINGS;

@@ -538,40 +538,69 @@ void drawExitArrow(void) {
     drawCenteredBitmap(pd->graphics->getTableBitmap(BITMAP_TABLES[BITMAP_TABLE_EXIT_ARROW], rotationTableIndex), EXIT_ARROW_X, EXIT_ARROW_Y);
 }
 
-int spellDrawX[SPELL_EQUIP_MAX] = {22, 6};
-int spellDrawY[SPELL_EQUIP_MAX] = {71, 71};
 void drawSpellUI(void) {
-    int spellIconHeight = 14;
-    int spellIconWidth = 10;
+    static const int SPELL_SLOT_LEFT_X    = 3;
+    static const int SPELL_SLOT_RIGHT_X   = 36;
+    static const int SPELL_SLOT_Y         = 81;
+    static const int SPELL_ICON_SIZE      = 26;
+    static const int SPELL_COOLDOWN_INSET = 2;
+
+    static const int BUTTON_ICON_LEFT_X  = 20;
+    static const int BUTTON_ICON_RIGHT_X = 53;
+    static const int BUTTON_ICON_Y       = 75;
+
+    int basicSlotX   = SETTINGS.spellButtonsReversed ? SPELL_SLOT_LEFT_X  : SPELL_SLOT_RIGHT_X;
+    int specialSlotX = SETTINGS.spellButtonsReversed ? SPELL_SLOT_RIGHT_X : SPELL_SLOT_LEFT_X;
+    int spellX[SPELL_EQUIP_MAX] = { basicSlotX, specialSlotX };
+
+    int cooldownInner = SPELL_ICON_SIZE - 2 * SPELL_COOLDOWN_INSET;
+
     for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
-        Spell heldSpell = getDeckSpell(i);
-        LCDBitmap *spellIcon = getSpellIcon(heldSpell);
-        int drawX = spellDrawX[i];
-        int drawY = spellDrawY[i];
-        pd->graphics->drawBitmap(spellIcon, drawX, drawY, kBitmapUnflipped);
+        LCDBitmap *icon = getSpellIcon(getDeckSpell(i));
+        pd->graphics->drawBitmap(icon, spellX[i], SPELL_SLOT_Y, kBitmapUnflipped);
+
         float cooldownPercentage = getSpellCooldownPercentage(i);
         if (cooldownPercentage > 0.0f) {
-            int cooldownCoverHeight = cooldownPercentage * spellIconHeight;
-            pd->graphics->fillRect(drawX + 1, drawY + 1, spellIconWidth, cooldownCoverHeight, kColorBlack);
+            int cooldownCoverHeight = (int)(cooldownPercentage * cooldownInner);
+            pd->graphics->fillRect(spellX[i] + SPELL_COOLDOWN_INSET, SPELL_SLOT_Y + SPELL_COOLDOWN_INSET, cooldownInner, cooldownCoverHeight, kColorBlack);
         }
     }
 
-    int utilityIconBaseX = 39, utilityIconBaseY = 98;
-    int utilityIconGap = 8;
-    for (int i = 0; i < getMaxUtilitySpells(); i++) {
-        LCDBitmap *utilitySpellBitmap = i < getUtilitySpellCount() ? BITMAPS[BITMAP_DASH_INDICATOR_FULL] : BITMAPS[BITMAP_DASH_INDICATOR_EMPTY];
-        pd->graphics->drawBitmap(utilitySpellBitmap, utilityIconBaseX + i * utilityIconGap, utilityIconBaseY, kBitmapUnflipped);
-    }
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_SPELL_B_BUTTON_ICON], BUTTON_ICON_LEFT_X,  BUTTON_ICON_Y, kBitmapUnflipped);
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_SPELL_A_BUTTON_ICON], BUTTON_ICON_RIGHT_X, BUTTON_ICON_Y, kBitmapUnflipped);
 
-    int utilitySpellChargeBarX = utilityIconBaseX + getMaxUtilitySpells() * utilityIconGap;
-    int utilitySpellChargeBarY = utilityIconBaseY;
-    int utilitySpellChargeBarWidth = 2;
-    int utilityChargeBarHeight = 5;
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_UTILITY_CHARGE_BAR], utilitySpellChargeBarX, utilitySpellChargeBarY, kBitmapUnflipped);
-    if (getUtilitySpellCharge() > 0.0f) {
-        int chargeBarHeight = getUtilitySpellCharge() * utilityChargeBarHeight + 1;
-        int utilityChargeBarDrawY = utilitySpellChargeBarY + utilityChargeBarHeight - chargeBarHeight + 1;
-        pd->graphics->fillRect(utilitySpellChargeBarX + 1, utilityChargeBarDrawY, utilitySpellChargeBarWidth, chargeBarHeight, kColorWhite);
+    static const int UTILITY_BASE_X       = 3;
+    static const int UTILITY_BASE_Y       = 108;
+    static const int UTILITY_GAP          = 13;
+    static const int UTILITY_CHARGE_INSET = 2;
+    static const int UTILITY_CHARGE_SIZE  = 7;
+
+    LCDPattern chargePattern = {
+        0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+    };
+
+    int filledCount = getUtilitySpellCount();
+    float charge = getUtilitySpellCharge();
+    int maxUtility = getMaxUtilitySpells();
+
+    for (int i = 0; i < maxUtility; i++) {
+        int x = UTILITY_BASE_X + i * UTILITY_GAP;
+        int y = UTILITY_BASE_Y;
+
+        if (i < filledCount) {
+            pd->graphics->drawBitmap(BITMAPS[BITMAP_DASH_INDICATOR_FULL], x, y, kBitmapUnflipped);
+        } else {
+            pd->graphics->drawBitmap(BITMAPS[BITMAP_DASH_INDICATOR_EMPTY], x, y, kBitmapUnflipped);
+            if (i == filledCount && charge > 0.0f) {
+                int fillHeight = (int)(charge * UTILITY_CHARGE_SIZE);
+                if (fillHeight > 0) {
+                    int drawX = x + UTILITY_CHARGE_INSET;
+                    int drawY = y + UTILITY_CHARGE_INSET + (UTILITY_CHARGE_SIZE - fillHeight);
+                    pd->graphics->fillRect(drawX, drawY, UTILITY_CHARGE_SIZE, fillHeight, (LCDColor)chargePattern);
+                }
+            }
+        }
     }
 }
 
