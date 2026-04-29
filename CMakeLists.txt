@@ -38,13 +38,13 @@ file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS
     "src/*.h"
 )
 
-file(GLOB IMAGES CONFIGURE_DEPENDS
+file(GLOB_RECURSE IMAGES CONFIGURE_DEPENDS
 	"Source/images/*"
 	"Source/fonts/*"
 )
 
 if (TOOLCHAIN STREQUAL "armgcc")
-    add_executable(${PLAYDATE_GAME_DEVICE} ${SOURCES})
+    add_executable(${PLAYDATE_GAME_DEVICE} ${SOURCES} ${ASSETS_TRIGGER})
 	target_include_directories(${PLAYDATE_GAME_DEVICE} PRIVATE 
 							   ${CMAKE_SOURCE_DIR}/src
 							   ${CMAKE_SOURCE_DIR}/globals
@@ -67,7 +67,7 @@ if (TOOLCHAIN STREQUAL "armgcc")
 		-O2
 	)
 else()
-	add_library(${PLAYDATE_GAME_NAME} SHARED ${SOURCES} ${HEADERS})
+	add_library(${PLAYDATE_GAME_NAME} SHARED ${SOURCES} ${HEADERS} ${ASSETS_TRIGGER})
 	target_include_directories(${PLAYDATE_GAME_NAME} PRIVATE 
 							   ${CMAKE_SOURCE_DIR}/src
 							   ${CMAKE_SOURCE_DIR}/globals
