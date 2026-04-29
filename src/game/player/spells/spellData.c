@@ -69,31 +69,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .description = "Empty.",
         .spellIconIndex = BITMAP_SPELL_EMPTY_ICON,
     },
-    [SPELL_ARCANE_BOLT] = {
-        .name = "Arcane Bolt",
-        .name_jp = "アーケインボルト",
-        .description = "Shoot a projectile that deals medium damage to one enemy.",
-        .description_jp = "敵に中程度のダメージを与える弾を発射する。",
-        .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
-        .cast = projectileCast,
-        .cooldown = 0.5f,
-        .damage = 10,
-        .projectileData = (SpellProjectileData) {
-            .speed = 75.0f,
-            .textureIndex = TEXTURE_PROJECTILE,
-            .frameCount = 1,
-            .frameTime = 0.0f
-        },
-        .weaponData = (WeaponData) {
-            .weaponBitmapTable = BITMAP_TABLE_HAND,
-            .drawX = 126,
-            .drawY = 71,
-            .activeOffsetX = 0,
-            .activeOffsetY = -7,
-            .frameTime = 0.6f,
-            .activeFrame = 0
-        }
-    },
     [SPELL_FIREBALL] = {
         .name = "Fireball",
         .name_jp = "ファイアボール",
@@ -105,41 +80,53 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .damage = 10,
         .projectileData = (SpellProjectileData) {
             .speed = 75.0f,
-            .textureIndex = TEXTURE_PROJECTILE,
-            .frameCount = 1,
-            .frameTime = 0.0f
+            .textureIndex = TEXTURE_FIREBALL,
+            .frameCount = 4,
+            .frameTime = 0.09f
+        },
+        .weaponData = (WeaponData) {
+            .weaponBitmapTable = BITMAP_TABLE_HAND,
+            .drawX = 126,
+            .drawY = 71,
+            .activeOffsetX = 0,
+            .activeOffsetY = -7,
+            .frameTime = 0.6f,
+            .activeFrame = 0
         }
     },
-    [SPELL_GREATER_FIREBALL] = {
-        .name = "Greater Fireball",
+    [SPELL_CHAIN_LIGHTNING] = {
+        .name = "Chain Lightning",
         .name_jp = "",
-        .description = "",
+        .description = "Fire a bolt that chains to up to 3 nearby enemies.",
         .description_jp = "",
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .cast = projectileCast,
-        .cooldown = 3.0f,
-        .damage = 5,
+        .cooldown = 4.0f,
+        .damage = 10,
         .projectileData = (SpellProjectileData) {
-            .speed = 2.0f,
-            .acceleration = 200.0f,
-            .spreadAngle = 15.0f * (PI / 180),
-            .spreadCount = 3,
-            .onHitSpell = SPELL_FIREBALL_EXPLOSION,
-            .textureIndex = TEXTURE_PROJECTILE,
-            .frameCount = 1,
-            .frameTime = 0.0f
+            .speed        = 75.0f,
+            .pierceCount  = 0,
+            .activeTime   = 1.0f,
+            .onHitSpell   = SPELL_CHAIN_LIGHTNING_LINK,
+            .primaryData  = 3, // chain count
+            .textureIndex = TEXTURE_LIGHTNING_BALL,
+            .frameCount   = 4,
+            .frameTime    = 0.1f
+        },
+        .weaponData = (WeaponData) {
+            .weaponBitmapTable = BITMAP_TABLE_HAND,
+            .drawX = 126,
+            .drawY = 71,
+            .activeOffsetX = 0,
+            .activeOffsetY = -7,
+            .frameTime = 0.6f,
+            .activeFrame = 0
         }
     },
-    [SPELL_FIREBALL_EXPLOSION] = {
-        // Internal spell used for greater fireball explosion
-        .name = "Fireball Explosion",
-        .cast = explosionCast,
-        .damage = 15,
-        .knockbackTime = 0.4f,
-        .knockbackAmount = 1.0f,
-        .meleeData = (MeleeData) {
-            .range = CELL_SIZE * 1.5f
-        }
+    [SPELL_CHAIN_LIGHTNING_LINK] = {
+        // Internal: stepped by chainLightningManager, not directly cast by player
+        .name = "Chain Lightning Link",
+        .cast = chainLightningLinkCast,
     },
     [SPELL_LASER] = {
         .name = "Laser",
@@ -246,39 +233,5 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .frameCount = 8,
             .frameTime = 0.07f
         }
-    },
-    [SPELL_CHAIN_LIGHTNING] = {
-        .name = "Chain Lightning",
-        .name_jp = "",
-        .description = "Fire a bolt that chains to up to 3 nearby enemies.",
-        .description_jp = "",
-        .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
-        .cast = projectileCast,
-        .cooldown = 4.0f,
-        .damage = 10,
-        .projectileData = (SpellProjectileData) {
-            .speed        = 75.0f,
-            .pierceCount  = 0,
-            .activeTime   = 1.0f,
-            .onHitSpell   = SPELL_CHAIN_LIGHTNING_LINK,
-            .primaryData  = 3, // chain count
-            .textureIndex = TEXTURE_LIGHTNING_BALL,
-            .frameCount   = 4,
-            .frameTime    = 0.1f
-        },
-        .weaponData = (WeaponData) {
-            .weaponBitmapTable = BITMAP_TABLE_HAND,
-            .drawX = 126,
-            .drawY = 71,
-            .activeOffsetX = 0,
-            .activeOffsetY = -7,
-            .frameTime = 0.6f,
-            .activeFrame = 0
-        }
-    },
-    [SPELL_CHAIN_LIGHTNING_LINK] = {
-        // Internal: stepped by chainLightningManager, not directly cast by player
-        .name = "Chain Lightning Link",
-        .cast = chainLightningLinkCast,
-    },
+    }
 };

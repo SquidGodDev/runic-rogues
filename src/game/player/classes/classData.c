@@ -9,7 +9,7 @@ const ClassData classData[CLASS_COUNT] = {
         .descJP = "",
         .baseHealth = 100,
         .baseSpeed = 12,
-        .basicSpell = SPELL_ARCANE_BOLT,
+        .basicSpell = SPELL_FIREBALL,
         .specialSpell = SPELL_CHAIN_LIGHTNING
     },
     [CLASS_WARRIOR] = {
