@@ -14,8 +14,6 @@
 #define MAX_SPAWN_QUEUE 20
 #define MAX_POOL_ENTRIES 8
 #define SPECIAL_COST_THRESHOLD 3
-#define WAVE_SPAWN_STAGGER 0.0f
-#define PRE_WAVE_DELAY 0.0f
 
 typedef struct EnemyPoolEntry {
     EnemyType type;
@@ -35,8 +33,6 @@ typedef struct RoomBudget {
 } RoomBudget;
 
 typedef enum WaveState {
-    WAVE_STATE_PRE_WAVE,
-    WAVE_STATE_SPAWNING,
     WAVE_STATE_ACTIVE,
     WAVE_STATE_POPUP_WAIT,
     WAVE_STATE_ROOM_TRANSITION,
@@ -108,13 +104,8 @@ static const RoomBudget roomBudgets[AREA_COUNT][WAVES_PER_ROOM] = {
 static WaveState waveState;
 static int currentWave;
 static int currentRoomIndex;
-static float staggerTimer;
-static int spawnIndex;
-static float transitionTimer;
 static bool bossActive;
 static int arrowTargetRoom;
-static EnemyType spawnQueue[MAX_SPAWN_QUEUE];
-static int spawnQueueSize;
 
 static int pickWeightedEnemy(const AreaEnemyPool *pool, int affordableCost, bool specialsOnly) {
     int totalWeight = 0;
@@ -192,10 +183,18 @@ int rollEnemiesFromBudget(EnemyType *outTypes, int maxOut, int budget, int minSp
     return count;
 }
 
-static void resolveWaveEnemies(int waveIndex) {
-    Area area = getCurrentArea();
-    RoomBudget rb = roomBudgets[area][waveIndex];
-    spawnQueueSize = rollEnemiesFromBudget(spawnQueue, MAX_SPAWN_QUEUE, rb.budget, rb.minSpecials);
+static void spawnWaveEnemies(void) {
+    RoomBudget roomBudget = roomBudgets[getCurrentArea()][currentWave];
+    EnemyType spawnQueue[MAX_SPAWN_QUEUE];
+    int spawnCount = rollEnemiesFromBudget(spawnQueue, MAX_SPAWN_QUEUE, roomBudget.budget, roomBudget.minSpecials);
+    for (int i = 0; i < spawnCount; i++) {
+        Point spawnPosition = getRoomSpawnPosition(currentRoomIndex, i);
+        spawnEnemy(spawnQueue[i], spawnPosition.x, spawnPosition.y, false /*isMinion*/);
+    }
+    waveState = WAVE_STATE_ACTIVE;
+    #if DEBUG_INSTANT_ROOM_CLEAR
+        killAllNonBossEnemies();
+    #endif
 }
 
 static void spawnBoss(void) {
@@ -207,23 +206,12 @@ static void spawnBoss(void) {
     startBossCinematic(bossIdx);
 }
 
-static void beginWaveSpawning(void) {
-    resolveWaveEnemies(currentWave);
-    waveState = WAVE_STATE_SPAWNING;
-    spawnIndex = 0;
-    staggerTimer = 0.0f;
-}
-
 void initWaveManager(void) {
     waveState = WAVE_STATE_ROOM_TRANSITION;
     currentWave = 0;
     currentRoomIndex = 0;
-    staggerTimer = 0.0f;
-    spawnIndex = 0;
-    transitionTimer = PRE_WAVE_DELAY;
     bossActive = false;
     arrowTargetRoom = -1;
-    spawnQueueSize = 0;
     #if DEBUG_SKIP_TO_BOSS
         // Place state as if the last wave room was cleared and the shop was closed:
         // player in the last wave room, boss gate open, arrow pointing to the boss room.
@@ -280,7 +268,7 @@ void onBossDefeated(void) {
     waveState = WAVE_STATE_BOSS_POPUP_WAIT;
 }
 
-void updateWaveManager(float deltaTime) {
+void updateWaveManager(void) {
     if (bossActive) {
         return;
     }
@@ -289,29 +277,6 @@ void updateWaveManager(float deltaTime) {
     }
 
     switch (waveState) {
-        case WAVE_STATE_PRE_WAVE:
-            transitionTimer -= deltaTime;
-            if (transitionTimer <= 0) {
-                beginWaveSpawning();
-            }
-            break;
-
-        case WAVE_STATE_SPAWNING:
-            staggerTimer -= deltaTime;
-            if (staggerTimer <= 0 && spawnIndex < spawnQueueSize) {
-                Point spawnPosition = getRoomSpawnPosition(currentRoomIndex, spawnIndex);
-                spawnEnemy(spawnQueue[spawnIndex], spawnPosition.x, spawnPosition.y, false /*isMinion*/);
-                spawnIndex++;
-                staggerTimer = WAVE_SPAWN_STAGGER;
-            }
-            if (spawnIndex >= spawnQueueSize) {
-                waveState = WAVE_STATE_ACTIVE;
-                #if DEBUG_INSTANT_ROOM_CLEAR
-                    killAllNonBossEnemies();
-                #endif
-            }
-            break;
-
         case WAVE_STATE_ACTIVE:
             if (getActiveEnemyCount() == 0) {
                 roomCompleted();
@@ -341,8 +306,7 @@ void updateWaveManager(float deltaTime) {
                 if (currentWave >= WAVES_PER_ROOM) {
                     spawnBoss();
                 } else {
-                    waveState = WAVE_STATE_PRE_WAVE;
-                    transitionTimer = PRE_WAVE_DELAY;
+                    spawnWaveEnemies();
                 }
             }
             break;

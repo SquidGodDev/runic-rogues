@@ -89,7 +89,7 @@ void updateGameScene(float deltaTime)
 		updateProjectiles(deltaTime);
 		updateParticles(deltaTime);
 		updateInteractables(deltaTime);
-		updateWaveManager(deltaTime);
+		updateWaveManager();
 		updateTimers(deltaTime);
 		renderScene();
 		drawUI(deltaTime, false /*duringCinematic*/);

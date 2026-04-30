@@ -10,6 +10,6 @@ int getTotalWaves(void);
 int getCurrentRoomIndex(void);
 void onShopCompleted(void);
 void onBossDefeated(void);
-void updateWaveManager(float deltaTime);
+void updateWaveManager(void);
 
 int rollEnemiesFromBudget(EnemyType *outTypes, int maxOut, int budget, int minSpecials);
