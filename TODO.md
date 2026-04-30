@@ -32,6 +32,8 @@
     - On xp pickup
   - Black hole (every X specials)
   - More damage the closer you are to enemies
+- Redraw Warrior sword animation
+- Make ranger class
 - Character selection screen
   - 3D models
   - Blender -> 1-bit 2D

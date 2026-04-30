@@ -540,14 +540,14 @@ void drawExitArrow(void) {
 
 void drawSpellUI(void) {
     static const int SPELL_SLOT_LEFT_X    = 3;
-    static const int SPELL_SLOT_RIGHT_X   = 32;
-    static const int SPELL_SLOT_Y         = 84;
-    static const int SPELL_ICON_SIZE      = 22;
+    static const int SPELL_SLOT_RIGHT_X   = 34;
+    static const int SPELL_SLOT_Y         = 82;
+    static const int SPELL_ICON_SIZE      = 24;
     static const int SPELL_COOLDOWN_INSET = 2;
 
-    static const int BUTTON_ICON_LEFT_X  = 17;
-    static const int BUTTON_ICON_RIGHT_X = 46;
-    static const int BUTTON_ICON_Y       = 79;
+    static const int BUTTON_ICON_LEFT_X  = 19;
+    static const int BUTTON_ICON_RIGHT_X = 50;
+    static const int BUTTON_ICON_Y       = 77;
 
     int basicSlotX   = SETTINGS.spellButtonsReversed ? SPELL_SLOT_LEFT_X  : SPELL_SLOT_RIGHT_X;
     int specialSlotX = SETTINGS.spellButtonsReversed ? SPELL_SLOT_RIGHT_X : SPELL_SLOT_LEFT_X;
