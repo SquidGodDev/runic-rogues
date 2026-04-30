@@ -8,34 +8,31 @@
 #include "game/UI/UI.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/bossCinematic.h"
+#include "globals/helpers.h"
 
 #define WAVES_PER_ROOM 5
-#define MAX_WAVE_SLOTS 12
-#define ELITE_ENEMY_TYPE_COUNT 4
+#define MAX_SPAWN_QUEUE 20
+#define MAX_POOL_ENTRIES 8
+#define SPECIAL_COST_THRESHOLD 3
 #define WAVE_SPAWN_STAGGER 0.0f
 #define PRE_WAVE_DELAY 0.0f
 
-typedef enum EnemyRole {
-    ROLE_BASIC,
-    ROLE_ELITE,
-    ROLE_TANK,
-    ROLE_SPECIAL
-} EnemyRole;
-
-typedef struct WaveTemplate {
-    int slotCount;
-    EnemyRole slots[MAX_WAVE_SLOTS];
-} WaveTemplate;
+typedef struct EnemyPoolEntry {
+    EnemyType type;
+    int cost;
+    int weight;
+} EnemyPoolEntry;
 
 typedef struct AreaEnemyPool {
-    EnemyType basicType;
-    EnemyType eliteTypes[ELITE_ENEMY_TYPE_COUNT];
-    EnemyType tankTypes[2];
-    int tankTypeCount;
-    EnemyType specialTypes[2];
-    int specialTypeCount;
+    EnemyPoolEntry entries[MAX_POOL_ENTRIES];
+    int entryCount;
     EnemyType bossType;
 } AreaEnemyPool;
+
+typedef struct RoomBudget {
+    int budget;
+    int minSpecials;
+} RoomBudget;
 
 typedef enum WaveState {
     WAVE_STATE_PRE_WAVE,
@@ -48,41 +45,63 @@ typedef enum WaveState {
     WAVE_STATE_BOSS_DONE
 } WaveState;
 
-static WaveTemplate waveTemplates[WAVES_PER_ROOM] = {
-    { .slotCount = 5, .slots = {ROLE_BASIC, ROLE_BASIC, ROLE_BASIC, ROLE_BASIC, ROLE_BASIC} },
-    { .slotCount = 5, .slots = {ROLE_BASIC, ROLE_BASIC, ROLE_BASIC, ROLE_ELITE, ROLE_ELITE} },
-    { .slotCount = 5, .slots = {ROLE_BASIC, ROLE_BASIC, ROLE_ELITE, ROLE_ELITE, ROLE_SPECIAL} },
-    { .slotCount = 7, .slots = {ROLE_BASIC, ROLE_BASIC, ROLE_ELITE, ROLE_ELITE, ROLE_TANK, ROLE_SPECIAL, ROLE_SPECIAL} },
-    { .slotCount = 6, .slots = {ROLE_ELITE, ROLE_ELITE, ROLE_ELITE, ROLE_TANK, ROLE_SPECIAL, ROLE_SPECIAL} },
-};
-
 static AreaEnemyPool areaPools[AREA_COUNT] = {
     [AREA_ECHOING_CAVERNS] = {
-        .basicType = ENEMY_TYPE_BABY_SLIME,
-        .eliteTypes = {ENEMY_TYPE_SERPENT, ENEMY_TYPE_SLIME, ENEMY_TYPE_SKELETON, ENEMY_TYPE_BAT},
-        .tankTypes = {ENEMY_TYPE_SLIME, ENEMY_TYPE_SKELETON},
-        .tankTypeCount = 2,
-        .specialTypes = {ENEMY_TYPE_BAT, ENEMY_TYPE_SERPENT},
-        .specialTypeCount = 2,
+        .entries = {
+            { .type = ENEMY_TYPE_BABY_SLIME, .cost = 1, .weight = 10 },
+            { .type = ENEMY_TYPE_SKELETON,   .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_SLIME,      .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_SERPENT,    .cost = 3, .weight = 3 },
+            { .type = ENEMY_TYPE_BAT,        .cost = 3, .weight = 3 },
+        },
+        .entryCount = 5,
         .bossType = ENEMY_TYPE_ELDER_BOSS,
     },
     [AREA_LOST_ARCHIVES] = {
-        .basicType = ENEMY_TYPE_RAT,
-        .eliteTypes = {ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_LIVING_ARMOR, ENEMY_TYPE_MUMMY, ENEMY_TYPE_IMP},
-        .tankTypes = {ENEMY_TYPE_LIVING_ARMOR, ENEMY_TYPE_MUMMY},
-        .tankTypeCount = 2,
-        .specialTypes = {ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_IMP},
-        .specialTypeCount = 2,
+        .entries = {
+            { .type = ENEMY_TYPE_RAT,          .cost = 1, .weight = 10 },
+            { .type = ENEMY_TYPE_LIVING_ARMOR, .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_MUMMY,        .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_FLYING_TOME,  .cost = 3, .weight = 3 },
+            { .type = ENEMY_TYPE_IMP,          .cost = 3, .weight = 3 },
+        },
+        .entryCount = 5,
         .bossType = ENEMY_TYPE_WRAITH_BOSS,
     },
     [AREA_TEST] = {
-        .basicType = ENEMY_TYPE_BABY_SLIME,
-        .eliteTypes = {ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_LIVING_ARMOR, ENEMY_TYPE_WRAITH, ENEMY_TYPE_BAT},
-        .tankTypes = {ENEMY_TYPE_LIVING_ARMOR, ENEMY_TYPE_WRAITH},
-        .tankTypeCount = 2,
-        .specialTypes = {ENEMY_TYPE_FLYING_TOME, ENEMY_TYPE_BAT},
-        .specialTypeCount = 2,
+        .entries = {
+            { .type = ENEMY_TYPE_BABY_SLIME,   .cost = 1, .weight = 10 },
+            { .type = ENEMY_TYPE_LIVING_ARMOR, .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_WRAITH,       .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_FLYING_TOME,  .cost = 3, .weight = 3 },
+            { .type = ENEMY_TYPE_BAT,          .cost = 3, .weight = 3 },
+        },
+        .entryCount = 5,
         .bossType = ENEMY_TYPE_WRAITH_BOSS,
+    },
+};
+
+static const RoomBudget roomBudgets[AREA_COUNT][WAVES_PER_ROOM] = {
+    [AREA_ECHOING_CAVERNS] = {
+        { .budget = 5,  .minSpecials = 0 },
+        { .budget = 8,  .minSpecials = 1 },
+        { .budget = 10, .minSpecials = 2 },
+        { .budget = 12, .minSpecials = 3 },
+        { .budget = 14, .minSpecials = 4 },
+    },
+    [AREA_LOST_ARCHIVES] = {
+        { .budget = 5,  .minSpecials = 1 },
+        { .budget = 8,  .minSpecials = 2 },
+        { .budget = 10, .minSpecials = 3 },
+        { .budget = 12, .minSpecials = 4 },
+        { .budget = 14, .minSpecials = 4 },
+    },
+    [AREA_TEST] = {
+        { .budget = 5,  .minSpecials = 0 },
+        { .budget = 8,  .minSpecials = 1 },
+        { .budget = 10, .minSpecials = 1 },
+        { .budget = 12, .minSpecials = 2 },
+        { .budget = 14, .minSpecials = 2 },
     },
 };
 
@@ -94,30 +113,89 @@ static int spawnIndex;
 static float transitionTimer;
 static bool bossActive;
 static int arrowTargetRoom;
-static EnemyType spawnQueue[MAX_WAVE_SLOTS];
+static EnemyType spawnQueue[MAX_SPAWN_QUEUE];
 static int spawnQueueSize;
 
-static void resolveWaveEnemies(int waveIndex) {
-    AreaEnemyPool *pool = &areaPools[getCurrentArea()];
-    WaveTemplate *tmpl = &waveTemplates[waveIndex];
-    spawnQueueSize = tmpl->slotCount;
+static int pickWeightedEnemy(const AreaEnemyPool *pool, int affordableCost, bool specialsOnly) {
+    int totalWeight = 0;
+    for (int i = 0; i < pool->entryCount; i++) {
+        const EnemyPoolEntry *e = &pool->entries[i];
+        if (e->cost > affordableCost) {
+            continue;
+        }
+        if (specialsOnly && e->cost < SPECIAL_COST_THRESHOLD) {
+            continue;
+        }
+        totalWeight += e->weight;
+    }
+    if (totalWeight <= 0) {
+        return -1;
+    }
 
-    for (int i = 0; i < tmpl->slotCount; i++) {
-        switch (tmpl->slots[i]) {
-            case ROLE_BASIC:
-                spawnQueue[i] = pool->basicType;
-                break;
-            case ROLE_ELITE:
-                spawnQueue[i] = pool->eliteTypes[randInt(0, ELITE_ENEMY_TYPE_COUNT - 1)];
-                break;
-            case ROLE_TANK:
-                spawnQueue[i] = pool->tankTypes[randInt(0, pool->tankTypeCount - 1)];
-                break;
-            case ROLE_SPECIAL:
-                spawnQueue[i] = pool->specialTypes[randInt(0, pool->specialTypeCount - 1)];
-                break;
+    int roll = randInt(0, totalWeight - 1);
+    for (int i = 0; i < pool->entryCount; i++) {
+        const EnemyPoolEntry *e = &pool->entries[i];
+        if (e->cost > affordableCost) {
+            continue;
+        }
+        if (specialsOnly && e->cost < SPECIAL_COST_THRESHOLD) {
+            continue;
+        }
+        roll -= e->weight;
+        if (roll < 0) {
+            return i;
         }
     }
+    return -1;
+}
+
+static EnemyType getBasicEnemyType(const AreaEnemyPool *pool) {
+    for (int i = 0; i < pool->entryCount; i++) {
+        if (pool->entries[i].cost < SPECIAL_COST_THRESHOLD) {
+            return pool->entries[i].type;
+        }
+    }
+    return pool->entries[0].type;
+}
+
+int rollEnemiesFromBudget(EnemyType *outTypes, int maxOut, int budget, int minSpecials) {
+    AreaEnemyPool *pool = &areaPools[getCurrentArea()];
+
+    if (minSpecials == 0) {
+        EnemyType basic = getBasicEnemyType(pool);
+        int count = (budget < maxOut) ? budget : maxOut;
+        for (int i = 0; i < count; i++) {
+            outTypes[i] = basic;
+        }
+        return count;
+    }
+
+    int count = 0;
+    for (int i = 0; i < minSpecials && count < maxOut; i++) {
+        int idx = pickWeightedEnemy(pool, budget, true /*specialsOnly*/);
+        if (idx < 0) {
+            break;
+        }
+        outTypes[count++] = pool->entries[idx].type;
+        budget -= pool->entries[idx].cost;
+    }
+
+    while (count < maxOut) {
+        int idx = pickWeightedEnemy(pool, budget, false /*specialsOnly*/);
+        if (idx < 0) {
+            break;
+        }
+        outTypes[count++] = pool->entries[idx].type;
+        budget -= pool->entries[idx].cost;
+    }
+
+    return count;
+}
+
+static void resolveWaveEnemies(int waveIndex) {
+    Area area = getCurrentArea();
+    RoomBudget rb = roomBudgets[area][waveIndex];
+    spawnQueueSize = rollEnemiesFromBudget(spawnQueue, MAX_SPAWN_QUEUE, rb.budget, rb.minSpecials);
 }
 
 static void spawnBoss(void) {
@@ -160,25 +238,6 @@ void initWaveManager(void) {
 
 bool getBossActive(void) {
     return bossActive;
-}
-
-EnemyType getRandomBasicEnemyType(void) {
-    return areaPools[getCurrentArea()].basicType;
-}
-
-EnemyType getRandomEliteEnemyType(void) {
-    AreaEnemyPool *pool = &areaPools[getCurrentArea()];
-    return pool->eliteTypes[randInt(0, ELITE_ENEMY_TYPE_COUNT - 1)];
-}
-
-EnemyType getRandomTankEnemyType(void) {
-    AreaEnemyPool *pool = &areaPools[getCurrentArea()];
-    return pool->tankTypes[randInt(0, pool->tankTypeCount - 1)];
-}
-
-EnemyType getRandomSpecialEnemyType(void) {
-    AreaEnemyPool *pool = &areaPools[getCurrentArea()];
-    return pool->specialTypes[randInt(0, pool->specialTypeCount - 1)];
 }
 
 void setBossActive(bool active) {

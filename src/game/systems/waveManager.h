@@ -12,7 +12,4 @@ void onShopCompleted(void);
 void onBossDefeated(void);
 void updateWaveManager(float deltaTime);
 
-EnemyType getRandomBasicEnemyType(void);
-EnemyType getRandomEliteEnemyType(void);
-EnemyType getRandomTankEnemyType(void);
-EnemyType getRandomSpecialEnemyType(void);
+int rollEnemiesFromBudget(EnemyType *outTypes, int maxOut, int budget, int minSpecials);

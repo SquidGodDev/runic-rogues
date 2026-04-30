@@ -30,10 +30,8 @@ typedef struct ElderBossProperties {
 	int   projectileDamage;
 	float projectileSpeed;
 	float waveAngleOffset;
-	int   basicSpawnCount;
-	int   eliteSpawnCount;
-	int   specialSpawnCount;
-	int   tankSpawnCount;
+	int   summonBudget;
+	int   summonMinSpecials;
 	float summonRadius;
 	float summonTime;
 } ElderBossProperties;
@@ -57,10 +55,8 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 			.projectileDamage   = 10,
 			.projectileSpeed    = 25.0f,
 			.waveAngleOffset    = 5.0f * PI / 180.0f,
-			.basicSpawnCount    = 5,
-			.eliteSpawnCount    = 0,
-			.specialSpawnCount  = 0,
-			.tankSpawnCount     = 0,
+			.summonBudget       = 5,
+			.summonMinSpecials  = 0,
 			.summonRadius       = CELL_SIZE * 2.0f,
 			.summonTime         = 2.0f,
 		},
@@ -80,10 +76,8 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 			.projectileDamage   = 10,
 			.projectileSpeed    = 35.0f,
 			.waveAngleOffset    = 5.0f * PI / 180.0f,
-			.basicSpawnCount    = 3,
-			.eliteSpawnCount    = 2,
-			.specialSpawnCount  = 1,
-			.tankSpawnCount     = 1,
+			.summonBudget       = 10,
+			.summonMinSpecials  = 2,
 			.summonRadius       = CELL_SIZE * 2.0f,
 			.summonTime         = 2.0f,
 		},
@@ -105,10 +99,8 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 			.projectileDamage   = 10,
 			.projectileSpeed    = 25.0f,
 			.waveAngleOffset    = 5.0f * PI / 180.0f,
-			.basicSpawnCount    = 3,
-			.eliteSpawnCount    = 1,
-			.specialSpawnCount  = 1,
-			.tankSpawnCount     = 0,
+			.summonBudget       = 8,
+			.summonMinSpecials  = 1,
 			.summonRadius       = CELL_SIZE * 2.0f,
 			.summonTime         = 2.0f,
 		},
@@ -127,10 +119,8 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 			.projectileDamage   = 10,
 			.projectileSpeed    = 25.0f,
 			.waveAngleOffset    = 5.0f * PI / 180.0f,
-			.basicSpawnCount    = 3,
-			.eliteSpawnCount    = 1,
-			.specialSpawnCount  = 1,
-			.tankSpawnCount     = 0,
+			.summonBudget       = 8,
+			.summonMinSpecials  = 1,
 			.summonRadius       = CELL_SIZE * 2.0f,
 			.summonTime         = 2.0f,
 		},
@@ -509,40 +499,17 @@ static void elderSpawnRootWarnings(Enemy *curEnemy) {
 	}
 }
 
+#define ELDER_MAX_SUMMONS 20
+
 static void elderSpawnSummons(Enemy *curEnemy) {
-	const int counts[4] = {
-		elderProperties->basicSpawnCount,
-		elderProperties->eliteSpawnCount,
-		elderProperties->specialSpawnCount,
-		elderProperties->tankSpawnCount,
-	};
-	for (int role = 0; role < 4; role++) {
-		for (int i = 0; i < counts[role]; i++) {
-			float angle = randFloat(0.0f, 2.0f * PI);
-			float radius = randFloat(0.0f, elderProperties->summonRadius);
-			float sx = curEnemy->x + cosf(angle) * radius;
-			float sy = curEnemy->y + sinf(angle) * radius;
-			EnemyType type;
-			switch (role) {
-				case 1: {
-					type = getRandomEliteEnemyType();
-					break;
-				}
-				case 2: {
-					type = getRandomSpecialEnemyType();
-					break;
-				}
-				case 3: {
-					type = getRandomTankEnemyType();
-					break;
-				}
-				default: {
-					type = getRandomBasicEnemyType();
-					break;
-				}
-			}
-			spawnEnemyWithSpawnParticle(type, sx, sy);
-		}
+	EnemyType summons[ELDER_MAX_SUMMONS];
+	int count = rollEnemiesFromBudget(summons, ELDER_MAX_SUMMONS, elderProperties->summonBudget, elderProperties->summonMinSpecials);
+	for (int i = 0; i < count; i++) {
+		float angle = randFloat(0.0f, 2.0f * PI);
+		float radius = randFloat(0.0f, elderProperties->summonRadius);
+		float sx = curEnemy->x + cosf(angle) * radius;
+		float sy = curEnemy->y + sinf(angle) * radius;
+		spawnEnemyWithSpawnParticle(summons[i], sx, sy);
 	}
 }
 
