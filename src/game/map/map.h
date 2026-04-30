@@ -7,8 +7,8 @@
 #define MAP_WALL 1
 #define MAP_GATE 2
 
-#define WAVE_ROOM_COUNT 5
 #define DUNGEON_ROOM_COUNT 6
+#define NON_BOSS_ROOM_COUNT (DUNGEON_ROOM_COUNT - 1)
 
 extern int map[MAP_WIDTH * MAP_HEIGHT];
 

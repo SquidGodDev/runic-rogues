@@ -15,7 +15,7 @@
 #include "game/systems/audioManager.h"
 #include "game/systems/runeManager.h"
 #include "game/systems/progressionManager.h"
-#include "game/systems/waveManager.h"
+#include "game/systems/spawnManager.h"
 #include "game/systems/bossCinematic.h"
 
 #define SPAWN_TEST_ENEMY 0

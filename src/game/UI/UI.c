@@ -17,7 +17,7 @@
 #include "game/entities/interactables.h"
 #include "game/settings/settings.h"
 #include "game/systems/progressionManager.h"
-#include "game/systems/waveManager.h"
+#include "game/systems/spawnManager.h"
 #include "game/systems/bossCinematic.h"
 
 #define drawPixel(frameBuffer, x, y) (frameBuffer[y * LCD_ROWSIZE + (x >> 3)] |= (1 << (7 - (x & 7))))

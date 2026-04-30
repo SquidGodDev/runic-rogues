@@ -124,14 +124,14 @@ static void generateMultiRoomDungeon(void) {
     entranceGate = (RoomGate){ .cellCount = 1 };
     entranceGate.cells[0] = (Point){.x = 5, .y = 5};
 
-    // Wave rooms: 5 rooms of 9x9 interior, stride 14 (9 room + 5 hallway)
-    int waveRoomInteriorSize = 9;
+    // Non-boss rooms: 5 rooms of 9x9 interior, stride 14 (9 room + 5 hallway)
+    int roomInteriorSize = 9;
     int hallwayLength = 5;
-    for (int i = 0; i < WAVE_ROOM_COUNT; i++) {
-        int minX = 6 + i * (waveRoomInteriorSize + hallwayLength);
+    for (int i = 0; i < NON_BOSS_ROOM_COUNT; i++) {
+        int minX = 6 + i * (roomInteriorSize + hallwayLength);
         int minY = 1;
-        int maxX = minX + waveRoomInteriorSize - 1;
-        int maxY = minY + waveRoomInteriorSize - 1;
+        int maxX = minX + roomInteriorSize - 1;
+        int maxY = minY + roomInteriorSize - 1;
         dungeonRooms[i] = (DungeonRoom){
             .interiorMinX = minX, .interiorMinY = minY,
             .interiorMaxX = maxX, .interiorMaxY = maxY,
@@ -150,7 +150,7 @@ static void generateMultiRoomDungeon(void) {
     carveRoom(59, 15, 73, 29);
 
     // Inter-room gates: 5-cell hallways (1 gate column + 4 wall columns), 1 cell wide at centerY
-    for (int i = 0; i < WAVE_ROOM_COUNT - 1; i++) {
+    for (int i = 0; i < NON_BOSS_ROOM_COUNT - 1; i++) {
         int gateX = dungeonRooms[i].interiorMaxX + 1;
         int gateY = dungeonRooms[i].centerY;
         int cellIdx = 0;
@@ -172,7 +172,7 @@ static void generateMultiRoomDungeon(void) {
     {
         int hallMinX = 65;
         int hallMaxX = 67;
-        int gateY = dungeonRooms[WAVE_ROOM_COUNT - 1].interiorMaxY + 1;
+        int gateY = dungeonRooms[NON_BOSS_ROOM_COUNT - 1].interiorMaxY + 1;
         int cellIdx = 0;
         RoomGate gate = { .cellCount = 0 };
 
@@ -188,7 +188,7 @@ static void generateMultiRoomDungeon(void) {
             }
         }
         gate.cellCount = cellIdx;
-        roomGates[WAVE_ROOM_COUNT - 1] = gate;
+        roomGates[NON_BOSS_ROOM_COUNT - 1] = gate;
     }
 }
 
@@ -206,8 +206,8 @@ Point getPlayerSpawnMapPosition(void) {
         return campfireLayout.playerSpawnMapPosition;
     }
     #if DEBUG_SKIP_TO_BOSS
-        DungeonRoom *lastWaveRoom = &dungeonRooms[WAVE_ROOM_COUNT - 1];
-        return (Point){.x = lastWaveRoom->interiorMinX + 1, .y = lastWaveRoom->centerY};
+        DungeonRoom *lastRoom = &dungeonRooms[NON_BOSS_ROOM_COUNT - 1];
+        return (Point){.x = lastRoom->interiorMinX + 1, .y = lastRoom->centerY};
     #endif
     return (Point){.x = 1, .y = 5};
 }
@@ -222,7 +222,7 @@ Point getExitMapPosition(void) {
 }
 
 Point getShopMapPosition(void) {
-    // Place shop at the north wall of the first wave room
+    // Place shop at the north wall of the first room
     return (Point){.x = dungeonRooms[0].centerX, .y = dungeonRooms[0].interiorMinY - 1};
 }
 

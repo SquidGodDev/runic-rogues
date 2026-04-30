@@ -1,7 +1,7 @@
 #define TARGET_EXTENSION 1
 #include "pd_api.h"
 
-#include "game/systems/waveManager.h"
+#include "game/systems/spawnManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
@@ -10,7 +10,6 @@
 #include "game/systems/bossCinematic.h"
 #include "globals/helpers.h"
 
-#define WAVES_PER_ROOM 5
 #define MAX_SPAWN_QUEUE 20
 #define MAX_POOL_ENTRIES 8
 #define SPECIAL_COST_THRESHOLD 3
@@ -32,14 +31,14 @@ typedef struct RoomBudget {
     int minSpecials;
 } RoomBudget;
 
-typedef enum WaveState {
-    WAVE_STATE_ACTIVE,
-    WAVE_STATE_POPUP_WAIT,
-    WAVE_STATE_ROOM_TRANSITION,
-    WAVE_STATE_BOSS,
-    WAVE_STATE_BOSS_POPUP_WAIT,
-    WAVE_STATE_BOSS_DONE
-} WaveState;
+typedef enum SpawnState {
+    SPAWN_STATE_ACTIVE,
+    SPAWN_STATE_POPUP_WAIT,
+    SPAWN_STATE_ROOM_TRANSITION,
+    SPAWN_STATE_BOSS,
+    SPAWN_STATE_BOSS_POPUP_WAIT,
+    SPAWN_STATE_BOSS_DONE
+} SpawnState;
 
 static AreaEnemyPool areaPools[AREA_COUNT] = {
     [AREA_ECHOING_CAVERNS] = {
@@ -77,7 +76,7 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
     },
 };
 
-static const RoomBudget roomBudgets[AREA_COUNT][WAVES_PER_ROOM] = {
+static const RoomBudget roomBudgets[AREA_COUNT][NON_BOSS_ROOM_COUNT] = {
     [AREA_ECHOING_CAVERNS] = {
         { .budget = 5,  .minSpecials = 0 },
         { .budget = 8,  .minSpecials = 1 },
@@ -101,8 +100,8 @@ static const RoomBudget roomBudgets[AREA_COUNT][WAVES_PER_ROOM] = {
     },
 };
 
-static WaveState waveState;
-static int currentWave;
+static SpawnState spawnState;
+static int nextRoomIndex;
 static int currentRoomIndex;
 static bool bossActive;
 static int arrowTargetRoom;
@@ -183,15 +182,15 @@ int rollEnemiesFromBudget(EnemyType *outTypes, int maxOut, int budget, int minSp
     return count;
 }
 
-static void spawnWaveEnemies(void) {
-    RoomBudget roomBudget = roomBudgets[getCurrentArea()][currentWave];
+static void spawnRoomEnemies(void) {
+    RoomBudget roomBudget = roomBudgets[getCurrentArea()][nextRoomIndex];
     EnemyType spawnQueue[MAX_SPAWN_QUEUE];
     int spawnCount = rollEnemiesFromBudget(spawnQueue, MAX_SPAWN_QUEUE, roomBudget.budget, roomBudget.minSpecials);
     for (int i = 0; i < spawnCount; i++) {
         Point spawnPosition = getRoomSpawnPosition(currentRoomIndex, i);
         spawnEnemy(spawnQueue[i], spawnPosition.x, spawnPosition.y, false /*isMinion*/);
     }
-    waveState = WAVE_STATE_ACTIVE;
+    spawnState = SPAWN_STATE_ACTIVE;
     #if DEBUG_INSTANT_ROOM_CLEAR
         killAllNonBossEnemies();
     #endif
@@ -202,22 +201,22 @@ static void spawnBoss(void) {
     Point spawnPosition = getRoomWorldCenter(DUNGEON_ROOM_COUNT - 1);
     killAllNonBossEnemies();
     int bossIdx = spawnEnemy(pool->bossType, spawnPosition.x, spawnPosition.y, false /*isMinion*/);
-    waveState = WAVE_STATE_BOSS;
+    spawnState = SPAWN_STATE_BOSS;
     startBossCinematic(bossIdx);
 }
 
-void initWaveManager(void) {
-    waveState = WAVE_STATE_ROOM_TRANSITION;
-    currentWave = 0;
+void initSpawnManager(void) {
+    spawnState = SPAWN_STATE_ROOM_TRANSITION;
+    nextRoomIndex = 0;
     currentRoomIndex = 0;
     bossActive = false;
     arrowTargetRoom = -1;
     #if DEBUG_SKIP_TO_BOSS
-        // Place state as if the last wave room was cleared and the shop was closed:
-        // player in the last wave room, boss gate open, arrow pointing to the boss room.
-        currentWave = WAVES_PER_ROOM;
-        currentRoomIndex = WAVE_ROOM_COUNT - 1;
-        openRoomGate(WAVE_ROOM_COUNT - 1);
+        // Place state as if the last room was cleared and the shop was closed:
+        // player in the last room, boss gate open, arrow pointing to the boss room.
+        nextRoomIndex = NON_BOSS_ROOM_COUNT;
+        currentRoomIndex = NON_BOSS_ROOM_COUNT - 1;
+        openRoomGate(NON_BOSS_ROOM_COUNT - 1);
         Point bossCenter = getRoomWorldCenter(DUNGEON_ROOM_COUNT - 1);
         setArrowPosition(bossCenter.x, bossCenter.y);
         arrowTargetRoom = DUNGEON_ROOM_COUNT - 1;
@@ -232,31 +231,23 @@ void setBossActive(bool active) {
     bossActive = active;
 }
 
-int getCurrentWave(void) {
-    return currentWave;
-}
-
-int getTotalWaves(void) {
-    return WAVES_PER_ROOM;
-}
-
 int getCurrentRoomIndex(void) {
     return currentRoomIndex;
 }
 
 void roomCompleted(void) {
     showPopup(POPUP_ROOM_CLEARED, POPUP_POSITION_CENTER);
-    currentWave++;
-    waveState = WAVE_STATE_POPUP_WAIT;
+    nextRoomIndex++;
+    spawnState = SPAWN_STATE_POPUP_WAIT;
 }
 
 void onShopCompleted(void) {
     if (isAreaCompleted()) {
         return;
     }
-    int gateIndex = (currentWave >= WAVES_PER_ROOM) ? WAVE_ROOM_COUNT - 1 : currentWave - 1;
+    int gateIndex = (nextRoomIndex >= NON_BOSS_ROOM_COUNT) ? NON_BOSS_ROOM_COUNT - 1 : nextRoomIndex - 1;
     openRoomGate(gateIndex);
-    int targetRoom = (currentWave >= WAVES_PER_ROOM) ? DUNGEON_ROOM_COUNT - 1 : currentWave;
+    int targetRoom = (nextRoomIndex >= NON_BOSS_ROOM_COUNT) ? DUNGEON_ROOM_COUNT - 1 : nextRoomIndex;
     Point targetCenter = getRoomWorldCenter(targetRoom);
     setArrowPosition(targetCenter.x, targetCenter.y);
     arrowTargetRoom = targetRoom;
@@ -265,64 +256,64 @@ void onShopCompleted(void) {
 void onBossDefeated(void) {
     bossActive = false;
     setAreaCompleted(true);
-    waveState = WAVE_STATE_BOSS_POPUP_WAIT;
+    spawnState = SPAWN_STATE_BOSS_POPUP_WAIT;
 }
 
-void updateWaveManager(void) {
+void updateSpawnManager(void) {
     if (bossActive) {
         return;
     }
-    if (isAreaCompleted() && waveState != WAVE_STATE_BOSS_POPUP_WAIT) {
+    if (isAreaCompleted() && spawnState != SPAWN_STATE_BOSS_POPUP_WAIT) {
         return;
     }
 
-    switch (waveState) {
-        case WAVE_STATE_ACTIVE:
+    switch (spawnState) {
+        case SPAWN_STATE_ACTIVE:
             if (getActiveEnemyCount() == 0) {
                 roomCompleted();
             }
             break;
 
-        case WAVE_STATE_POPUP_WAIT:
+        case SPAWN_STATE_POPUP_WAIT:
             if (!isPopupActive()) {
                 initShop();
-                waveState = WAVE_STATE_ROOM_TRANSITION;
+                spawnState = SPAWN_STATE_ROOM_TRANSITION;
             }
             break;
 
-        case WAVE_STATE_ROOM_TRANSITION: {
-            int targetRoom = (currentWave >= WAVES_PER_ROOM) ? DUNGEON_ROOM_COUNT - 1 : currentWave;
+        case SPAWN_STATE_ROOM_TRANSITION: {
+            int targetRoom = (nextRoomIndex >= NON_BOSS_ROOM_COUNT) ? DUNGEON_ROOM_COUNT - 1 : nextRoomIndex;
             if (getPlayerCurrentRoom() == targetRoom) {
                 clearArrow();
                 arrowTargetRoom = -1;
-                if (currentWave == 0) {
+                if (nextRoomIndex == 0) {
                     closeEntranceGate();
                 } else {
-                    int gateIndex = (currentWave >= WAVES_PER_ROOM) ? WAVE_ROOM_COUNT - 1 : currentWave - 1;
+                    int gateIndex = (nextRoomIndex >= NON_BOSS_ROOM_COUNT) ? NON_BOSS_ROOM_COUNT - 1 : nextRoomIndex - 1;
                     closeRoomGate(gateIndex);
                 }
 
                 currentRoomIndex = targetRoom;
-                if (currentWave >= WAVES_PER_ROOM) {
+                if (nextRoomIndex >= NON_BOSS_ROOM_COUNT) {
                     spawnBoss();
                 } else {
-                    spawnWaveEnemies();
+                    spawnRoomEnemies();
                 }
             }
             break;
         }
 
-        case WAVE_STATE_BOSS:
+        case SPAWN_STATE_BOSS:
             break;
 
-        case WAVE_STATE_BOSS_POPUP_WAIT:
+        case SPAWN_STATE_BOSS_POPUP_WAIT:
             if (!isPopupActive()) {
                 initShop();
-                waveState = WAVE_STATE_BOSS_DONE;
+                spawnState = SPAWN_STATE_BOSS_DONE;
             }
             break;
 
-        case WAVE_STATE_BOSS_DONE:
+        case SPAWN_STATE_BOSS_DONE:
             break;
     }
 }

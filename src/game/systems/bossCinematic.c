@@ -12,7 +12,7 @@
 #include "game/UI/popups.h"
 #include "game/systems/bossCinematic.h"
 #include "game/systems/progressionManager.h"
-#include "game/systems/waveManager.h"
+#include "game/systems/spawnManager.h"
 
 // === Tunable cinematic parameters ===
 #define BOSS_CINEMATIC_DISTANCE_CELLS 3.0f

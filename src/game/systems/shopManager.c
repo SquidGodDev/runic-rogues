@@ -6,7 +6,7 @@
 #include "game/gameScene.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/progressionManager.h"
-#include "game/systems/waveManager.h"
+#include "game/systems/spawnManager.h"
 #include "game/systems/runeManager.h"
 #include "game/settings/settings.h"
 #include "game/rendering/textures.h"

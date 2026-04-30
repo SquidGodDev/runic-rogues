@@ -7,7 +7,7 @@
 #include "game/player/player.h"
 #include "game/entities/projectiles.h"
 #include "game/rendering/particles.h"
-#include "game/systems/waveManager.h"
+#include "game/systems/spawnManager.h"
 #include "game/systems/bossCinematic.h"
 #include "game/UI/UI.h"
 

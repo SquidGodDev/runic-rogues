@@ -22,7 +22,7 @@
 #include "game/systems/shopManager.h"
 #include "game/UI/runeInventory.h"
 #include "game/systems/timerManager.h"
-#include "game/systems/waveManager.h"
+#include "game/systems/spawnManager.h"
 #include "game/systems/bossCinematic.h"
 #include "game/settings/settings.h"
 
@@ -74,8 +74,8 @@ void initGameScene(void)
 	// Player
 	initPlayer();
 
-	// Wave Manager
-	initWaveManager();
+	// Spawn Manager
+	initSpawnManager();
 }
 
 void updateGameScene(float deltaTime)
@@ -89,7 +89,7 @@ void updateGameScene(float deltaTime)
 		updateProjectiles(deltaTime);
 		updateParticles(deltaTime);
 		updateInteractables(deltaTime);
-		updateWaveManager();
+		updateSpawnManager();
 		updateTimers(deltaTime);
 		renderScene();
 		drawUI(deltaTime, false /*duringCinematic*/);
