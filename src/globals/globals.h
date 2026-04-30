@@ -18,6 +18,7 @@
 
 #define DEBUG_SKIP_TO_BOSS 0
 #define DEBUG_INSTANT_ROOM_CLEAR 0
+#define DEBUG_AREA_OVERRIDE 0
 
 #define FOG_LEVELS 16
 #define FOG_STEP 6

@@ -27,6 +27,9 @@ static bool pendingExitSpawn;
 
 void initProgressionManager(void) {
     currentArea = AREA_ECHOING_CAVERNS;
+    #ifdef DEBUG_AREA_OVERRIDE
+        currentArea = (Area)DEBUG_AREA_OVERRIDE;
+    #endif
     currentRoom = 0;
     currentRoomType = ROOM_TYPE_ENEMY;
     experience = 0.0f;
