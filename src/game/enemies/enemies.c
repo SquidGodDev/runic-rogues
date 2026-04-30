@@ -709,6 +709,8 @@ bool damageEnemy(int index, int damage) {
 			curEnemy.health = curEnemyData.health;
 			curEnemy.hitFlashTime = 0;
 			enemies[index] = curEnemy;
+			clearProjectiles();
+			clearParticles();
 			killAllNonBossEnemies();
 			startBossCinematic(index);
 			return true;
