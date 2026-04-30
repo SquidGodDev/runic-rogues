@@ -222,7 +222,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .damage = 5,
         .repeatData = (RepeatData){
             .activationTime = 0.2f,
-            .repeatCount = 2
+            .repeatCount = 0
         },
         .projectileData = (SpellProjectileData) {
             .speed = 125.0f,
