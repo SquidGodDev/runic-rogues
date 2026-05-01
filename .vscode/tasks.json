@@ -65,14 +65,14 @@
                     "\"%__shellPath%",
                     "^'&'",
                     "nmake.exe\""
-                ]
+                ],
+                "group": "build"
             },
             "osx": {
                 "command": "cmake",
                 "args": [
                     "--build",
-                    "${workspaceFolder}/build/build-device",
-                    "--clean-first"
+                    "${workspaceFolder}/build/build-device"
                 ],
                 "group": "build"
             },
