@@ -2,45 +2,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Kill Simulator",
-            "type": "shell",
-            "command": "taskkill",
-            "args": [
-                "/FI",
-                "'STATUS eq RUNNING'",
-                "/IM",
-                "PlaydateSimulator.exe",
-            ],
-            "problemMatcher": []
-        },
-        {
             "type": "cmake",
-            "label": "CMake Sim",
+            "label": "Playdate: Build C for simulator",
             "command": "build",
             "targets": [
                 "ALL_BUILD"
             ],
             "group": "build",
-            "problemMatcher": []
-        },
-        {
-            "label": "Playdate: Build C for simulator",
-            "type": "shell",
-            "windows": {
-                "command": "cmd.exe",
-                "options": {
-                    "cwd": "${workspaceFolder}\\build\\build-sim",
-                    "env": {
-                        "__shellPath": "\"${env:VISUAL_STUDIO_TOOLS}\\vcvars64.bat\""
-                    }
-                },
-                "args": [
-                    "/c",
-                    "\"%__shellPath%",
-                    "^'&'",
-                    "nmake.exe\""
-                ]
-            },
             "problemMatcher": []
         },
         {
@@ -60,11 +28,23 @@
                     "\"%__shellPath%",
                     "^'&'",
                     "cmake",
-                    "-DCMAKE_BUILD_TYPE=Release",
                     "-G",
                     "%__makefileName%",
                     "..\\..",
                     "--toolchain=${env:PLAYDATE_SDK_PATH}/C_API/buildsupport/arm.cmake\""
+                ]
+            },
+            "osx": {
+                "command": "zsh",
+                "options": {
+                    "cwd": "${workspaceFolder}/build/build-device",
+                    "env": {
+                        "__makefileName": "Unix Makefiles"
+                    }
+                },
+                "args": [
+                    "-c",
+                    "cmake -G \"${__makefileName}\" ../.. --toolchain=${env:PLAYDATE_SDK_PATH}/C_API/buildsupport/arm.cmake"
                 ]
             },
             "problemMatcher": []
@@ -87,7 +67,16 @@
                     "nmake.exe\""
                 ]
             },
-            "problemMatcher": [],
+            "osx": {
+                "command": "cmake",
+                "args": [
+                    "--build",
+                    "${workspaceFolder}/build/build-device",
+                    "--clean-first"
+                ],
+                "group": "build"
+            },
+            "problemMatcher": []
         },
         {
             "label": "Playdate: Build Lua",
@@ -118,7 +107,6 @@
         {
             "label": "Playdate: Build Lua and Run",
             "dependsOn": [
-                "Kill Simulator",
                 "Playdate: Build Lua",
                 "Playdate: Run"
             ],
@@ -129,11 +117,9 @@
             }
         },
         {
-            "label": "Simulator Build for C + Run",
+            "label": "Playdate: Build C for Simulator and Run",
             "dependsOn": [
-                "Kill Simulator",
-                "CMake Sim",
-                // "Playdate: Build C for simulator",
+                "Playdate: Build C for simulator",
                 "Playdate: Run"
             ],
             "dependsOrder": "sequence",
@@ -143,18 +129,9 @@
             }
         },
         {
-            "label": "Debug Prelaunch Tasks",
+            "label": "Playdate: Build C for Device and Run",
             "dependsOn": [
-                "Kill Simulator",
-                "Playdate: Build C for simulator"
-            ],
-            "dependsOrder": "sequence"
-        },
-        {
-            "label": "Device Build for C + Run",
-            "dependsOn": [
-                // "Kill Simulator",
-                // "CMake Device",
+                "CMake Device",
                 "Playdate: Build C for device",
                 "Playdate: Run"
             ],
