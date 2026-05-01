@@ -211,15 +211,16 @@ void initSpawnManager(void) {
     currentRoomIndex = 0;
     bossActive = false;
     arrowTargetRoom = -1;
-    #if DEBUG_SKIP_TO_BOSS
-        // Place state as if the last room was cleared and the shop was closed:
-        // player in the last room, boss gate open, arrow pointing to the boss room.
-        nextRoomIndex = NON_BOSS_ROOM_COUNT;
-        currentRoomIndex = NON_BOSS_ROOM_COUNT - 1;
-        openRoomGate(NON_BOSS_ROOM_COUNT - 1);
-        Point bossCenter = getRoomWorldCenter(DUNGEON_ROOM_COUNT - 1);
-        setArrowPosition(bossCenter.x, bossCenter.y);
-        arrowTargetRoom = DUNGEON_ROOM_COUNT - 1;
+    #if DEBUG_SKIP_TO_ROOM > 0
+        // Place state as if rooms 0..(N-1) were cleared and the shop was closed:
+        // player in room (N-1), gate to room N open, arrow pointing to room N.
+        int targetRoom = DEBUG_SKIP_TO_ROOM;
+        currentRoomIndex = targetRoom - 1;
+        nextRoomIndex = targetRoom;
+        openRoomGate(targetRoom - 1);
+        Point targetCenter = getRoomWorldCenter(targetRoom);
+        setArrowPosition(targetCenter.x, targetCenter.y);
+        arrowTargetRoom = targetRoom;
     #endif
 }
 

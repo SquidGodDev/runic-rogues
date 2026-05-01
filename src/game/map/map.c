@@ -205,9 +205,9 @@ Point getPlayerSpawnMapPosition(void) {
     if (curRoomType == ROOM_TYPE_CAMPFIRE) {
         return campfireLayout.playerSpawnMapPosition;
     }
-    #if DEBUG_SKIP_TO_BOSS
-        DungeonRoom *lastRoom = &dungeonRooms[NON_BOSS_ROOM_COUNT - 1];
-        return (Point){.x = lastRoom->interiorMinX + 1, .y = lastRoom->centerY};
+    #if DEBUG_SKIP_TO_ROOM > 0
+        DungeonRoom *room = &dungeonRooms[DEBUG_SKIP_TO_ROOM - 1];
+        return (Point){.x = room->interiorMinX + 1, .y = room->centerY};
     #endif
     return (Point){.x = 1, .y = 5};
 }
