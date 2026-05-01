@@ -1,10 +1,10 @@
 # DEMO
 - Boss room entrance wall texture 3 doors
-- Update Wraith boss
 - Update area 2 enemy AI
-- Re-do spell UI
 - Tutorial
 - SFX
+
+- Bigger mage projectile
 # FULL RELEASE
 - Settings menu
 - JP Localization

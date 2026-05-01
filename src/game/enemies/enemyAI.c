@@ -153,9 +153,14 @@ typedef struct WraithBossProperties {
 	float prepTime;
 	float dashTime;
 	float projectileTime;
-	float summonTime;
-	int   rushCount;
 	float projectileCooldown;
+	float summonTime;
+	int   spawnCount;         // Count of wraiths spawned in a circle by the SUMMON phase
+	float spawnTime;          // Idle time after the SPAWN-from-pool phase
+	int   spawnBudget;        // Budget passed to rollEnemiesFromBudget for the SPAWN phase
+	int   spawnMinSpecials;   // Minimum specials passed to rollEnemiesFromBudget for the SPAWN phase
+	float spawnRadius;        // Scatter radius for the SPAWN phase
+	int   rushCount;
 } WraithBossProperties;
 
 static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BOSS_PHASE_COUNT] = {
@@ -167,19 +172,29 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.prepTime           = 1.0f,
 			.dashTime           = 2.5f,
 			.projectileTime     = 2.0f,
-			.summonTime         = 5.0f,
-			.rushCount          = 3,
 			.projectileCooldown = 0.5f,
+			.summonTime         = 5.0f,
+			.spawnCount         = 3,
+			.spawnTime          = 5.0f,
+			.spawnBudget        = 5,
+			.spawnMinSpecials   = 0,
+			.spawnRadius        = CELL_SIZE * 2.0f,
+			.rushCount          = 3,
 		},
-		// Phase 1 — placeholder copy of phase 0
+		// Phase 1
 		{
-			.idleTime           = 2.0f,
-			.prepTime           = 1.0f,
+			.idleTime           = 1.0f,
+			.prepTime           = 0.5f,
 			.dashTime           = 2.5f,
-			.projectileTime     = 2.0f,
+			.projectileTime     = 2.5f,
+			.projectileCooldown = 0.3f,
 			.summonTime         = 5.0f,
-			.rushCount          = 3,
-			.projectileCooldown = 0.5f,
+			.spawnCount         = 5,
+			.spawnTime          = 5.0f,
+			.spawnBudget        = 10,
+			.spawnMinSpecials   = 2,
+			.spawnRadius        = CELL_SIZE * 2.0f,
+			.rushCount          = 4,
 		},
 	},
 	// Difficulty 1 — placeholder copies of difficulty 0
@@ -189,18 +204,28 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.prepTime           = 1.0f,
 			.dashTime           = 2.5f,
 			.projectileTime     = 2.0f,
-			.summonTime         = 5.0f,
-			.rushCount          = 3,
 			.projectileCooldown = 0.5f,
+			.summonTime         = 5.0f,
+			.spawnCount         = 3,
+			.spawnTime          = 5.0f,
+			.spawnBudget        = 8,
+			.spawnMinSpecials   = 1,
+			.spawnRadius        = CELL_SIZE * 2.0f,
+			.rushCount          = 3,
 		},
 		{
-			.idleTime           = 2.0f,
-			.prepTime           = 1.0f,
+			.idleTime           = 1.0f,
+			.prepTime           = 0.5f,
 			.dashTime           = 2.5f,
-			.projectileTime     = 2.0f,
+			.projectileTime     = 2.5f,
+			.projectileCooldown = 0.3f,
 			.summonTime         = 5.0f,
-			.rushCount          = 3,
-			.projectileCooldown = 0.5f,
+			.spawnCount         = 5,
+			.spawnTime          = 5.0f,
+			.spawnBudget        = 8,
+			.spawnMinSpecials   = 1,
+			.spawnRadius        = CELL_SIZE * 2.0f,
+			.rushCount          = 4,
 		},
 	},
 };
@@ -210,6 +235,7 @@ static const WraithBossProperties *wraithProperties;
 #define WRAITH_STATE_DASH        ENEMY_STATE_ATTACK_1
 #define WRAITH_STATE_PROJECTILE  ENEMY_STATE_ATTACK_2
 #define WRAITH_STATE_SUMMON      ENEMY_STATE_ATTACK_3
+#define WRAITH_STATE_SPAWN       ENEMY_STATE_POST_ATTACK
 
 void proximityEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	// Constantly attack nearby player
@@ -499,14 +525,14 @@ static void elderSpawnRootWarnings(Enemy *curEnemy) {
 	}
 }
 
-#define ELDER_MAX_SUMMONS 20
+#define BOSS_MAX_SUMMONS 20
 
-static void elderSpawnSummons(Enemy *curEnemy) {
-	EnemyType summons[ELDER_MAX_SUMMONS];
-	int count = rollEnemiesFromBudget(summons, ELDER_MAX_SUMMONS, elderProperties->summonBudget, elderProperties->summonMinSpecials);
+static void bossSpawnSummonsFromBudget(Enemy *curEnemy, int summonBudget, int summonMinSpecials, float summonRadius) {
+	EnemyType summons[BOSS_MAX_SUMMONS];
+	int count = rollEnemiesFromBudget(summons, BOSS_MAX_SUMMONS, summonBudget, summonMinSpecials);
 	for (int i = 0; i < count; i++) {
 		float angle = randFloat(0.0f, 2.0f * PI);
-		float radius = randFloat(0.0f, elderProperties->summonRadius);
+		float radius = randFloat(0.0f, summonRadius);
 		float sx = curEnemy->x + cosf(angle) * radius;
 		float sy = curEnemy->y + sinf(angle) * radius;
 		spawnEnemyWithSpawnParticle(summons[i], sx, sy);
@@ -534,7 +560,7 @@ static void elderBeginNextAttackCycle(Enemy *curEnemy) {
 		case ELDER_ATTACK_CYCLE_SUMMON: {
 			transitionToState(curEnemy, ENEMY_STATE_PREP);
 			curEnemy->stateTimer = elderProperties->prepTime;
-			elderSpawnSummons(curEnemy);
+			bossSpawnSummonsFromBudget(curEnemy, elderProperties->summonBudget, elderProperties->summonMinSpecials, elderProperties->summonRadius);
 			break;
 		}
 		case ELDER_ATTACK_CYCLE_ROOT: {
@@ -705,16 +731,25 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				curEnemy->stateTimer = wraithProperties->projectileTime;
 				curEnemy->nextState = WRAITH_STATE_SUMMON;
 			} else if (curEnemy->nextState == WRAITH_STATE_SUMMON) {
-				// == Summon wraiths ==
+				// == Summon wraiths in a circle around the boss ==
 				transitionToState(curEnemy, ENEMY_STATE_IDLE);
 				curEnemy->stateTimer = wraithProperties->summonTime;
-				curEnemy->nextState = WRAITH_STATE_DASH;
+				curEnemy->nextState = WRAITH_STATE_SPAWN;
 				Point bossRoomCenter = getRoomWorldCenter(DUNGEON_ROOM_COUNT - 1);
 				curEnemy->targetX = bossRoomCenter.x;
 				curEnemy->targetY = bossRoomCenter.y;
-				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x, curEnemy->y, true /*isMinion*/);
-				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x - CELL_SIZE, curEnemy->y, true /*isMinion*/);
-				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x + CELL_SIZE, curEnemy->y, true /*isMinion*/);
+				for (int i = 0; i < wraithProperties->spawnCount; i++) {
+					float angle = (float)i / (float)wraithProperties->spawnCount * 2.0f * PI;
+					float offsetX = cosf(angle) * CELL_SIZE;
+					float offsetY = sinf(angle) * CELL_SIZE;
+					spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x + offsetX, curEnemy->y + offsetY, true /*isMinion*/);
+				}
+			} else if (curEnemy->nextState == WRAITH_STATE_SPAWN) {
+				// == Spawn enemies from the area pool ==
+				transitionToState(curEnemy, ENEMY_STATE_IDLE);
+				curEnemy->stateTimer = wraithProperties->spawnTime;
+				curEnemy->nextState = WRAITH_STATE_DASH;
+				bossSpawnSummonsFromBudget(curEnemy, wraithProperties->spawnBudget, wraithProperties->spawnMinSpecials, wraithProperties->spawnRadius);
 			}
 		}
 	} else if (curEnemy->state == WRAITH_STATE_DASH || curEnemy->state == WRAITH_STATE_PROJECTILE || curEnemy->state == WRAITH_STATE_SUMMON) {

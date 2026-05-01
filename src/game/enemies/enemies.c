@@ -289,7 +289,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_WRAITH_BOSS] = (EnemyData){
 		.name = "Wraith Boss",
-		.health = 1000,
+		.health = 850,
 		.attackDetectionRange = 10,
 		.attackDistance = 10,
 		.attackDamage = 20,
