@@ -178,7 +178,11 @@ static void generateMultiRoomDungeon(void) {
 
         // Front row: MAP_GATE
         for (int x = hallMinX; x <= hallMaxX; x++) {
-            setCell(x, gateY, MAP_GATE);
+            if (x == (hallMinX + hallMaxX) / 2) {
+                setCell(x, gateY, MAP_GATE);
+            } else {
+                setCell(x, gateY, MAP_WALL);
+            }
             gate.cells[cellIdx++] = (Point){.x = x, .y = gateY};
         }
         // Hallway rows: remain MAP_WALL, opened with gate
