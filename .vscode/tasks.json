@@ -117,22 +117,20 @@
             }
         },
         {
-            "label": "Playdate: Build C for Simulator and Run",
+            "label": "Playdate: Build C (Sim + Device) in parallel",
             "dependsOn": [
-                "Playdate: Build C for simulator",
-                "Playdate: Run"
+                "Playdate: Build C for device",
+                "Playdate: Build C for simulator"
             ],
-            "dependsOrder": "sequence",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "presentation": {
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
         },
         {
-            "label": "Playdate: Build C for Device and Run",
+            "label": "Playdate: Build C (Sim + Device) and Run",
             "dependsOn": [
-                "CMake Device",
-                "Playdate: Build C for device",
+                "Playdate: Build C (Sim + Device) in parallel",
                 "Playdate: Run"
             ],
             "dependsOrder": "sequence",
