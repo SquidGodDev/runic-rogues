@@ -2,6 +2,25 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Playdate: Kill Simulator",
+            "type": "shell",
+            "windows": {
+                "command": "taskkill /IM PlaydateSimulator.exe /F; exit 0"
+            },
+            "osx": {
+                "command": "pkill -f 'Playdate Simulator' || true"
+            },
+            "linux": {
+                "command": "pkill -f PlaydateSimulator || true"
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared",
+                "showReuseMessage": false
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "Playdate: Build C for simulator",
             "type": "shell",
             "command": "cmake",
@@ -44,7 +63,6 @@
             "problemMatcher": [
                 "$pdc-external"
             ],
-            "kill": true,
             "presentation": {
                 "revealProblems": "onProblem",
                 "panel": "shared",
@@ -54,6 +72,7 @@
         {
             "label": "Playdate: Build Lua and Run",
             "dependsOn": [
+                "Playdate: Kill Simulator",
                 "Playdate: Build Lua",
                 "Playdate: Run"
             ],
@@ -77,6 +96,7 @@
         {
             "label": "Playdate: Build C (Sim + Device) and Run",
             "dependsOn": [
+                "Playdate: Kill Simulator",
                 "Playdate: Build C (Sim + Device) in parallel",
                 "Playdate: Run"
             ],
