@@ -38,7 +38,7 @@
     "playdate-debug.sourcePath": "Source",
 
     // ====== CMake Tools Settings ======
-    "cmake.buildDirectory": "${workspaceFolder}/build/build-sim",
+    "cmake.useCMakePresets": "always",
     "files.associations": {
         "float.h": "c",
         "__tree": "c",

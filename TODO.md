@@ -1,9 +1,9 @@
 # DEMO
-- Boss room entrance wall texture 3 doors
 - Update area 2 enemy AI
 - Tutorial
 - SFX
 
+- Parallel build device/sim
 - Bigger mage projectile
 # FULL RELEASE
 - Settings menu

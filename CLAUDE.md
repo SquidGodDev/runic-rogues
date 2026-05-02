@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A 3D raycasting dungeon crawler for the [Playdate](https://play.date/) handheld console. Written in C using the Playdate C SDK. Version 0.3.0, bundleID: `com.squidgod.3DGame`.
+A 3D raycasting dungeon crawler for the [Playdate](https://play.date/) handheld console. Written in C using the Playdate C SDK.
 
 ## Build Commands
 
@@ -20,14 +20,13 @@ cmake --build build/build-device
 # Output: Game.pdx (runnable in Playdate Simulator)
 ```
 
-To reconfigure from scratch:
+To reconfigure from scratch (uses presets defined in `CMakePresets.json`):
 ```bash
-# Simulator (uses MinGW Makefiles + clang64)
-cmake -B build/build-sim -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Debug
+# Simulator (Ninja + clang, Debug)
+cmake --preset sim
 
-# Device (uses NMake Makefiles + ARM toolchain)
-cmake -B build/build-device -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_TOOLCHAIN_FILE="$PLAYDATE_SDK_PATH/C_API/buildsupport/arm.cmake"
+# Device (Ninja + ARM toolchain, Release)
+cmake --preset device
 ```
 
 The simulator build compiles as a shared library with `-Wall -Werror`. The device build compiles as an ARM executable with `-O2 -ffast-math`.
@@ -46,15 +45,13 @@ The simulator build compiles as a shared library with `-Wall -Werror`. The devic
 3. Raycasting render pass
 4. UI overlay draw
 
-Two game states: `GAME_STATE_ACTIVE` (normal play) and `GAME_STATE_SHOP` (level-up shop open).
-
 ### Rendering
 
 `src/game/rendering/raycasting.h/c` — Custom raycasting engine. 66° FOV, 200×120 logical resolution (displayed at 2× = 400×240 on device). 16-level fog system from distance 60–150 units. Map is a 21×21 grid with 16-unit cells. Wall/floor/ceiling textures are area-based (Echoing Caverns, Lost Archives, Test).
 
 ### Spell System
 
-`src/game/player/spells/` — Player has two equipped spell slots (basic/special). Spells are either `INSTANT` or `REPEAT` type, with properties for projectiles (speed, acceleration, spread, hit count, lifetime) or melee (range). `spellData.c` defines all spell types. Runes can dynamically modify spell properties at runtime via the rune modifier framework in `runeManager.h/c`.
+`src/game/player/spells/` — Player has two equipped spell slots (basic/special). `spellData.c` defines all spell types. Runes can dynamically modify spell properties at runtime via the rune modifier framework in `runeManager.h/c`.
 
 ### Enemy System
 
@@ -62,9 +59,9 @@ Two game states: `GAME_STATE_ACTIVE` (normal play) and `GAME_STATE_SHOP` (level-
 
 ### Progression & Rune System
 
-- `progressionManager.h/c` — XP-based leveling, room types (`ENEMY`, `ELITE`, `CAMPFIRE`, `BOSS`), three areas.
+- `progressionManager.h/c` — Tracks room progress, room types (`ENEMY`, `ELITE`, `CAMPFIRE`, `BOSS`), three areas.
 - `runeManager.h/c` — Up to 14 runes per run. Rune types include `VAMPIRISM`, `WINGED_BOOTS`, `HEALTHY`, `SWIFT`. Each rune registers modifier callbacks that alter spell properties.
-- `shopManager.h/c` — Animated popup shop triggered on level-up, supports English and Japanese localization.
+- `shopManager.h/c` — Animated popup shop triggered on room clear (all enemies defeated), supports English and Japanese localization.
 
 ### Key Utilities
 
@@ -73,6 +70,7 @@ Two game states: `GAME_STATE_ACTIVE` (normal play) and `GAME_STATE_SHOP` (level-
 ## Code Style
 
 - Always use braces `{}` for if/else bodies, even single-line ones — no braceless one-liners
+- Avoid verbose comments and comments on code that is self documenting
 
 ## Key Constants (globals.h)
 

@@ -2,80 +2,27 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "cmake",
             "label": "Playdate: Build C for simulator",
-            "command": "build",
-            "targets": [
-                "ALL_BUILD"
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "sim"
             ],
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "CMake Device",
-            "type": "shell",
-            "windows": {
-                "command": "cmd.exe",
-                "options": {
-                    "cwd": "${workspaceFolder}\\build\\build-device",
-                    "env": {
-                        "__makefileName": "\"NMake Makefiles\"",
-                        "__shellPath": "\"${env:VISUAL_STUDIO_TOOLS}\\vcvars64.bat\""
-                    }
-                },
-                "args": [
-                    "/c",
-                    "\"%__shellPath%",
-                    "^'&'",
-                    "cmake",
-                    "-G",
-                    "%__makefileName%",
-                    "..\\..",
-                    "--toolchain=${env:PLAYDATE_SDK_PATH}/C_API/buildsupport/arm.cmake\""
-                ]
-            },
-            "osx": {
-                "command": "zsh",
-                "options": {
-                    "cwd": "${workspaceFolder}/build/build-device",
-                    "env": {
-                        "__makefileName": "Unix Makefiles"
-                    }
-                },
-                "args": [
-                    "-c",
-                    "cmake -G \"${__makefileName}\" ../.. --toolchain=${env:PLAYDATE_SDK_PATH}/C_API/buildsupport/arm.cmake"
-                ]
-            },
-            "problemMatcher": []
-        },
-        {
             "label": "Playdate: Build C for device",
             "type": "shell",
-            "windows": {
-                "command": "cmd.exe",
-                "options": {
-                    "cwd": "${workspaceFolder}\\build\\build-device",
-                    "env": {
-                        "__shellPath": "\"${env:VISUAL_STUDIO_TOOLS}\\vcvars64.bat\""
-                    }
-                },
-                "args": [
-                    "/c",
-                    "\"%__shellPath%",
-                    "^'&'",
-                    "nmake.exe\""
-                ],
-                "group": "build"
-            },
-            "osx": {
-                "command": "cmake",
-                "args": [
-                    "--build",
-                    "${workspaceFolder}/build/build-device"
-                ],
-                "group": "build"
-            },
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "device"
+            ],
+            "group": "build",
             "problemMatcher": []
         },
         {

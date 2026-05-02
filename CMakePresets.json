@@ -1,0 +1,29 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+    "configurePresets": [
+        {
+            "name": "sim",
+            "displayName": "Simulator",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/build-sim",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "device",
+            "displayName": "Device",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/build-device",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "$env{PLAYDATE_SDK_PATH}/C_API/buildsupport/arm.cmake"
+            }
+        }
+    ],
+    "buildPresets": [
+        { "name": "sim",    "configurePreset": "sim" },
+        { "name": "device", "configurePreset": "device" }
+    ]
+}
