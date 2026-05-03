@@ -16,8 +16,8 @@
 #define GO_STATS_LINE_HEIGHT       12
 #define GO_STATS_LABEL_X           16
 #define GO_STATS_VALUE_RIGHT_X     184
-#define GO_BUTTONS_Y               104
-#define GO_BUTTON_GAP              16
+#define GO_BUTTONS_Y               70
+#define GO_BUTTON_VERTICAL_GAP     8
 #define GO_BUTTON_PADDING_X        4
 #define GO_BUTTON_PADDING_Y        2
 
@@ -227,6 +227,10 @@ static void drawStatLine(int index, int y) {
 }
 
 static void drawStats(void) {
+    if (true) {
+        // For now, skip for later refactor
+        return;
+    }
     for (int i = 0; i < revealedStatLines; i++) {
         int y = GO_STATS_TOP_Y + i * GO_STATS_LINE_HEIGHT;
         drawStatLine(i, y);
@@ -241,37 +245,30 @@ static void drawButtons(void) {
     LCDFont *font = bodyFont();
     pd->graphics->setFont(font);
     int fontHeight = pd->graphics->getFontHeight(font);
+    int buttonHeight = fontHeight + GO_BUTTON_PADDING_Y * 2;
 
-    int widths[GO_BUTTON_COUNT];
-    int totalWidth = 0;
-    for (int i = 0; i < GO_BUTTON_COUNT; i++) {
-        const char *t = buttonText(i);
-        widths[i] = pd->graphics->getTextWidth(font, t, strlen(t), kUTF8Encoding, 0);
-        totalWidth += widths[i] + GO_BUTTON_PADDING_X * 2;
-    }
-    totalWidth += GO_BUTTON_GAP * (GO_BUTTON_COUNT - 1);
-
-    int x = (SCREEN_WIDTH - totalWidth) / 2;
     int slideOffset = 0;
     if (buttonsRevealTimer < GO_BUTTONS_FADE_TIME) {
         float t = buttonsRevealTimer / GO_BUTTONS_FADE_TIME;
         slideOffset = (int)((1.0f - t) * 6.0f);
     }
 
+    int y = GO_BUTTONS_Y + slideOffset;
     for (int i = 0; i < GO_BUTTON_COUNT; i++) {
         const char *t = buttonText(i);
-        int textX = x + GO_BUTTON_PADDING_X;
-        int textY = GO_BUTTONS_Y + slideOffset;
-        if (i == selectedButton && phase == GO_PHASE_INTERACTIVE) {
-            int rectX = x;
-            int rectY = textY - GO_BUTTON_PADDING_Y;
-            int rectW = widths[i] + GO_BUTTON_PADDING_X * 2;
-            int rectH = fontHeight + GO_BUTTON_PADDING_Y * 2;
-            pd->graphics->fillRect(rectX, rectY, rectW, rectH, kColorWhite);
-        }
+        int textWidth = pd->graphics->getTextWidth(font, t, strlen(t), kUTF8Encoding, 0);
+        int rectW = textWidth + GO_BUTTON_PADDING_X * 2;
+        int rectX = (SCREEN_WIDTH - rectW) / 2;
+
         pd->graphics->setDrawMode(kDrawModeInverted);
-        pd->graphics->drawText(t, strlen(t), kUTF8Encoding, textX, textY);
-        x += widths[i] + GO_BUTTON_PADDING_X * 2 + GO_BUTTON_GAP;
+        pd->graphics->drawText(t, strlen(t), kUTF8Encoding, rectX + GO_BUTTON_PADDING_X, y + GO_BUTTON_PADDING_Y);
+
+        if (i == selectedButton && phase == GO_PHASE_INTERACTIVE) {
+            pd->graphics->setDrawMode(kDrawModeCopy);
+            pd->graphics->drawRect(rectX - 1, y - 1, rectW + 2, buttonHeight + 2, kColorWhite);
+        }
+
+        y += buttonHeight + GO_BUTTON_VERTICAL_GAP;
     }
     pd->graphics->setDrawMode(kDrawModeCopy);
 }
@@ -304,8 +301,8 @@ void updateGameOverScene(float deltaTime) {
             case GO_PHASE_PAUSE_AFTER_HEADER:
                 pauseTimer -= deltaTime;
                 if (pauseTimer <= 0.0f) {
-                    phase = GO_PHASE_STATS;
-                    charAccumulator = 0.0f;
+                    phase = GO_PHASE_BUTTONS;
+                    buttonsRevealTimer = 0.0f;
                 }
                 break;
             case GO_PHASE_STATS:
@@ -340,9 +337,9 @@ void updateGameOverScene(float deltaTime) {
     }
 
     if (phase == GO_PHASE_INTERACTIVE && !isSceneTransitioning() && !justSkipped) {
-        if (pushed & kButtonLeft) {
+        if (pushed & kButtonUp) {
             selectedButton = (selectedButton - 1 + GO_BUTTON_COUNT) % GO_BUTTON_COUNT;
-        } else if (pushed & kButtonRight) {
+        } else if (pushed & kButtonDown) {
             selectedButton = (selectedButton + 1) % GO_BUTTON_COUNT;
         } else if (pushed & kButtonA) {
             switchScene(SCENE_CLASS_SELECT);
