@@ -779,8 +779,6 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 }
 
 // === Circling charge constants ===
-#define CIRCLING_RANGE   48.0f   // ~3 cells: distance at which enemy starts circling/pausing
-#define ORBIT_RADIUS     48.0f   // orbit distance from player during circling
 #define ORBIT_LEAD       0.15f   // radians ahead of current angle for orbit target (must keep target > 5 units from enemy)
 
 // Trapezoidal speed curve: accelerate 0-25%, coast 25-75%, decelerate 75-100%.
@@ -820,8 +818,7 @@ static void setupCharge(Enemy *curEnemy, EnemyData *curEnemyData, float chargeDi
 }
 
 static void chargeEnemyIdle(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
-    float distSq = distanceSquared(curEnemy->x, curEnemy->y, playerX, playerY);
-    if (distSq <= CIRCLING_RANGE * CIRCLING_RANGE) {
+    if (playerInAttackDetectionRange(index)) {
         curEnemy->stateCount = (randInt(0, 1) == 0) ? 1 : -1;
         curEnemy->stateTimer = curEnemyData->prepTime;
         transitionToState(curEnemy, ENEMY_STATE_PREP);
@@ -858,8 +855,8 @@ void circlingChargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int ind
         float dx = curEnemy->x - playerX;
         float dy = curEnemy->y - playerY;
         float angle = atan2f(dy, dx) + ORBIT_LEAD * curEnemy->stateCount;
-        float orbitX = playerX + cosf(angle) * ORBIT_RADIUS;
-        float orbitY = playerY + sinf(angle) * ORBIT_RADIUS;
+        float orbitX = playerX + cosf(angle) * curEnemyData->attackDetectionRange;
+        float orbitY = playerY + sinf(angle) * curEnemyData->attackDetectionRange;
         moveEnemy(curEnemy, index, orbitX, orbitY, curEnemyData->moveSpeed);
 
         if (curEnemy->stateTimer <= 0) {

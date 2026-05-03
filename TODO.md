@@ -3,8 +3,11 @@
 - Tutorial
 - SFX
 
-- Parallel build device/sim
+- Fade transition
+- Half damage on shotgun upgrade (and limit to 1)
 - Bigger mage projectile
+- Starter rune for each class
+- Results screen (win/lose)
 # FULL RELEASE
 - Settings menu
 - JP Localization
@@ -20,7 +23,7 @@
   - Bomb throwing
 - Buff system + HUD UI
 - Trigger Rune HUD UI
-- New Runes
+- Runes
   - Start rune for each class
   - Trigger runes
     - On basic cast
@@ -30,8 +33,10 @@
     - On damage enemy
     - On kill enemy
     - On xp pickup
+    - On dodge with dash (check invincibility in player damage function)
   - Black hole (every X specials)
   - More damage the closer you are to enemies
+  - Rune rarity
 - Redraw Warrior sword animation
 - Make ranger class
 - Character selection screen
