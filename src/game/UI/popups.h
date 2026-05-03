@@ -17,7 +17,7 @@ typedef enum PopupPosition {
 } PopupPosition;
 
 #define POPUP_FADE_IN_FRAMES   4
-#define POPUP_HOLD_FRAMES      22
+#define POPUP_HOLD_FRAMES      15
 #define POPUP_FADE_OUT_FRAMES  4
 #define POPUP_MAX_FRAME        (POPUP_FADE_IN_FRAMES + POPUP_HOLD_FRAMES + POPUP_FADE_OUT_FRAMES)
 #define POPUP_FRAME_TIME       0.05f
