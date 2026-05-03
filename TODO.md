@@ -3,8 +3,6 @@
 - Tutorial
 - SFX
 
-- Fade transition
-- Half damage on shotgun upgrade (and limit to 1)
 - Bigger mage projectile
 - Starter rune for each class
 - Results screen (win/lose)
