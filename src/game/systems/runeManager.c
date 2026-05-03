@@ -238,35 +238,43 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_MAGNIFYING_GLASS] = {
         .nameEN = "Magnifying Glass",
         .nameJP = "",
-        .descriptionEN = "Basic spell fires {1} additional projectiles in a spread.",
+        .descriptionEN = "Basic spell fires {1} additional projectiles in a spread, but deals half damage.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_MAGNIFYING_GLASS,
         .primaryBaseValue   = 2,
         .primaryPerLevel    = 2,
         .secondaryBaseValue = 15 * (PI / 180),
+        .secondaryPerLevel = -5 * (PI / 180),
+        .tertiaryBaseValue  = 0.5f,
         .maxLevel = 2,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation   = MODIFY_OP_ADD,
         .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
+        .tertiaryModifyOperation  = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary   = modifyProjectileSpreadCount,
         .applySpellModifierSecondary = modifyProjectileSpreadAngle,
+        .applySpellModifierTertiary  = modifySpellDamage,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_QUARTZ_CLUSTER] = {
         .nameEN = "Quartz Cluster",
         .nameJP = "",
-        .descriptionEN = "Special spell fires {1} additional projectiles in a spread.",
+        .descriptionEN = "Special spell fires {1} additional projectiles in a spread, but deals half damage.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_QUARTZ_CLUSTER,
         .primaryBaseValue   = 2,
         .primaryPerLevel    = 2,
         .secondaryBaseValue = 15 * (PI / 180),
+        .secondaryPerLevel = -5 * (PI / 180),
+        .tertiaryBaseValue  = 0.5f,
         .maxLevel = 2,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation   = MODIFY_OP_ADD,
         .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
+        .tertiaryModifyOperation  = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary   = modifyProjectileSpreadCount,
         .applySpellModifierSecondary = modifyProjectileSpreadAngle,
+        .applySpellModifierTertiary  = modifySpellDamage,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
     [RUNE_TYPE_ENCHANTED_AMULET] = {
@@ -530,6 +538,15 @@ void applyRuneEffectsToSpells(void) {
             }
             if (rune->spellTarget == RUNE_SPELL_TARGET_SPECIAL || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
                 rune->applySpellModifierSecondary(specialSpell, value, rune->secondaryModifyOperation);
+            }
+        }
+        if (rune->applySpellModifierTertiary) {
+            float value = rune->tertiaryBaseValue + rune->tertiaryPerLevel * (level - 1);
+            if (rune->spellTarget == RUNE_SPELL_TARGET_BASIC || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
+                rune->applySpellModifierTertiary(basicSpell, value, rune->tertiaryModifyOperation);
+            }
+            if (rune->spellTarget == RUNE_SPELL_TARGET_SPECIAL || rune->spellTarget == RUNE_SPELL_TARGET_BOTH) {
+                rune->applySpellModifierTertiary(specialSpell, value, rune->tertiaryModifyOperation);
             }
         }
     }

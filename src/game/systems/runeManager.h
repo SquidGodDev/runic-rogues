@@ -68,12 +68,16 @@ typedef struct RuneData {
     float primaryPerLevel;
     float secondaryBaseValue;
     float secondaryPerLevel;
+    float tertiaryBaseValue;
+    float tertiaryPerLevel;
     int maxLevel;
     RuneSpellTarget spellTarget;
     ModifyOperation primaryModifyOperation;
     ModifyOperation secondaryModifyOperation;
+    ModifyOperation tertiaryModifyOperation;
     void (*applySpellModifierPrimary)(struct SpellData *spell, float value, ModifyOperation operation);
     void (*applySpellModifierSecondary)(struct SpellData *spell, float value, ModifyOperation operation);
+    void (*applySpellModifierTertiary)(struct SpellData *spell, float value, ModifyOperation operation);
     RuneClassFilter classFilter;
     RuneTriggerType triggerType;
     float triggerBaseValue;
