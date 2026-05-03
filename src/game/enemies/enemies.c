@@ -684,20 +684,30 @@ void knockbackEnemy(int index, int knockbackSourceX, int knockbackSourceY, float
 	}
 }
 
+void killEnemy(int index) {
+	Enemy curEnemy = enemies[index];
+	if (curEnemy.active && curEnemy.state != ENEMY_STATE_DEAD) {
+		EnemyData curEnemyData = enemyData[curEnemy.type];
+		curEnemy.state = ENEMY_STATE_DEAD;
+		curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
+		curEnemy.animationTime = curEnemyData.frameTime;
+		curEnemy.hitFlashTime = 0;
+		enemies[index] = curEnemy;
+	}
+}
+
+void killAllEnemies(void) {
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		killEnemy(i);
+	}
+}
+
 void killAllNonBossEnemies(void) {
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		if (i == bossIndex) {
 			continue;
 		}
-		Enemy curEnemy = enemies[i];
-		if (curEnemy.active && curEnemy.state != ENEMY_STATE_DEAD) {
-			EnemyData curEnemyData = enemyData[curEnemy.type];
-			curEnemy.state = ENEMY_STATE_DEAD;
-			curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
-			curEnemy.animationTime = curEnemyData.frameTime;
-			curEnemy.hitFlashTime = 0;
-			enemies[i] = curEnemy;
-		}
+		killEnemy(i);
 	}
 }
 
@@ -723,8 +733,10 @@ bool damageEnemy(int index, int damage) {
 			clearProjectiles();
 			clearParticles();
 			killAllNonBossEnemies();
-			startBossCinematic(index);
-			return true;
+			#if !DEBUG_INSTANT_KILL_BOSS
+				startBossCinematic(index);
+				return true;
+			#endif
 		}
 
 		signalRuneTrigger(RUNE_TRIGGER_KILL_ENEMY, 1.0f);

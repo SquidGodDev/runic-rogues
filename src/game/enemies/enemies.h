@@ -119,6 +119,7 @@ int getAliveNonMinionEnemyCount(void);
 int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion);
 void updateEnemies(float deltaTime);
 float getBossHealthPercentage(void);
+void killAllEnemies(void);
 void killAllNonBossEnemies(void);
 bool damageEnemy(int index, int damage);
 void damageEnemiesAtMapPosition(int mapX, int mapY, int damage);

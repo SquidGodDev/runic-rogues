@@ -19,6 +19,7 @@
 // 1..4 = enemy rooms, 5 = boss room
 #define DEBUG_SKIP_TO_ROOM 0
 #define DEBUG_INSTANT_ROOM_CLEAR 0
+#define DEBUG_INSTANT_KILL_BOSS 0
 #define DEBUG_AREA_OVERRIDE 0
 
 #define FOG_LEVELS 16

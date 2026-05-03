@@ -192,7 +192,7 @@ static void spawnRoomEnemies(void) {
     }
     spawnState = SPAWN_STATE_ACTIVE;
     #if DEBUG_INSTANT_ROOM_CLEAR
-        killAllNonBossEnemies();
+        killAllEnemies();
     #endif
 }
 
