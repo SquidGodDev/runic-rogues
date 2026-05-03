@@ -11,6 +11,7 @@
 #include "game/systems/audioManager.h"
 #include "game/systems/timerManager.h"
 #include "game/systems/runeManager.h"
+#include "game/systems/runStats.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
 
@@ -42,7 +43,8 @@ void resetSpellState(void) {
             .castTime = 0.0f,
             .activationTime = 0.0f,
             .activationCount = 0,
-            .initialCastAngle = 0.0f
+            .initialCastAngle = 0.0f,
+            .attackId = 0
         };
     };
 
@@ -206,7 +208,12 @@ bool castSpell(int index) {
     }
 
     playSound(SFX_SHOOT);
+    int attackId = runStatsBeginAttack();
+    if (data->repeatData.repeatCount > 0) {
+        spellCastData[index].attackId = attackId;
+    }
     activateSpellEffect(index, playerAngle, true /* initialCast */);
+    runStatsEndSyncCast();
 
     return true;
 }
@@ -264,7 +271,9 @@ void updateSpells(float deltaTime) {
             castData->activationTime -= deltaTime;
             if (castData->activationTime <= 0.0f && castData->activationCount < data->repeatData.repeatCount) {
                 float angle = data->useInitialCastAngle ? castData->initialCastAngle : playerAngle;
+                runStatsPushAttackContext(castData->attackId);
                 activateSpellEffect(i, angle, false /* initialCast */);
+                runStatsPopAttackContext();
                 castData->activationTime = data->repeatData.activationTime;
             }
         } else {

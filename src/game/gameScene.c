@@ -24,6 +24,7 @@
 #include "game/systems/timerManager.h"
 #include "game/systems/spawnManager.h"
 #include "game/systems/bossCinematic.h"
+#include "game/systems/runStats.h"
 #include "game/settings/settings.h"
 
 PlaydateAPI *pd = NULL;
@@ -42,6 +43,7 @@ void initRunStart(void) {
 	createRuneInventoryMenuItem();
 	initProgressionManager();
 	initTimers();
+	runStatsResetForNewRun();
 }
 
 // Run at the start of every floor
@@ -80,6 +82,7 @@ void initGameScene(void)
 
 void updateGameScene(float deltaTime)
 {
+	runStatsTick(deltaTime);
 	if (gameState == GAME_STATE_ACTIVE) {
 		signalRuneTrigger(RUNE_TRIGGER_TIME, deltaTime);
 		updatePickups(deltaTime);

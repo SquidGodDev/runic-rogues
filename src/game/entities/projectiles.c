@@ -11,6 +11,7 @@
 #include "game/rendering/textures.h"
 #include "game/enemies/enemies.h"
 #include "game/systems/audioManager.h"
+#include "game/systems/runStats.h"
 
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
@@ -65,6 +66,7 @@ void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX
 				.onHitSpell = spellProjectileData.onHitSpell,
 				.hitEnemies = hitEnemies,
 				.activeTime = spellProjectileData.activeTime,
+				.attackId = isEnemy ? 0 : runStatsGetCurrentAttackId(),
 				.active = 1
 			};
 			break;
@@ -131,6 +133,9 @@ void updateProjectiles(float deltaTime) {
 					curProjectile->spellProjectileData.slowTime, 
 					curProjectile->spellProjectileData.slowAmount
 				);
+				if (collided) {
+					runStatsRecordHitForAttack(curProjectile->attackId);
+				}
 			}
 			if (collided) {
 				if (!curProjectile->isEnemy && curProjectile->spellProjectileData.knockbackTime > 0) {

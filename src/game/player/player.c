@@ -17,6 +17,7 @@
 #include "game/systems/audioManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/runeManager.h"
+#include "game/systems/runStats.h"
 
 #define CRANK_SENSITIVITY 0.0075f
 // Spawn the projectile slightly to the right to match hand
@@ -477,6 +478,9 @@ void healPlayer(float amount) {
 
 void damagePlayer(float amount) {
     if (playerState.hitInvincibility > 0 || playerState.dead) {
+        if (!playerState.dead) {
+            runStatsRecordDodge();
+        }
         return;
     }
 
@@ -484,11 +488,13 @@ void damagePlayer(float amount) {
     screenShake(SCREEN_SHAKE_MEDIUM);
     playerState.hitInvincibility = HIT_INVINCIBILITY_TIME;
     signalRuneTrigger(RUNE_TRIGGER_DAMAGED, 1.0f);
+    runStatsRecordDamageTaken((int)amount);
     playerHealth -= amount;
     if (playerHealth <= 0) {
         playerHealth = 0;
 		playerState.dead = 1;
         pd->graphics->clear(kColorBlack);
+        runStatsCaptureFinal(false);
         switchScene(SCENE_GAME_OVER);
     }
 }

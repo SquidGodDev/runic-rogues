@@ -5,6 +5,7 @@
 
 #include "globals/globals.h"
 #include "globals/helpers.h"
+#include "globals/sceneManager.h"
 #include "game/gameScene.h"
 #include "game/player/player.h"
 #include "game/enemies/enemies.h"
@@ -13,6 +14,7 @@
 #include "game/systems/bossCinematic.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/spawnManager.h"
+#include "game/systems/runStats.h"
 
 // === Tunable cinematic parameters ===
 #define BOSS_CINEMATIC_DISTANCE_CELLS 3.0f
@@ -227,6 +229,10 @@ void updateBossCinematic(float deltaTime) {
 			phase = BOSS_CINEMATIC_INACTIVE;
 			onBossDefeated();
 			setGameState(GAME_STATE_ACTIVE);
+			if (getCurrentArea() == AREA_LOST_ARCHIVES) {
+				runStatsCaptureFinal(true);
+				switchScene(SCENE_GAME_OVER);
+			}
 		}
 	}
 }

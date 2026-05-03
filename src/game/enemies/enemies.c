@@ -17,6 +17,7 @@
 #include "game/systems/progressionManager.h"
 #include "game/systems/spawnManager.h"
 #include "game/systems/bossCinematic.h"
+#include "game/systems/runStats.h"
 
 #define SPAWN_TEST_ENEMY 0
 
@@ -716,6 +717,9 @@ bool damageEnemy(int index, int damage) {
 	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.invincibilityTime > 0) {
 		return false;
 	}
+
+	runStatsRecordDamageDealt(damage);
+	runStatsCreditSyncHit();
 
 	EnemyData curEnemyData = enemyData[curEnemy.type];
 	curEnemy.hitFlashTime = HIT_FLASH_TIME;

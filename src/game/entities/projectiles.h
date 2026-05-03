@@ -26,6 +26,7 @@ typedef struct Projectile {
 	int pierceCount;
 	Spell onHitSpell;
 	float activeTime;
+	int attackId;
 	bool active;
 } Projectile;
 

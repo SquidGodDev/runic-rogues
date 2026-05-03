@@ -30,6 +30,7 @@ typedef struct SpellCastData {
     float activationTime;
     int activationCount;
     float initialCastAngle;
+    int attackId;
     Point spellPosition;
 } SpellCastData;
 
