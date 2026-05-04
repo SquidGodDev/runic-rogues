@@ -24,6 +24,11 @@ PickupData pickupData[PICKUP_TYPE_COUNT] = {
         .textureIndex = TEXTURE_XP_ORB,
         .animationFrames = 1,
         .animationFrameTime = 0
+    },
+    [PICKUP_TYPE_ARROW] = {
+        .textureIndex = TEXTURE_ARROW,
+        .animationFrames = 8,
+        .animationFrameTime = 0.2f
     }
 };
 
@@ -35,22 +40,24 @@ void initPickups(void) {
     }
 }
 
-void spawnPickup(int worldX, int worldY, PickupType type) {
+int spawnPickup(int worldX, int worldY, PickupType type) {
     for (int i = 0; i < MAX_PICKUP_COUNT; i++) {
         if (!pickups[i].active) {
             PickupData data = pickupData[type];
             pickups[i] = (Pickup) {
                 .x = worldX,
                 .y = worldY,
+                .type = type,
                 .active = 1,
                 .expirationTime = EXPIRATION_TIME,
                 .animationFrame = 0,
                 .animationTime = data.animationFrameTime,
                 .textureIndex = data.textureIndex
             };
-            return;
+            return i;
         }
     }
+    return -1;
 }
 
 void updatePickups(float deltaTime) {
@@ -80,16 +87,18 @@ void updatePickups(float deltaTime) {
             }
         }
 
-        pickup->expirationTime -= deltaTime;
-        if (pickup->expirationTime <= 0) {
-            pickup->active = false;
-            continue;
-        }
-
-        if (pickup->expirationTime <= EXPIRATION_FLASH_TIME) {
-            int flashPhase = (int)(pickup->expirationTime / EXPIRATION_FLASH_INTERVAL);
-            if (flashPhase % 2 == 0) {
+        if (pickup->type != PICKUP_TYPE_ARROW) {
+            pickup->expirationTime -= deltaTime;
+            if (pickup->expirationTime <= 0) {
+                pickup->active = false;
                 continue;
+            }
+
+            if (pickup->expirationTime <= EXPIRATION_FLASH_TIME) {
+                int flashPhase = (int)(pickup->expirationTime / EXPIRATION_FLASH_INTERVAL);
+                if (flashPhase % 2 == 0) {
+                    continue;
+                }
             }
         }
 

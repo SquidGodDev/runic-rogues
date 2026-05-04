@@ -26,6 +26,8 @@ Point checkRayCollision(float startX, float startY, float angle, float distance)
 int getDungeonRoomCount(void);
 Point getRoomCenter(int roomIndex);
 Point getRoomWorldCenter(int roomIndex);
+Point getRoomInteriorMin(int roomIndex);
+Point getRoomInteriorMax(int roomIndex);
 Point getRoomSpawnPosition(int roomIndex, int spawnSlot);
 void closeEntranceGate(void);
 void openRoomGate(int gateIndex);

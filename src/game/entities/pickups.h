@@ -7,6 +7,7 @@
 
 typedef enum PickupType {
     PICKUP_TYPE_XP_ORB,
+    PICKUP_TYPE_ARROW,
     PICKUP_TYPE_COUNT
 } PickupType;
 
@@ -24,5 +25,5 @@ typedef struct Pickup {
 extern Pickup pickups[MAX_PICKUP_COUNT];
 
 void initPickups(void);
-void spawnPickup(int worldX, int worldY, PickupType type);
+int spawnPickup(int worldX, int worldY, PickupType type);
 void updatePickups(float deltaTime);

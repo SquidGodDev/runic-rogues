@@ -12,6 +12,7 @@
 #include "game/player/player.h"
 #include "game/enemies/enemies.h"
 #include "game/entities/interactables.h"
+#include "game/entities/pickups.h"
 #include "game/systems/runStats.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/runeManager.h"
@@ -52,12 +53,12 @@ typedef enum {
 
 static TutorialPhase tPhase;
 
-static bool dpadPressed;
-static bool crankMoved;
 static int dashBaseline;
 static bool openedRuneInv;
 static bool closedRuneInv;
 static bool entranceClosed;
+static int r1ArrowStep;
+static int r1ArrowPickupIndex;
 
 static const char *r1Pages[] = {
     "Use the d-pad to move and the crank to look around.",
@@ -95,9 +96,9 @@ void initTutorialScene(void) {
     initGameScene();
 
     tPhase = TUTORIAL_R1_DIALOG;
-    dpadPressed = false;
-    crankMoved = false;
     dashBaseline = 0;
+    r1ArrowStep = 0;
+    r1ArrowPickupIndex = -1;
     openedRuneInv = false;
     closedRuneInv = false;
     entranceClosed = false;
@@ -124,19 +125,28 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R1_WAITING: {
-            PDButtons current;
-            pd->system->getButtonState(&current, NULL, NULL);
-            if (current & (kButtonUp | kButtonDown | kButtonLeft | kButtonRight)) {
-                dpadPressed = true;
-            }
-            float crank = pd->system->getCrankChange();
-            if (fabsf(crank) > 0.5f) {
-                crankMoved = true;
-            }
-            if (dpadPressed || crankMoved) {
-                tPhase = TUTORIAL_R1_TO_R2;
-                openRoomGate(0);
-                setArrowToRoom(1);
+            if (r1ArrowPickupIndex < 0) {
+                Point minP = getRoomInteriorMin(0);
+                Point maxP = getRoomInteriorMax(0);
+                Point center = getRoomCenter(0);
+                int cellX, cellY;
+                switch (r1ArrowStep) {
+                    case 0: cellX = (int)maxP.x - 2; cellY = (int)minP.y + 2; break;
+                    case 1: cellX = (int)maxP.x - 2; cellY = (int)maxP.y - 2; break;
+                    default: cellX = (int)center.x; cellY = (int)center.y; break;
+                }
+                int worldX = cellX * CELL_SIZE + CELL_SIZE / 2;
+                int worldY = cellY * CELL_SIZE + CELL_SIZE / 2;
+                r1ArrowPickupIndex = spawnPickup(worldX, worldY, PICKUP_TYPE_ARROW);
+                setArrowPosition(worldX, worldY);
+            } else if (!pickups[r1ArrowPickupIndex].active) {
+                r1ArrowPickupIndex = -1;
+                r1ArrowStep++;
+                if (r1ArrowStep >= 3) {
+                    tPhase = TUTORIAL_R1_TO_R2;
+                    openRoomGate(0);
+                    setArrowToRoom(1);
+                }
             }
             break;
         }

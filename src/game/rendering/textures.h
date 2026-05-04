@@ -55,6 +55,7 @@ typedef enum TexturePaths {
 	TEXTURE_CAMPFIRE,
 	TEXTURE_EXTINGUISHED_CAMPFIRE,
 	TEXTURE_XP_ORB,
+	TEXTURE_ARROW,
 	TEXTURE_COUNT
 } TexturePaths;
 extern uint8_t* TEXTURES[];

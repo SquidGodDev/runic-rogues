@@ -274,6 +274,14 @@ Point getRoomWorldCenter(int roomIndex) {
     };
 }
 
+Point getRoomInteriorMin(int roomIndex) {
+    return (Point){.x = dungeonRooms[roomIndex].interiorMinX, .y = dungeonRooms[roomIndex].interiorMinY};
+}
+
+Point getRoomInteriorMax(int roomIndex) {
+    return (Point){.x = dungeonRooms[roomIndex].interiorMaxX, .y = dungeonRooms[roomIndex].interiorMaxY};
+}
+
 Point getRoomSpawnPosition(int roomIndex, int spawnSlot) {
     DungeonRoom *room = &dungeonRooms[roomIndex];
     // Anchor spawns at the far side of the room (away from the left-side entrance hallway)
