@@ -1,11 +1,10 @@
 # DEMO
-- Update area 2 enemy AI
 - Tutorial
 - SFX
-
 - Bigger mage projectile
 - Starter rune for each class
-- Results screen (win/lose)
+- Dock crank to use crank to turn
+- B Button to exit rune inventory
 # FULL RELEASE
 - Settings menu
 - JP Localization
@@ -40,6 +39,10 @@
 - Character selection screen
   - 3D models
   - Blender -> 1-bit 2D
+- Game Over scene
+  - Stats
+  - Class used
+  - Show runes
 # Juice
 - Dash indicator lines
 - Enemy knockback

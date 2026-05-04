@@ -18,5 +18,6 @@ typedef struct ShopItem {
 } ShopItem;
 
 void initShop(void);
+void initShopWithRunes(RuneType runes[3]);
 void updateShop(float deltaTime);
 void selectShopItem(ShopItem shopItem);

@@ -15,3 +15,4 @@ void setGameState(GameState newState);
 void initRunStart(void);
 void initGameScene(void);
 void updateGameScene(float deltaTime);
+void updateGameplaySubsystems(float deltaTime);

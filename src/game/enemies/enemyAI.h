@@ -12,6 +12,7 @@ void mummyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationR
 void serpentUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void circlingChargeEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void chargeEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
+void dummyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 
 // Boss update functions
 void elderBossUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);

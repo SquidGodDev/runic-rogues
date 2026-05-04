@@ -51,6 +51,7 @@ static LCDBitmap *gameScreenshot;
 static ShopItem shopItems[SHOP_OPTION_COUNT];
 static ShopState shopState;
 static float shopTransitionTime;
+static bool isTutorialShop;
 
 static int shopDescOffset;
 static int maxDescOffset;
@@ -160,18 +161,6 @@ void createShopOptions(void) {
         shopItems[i] = shopItem;
     }
 
-    if (skipDescBitmapEN != NULL) {
-        pd->graphics->freeBitmap(skipDescBitmapEN);
-    }
-    if (skipDescBitmapJP != NULL) {
-        pd->graphics->freeBitmap(skipDescBitmapJP);
-    }
-    ShopPageData skipPageEN = createShopPage("Skip", "Skip rune selection for this level up.", "Skip", NULL, LANGUAGE_EN);
-    ShopPageData skipPageJP = createShopPage("スキップ", "ルーン選択をスキップします。", "Skip", NULL, LANGUAGE_JP);
-    skipDescBitmapEN = skipPageEN.shopDescBitmap;
-    skipDescHeightEN = skipPageEN.descHeight;
-    skipDescBitmapJP = skipPageJP.shopDescBitmap;
-    skipDescHeightJP = skipPageJP.descHeight;
 }
 
 bool adjustShopDescOffset(int delta) {
@@ -197,7 +186,7 @@ void resetShopDescOffset(void) {
     maxDescOffset = descHeight - SHOP_DESC_MAX_HEIGHT > 0 ? descHeight - SHOP_DESC_MAX_HEIGHT : 0;
 }
 
-void initShop(void) {
+static void initShopCommon(void) {
     shopState = SHOP_STATE_ENTERING;
     shopTransitionTime = SHOP_TRANSITION_IN_DURATION;
     if (gameScreenshot != NULL) {
@@ -208,7 +197,6 @@ void initShop(void) {
     pd->graphics->pushContext(gameScreenshot);
         pd->graphics->drawBitmap(displayBuffer, 0, 0, kBitmapUnflipped);
     pd->graphics->popContext();
-    createShopOptions();
     selectedShopOptionIndex = 1;
     cursorX = (float)(SHOP_ICON_BASE_X + selectedShopOptionIndex * SHOP_ICON_SPACING);
     for (int i = 0; i <= SHOP_SKIP_OPTION_INDEX; i++) {
@@ -216,6 +204,46 @@ void initShop(void) {
     }
     resetShopDescOffset();
     setGameState(GAME_STATE_SHOP);
+}
+
+static void buildSkipPages(void) {
+    if (skipDescBitmapEN != NULL) {
+        pd->graphics->freeBitmap(skipDescBitmapEN);
+    }
+    if (skipDescBitmapJP != NULL) {
+        pd->graphics->freeBitmap(skipDescBitmapJP);
+    }
+    ShopPageData skipPageEN = createShopPage("Skip", "Skip rune selection for this level up.", "Skip", NULL, LANGUAGE_EN);
+    ShopPageData skipPageJP = createShopPage("スキップ", "ルーン選択をスキップします。", "Skip", NULL, LANGUAGE_JP);
+    skipDescBitmapEN = skipPageEN.shopDescBitmap;
+    skipDescHeightEN = skipPageEN.descHeight;
+    skipDescBitmapJP = skipPageJP.shopDescBitmap;
+    skipDescHeightJP = skipPageJP.descHeight;
+}
+
+void initShop(void) {
+    isTutorialShop = false;
+    createShopOptions();
+    buildSkipPages();
+    initShopCommon();
+}
+
+void initShopWithRunes(RuneType runes[3]) {
+    isTutorialShop = true;
+    for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
+        ShopPageData en = createRuneShopPage(runes[i], LANGUAGE_EN);
+        ShopPageData jp = createRuneShopPage(runes[i], LANGUAGE_JP);
+        shopItems[i] = (ShopItem){
+            .shopDescBitmapEN = en.shopDescBitmap,
+            .descHeightEN = en.descHeight,
+            .shopDescBitmapJP = jp.shopDescBitmap,
+            .descHeightJP = jp.descHeight,
+            .iconIndex = getRuneIconIndex(runes[i]),
+            .runeType = runes[i]
+        };
+    }
+    buildSkipPages();
+    initShopCommon();
 }
 
 void selectShopItem(ShopItem shopItem) {
@@ -349,8 +377,11 @@ void updateShop(float deltaTime) {
         if (shopTransitionTime <= 0) {
             shopTransitionTime = 0;
             setGameState(GAME_STATE_ACTIVE);
-            checkAndSpawnPendingExit();
-            onShopCompleted();
+            if (!isTutorialShop) {
+                checkAndSpawnPendingExit();
+                onShopCompleted();
+            }
+            isTutorialShop = false;
             for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
                 pd->graphics->freeBitmap(shopItems[i].shopDescBitmapEN);
                 pd->graphics->freeBitmap(shopItems[i].shopDescBitmapJP);

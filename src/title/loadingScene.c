@@ -70,6 +70,6 @@ void updateLoadingScene(float deltaTime) {
 
     if (!finished && stepsDone >= totalSteps) {
         finished = true;
-        switchScene(SCENE_CLASS_SELECT);
+        switchScene(SCENE_TITLE);
     }
 }

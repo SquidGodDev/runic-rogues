@@ -34,6 +34,7 @@ float playerAngle;
 float planeX, planeY;
 float dirX, dirY;
 float playerHealth;
+int playerDashCount;
 // ========================
 
 typedef struct PlayerState {
@@ -108,6 +109,7 @@ static bool movementToggled = false;
 void initPlayer(void) {
 	const ClassData *classData = getCurrentClassData();
 	playerHealth = getPlayerMaxHealth();
+	playerDashCount = 0;
 	playerState = (PlayerState) {
 		.dead = 0,
 		.hitInvincibility = 0,
@@ -463,6 +465,7 @@ int getPlayerInteractableIndex(void) {
 }
 
 void playerDash(void) {
+	playerDashCount++;
 	movementStats.dashAngle = playerAngle;
 	movementStats.curDashTime = movementStats.dashTime;
 	playerState.hitInvincibility = movementStats.dashTime * 2;

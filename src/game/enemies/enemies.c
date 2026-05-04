@@ -335,6 +335,21 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameEnd = 8,
 		.frameTime = 0.15f,
 		.update = proximityEnemyUpdate
+	},
+	[ENEMY_TYPE_DUMMY] = (EnemyData){
+		.name = "Dummy",
+		.health = 100,
+		.attackDetectionRange = 0,
+		.attackDistance = 0,
+		.attackDamage = 0,
+		.attackCooldown = 0,
+		.moveSpeed = 0,
+		.textureIndex = TEXTURE_SKELETON,
+		.idleFrameEnd = 6,
+		.deathFrameStart = 16,
+		.deathFrameEnd = 19,
+		.frameTime = 0.12f,
+		.update = dummyUpdate
 	}
 };
 

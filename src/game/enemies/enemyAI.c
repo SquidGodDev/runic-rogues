@@ -14,6 +14,13 @@
 #define BOSS_DIFFICULTY_COUNT 2
 #define BOSS_PHASE_COUNT      2
 
+void dummyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset) {
+	(void)enemy;
+	(void)data;
+	(void)index;
+	(void)attackAnimationReset;
+}
+
 // === Elder Boss properties ===
 typedef struct ElderBossProperties {
 	float idleTime;

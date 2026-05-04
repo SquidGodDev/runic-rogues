@@ -80,22 +80,27 @@ void initGameScene(void)
 	initSpawnManager();
 }
 
+void updateGameplaySubsystems(float deltaTime)
+{
+	signalRuneTrigger(RUNE_TRIGGER_TIME, deltaTime);
+	updatePickups(deltaTime);
+	updateSpells(deltaTime);
+	updatePlayer(deltaTime);
+	updateEnemies(deltaTime);
+	updateProjectiles(deltaTime);
+	updateParticles(deltaTime);
+	updateInteractables(deltaTime);
+	updateTimers(deltaTime);
+	renderScene();
+	drawUI(deltaTime, false /*duringCinematic*/);
+}
+
 void updateGameScene(float deltaTime)
 {
 	runStatsTick(deltaTime);
 	if (gameState == GAME_STATE_ACTIVE) {
-		signalRuneTrigger(RUNE_TRIGGER_TIME, deltaTime);
-		updatePickups(deltaTime);
-		updateSpells(deltaTime);
-		updatePlayer(deltaTime);
-		updateEnemies(deltaTime);
-		updateProjectiles(deltaTime);
-		updateParticles(deltaTime);
-		updateInteractables(deltaTime);
 		updateSpawnManager();
-		updateTimers(deltaTime);
-		renderScene();
-		drawUI(deltaTime, false /*duringCinematic*/);
+		updateGameplaySubsystems(deltaTime);
 	} else if (gameState == GAME_STATE_SHOP) {
 		updateShop(deltaTime);
 	} else if (gameState == GAME_STATE_RUNE_INVENTORY) {

@@ -9,6 +9,8 @@ extern float dirX, dirY;
 
 extern float playerHealth;
 
+extern int playerDashCount;
+
 void initPlayer(void);
 int getPlayerInteractableIndex(void);
 void playerDash(void);

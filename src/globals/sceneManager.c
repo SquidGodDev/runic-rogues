@@ -11,6 +11,7 @@
 #include "title/roomMapScene.h"
 #include "title/gameOverScene.h"
 #include "game/gameScene.h"
+#include "game/tutorial/tutorialScene.h"
 
 // === Transition style selector ===
 // Swap this to switch between transition effects.
@@ -167,6 +168,9 @@ void initNextScene(void) {
             break;
         case SCENE_GAME_OVER:
             initGameOverScene();
+            break;
+        case SCENE_TUTORIAL:
+            initTutorialScene();
             break;
     }
 }
@@ -329,6 +333,9 @@ int updateSceneManager(void* userdata) {
             break;
         case SCENE_GAME_OVER:
             updateGameOverScene(deltaTime);
+            break;
+        case SCENE_TUTORIAL:
+            updateTutorialScene(deltaTime);
             break;
     }
 
