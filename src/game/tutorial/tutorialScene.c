@@ -19,7 +19,6 @@
 
 #include "game/tutorial/tutorialScene.h"
 #include "game/tutorial/tutorialDialog.h"
-#include "game/tutorial/tutorialObjective.h"
 
 typedef enum {
     TUTORIAL_R1_DIALOG,
@@ -103,7 +102,6 @@ void initTutorialScene(void) {
     closedRuneInv = false;
     entranceClosed = false;
 
-    setTutorialObjectiveSimple("Try the controls");
     openTutorialDialog(r1Pages, 1);
 }
 
@@ -158,18 +156,15 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R2_DIALOG: {
             if (isTutorialDialogComplete()) {
-                setTutorialObjective("Defeat the dummy", 0, 1);
                 tPhase = TUTORIAL_R2_WAITING;
             }
             break;
         }
         case TUTORIAL_R2_WAITING: {
             int alive = dummiesAlive();
-            setTutorialObjective("Defeat the dummy", 1 - alive, 1);
             if (alive == 0) {
                 openRoomGate(1);
                 setArrowToRoom(2);
-                clearTutorialObjective();
                 tPhase = TUTORIAL_R2_TO_R3;
             }
             break;
@@ -192,7 +187,6 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R3_DIALOG: {
             if (isTutorialDialogComplete()) {
-                setTutorialObjective("Defeat dummies", 0, 3);
                 tPhase = TUTORIAL_R3_WAITING;
             }
             break;
@@ -201,11 +195,9 @@ static void updateTutorialPhase(float deltaTime) {
             int alive = dummiesAlive();
             int killed = 3 - alive;
             if (killed < 0) { killed = 0; }
-            setTutorialObjective("Defeat dummies", killed, 3);
             if (alive == 0) {
                 openRoomGate(2);
                 setArrowToRoom(3);
-                clearTutorialObjective();
                 tPhase = TUTORIAL_R3_TO_R4;
             }
             break;
@@ -225,7 +217,6 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R4_DIALOG: {
             if (isTutorialDialogComplete()) {
-                setTutorialObjective("Dash", 0, 3);
                 tPhase = TUTORIAL_R4_WAITING;
             }
             break;
@@ -234,11 +225,9 @@ static void updateTutorialPhase(float deltaTime) {
             int dashed = playerDashCount - dashBaseline;
             if (dashed < 0) { dashed = 0; }
             if (dashed > 3) { dashed = 3; }
-            setTutorialObjective("Dash", dashed, 3);
             if (dashed >= 3) {
                 openRoomGate(3);
                 setArrowToRoom(4);
-                clearTutorialObjective();
                 tPhase = TUTORIAL_R4_TO_R5;
             }
             break;
@@ -280,7 +269,6 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R5_DIALOG_POST_SHOP: {
             if (isTutorialDialogComplete()) {
-                setTutorialObjectiveSimple("Open Runes menu");
                 tPhase = TUTORIAL_R5_WAITING;
             }
             break;
@@ -294,7 +282,6 @@ static void updateTutorialPhase(float deltaTime) {
             if (openedRuneInv && closedRuneInv) {
                 openRoomGate(4);
                 setArrowToRoom(5);
-                clearTutorialObjective();
                 tPhase = TUTORIAL_R5_TO_R6;
             }
             break;
@@ -317,7 +304,6 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R6_DIALOG: {
             if (isTutorialDialogComplete()) {
-                setTutorialObjective("Defeat slimes", 0, 3);
                 tPhase = TUTORIAL_R6_WAITING;
             }
             break;
@@ -326,13 +312,11 @@ static void updateTutorialPhase(float deltaTime) {
             int alive = getActiveEnemyCount();
             int killed = 3 - alive;
             if (killed < 0) { killed = 0; }
-            setTutorialObjective("Defeat slimes", killed, 3);
             if (alive == 0) {
                 Point center = getRoomCenter(5);
                 addInteractable(center.x, center.y, INTERACTABLE_TYPE_EXIT);
                 Point worldCenter = getRoomWorldCenter(5);
                 setArrowPosition(worldCenter.x, worldCenter.y);
-                clearTutorialObjective();
                 tPhase = TUTORIAL_R6_EXIT_SPAWNED;
             }
             break;
@@ -358,9 +342,6 @@ void updateTutorialScene(float deltaTime) {
     if (gameState == GAME_STATE_ACTIVE) {
         updateTutorialPhase(deltaTime);
         updateGameplaySubsystems(deltaTime);
-        if (!isTutorialDialogActive()) {
-            drawTutorialObjective();
-        }
         drawTutorialDialog();
     } else if (gameState == GAME_STATE_SHOP) {
         updateShop(deltaTime);
