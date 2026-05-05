@@ -58,6 +58,8 @@ static bool closedRuneInv;
 static bool entranceClosed;
 static int r1ArrowStep;
 static int r1ArrowPickupIndex;
+static int r2DummyStage;
+static int r3ClusterStage;
 static bool prevDialogActive;
 
 static const char *r1Pages[] = {
@@ -65,19 +67,26 @@ static const char *r1Pages[] = {
     "You can dock the crank to use d-pad left and right to turn instead."
 };
 static const char *r2Pages[] = {
-    "Press the A button to cast your basic spell. Hold A to keep casting whenever it's off cooldown."
+    "Press the A button to cast your basic spell.",
+    "Hold A to keep casting whenever it's off cooldown."
 };
 static const char *r3Pages[] = {
-    "Press the B button to cast your special spell. It hits harder but has a longer cooldown."
+    "Press the B button to cast your special spell.",
+    "It hits harder but has a longer cooldown."
 };
 static const char *r4Pages[] = {
-    "Double-tap a d-pad direction to dash. Dashes are limited but replenish over time, and you're briefly invincible while dashing. Dash across the pit ahead!"
+    "Double-tap a d-pad direction to dash.",
+    "Dashes are limited but replenish over time.",
+    "You're briefly invincible while dashing.",
+    "Dash across the pit ahead!"
 };
 static const char *r5PreShopPages[] = {
-    "Each cleared room rewards you with a choice of three runes that grant powerful upgrades. Pick one to take with you for the rest of the run."
+    "Each cleared room rewards you with a choice of three runes.",
+    "Try picking one!"
 };
 static const char *r5PostShopPages[] = {
-    "You can view the runes you've collected from the system menu. Open it now to take a look."
+    "You can view the runes you've collected from the system menu.",
+    "Open it now to take a look."
 };
 static const char *r6Pages[] = {
     "A pack of slimes blocks your path. Defeat them all to finish the tutorial!"
@@ -86,6 +95,27 @@ static const char *r6Pages[] = {
 static void setArrowToRoom(int roomIndex) {
     Point p = getRoomWorldCenter(roomIndex);
     setArrowPosition(p.x, p.y);
+}
+
+static void spawnDummyAtCell(int cellX, int cellY) {
+    int worldX = cellX * CELL_SIZE + CELL_SIZE / 2;
+    int worldY = cellY * CELL_SIZE + CELL_SIZE / 2;
+    spawnEnemy(ENEMY_TYPE_DUMMY, worldX, worldY, false);
+    setArrowPosition(worldX, worldY);
+}
+
+static void spawnDummyClusterAtCell(int anchorCellX, int anchorCellY) {
+    int dx[3] = {0, -1, 1};
+    int dy[3] = {0, -1, -1};
+    for (int i = 0; i < 3; i++) {
+        int cellX = anchorCellX + dx[i];
+        int cellY = anchorCellY + dy[i];
+        int worldX = cellX * CELL_SIZE + CELL_SIZE / 2;
+        int worldY = cellY * CELL_SIZE + CELL_SIZE / 2;
+        spawnEnemy(ENEMY_TYPE_DUMMY, worldX, worldY, false);
+    }
+    setArrowPosition(anchorCellX * CELL_SIZE + CELL_SIZE / 2,
+                     anchorCellY * CELL_SIZE + CELL_SIZE / 2);
 }
 
 static int dummiesAlive(void) {
@@ -98,6 +128,8 @@ void initTutorialScene(void) {
     tPhase = TUTORIAL_R1_DIALOG;
     r1ArrowStep = 0;
     r1ArrowPickupIndex = -1;
+    r2DummyStage = 0;
+    r3ClusterStage = 0;
     openedRuneInv = false;
     closedRuneInv = false;
     entranceClosed = false;
@@ -144,6 +176,7 @@ static void updateTutorialPhase(float deltaTime) {
                 r1ArrowStep++;
                 if (r1ArrowStep >= 3) {
                     tPhase = TUTORIAL_R1_TO_R2;
+                    closeEntranceGate();
                     openRoomGate(0);
                     setArrowToRoom(1);
                 }
@@ -173,9 +206,19 @@ static void updateTutorialPhase(float deltaTime) {
         case TUTORIAL_R2_WAITING: {
             int alive = dummiesAlive();
             if (alive == 0) {
-                openRoomGate(1);
-                setArrowToRoom(2);
-                tPhase = TUTORIAL_R2_TO_R3;
+                Point minP = getRoomInteriorMin(1);
+                Point maxP = getRoomInteriorMax(1);
+                if (r2DummyStage == 0) {
+                    spawnDummyAtCell((int)maxP.x - 2, (int)minP.y + 2);
+                    r2DummyStage = 1;
+                } else if (r2DummyStage == 1) {
+                    spawnDummyAtCell((int)maxP.x - 2, (int)maxP.y - 2);
+                    r2DummyStage = 2;
+                } else {
+                    openRoomGate(1);
+                    setArrowToRoom(2);
+                    tPhase = TUTORIAL_R2_TO_R3;
+                }
             }
             break;
         }
@@ -203,12 +246,20 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R3_WAITING: {
             int alive = dummiesAlive();
-            int killed = 3 - alive;
-            if (killed < 0) { killed = 0; }
             if (alive == 0) {
-                openRoomGate(2);
-                setArrowToRoom(3);
-                tPhase = TUTORIAL_R3_TO_R4;
+                Point minP = getRoomInteriorMin(2);
+                Point maxP = getRoomInteriorMax(2);
+                if (r3ClusterStage == 0) {
+                    spawnDummyClusterAtCell((int)maxP.x - 2, (int)minP.y + 2);
+                    r3ClusterStage = 1;
+                } else if (r3ClusterStage == 1) {
+                    spawnDummyClusterAtCell((int)maxP.x - 2, (int)maxP.y - 2);
+                    r3ClusterStage = 2;
+                } else {
+                    openRoomGate(2);
+                    setArrowToRoom(3);
+                    tPhase = TUTORIAL_R3_TO_R4;
+                }
             }
             break;
         }
@@ -259,6 +310,7 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R5_ENTER: {
             closeRoomGate(3);
+            clearArrow();
             openTutorialDialog(r5PreShopPages);
             tPhase = TUTORIAL_R5_DIALOG_PRE_SHOP;
             break;

@@ -1,5 +1,8 @@
 # DEMO
 - Tutorial
+  - Arrow pointing at rune inventory menu
+  - Get rid of slime encounter final room
+  - Test JP
 - SFX
 - Bigger mage projectile
 - Starter rune for each class
