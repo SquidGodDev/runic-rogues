@@ -106,6 +106,19 @@ static bool defaultStrafeSetting = false;
 static bool toggleMovementSetting = false;
 static bool movementToggled = false;
 
+static bool inputDisabled = false;
+static PDButtons suppressedButtons = 0;
+
+void setPlayerInputDisabled(bool disabled) {
+	inputDisabled = disabled;
+}
+
+void suppressHeldPlayerButtons(void) {
+	PDButtons current;
+	pd->system->getButtonState(&current, NULL, NULL);
+	suppressedButtons |= current;
+}
+
 void initPlayer(void) {
 	const ClassData *classData = getCurrentClassData();
 	playerHealth = getPlayerMaxHealth();
@@ -201,11 +214,15 @@ void handleInput(float deltaTime)
 	PDButtons released;
 	pd->system->getButtonState(&current, &pushed, &released);
 
-	if (isSceneTransitioning() || playerState.dead) {
+	if (isSceneTransitioning() || playerState.dead || inputDisabled) {
 		// Disable inputs
 		current = 0;
 		pushed = 0;
 	}
+
+	suppressedButtons &= current;
+	current &= ~suppressedButtons;
+	pushed &= ~suppressedButtons;
 
 	movementStats.curDashTime -= deltaTime;
 	if (movementStats.curDashTime < 0) {

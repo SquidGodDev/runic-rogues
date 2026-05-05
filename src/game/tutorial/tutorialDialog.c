@@ -205,7 +205,7 @@ void updateTutorialDialog(float deltaTime) {
 
     PDButtons pushed;
     pd->system->getButtonState(NULL, &pushed, NULL);
-    if (pushed != 0) {
+    if (pushed & kButtonA) {
         if (dState == TD_TYPING) {
             dRevealedChars = dPageTotalChars;
             dState = TD_AWAIT_ADVANCE;

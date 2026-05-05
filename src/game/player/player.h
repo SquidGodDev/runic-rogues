@@ -19,3 +19,6 @@ void damagePlayer(float amount);
 void damagePlayerFromDirection(float amount, float sourceX, float sourceY);
 void drawWeapon(float deltaTime);
 void updatePlayer(float deltaTime);
+
+void setPlayerInputDisabled(bool disabled);
+void suppressHeldPlayerButtons(void);

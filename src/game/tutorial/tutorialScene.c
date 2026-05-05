@@ -59,6 +59,7 @@ static bool closedRuneInv;
 static bool entranceClosed;
 static int r1ArrowStep;
 static int r1ArrowPickupIndex;
+static bool prevDialogActive;
 
 static const char *r1Pages[] = {
     "Use the d-pad to move and the crank to look around.",
@@ -102,8 +103,9 @@ void initTutorialScene(void) {
     openedRuneInv = false;
     closedRuneInv = false;
     entranceClosed = false;
+    prevDialogActive = false;
 
-    openTutorialDialog(r1Pages, 1);
+    openTutorialDialog(r1Pages, 2);
 }
 
 static void closeBehindIfEntered(int roomIndex, int gateIndex) {
@@ -350,6 +352,13 @@ static void updateTutorialPhase(float deltaTime) {
 void updateTutorialScene(float deltaTime) {
     runStatsTick(deltaTime);
     if (gameState == GAME_STATE_ACTIVE) {
+        bool dialogActive = isTutorialDialogActive();
+        setPlayerInputDisabled(dialogActive);
+        if (prevDialogActive && !dialogActive) {
+            suppressHeldPlayerButtons();
+        }
+        prevDialogActive = dialogActive;
+
         updateTutorialPhase(deltaTime);
         updateGameplaySubsystems(deltaTime);
         drawTutorialDialog();

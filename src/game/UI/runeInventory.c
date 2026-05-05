@@ -5,6 +5,7 @@
 #include "globals/helpers.h"
 #include "game/gameScene.h"
 #include "game/UI/runeInventory.h"
+#include "game/player/player.h"
 #include "game/systems/runeManager.h"
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
@@ -131,6 +132,7 @@ static void resetDescScrollOffset(void);
 static void onExitMenuItemSelect(void *userdata);
 
 static void closeRuneInventory(void) {
+    suppressHeldPlayerButtons();
     setGameState(GAME_STATE_ACTIVE);
     createRuneInventoryMenuItem();
 }
@@ -219,10 +221,10 @@ void updateRuneInventory(float deltaTime) {
     PDButtons current, pushed;
     pd->system->getButtonState(&current, &pushed, NULL);
 
-    // if (pushed & kButtonB) {
-    //     closeRuneInventory();
-    //     return;
-    // }
+    if (pushed & kButtonB) {
+        closeRuneInventory();
+        return;
+    }
 
     if (ownedRuneCount == 0) {
         return;
