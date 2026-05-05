@@ -108,7 +108,8 @@ void updateProjectiles(float deltaTime) {
 		int entityMapX = (int)((curProjectile->x + MAP_CHECK_OFFSET_X) / CELL_SIZE);
 		int entityMapY = (int)((curProjectile->y + MAP_CHECK_OFFSET_Y) / CELL_SIZE);
 		int entityMapIndex = entityMapY * MAP_WIDTH + entityMapX;
-		if ((entityMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (map[entityMapIndex] != 0)) {
+		int entityMapCell = (entityMapIndex >= 0 && entityMapIndex < MAP_WIDTH * MAP_HEIGHT) ? map[entityMapIndex] : MAP_WALL;
+		if ((entityMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (entityMapCell == MAP_WALL || entityMapCell == MAP_GATE)) {
 			playSound(SFX_WALL_HIT);
 			curProjectile->active = 0;
 			int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;

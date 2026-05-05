@@ -6,6 +6,7 @@
 #define MAP_FLOOR 0
 #define MAP_WALL 1
 #define MAP_GATE 2
+#define MAP_CHASM 3
 
 #define DUNGEON_ROOM_COUNT 6
 #define NON_BOSS_ROOM_COUNT (DUNGEON_ROOM_COUNT - 1)
@@ -18,7 +19,9 @@ Point getShopMapPosition(void);
 void spawnExit(void);
 void getRandomEmptyMapPosition(int *mapX, int *mapY);
 void initMap(void);
+void setMapCell(int x, int y, int value);
 int isBlocked(int x, int y);
+int isOpaque(int x, int y);
 int isClearLine(int x1, int y1, int x2, int y2);
 void castRayToWall(float x1, float y1, float x2, float y2, float *targetX, float *targetY);
 Point checkRayCollision(float startX, float startY, float angle, float distance);

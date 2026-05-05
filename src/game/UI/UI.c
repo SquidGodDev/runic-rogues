@@ -407,7 +407,7 @@ void drawMinimap(void) {
                 }
                 int drawX = mapX * CELL_DRAW_SIZE - playerOffsetX;
                 int drawY = mapY * CELL_DRAW_SIZE - playerOffsetY;
-                if (isBlocked(adjustedMapX, adjustedMapY)) {
+                if (isOpaque(adjustedMapX, adjustedMapY)) {
                     pd->graphics->drawBitmap(minimapWallBitmap, drawX, drawY, kBitmapUnflipped);
                 }
             }

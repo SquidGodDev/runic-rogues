@@ -170,7 +170,7 @@ void renderScene(void)
 			int mapX = FP_TO_INT(rayX) >> cellSizeBit;
 			int mapY = FP_TO_INT(rayY) >> cellSizeBit;
 			int mapIndex = (mapY * MAP_WIDTH) + mapX;
-			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] > 0) {
+			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] == MAP_WALL || map[mapIndex] == MAP_GATE) {
 				depthOfField = MAX_FIELD_DEPTH;
 				int64_t dx = (int64_t)(playerX_fp - rayX);
 				int64_t dy = (int64_t)(playerY_fp - rayY);
@@ -218,7 +218,7 @@ void renderScene(void)
 			int mapX = FP_TO_INT(rayX) >> cellSizeBit;
 			int mapY = FP_TO_INT(rayY) >> cellSizeBit;
 			int mapIndex = (mapY * MAP_WIDTH) + mapX;
-			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] > 0) {
+			if ((mapIndex < 0 || mapIndex >= mapSize) || map[mapIndex] == MAP_WALL || map[mapIndex] == MAP_GATE) {
 				depthOfField = MAX_FIELD_DEPTH;
 				int64_t dx = (int64_t)(playerX_fp - rayX);
 				int64_t dy = (int64_t)(playerY_fp - rayY);
@@ -376,6 +376,13 @@ void renderScene(void)
 					fixed_t textureCoordX = playerX_fp - FP_MUL(curLineData->ceilingXModifier, invDy);
 					fixed_t textureCoordY = playerY_fp - FP_MUL(curLineData->ceilingYModifier, invDy);
 
+					int floorMapX = FP_TO_INT(textureCoordX) >> cellSizeBit;
+					int floorMapY = FP_TO_INT(textureCoordY) >> cellSizeBit;
+					int chasmReject = 0;
+					if (floorMapX >= 0 && floorMapX < MAP_WIDTH && floorMapY >= 0 && floorMapY < MAP_HEIGHT) {
+						chasmReject = (map[floorMapY * MAP_WIDTH + floorMapX] == MAP_CHASM);
+					}
+
 					uint32_t textureX = FP_TO_INT(textureCoordX) & (CELL_SIZE - 1);
 					uint32_t textureY = FP_TO_INT(textureCoordY) & (CELL_SIZE - 1);
 
@@ -385,7 +392,7 @@ void renderScene(void)
 					drawColor &= ~(-fogReject);
 
 					// Draw floor
-					curFloorDrawInt |= (floorTexture[textureIndex] << (31 - (drawBit & 31))) & ~(-fogReject);
+					curFloorDrawInt |= (floorTexture[textureIndex] << (31 - (drawBit & 31))) & ~(-fogReject) & ~(-chasmReject);
 				} else if (drawY > lineHeight + lineOffset + 1) {
 					// Floor - we already drew this when we drew the ceiling
 					continue;

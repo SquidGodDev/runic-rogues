@@ -438,11 +438,20 @@ void handleInput(float deltaTime)
 	int yIndex = playerY / cellSize;
 	int lookAheadYIndex = (playerY + yOffset) / cellSize;
 
-	if (map[yIndex * mapWidth + lookAheadXIndex] == 0) {
+	int curCell = map[yIndex * mapWidth + xIndex];
+	int lookCellX = map[yIndex * mapWidth + lookAheadXIndex];
+	int lookCellY = map[lookAheadYIndex * mapWidth + xIndex];
+
+	bool canMoveX = (lookCellX == MAP_FLOOR) ||
+		(lookCellX == MAP_CHASM && (playerIsDashing || curCell == MAP_CHASM));
+	bool canMoveY = (lookCellY == MAP_FLOOR) ||
+		(lookCellY == MAP_CHASM && (playerIsDashing || curCell == MAP_CHASM));
+
+	if (canMoveX) {
 		playerX += movementStats.xVelocity * deltaTime;
 	}
 
-	if (map[lookAheadYIndex * mapWidth + xIndex] == 0) {
+	if (canMoveY) {
 		playerY += movementStats.yVelocity * deltaTime;
 	}
 

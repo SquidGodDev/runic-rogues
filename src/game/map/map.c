@@ -85,6 +85,10 @@ void setCell(int x, int y, int value) {
     }
 }
 
+void setMapCell(int x, int y, int value) {
+    setCell(x, y, value);
+}
+
 static void carveRoom(int minX, int minY, int maxX, int maxY) {
     for (int y = minY; y <= maxY; y++) {
         for (int x = minX; x <= maxX; x++) {
@@ -255,6 +259,11 @@ void initMap(void) {
 
 int isBlocked(int x, int y) {
     return map[y * MAP_WIDTH + x] != 0;
+}
+
+int isOpaque(int x, int y) {
+    int value = map[y * MAP_WIDTH + x];
+    return value == MAP_WALL || value == MAP_GATE;
 }
 
 // --- Dungeon room query functions ---
@@ -506,7 +515,7 @@ void castRayToWall(float x1, float y1, float x2, float y2, float *targetX, float
         }
 
         int index = mapY * MAP_WIDTH + mapX;
-        if (map[index] == 1) {
+        if (map[index] == MAP_WALL || map[index] == MAP_GATE) {
             // Wall hit, return previous step
             *targetX = rayX - stepX;
             *targetY = rayY - stepY;
@@ -562,7 +571,7 @@ Point checkRayCollision(float startX, float startY, float angle, float distance)
         int mapX = (int)rayX / CELL_SIZE;
         int mapY = (int)rayY / CELL_SIZE;
         int mapIndex = (mapY * MAP_WIDTH) + mapX;
-        if ((mapIndex < 0 || mapIndex >= MAP_WIDTH * MAP_HEIGHT || mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) || map[mapIndex] > 0) {
+        if ((mapIndex < 0 || mapIndex >= MAP_WIDTH * MAP_HEIGHT || mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) || (map[mapIndex] == MAP_WALL || map[mapIndex] == MAP_GATE)) {
             // Hit wall
             depthOfField = MAX_FIELD_DEPTH;
             horizontalDistance = distanceSquared(startX, startY, rayX, rayY);
@@ -604,7 +613,7 @@ Point checkRayCollision(float startX, float startY, float angle, float distance)
         int mapX = (int)rayX / CELL_SIZE;
         int mapY = (int)rayY / CELL_SIZE;
         int mapIndex = (mapY * MAP_WIDTH) + mapX;
-        if ((mapIndex < 0 || mapIndex >= MAP_WIDTH * MAP_HEIGHT || mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) || map[mapIndex] > 0) {
+        if ((mapIndex < 0 || mapIndex >= MAP_WIDTH * MAP_HEIGHT || mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) || (map[mapIndex] == MAP_WALL || map[mapIndex] == MAP_GATE)) {
             depthOfField = MAX_FIELD_DEPTH; // Hit wall
             verticalDistance = distanceSquared(startX, startY, rayX, rayY);
             verticalRayX = rayX;

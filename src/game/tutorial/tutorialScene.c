@@ -53,7 +53,6 @@ typedef enum {
 
 static TutorialPhase tPhase;
 
-static int dashBaseline;
 static bool openedRuneInv;
 static bool closedRuneInv;
 static bool entranceClosed;
@@ -72,7 +71,7 @@ static const char *r3Pages[] = {
     "Press the B button to cast your special spell. It hits harder but has a longer cooldown."
 };
 static const char *r4Pages[] = {
-    "Double-tap a d-pad direction to dash. Dashes are limited but replenish over time, and dashing makes you briefly invincible. Try dashing a few times!"
+    "Double-tap a d-pad direction to dash. Dashes are limited but replenish over time, and you're briefly invincible while dashing. Dash across the pit ahead!"
 };
 static const char *r5PreShopPages[] = {
     "Each cleared room rewards you with a choice of three runes that grant powerful upgrades. Pick one to take with you for the rest of the run."
@@ -97,7 +96,6 @@ void initTutorialScene(void) {
     initGameScene();
 
     tPhase = TUTORIAL_R1_DIALOG;
-    dashBaseline = 0;
     r1ArrowStep = 0;
     r1ArrowPickupIndex = -1;
     openedRuneInv = false;
@@ -222,7 +220,15 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R4_ENTER: {
             closeRoomGate(2);
-            dashBaseline = playerDashCount;
+            Point minP = getRoomInteriorMin(3);
+            Point maxP = getRoomInteriorMax(3);
+            int chasmX = (minP.x + maxP.x) / 2;
+            for (int y = minP.y; y <= maxP.y; y++) {
+                setMapCell(chasmX, y, MAP_CHASM);
+            }
+            int farX = (chasmX + maxP.x) / 2;
+            int farY = (minP.y + maxP.y) / 2;
+            setArrowPosition(farX * CELL_SIZE + CELL_SIZE / 2, farY * CELL_SIZE + CELL_SIZE / 2);
             openTutorialDialog(r4Pages, 1);
             tPhase = TUTORIAL_R4_DIALOG;
             break;
@@ -234,10 +240,11 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R4_WAITING: {
-            int dashed = playerDashCount - dashBaseline;
-            if (dashed < 0) { dashed = 0; }
-            if (dashed > 3) { dashed = 3; }
-            if (dashed >= 3) {
+            Point minP = getRoomInteriorMin(3);
+            Point maxP = getRoomInteriorMax(3);
+            int chasmX = (minP.x + maxP.x) / 2;
+            int playerCellX = (int)playerX / CELL_SIZE;
+            if (playerCellX > chasmX) {
                 openRoomGate(3);
                 setArrowToRoom(4);
                 tPhase = TUTORIAL_R4_TO_R5;
