@@ -16,6 +16,7 @@
 #define TD_TEXT_X           (TD_BOX_X + TD_BOX_PADDING_X)
 #define TD_TEXT_MAX_W       (TD_BOX_W - TD_BOX_PADDING_X * 2)
 #define TD_LINE_LEADING     0
+#define TD_TEXT_TRACKING    -1
 #define TD_MAX_LINES        4
 #define TD_MAX_LINE_LEN     128
 
@@ -111,7 +112,7 @@ static void wrapPage(const char *text) {
                     trial[trialLen] = '\0';
                 }
 
-                int width = pd->graphics->getTextWidth(fontSubEN, trial, trialLen, kUTF8Encoding, 0);
+                int width = pd->graphics->getTextWidth(fontSubEN, trial, trialLen, kUTF8Encoding, TD_TEXT_TRACKING);
 
                 if (width <= TD_TEXT_MAX_W || curLen == 0) {
                     memcpy(cur, trial, trialLen + 1);
@@ -246,6 +247,7 @@ void drawTutorialDialog(void) {
     }
 
     pd->graphics->setFont(fontSubEN);
+    pd->graphics->setTextTracking(TD_TEXT_TRACKING);
     int fontHeight = pd->graphics->getFontHeight(fontSubEN);
     int textY = boxY + TD_BOX_PADDING_Y;
     int consumed = 0;
