@@ -149,7 +149,7 @@ static void wrapPage(const char *text) {
     dCharAccumulator = 0;
 }
 
-void openTutorialDialog(const char *const *pages, int pageCount) {
+void openTutorialDialogPages(const char *const *pages, int pageCount) {
     dPages = pages;
     dPageCount = pageCount;
     dPageIndex = 0;

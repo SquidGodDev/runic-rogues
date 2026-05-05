@@ -2,9 +2,8 @@
 
 #include "stdbool.h"
 
-// Open a dialog sequence. Strings are NOT copied; pass string literals or otherwise
-// guarantee the page array and its strings outlive the dialog.
-void openTutorialDialog(const char *const *pages, int pageCount);
+void openTutorialDialogPages(const char *const *pages, int pageCount);
+#define openTutorialDialog(pages) openTutorialDialogPages((pages), (int)(sizeof(pages) / sizeof((pages)[0])))
 void updateTutorialDialog(float deltaTime);
 void drawTutorialDialog(void);
 

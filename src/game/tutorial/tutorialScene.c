@@ -103,7 +103,7 @@ void initTutorialScene(void) {
     entranceClosed = false;
     prevDialogActive = false;
 
-    openTutorialDialog(r1Pages, 2);
+    openTutorialDialog(r1Pages);
 }
 
 static void closeBehindIfEntered(int roomIndex, int gateIndex) {
@@ -160,7 +160,7 @@ static void updateTutorialPhase(float deltaTime) {
             closeBehindIfEntered(1, 0);
             Point center = getRoomWorldCenter(1);
             spawnEnemy(ENEMY_TYPE_DUMMY, (int)center.x, (int)center.y, false);
-            openTutorialDialog(r2Pages, 1);
+            openTutorialDialog(r2Pages);
             tPhase = TUTORIAL_R2_DIALOG;
             break;
         }
@@ -191,7 +191,7 @@ static void updateTutorialPhase(float deltaTime) {
                 Point p = getRoomSpawnPosition(2, i);
                 spawnEnemy(ENEMY_TYPE_DUMMY, (int)p.x, (int)p.y, false);
             }
-            openTutorialDialog(r3Pages, 1);
+            openTutorialDialog(r3Pages);
             tPhase = TUTORIAL_R3_DIALOG;
             break;
         }
@@ -229,7 +229,7 @@ static void updateTutorialPhase(float deltaTime) {
             int farX = (chasmX + maxP.x) / 2;
             int farY = (minP.y + maxP.y) / 2;
             setArrowPosition(farX * CELL_SIZE + CELL_SIZE / 2, farY * CELL_SIZE + CELL_SIZE / 2);
-            openTutorialDialog(r4Pages, 1);
+            openTutorialDialog(r4Pages);
             tPhase = TUTORIAL_R4_DIALOG;
             break;
         }
@@ -259,7 +259,7 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R5_ENTER: {
             closeRoomGate(3);
-            openTutorialDialog(r5PreShopPages, 1);
+            openTutorialDialog(r5PreShopPages);
             tPhase = TUTORIAL_R5_DIALOG_PRE_SHOP;
             break;
         }
@@ -281,7 +281,7 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R5_SHOP_WAIT: {
             if (gameState == GAME_STATE_ACTIVE) {
-                openTutorialDialog(r5PostShopPages, 1);
+                openTutorialDialog(r5PostShopPages);
                 tPhase = TUTORIAL_R5_DIALOG_POST_SHOP;
             }
             break;
@@ -317,7 +317,7 @@ static void updateTutorialPhase(float deltaTime) {
                 Point p = getRoomSpawnPosition(5, i);
                 spawnEnemy(ENEMY_TYPE_SLIME, (int)p.x, (int)p.y, false);
             }
-            openTutorialDialog(r6Pages, 1);
+            openTutorialDialog(r6Pages);
             tPhase = TUTORIAL_R6_DIALOG;
             break;
         }
