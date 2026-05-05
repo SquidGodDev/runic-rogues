@@ -50,6 +50,8 @@
 
 #define ICON_SIZE 6
 
+#define MAX_UI_ANIMATIONS 5
+
 #define MAX_DIRECTION_INDICATORS 10
 
 #define DAMAGE_INDICATOR_FLASH_TIME 0.3f
@@ -100,7 +102,7 @@ static int popupFrame;
 static float popupCurFrameTime;
 static bool popupActive;
 
-typedef struct SpellOverlay {
+typedef struct UIAnimation {
     LCDBitmapTable *bitmapTable;
     int drawX;
     int drawY;
@@ -108,8 +110,8 @@ typedef struct SpellOverlay {
     int frameCount;
     float frameTime;
     float currentFrameTime;
-} SpellOverlay;
-SpellOverlay spellOverlays[SPELL_EQUIP_MAX];
+} UIAnimation;
+UIAnimation uiAnimations[MAX_UI_ANIMATIONS];
 
 void initUI(void) {
     screenShakeTime = 0;
@@ -125,8 +127,8 @@ void initUI(void) {
 
     popupActive = false;
 
-    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
-        spellOverlays[i] = (SpellOverlay) {
+    for (int i = 0; i < MAX_UI_ANIMATIONS; i++) {
+        uiAnimations[i] = (UIAnimation) {
             .bitmapTable = NULL,
             .drawX = 0,
             .drawY = 0,
@@ -635,12 +637,23 @@ void drawBossHealthBar(void) {
     }
 }
 
-void setSpellOverlay(int index, int bitmapTableIndex, float frameTime, int drawX, int drawY) {
+void addUIAnimation(int bitmapTableIndex, float frameTime, int drawX, int drawY) {
+    int index = -1;
+    for (int i = 0; i < MAX_UI_ANIMATIONS; i++) {
+        if (uiAnimations[i].bitmapTable == NULL) {
+            index = i;
+            break;
+        }
+    }
+    if (index == -1) {
+        return;
+    }
+
     LCDBitmapTable *bitmapTable = BITMAP_TABLES[bitmapTableIndex];
     int frameCount;
     pd->graphics->getBitmapTableInfo(bitmapTable, NULL, &frameCount);
 
-    spellOverlays[index] = (SpellOverlay) {
+    uiAnimations[index] = (UIAnimation) {
         .bitmapTable = bitmapTable,
         .drawX = drawX,
         .drawY = drawY,
@@ -651,13 +664,18 @@ void setSpellOverlay(int index, int bitmapTableIndex, float frameTime, int drawX
     };
 }
 
-void clearSpellOverlay(int index) {
-    spellOverlays[index].bitmapTable = NULL;
+void removeUIAnimation(int bitmapTableIndex) {
+    for (int i = 0; i < MAX_UI_ANIMATIONS; i++) {
+        if (uiAnimations[i].bitmapTable == BITMAP_TABLES[bitmapTableIndex]) {
+            uiAnimations[i].bitmapTable = NULL;
+            break;
+        }
+    }
 }
 
-void drawSpellOverlay(float deltaTime) {
-    for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
-        SpellOverlay *overlay = &spellOverlays[i];
+static void drawUIAnimations(float deltaTime) {
+    for (int i = 0; i < MAX_UI_ANIMATIONS; i++) {
+        UIAnimation *overlay = &uiAnimations[i];
         if (overlay->bitmapTable == NULL) {
             continue;
         }
@@ -776,7 +794,7 @@ void drawUI(float deltaTime, bool duringCinematic) {
     }
 
     drawHealth();
-    drawSpellOverlay(deltaTime);
+    drawUIAnimations(deltaTime);
     drawWeapon(deltaTime);
     drawSpellUI();
     // drawMinimap();

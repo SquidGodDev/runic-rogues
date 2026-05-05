@@ -263,7 +263,7 @@ void updateSpells(float deltaTime) {
                 if (castData->castTime <= 0.0f) {
                     castData->castTime = 0.0f;
                     castData->spell = SPELL_NONE;
-                    clearSpellOverlay(i);
+                    removeUIAnimation(i);
                     continue;   
                 }
             }
@@ -278,7 +278,7 @@ void updateSpells(float deltaTime) {
             }
         } else {
             castData->spell = SPELL_NONE;
-            clearSpellOverlay(i);
+            removeUIAnimation(i);
         }
     }    
 }

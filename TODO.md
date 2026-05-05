@@ -3,13 +3,21 @@
   - Arrow pointing at rune inventory menu
   - Get rid of slime encounter final room
   - Test JP
+  - Skip tutorial menu option
 - SFX
+- Increase shop desc box size
 - Bigger mage projectile
 - Starter rune for each class
 - Dock crank to use crank to turn
 - B Button to exit rune inventory
 # FULL RELEASE
 - Settings menu
+  - Language
+  - Turn speed (d-pad, crank)
+  - Swap button controls
+  - Inverse turn
+  - Music Volume
+  - SFX Volume
 - JP Localization
   - Make localization csv
 - Music

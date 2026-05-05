@@ -64,15 +64,18 @@ static bool prevDialogActive;
 
 static const char *r1Pages[] = {
     "Use the d-pad to move and the crank to look around.",
-    "You can dock the crank to use d-pad left and right to turn instead."
+    "You can dock the crank to use d-pad left and right to turn instead.",
+    "Try moving to each arrow!"
 };
 static const char *r2Pages[] = {
     "Press the A button to cast your basic spell.",
-    "Hold A to keep casting whenever it's off cooldown."
+    "Hold A to keep casting whenever it's off cooldown.",
+    "Try hitting the enemy with your basic spell!"
 };
 static const char *r3Pages[] = {
     "Press the B button to cast your special spell.",
-    "It hits harder but has a longer cooldown."
+    "It's more powerful, but has a longer cooldown.",
+    "Try casting your special spell on the groups of enemies!"
 };
 static const char *r4Pages[] = {
     "Double-tap a d-pad direction to dash.",
@@ -86,7 +89,7 @@ static const char *r5PreShopPages[] = {
 };
 static const char *r5PostShopPages[] = {
     "You can view the runes you've collected from the system menu.",
-    "Open it now to take a look."
+    "Open it now to take a look!"
 };
 static const char *r6Pages[] = {
     "A pack of slimes blocks your path. Defeat them all to finish the tutorial!"
@@ -341,6 +344,7 @@ static void updateTutorialPhase(float deltaTime) {
         case TUTORIAL_R5_DIALOG_POST_SHOP: {
             if (isTutorialDialogComplete()) {
                 tPhase = TUTORIAL_R5_WAITING;
+                addUIAnimation(BITMAP_TABLE_SYSTEM_MENU_ARROW, 0.1f, 169, 11);
             }
             break;
         }
@@ -353,6 +357,7 @@ static void updateTutorialPhase(float deltaTime) {
             if (openedRuneInv && closedRuneInv) {
                 openRoomGate(4);
                 setArrowToRoom(5);
+                removeUIAnimation(BITMAP_TABLE_SYSTEM_MENU_ARROW);
                 tPhase = TUTORIAL_R5_TO_R6;
             }
             break;
