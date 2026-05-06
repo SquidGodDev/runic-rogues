@@ -276,7 +276,7 @@ void handleInput(float deltaTime)
 	}
 	int rotationEnabled = (defaultStrafeSetting == bButtonPressed) && !playerIsDashing;
 	int strafeEnabled = (defaultStrafeSetting != bButtonPressed) || playerIsDashing;
-	float crankChange = pd->system->getCrankChange();
+	float crankChange = inputDisabled ? 0.0f : pd->system->getCrankChange();
 
 	if ((current & kButtonLeft) && rotationEnabled) {
 		if (movementStats.turnSpeed > -movementStats.turnInitialSpeed) {
