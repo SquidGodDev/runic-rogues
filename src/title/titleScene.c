@@ -9,30 +9,78 @@
 #include "game/player/classes/classData.h"
 #include "game/rendering/textures.h"
 
+#define TITLE_TOP_Y 22
+#define TITLE_TO_BUTTONS_GAP 14
+#define BUTTON_PADDING_X 6
+#define BUTTON_PADDING_Y 2
+#define BUTTON_SPACING 4
+#define BUTTON_COUNT 2
+
+static int selectedIndex;
+
 void initTitleScene(void) {
-	// Nothing
+    selectedIndex = 0;
 }
 
 void updateTitleScene(float deltaTime) {
-	pd->graphics->drawBitmap(BITMAPS[BITMAP_TITLE_SCREEN_BACKGROUND], 0, 0, kBitmapUnflipped);
+    pd->graphics->clear(kColorBlack);
 
-	pd->graphics->setFont(fontSubEN);
-	pd->graphics->setDrawMode(kDrawModeFillWhite);
-	const char *hint = "B: Tutorial";
-	pd->graphics->drawText(hint, strlen(hint), kUTF8Encoding, 4, SCREEN_HEIGHT - 14);
-	pd->graphics->setDrawMode(kDrawModeCopy);
+    pd->graphics->setFont(fontTitleEN);
+    int titleFontHeight = pd->graphics->getFontHeight(fontTitleEN);
 
-    PDButtons pushed;
-    pd->system->getButtonState(NULL, &pushed, NULL);
+    const char *titleLines[2] = { "Raycasting", "Game" };
+    for (int i = 0; i < 2; i++) {
+        const char *line = titleLines[i];
+        int lineLen = strlen(line);
+        int lineWidth = pd->graphics->getTextWidth(fontTitleEN, line, lineLen, kUTF8Encoding, 0);
+        int x = (SCREEN_WIDTH - lineWidth) / 2;
+        int y = TITLE_TOP_Y + i * titleFontHeight;
+        pd->graphics->drawText(line, lineLen, kUTF8Encoding, x, y);
+    }
+
+    pd->graphics->setFont(fontSubEN);
+    int subFontHeight = pd->graphics->getFontHeight(fontSubEN);
+
+    const char *labels[BUTTON_COUNT] = { "Start", "Tutorial" };
+    int buttonsStartY = TITLE_TOP_Y + titleFontHeight * 2 + TITLE_TO_BUTTONS_GAP;
+    int buttonStride = subFontHeight + BUTTON_PADDING_Y * 2 + BUTTON_SPACING;
+
+    for (int i = 0; i < BUTTON_COUNT; i++) {
+        const char *label = labels[i];
+        int labelLen = strlen(label);
+        int labelWidth = pd->graphics->getTextWidth(fontSubEN, label, labelLen, kUTF8Encoding, 0);
+        int textX = (SCREEN_WIDTH - labelWidth) / 2;
+        int textY = buttonsStartY + i * buttonStride;
+
+        pd->graphics->drawText(label, labelLen, kUTF8Encoding, textX, textY);
+
+        if (i == selectedIndex) {
+            int rectX = textX - BUTTON_PADDING_X;
+            int rectY = textY - BUTTON_PADDING_Y - 1;
+            int rectW = labelWidth + BUTTON_PADDING_X * 2;
+            int rectH = subFontHeight + BUTTON_PADDING_Y * 2;
+            pd->graphics->drawRect(rectX, rectY, rectW, rectH, kColorWhite);
+        }
+    }
+
     if (isSceneTransitioning()) {
         return;
     }
-    if (pushed & kButtonA) {
-        initRunStart();
-        switchScene(SCENE_GAME);
-    } else if (pushed & kButtonB) {
-        setCurrentClass(CLASS_MAGE);
-        initRunStart();
-        switchScene(SCENE_TUTORIAL);
+
+    PDButtons pushed;
+    pd->system->getButtonState(NULL, &pushed, NULL);
+
+    if (pushed & kButtonUp) {
+        selectedIndex = (selectedIndex - 1 + BUTTON_COUNT) % BUTTON_COUNT;
+    } else if (pushed & kButtonDown) {
+        selectedIndex = (selectedIndex + 1) % BUTTON_COUNT;
+    } else if (pushed & kButtonA) {
+        if (selectedIndex == 0) {
+            switchScene(SCENE_CLASS_SELECT);
+        } else {
+            setCurrentClass(CLASS_MAGE);
+            initRunStart();
+            switchScene(SCENE_TUTORIAL);
+        }
     }
 }
