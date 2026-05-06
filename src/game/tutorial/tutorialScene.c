@@ -16,6 +16,7 @@
 #include "game/systems/runStats.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/runeManager.h"
+#include "game/systems/spawnManager.h"
 #include "game/settings/settings.h"
 
 #include "game/tutorial/tutorialScene.h"
@@ -218,6 +219,7 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R2_ENTER: {
             closeBehindIfEntered(1, 0);
+            setCurrentRoomIndex(1);
             Point center = getRoomWorldCenter(1);
             spawnEnemy(ENEMY_TYPE_DUMMY, (int)center.x, (int)center.y, false);
             openTutorialDialog(r2Pages);
@@ -258,6 +260,7 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R3_ENTER: {
             closeRoomGate(1);
+            setCurrentRoomIndex(2);
             for (int i = 0; i < 3; i++) {
                 Point p = getRoomSpawnPosition(2, i);
                 spawnEnemy(ENEMY_TYPE_DUMMY, (int)p.x, (int)p.y, false);
@@ -300,6 +303,7 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R4_ENTER: {
             closeRoomGate(2);
+            setCurrentRoomIndex(3);
             Point minP = getRoomInteriorMin(3);
             Point maxP = getRoomInteriorMax(3);
             int chasmX = (minP.x + maxP.x) / 2;
@@ -340,6 +344,7 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R5_ENTER: {
             closeRoomGate(3);
+            setCurrentRoomIndex(4);
             clearArrow();
             openTutorialDialog(r5PreShopPages);
             tPhase = TUTORIAL_R5_DIALOG_PRE_SHOP;
@@ -398,6 +403,7 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R6_ENTER: {
             closeRoomGate(4);
+            setCurrentRoomIndex(5);
             Point center = getRoomCenter(5);
             addInteractable(center.x, center.y, INTERACTABLE_TYPE_EXIT);
             openTutorialDialog(r6Pages);

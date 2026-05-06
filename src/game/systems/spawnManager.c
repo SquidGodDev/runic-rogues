@@ -236,6 +236,10 @@ int getCurrentRoomIndex(void) {
     return currentRoomIndex;
 }
 
+void setCurrentRoomIndex(int roomIndex) {
+    currentRoomIndex = roomIndex;
+}
+
 void roomCompleted(void) {
     showPopup(POPUP_ROOM_CLEARED, POPUP_POSITION_CENTER);
     nextRoomIndex++;
