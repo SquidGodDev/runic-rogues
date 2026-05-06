@@ -75,6 +75,7 @@ static const char *r2Pages[] = {
 static const char *r3Pages[] = {
     "Press the B button to cast your special spell.",
     "It's more powerful, but has a longer cooldown.",
+    "The mage class has a lightning spell that chains between nearby enemies.",
     "Try casting your special spell on the groups of enemies!"
 };
 static const char *r4Pages[] = {
@@ -92,7 +93,7 @@ static const char *r5PostShopPages[] = {
     "Open it now to take a look!"
 };
 static const char *r6Pages[] = {
-    "A pack of slimes blocks your path. Defeat them all to finish the tutorial!"
+    "You've finished the tutorial! Enter the gate to start your first run."
 };
 
 static void setArrowToRoom(int roomIndex) {
@@ -370,17 +371,13 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R6_ENTER: {
             closeRoomGate(4);
-            for (int i = 0; i < 3; i++) {
-                Point p = getRoomSpawnPosition(5, i);
-                spawnEnemy(ENEMY_TYPE_SLIME, (int)p.x, (int)p.y, false);
-            }
             openTutorialDialog(r6Pages);
             tPhase = TUTORIAL_R6_DIALOG;
             break;
         }
         case TUTORIAL_R6_DIALOG: {
             if (isTutorialDialogComplete()) {
-                tPhase = TUTORIAL_R6_WAITING;
+                tPhase = TUTORIAL_R6_EXIT_SPAWNED;
             }
             break;
         }
@@ -401,10 +398,8 @@ static void updateTutorialPhase(float deltaTime) {
             int idx = getInteractableIndexAtPosition(playerX, playerY);
             if (idx >= 0 && INTERACTABLES[idx].active && INTERACTABLES[idx].type == INTERACTABLE_TYPE_EXIT) {
                 tPhase = TUTORIAL_DONE;
-                removeRuneInventoryMenuItem();
-                freeRuneInventoryCache();
-                clearArrow();
-                switchScene(SCENE_TITLE);
+                initRunStart();
+                switchScene(SCENE_GAME);
             }
             break;
         }
