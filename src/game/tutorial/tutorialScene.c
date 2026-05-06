@@ -60,7 +60,6 @@ static bool entranceClosed;
 static int r1ArrowStep;
 static int r1ArrowPickupIndex;
 static int r2DummyStage;
-static int r3ClusterStage;
 static bool prevDialogActive;
 
 static PDMenuItem *skipMenuItem;
@@ -82,7 +81,7 @@ static void onSkipTutorialSelect(void *userdata) {
 
 static const char *r1Pages[] = {
     "Use the d-pad to move and the crank to look around.",
-    "Dock the crank to use d-pad left and right to turn instead.",
+    "Dock the crank to use d-pad only controls instead.",
     "Try moving to each arrow!"
 };
 static const char *r2Pages[] = {
@@ -103,6 +102,7 @@ static const char *r4Pages[] = {
 };
 static const char *r5PreShopPages[] = {
     "Each cleared room rewards you with a choice of three runes.",
+    "You can view the runes you've collected from the system menu.",
     "Try picking one!"
 };
 static const char *r5PostShopPages[] = {
@@ -113,7 +113,7 @@ static const char *r6Pages[] = {
     "You've finished the tutorial! Enter the gate to start your first run."
 };
 static const char *nextRoomPages[] = {
-    "Room complete! Move on to the next room."
+    "Room complete! Follow the arrow to the next room."
 };
 
 static void setArrowToRoom(int roomIndex) {
@@ -126,20 +126,6 @@ static void spawnDummyAtCell(int cellX, int cellY) {
     int worldY = cellY * CELL_SIZE + CELL_SIZE / 2;
     spawnEnemy(ENEMY_TYPE_DUMMY, worldX, worldY, false);
     setArrowPosition(worldX, worldY);
-}
-
-static void spawnDummyClusterAtCell(int anchorCellX, int anchorCellY) {
-    int dx[3] = {0, -1, 1};
-    int dy[3] = {0, -1, -1};
-    for (int i = 0; i < 3; i++) {
-        int cellX = anchorCellX + dx[i];
-        int cellY = anchorCellY + dy[i];
-        int worldX = cellX * CELL_SIZE + CELL_SIZE / 2;
-        int worldY = cellY * CELL_SIZE + CELL_SIZE / 2;
-        spawnEnemy(ENEMY_TYPE_DUMMY, worldX, worldY, false);
-    }
-    setArrowPosition(anchorCellX * CELL_SIZE + CELL_SIZE / 2,
-                     anchorCellY * CELL_SIZE + CELL_SIZE / 2);
 }
 
 static int dummiesAlive(void) {
@@ -156,7 +142,6 @@ void initTutorialScene(void) {
     r1ArrowStep = 0;
     r1ArrowPickupIndex = -1;
     r2DummyStage = 0;
-    r3ClusterStage = 0;
     openedRuneInv = false;
     closedRuneInv = false;
     entranceClosed = false;
@@ -278,20 +263,10 @@ static void updateTutorialPhase(float deltaTime) {
         case TUTORIAL_R3_WAITING: {
             int alive = dummiesAlive();
             if (alive == 0) {
-                Point minP = getRoomInteriorMin(2);
-                Point maxP = getRoomInteriorMax(2);
-                if (r3ClusterStage == 0) {
-                    spawnDummyClusterAtCell((int)maxP.x - 2, (int)minP.y + 2);
-                    r3ClusterStage = 1;
-                } else if (r3ClusterStage == 1) {
-                    spawnDummyClusterAtCell((int)maxP.x - 2, (int)maxP.y - 2);
-                    r3ClusterStage = 2;
-                } else {
-                    openRoomGate(2);
-                    setArrowToRoom(3);
-                    openTutorialDialog(nextRoomPages);
-                    tPhase = TUTORIAL_R3_TO_R4;
-                }
+                openRoomGate(2);
+                setArrowToRoom(3);
+                openTutorialDialog(nextRoomPages);
+                tPhase = TUTORIAL_R3_TO_R4;
             }
             break;
         }
@@ -363,7 +338,7 @@ static void updateTutorialPhase(float deltaTime) {
                 RUNE_TYPE_ENCHANTED_AMULET
             };
             initShopWithRunes(runes);
-            tPhase = TUTORIAL_R5_SHOP_WAIT;
+            tPhase = TUTORIAL_R5_DIALOG_POST_SHOP;
             break;
         }
         case TUTORIAL_R5_SHOP_WAIT: {
@@ -376,23 +351,14 @@ static void updateTutorialPhase(float deltaTime) {
         case TUTORIAL_R5_DIALOG_POST_SHOP: {
             if (isTutorialDialogComplete()) {
                 tPhase = TUTORIAL_R5_WAITING;
-                addUIAnimation(BITMAP_TABLE_SYSTEM_MENU_ARROW, 0.1f, 169, 11);
             }
             break;
         }
         case TUTORIAL_R5_WAITING: {
-            if (gameState == GAME_STATE_RUNE_INVENTORY) {
-                openedRuneInv = true;
-            } else if (openedRuneInv && gameState == GAME_STATE_ACTIVE) {
-                closedRuneInv = true;
-            }
-            if (openedRuneInv && closedRuneInv) {
-                openRoomGate(4);
-                setArrowToRoom(5);
-                openTutorialDialog(nextRoomPages);
-                removeUIAnimation(BITMAP_TABLE_SYSTEM_MENU_ARROW);
-                tPhase = TUTORIAL_R5_TO_R6;
-            }
+            openRoomGate(4);
+            setArrowToRoom(5);
+            openTutorialDialog(nextRoomPages);
+            tPhase = TUTORIAL_R5_TO_R6;
             break;
         }
         case TUTORIAL_R5_TO_R6: {

@@ -338,7 +338,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_DUMMY] = (EnemyData){
 		.name = "Dummy",
-		.health = 20,
+		.health = 15,
 		.attackDetectionRange = 0,
 		.attackDistance = 0,
 		.attackDamage = 0,
