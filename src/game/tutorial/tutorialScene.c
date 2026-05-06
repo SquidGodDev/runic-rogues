@@ -4,6 +4,7 @@
 #include "globals/globals.h"
 #include "globals/helpers.h"
 #include "globals/sceneManager.h"
+#include "globals/saveSystem.h"
 
 #include "game/gameScene.h"
 #include "game/map/map.h"
@@ -75,6 +76,7 @@ static void onSkipTutorialSelect(void *userdata) {
     removeSkipTutorialMenuItem();
     setPlayerInputDisabled(false);
     tPhase = TUTORIAL_DONE;
+    setTutorialCompleted(true);
     initRunStart();
     switchScene(SCENE_GAME);
 }
@@ -404,6 +406,7 @@ static void updateTutorialPhase(float deltaTime) {
                 if (pushed & kButtonA) {
                     removeSkipTutorialMenuItem();
                     tPhase = TUTORIAL_DONE;
+                    setTutorialCompleted(true);
                     initRunStart();
                     switchScene(SCENE_GAME);
                 }

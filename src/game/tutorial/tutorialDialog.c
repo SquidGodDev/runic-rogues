@@ -6,7 +6,7 @@
 #include "game/rendering/textures.h"
 #include "game/tutorial/tutorialDialog.h"
 
-#define TD_BOX_MARGIN       6
+#define TD_BOX_MARGIN       8
 #define TD_BOX_PADDING_X    6
 #define TD_BOX_PADDING_Y    5
 #define TD_BOX_HEIGHT       42

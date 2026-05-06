@@ -3,9 +3,12 @@
 
 #include "globals/globals.h"
 #include "globals/sceneManager.h"
+#include "globals/saveSystem.h"
 #include "title/loadingScene.h"
 #include "game/rendering/textures.h"
 #include "game/systems/audioManager.h"
+#include "game/gameScene.h"
+#include "game/player/classes/classData.h"
 
 #define BAR_WIDTH 120
 #define BAR_HEIGHT 8
@@ -70,6 +73,12 @@ void updateLoadingScene(float deltaTime) {
 
     if (!finished && stepsDone >= totalSteps) {
         finished = true;
-        switchScene(SCENE_TITLE);
+        if (isTutorialCompleted()) {
+            switchScene(SCENE_TITLE);
+        } else {
+            setCurrentClass(CLASS_MAGE);
+            initRunStart();
+            switchScene(SCENE_TUTORIAL);
+        }
     }
 }
