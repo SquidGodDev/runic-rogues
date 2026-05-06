@@ -62,6 +62,23 @@ static int r2DummyStage;
 static int r3ClusterStage;
 static bool prevDialogActive;
 
+static PDMenuItem *skipMenuItem;
+
+static void removeSkipTutorialMenuItem(void) {
+    if (skipMenuItem != NULL) {
+        pd->system->removeMenuItem(skipMenuItem);
+        skipMenuItem = NULL;
+    }
+}
+
+static void onSkipTutorialSelect(void *userdata) {
+    removeSkipTutorialMenuItem();
+    setPlayerInputDisabled(false);
+    tPhase = TUTORIAL_DONE;
+    initRunStart();
+    switchScene(SCENE_GAME);
+}
+
 static const char *r1Pages[] = {
     "Use the d-pad to move and the crank to look around.",
     "Dock the crank to use d-pad left and right to turn instead.",
@@ -127,6 +144,9 @@ static int dummiesAlive(void) {
 
 void initTutorialScene(void) {
     initGameScene();
+
+    removeSkipTutorialMenuItem();
+    skipMenuItem = pd->system->addMenuItem("Skip Tutorial", onSkipTutorialSelect, NULL);
 
     tPhase = TUTORIAL_R1_DIALOG;
     r1ArrowStep = 0;
@@ -396,6 +416,7 @@ static void updateTutorialPhase(float deltaTime) {
         case TUTORIAL_R6_EXIT_SPAWNED: {
             int idx = getInteractableIndexAtPosition(playerX, playerY);
             if (idx >= 0 && INTERACTABLES[idx].active && INTERACTABLES[idx].type == INTERACTABLE_TYPE_EXIT) {
+                removeSkipTutorialMenuItem();
                 tPhase = TUTORIAL_DONE;
                 initRunStart();
                 switchScene(SCENE_GAME);

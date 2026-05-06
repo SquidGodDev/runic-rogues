@@ -1,11 +1,5 @@
 # DEMO
-- Tutorial
-  - Arrow pointing at rune inventory menu
-  - Get rid of slime encounter final room
-  - Test JP
-  - Skip tutorial menu option
 - SFX
-- Increase shop desc box size
 - Bigger mage projectile
 - Starter rune for each class
 - Dock crank to use crank to turn
@@ -20,6 +14,7 @@
   - SFX Volume
 - JP Localization
   - Make localization csv
+  - Tutorial
 - Music
 - Area 3
   - New boss
