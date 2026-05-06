@@ -202,9 +202,7 @@ void startWeaponAnimation(int spellIndex) {
 
 void handleInput(float deltaTime)
 {
-	if (!pd->system->isCrankDocked() && !defaultStrafeSetting) {
-		defaultStrafeSetting = true;
-	}
+	defaultStrafeSetting = !pd->system->isCrankDocked();
 
 	int cellSize = CELL_SIZE;
 	int mapWidth = MAP_WIDTH;
