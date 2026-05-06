@@ -144,7 +144,7 @@ void createShopOptions(void) {
         }
         // Debug for testing rune in shop
         // if (i == 0) {
-        //     shopRune = RUNE_TYPE_HEALTHY;
+        //     shopRune = RUNE_TYPE_THUNDER_STONE;
         // }
         shopPageDataEN = createRuneShopPage(shopRune, LANGUAGE_EN);
         shopPageDataJP = createRuneShopPage(shopRune, LANGUAGE_JP);

@@ -64,7 +64,7 @@ static bool prevDialogActive;
 
 static const char *r1Pages[] = {
     "Use the d-pad to move and the crank to look around.",
-    "You can dock the crank to use d-pad left and right to turn instead.",
+    "Dock the crank to use d-pad left and right to turn instead.",
     "Try moving to each arrow!"
 };
 static const char *r2Pages[] = {
@@ -74,7 +74,6 @@ static const char *r2Pages[] = {
 };
 static const char *r3Pages[] = {
     "Press the B button to cast your special spell.",
-    "It's more powerful, but has a longer cooldown.",
     "The mage class has a lightning spell that chains between nearby enemies.",
     "Try casting your special spell on the groups of enemies!"
 };
