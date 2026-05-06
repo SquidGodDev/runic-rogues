@@ -420,6 +420,9 @@ static void updateTutorialPhase(float deltaTime) {
 
 void updateTutorialScene(float deltaTime) {
     runStatsTick(deltaTime);
+    if (tPhase == TUTORIAL_DONE) {
+        return;
+    }
     if (gameState == GAME_STATE_ACTIVE) {
         bool dialogActive = isTutorialDialogActive();
         setPlayerInputDisabled(dialogActive);
