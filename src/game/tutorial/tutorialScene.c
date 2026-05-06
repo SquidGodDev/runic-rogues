@@ -111,6 +111,9 @@ static const char *r5PostShopPages[] = {
 static const char *r6Pages[] = {
     "You've finished the tutorial! Enter the gate to start your first run."
 };
+static const char *nextRoomPages[] = {
+    "Room complete! Move on to the next room."
+};
 
 static void setArrowToRoom(int roomIndex) {
     Point p = getRoomWorldCenter(roomIndex);
@@ -202,6 +205,7 @@ static void updateTutorialPhase(float deltaTime) {
                     closeEntranceGate();
                     openRoomGate(0);
                     setArrowToRoom(1);
+                    openTutorialDialog(nextRoomPages);
                 }
             }
             break;
@@ -240,6 +244,7 @@ static void updateTutorialPhase(float deltaTime) {
                 } else {
                     openRoomGate(1);
                     setArrowToRoom(2);
+                    openTutorialDialog(nextRoomPages);
                     tPhase = TUTORIAL_R2_TO_R3;
                 }
             }
@@ -281,6 +286,7 @@ static void updateTutorialPhase(float deltaTime) {
                 } else {
                     openRoomGate(2);
                     setArrowToRoom(3);
+                    openTutorialDialog(nextRoomPages);
                     tPhase = TUTORIAL_R3_TO_R4;
                 }
             }
@@ -321,6 +327,7 @@ static void updateTutorialPhase(float deltaTime) {
             if (playerCellX > chasmX) {
                 openRoomGate(3);
                 setArrowToRoom(4);
+                openTutorialDialog(nextRoomPages);
                 tPhase = TUTORIAL_R4_TO_R5;
             }
             break;
@@ -377,6 +384,7 @@ static void updateTutorialPhase(float deltaTime) {
             if (openedRuneInv && closedRuneInv) {
                 openRoomGate(4);
                 setArrowToRoom(5);
+                openTutorialDialog(nextRoomPages);
                 removeUIAnimation(BITMAP_TABLE_SYSTEM_MENU_ARROW);
                 tPhase = TUTORIAL_R5_TO_R6;
             }
@@ -390,6 +398,8 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R6_ENTER: {
             closeRoomGate(4);
+            Point center = getRoomCenter(5);
+            addInteractable(center.x, center.y, INTERACTABLE_TYPE_EXIT);
             openTutorialDialog(r6Pages);
             tPhase = TUTORIAL_R6_DIALOG;
             break;
@@ -401,6 +411,7 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R6_WAITING: {
+            // This stage is skipped (removed final enemy encounter)
             int alive = getActiveEnemyCount();
             int killed = 3 - alive;
             if (killed < 0) { killed = 0; }
