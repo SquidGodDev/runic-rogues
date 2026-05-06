@@ -1,10 +1,13 @@
 # DEMO
+- Save system to save 
+- Title screen
+- Recording
+  - Area 2 boss
+  - Tutorial
+# FULL RELEASE
 - SFX
 - Bigger mage projectile
 - Starter rune for each class
-- Dock crank to use crank to turn
-- B Button to exit rune inventory
-# FULL RELEASE
 - Settings menu
   - Language
   - Turn speed (d-pad, crank)

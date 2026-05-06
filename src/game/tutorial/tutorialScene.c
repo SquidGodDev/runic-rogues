@@ -399,10 +399,14 @@ static void updateTutorialPhase(float deltaTime) {
         case TUTORIAL_R6_EXIT_SPAWNED: {
             int idx = getInteractableIndexAtPosition(playerX, playerY);
             if (idx >= 0 && INTERACTABLES[idx].active && INTERACTABLES[idx].type == INTERACTABLE_TYPE_EXIT) {
-                removeSkipTutorialMenuItem();
-                tPhase = TUTORIAL_DONE;
-                initRunStart();
-                switchScene(SCENE_GAME);
+                PDButtons pushed;
+                pd->system->getButtonState(NULL, &pushed, NULL);
+                if (pushed & kButtonA) {
+                    removeSkipTutorialMenuItem();
+                    tPhase = TUTORIAL_DONE;
+                    initRunStart();
+                    switchScene(SCENE_GAME);
+                }
             }
             break;
         }
