@@ -1,12 +1,14 @@
 # DEMO
-- Save system to save 
-- Title screen
 - Recording
   - Area 2 boss
   - Tutorial
 # FULL RELEASE
-- SFX
+## Tweaks
+- Redraw Warrior sword animation
+- Area entry popup
 - Bigger mage projectile
+- Quit run menu option (confirmation dialog)
+## Features
 - Starter rune for each class
 - Settings menu
   - Language
@@ -15,10 +17,6 @@
   - Inverse turn
   - Music Volume
   - SFX Volume
-- JP Localization
-  - Make localization csv
-  - Tutorial
-- Music
 - Area 3
   - New boss
   - New enemies
@@ -43,8 +41,11 @@
   - Black hole (every X specials)
   - More damage the closer you are to enemies
   - Rune rarity
-- Redraw Warrior sword animation
 - Make ranger class
+- Level ups and unlocks
+- Ascension difficulty
+## Scenes
+- Improved title
 - Character selection screen
   - 3D models
   - Blender -> 1-bit 2D
@@ -52,6 +53,13 @@
   - Stats
   - Class used
   - Show runes
-# Juice
+## Audio
+- Music
+- SFX
+## Localization
+- JP Localization
+  - Make localization csv
+  - Tutorial
+## Juice
 - Dash indicator lines
 - Enemy knockback
