@@ -342,7 +342,11 @@ void updateGameOverScene(float deltaTime) {
         } else if (pushed & kButtonDown) {
             selectedButton = (selectedButton + 1) % GO_BUTTON_COUNT;
         } else if (pushed & kButtonA) {
-            switchScene(SCENE_CLASS_SELECT);
+            if (selectedButton == 0) {
+                switchScene(SCENE_CLASS_SELECT);
+            } else {
+                switchScene(SCENE_TITLE);
+            }   
         }
     }
 
