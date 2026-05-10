@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://ckp4bo64wn881"
+path="res://.godot/imported/shield_round_barbarian.obj-e278c31cc0b29a35e210c0b044cc1eab.mesh"
+
+[deps]
+
+files=["res://.godot/imported/shield_round_barbarian.obj-e278c31cc0b29a35e210c0b044cc1eab.mesh"]
+
+source_file="res://KayKitAdventurers/Assets/obj/shield_round_barbarian.obj"
+dest_files=["res://.godot/imported/shield_round_barbarian.obj-e278c31cc0b29a35e210c0b044cc1eab.mesh", "res://.godot/imported/shield_round_barbarian.obj-e278c31cc0b29a35e210c0b044cc1eab.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

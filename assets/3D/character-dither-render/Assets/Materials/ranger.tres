@@ -1,0 +1,9 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://hwqnppkybx81"]
+
+[ext_resource type="Texture2D" uid="uid://py3vs5t0wtih" path="res://Assets/Textures/Ranger_ranger_texture.png" id="1_b6wpq"]
+
+[resource]
+resource_name = "ranger"
+cull_mode = 2
+albedo_texture = ExtResource("1_b6wpq")
+roughness = 0.5

@@ -1,0 +1,19 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://b65eqcvrw1cn0"]
+
+[ext_resource type="Shader" uid="uid://cr737digkdjbx" path="res://Assets/Shaders/cel/toon.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" uid="uid://ce661p50ns7qq" path="res://Assets/Characters/Knight_knight_texture.png" id="2_albedo"]
+[ext_resource type="Texture2D" uid="uid://6opbxt0dwoiu" path="res://Assets/Shaders/cel/diffuse_curve.tres" id="3_curve"]
+
+[resource]
+resource_name = "knight_cel"
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/diffuse_curve = ExtResource("3_curve")
+shader_parameter/specular_smoothness = 0.1
+shader_parameter/fresnel_smoothness = 0.1
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/base_texture = ExtResource("2_albedo")
+shader_parameter/specular = Color(0.3, 0.3, 0.3, 0.5)
+shader_parameter/fresnel = Color(0.2, 0.2, 0.2, 0.3)
+shader_parameter/uv_scale = Vector2(1, 1)
+shader_parameter/uv_offset = Vector2(0, 0)
