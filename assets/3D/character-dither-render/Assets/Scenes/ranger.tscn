@@ -58,5 +58,7 @@ bones/22/position = Vector3(-6.936717e-09, 0.096125185, -0.057500005)
 bones/22/rotation = Quaternion(6.9489685e-09, -3.587743e-09, -0.7071068, 0.7071067)
 bones/22/scale = Vector3(0.99999994, 1.0000001, 1.0000001)
 
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="Rig_Medium/Skeleton3D" index="8" unique_id=269978385]
+
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." index="1" unique_id=907166583]
 libraries/Player = ExtResource("2_vm53m")

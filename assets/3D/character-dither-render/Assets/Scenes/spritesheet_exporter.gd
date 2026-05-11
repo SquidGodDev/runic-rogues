@@ -204,14 +204,6 @@ func _preview_first_frame() -> void:
 	cam.keep_aspect = source_camera.keep_aspect
 	cam.current = true
 
-	var preview_rotation_target: Node3D = null
-	var preview_rotation_original := Vector3.ZERO
-	if rotation_enabled and not rotation_target_path.is_empty():
-		preview_rotation_target = get_node_or_null(rotation_target_path) as Node3D
-		if preview_rotation_target != null:
-			preview_rotation_original = preview_rotation_target.rotation
-			preview_rotation_target.rotation = Vector3(preview_rotation_original.x, preview_rotation_original.y + deg_to_rad(rotation_start_degrees), preview_rotation_original.z)
-
 	_apply_outline()
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
@@ -219,8 +211,6 @@ func _preview_first_frame() -> void:
 	var img: Image = sv.get_texture().get_image()
 	sv.queue_free()
 	_remove_outline()
-	if preview_rotation_target != null:
-		preview_rotation_target.rotation = preview_rotation_original
 
 	if supersample > 1:
 		img.resize(viewport_width, viewport_height, Image.INTERPOLATE_LANCZOS)
@@ -256,6 +246,7 @@ func _export() -> void:
 	if state_machine == null:
 		push_error("SpritesheetExporter: could not resolve state machine at '%s'" % state_machine_param_path)
 		return
+	var playback_path := _resolve_playback_path(tree)
 
 	var initial := initial_state_name
 	if initial.is_empty():
@@ -270,7 +261,7 @@ func _export() -> void:
 
 	tree.active = true
 	tree.callback_mode_process = AnimationTree.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
-	var playback: AnimationNodeStateMachinePlayback = tree.get(state_machine_param_path)
+	var playback: AnimationNodeStateMachinePlayback = tree.get(playback_path)
 	playback.start(initial)
 	tree.advance(0.0)
 
@@ -382,7 +373,8 @@ func _export() -> void:
 
 	var scene_path: String = get_tree().current_scene.scene_file_path
 	var scene_name: String = scene_path.get_file().get_basename()
-	var output_dir: String = scene_path.get_base_dir()
+	var output_dir := "res://Assets/Exports"
+	DirAccess.make_dir_recursive_absolute(output_dir)
 	var output_path := "%s/%s-table-%d-%d.png" % [output_dir, scene_name, fw, fh]
 	var err := sheet.save_png(output_path)
 	if err != OK:
@@ -392,10 +384,13 @@ func _export() -> void:
 
 
 func _resolve_state_machine(tree: AnimationTree) -> AnimationNodeStateMachine:
+	var root := tree.tree_root
+	if root is AnimationNodeStateMachine:
+		return root as AnimationNodeStateMachine
 	var parts := state_machine_param_path.split("/")
 	if parts.size() < 2:
 		return null
-	var node: AnimationNode = tree.tree_root
+	var node: AnimationNode = root
 	for i in range(1, parts.size() - 1):
 		var part := parts[i]
 		if node is AnimationNodeBlendTree:
@@ -407,6 +402,12 @@ func _resolve_state_machine(tree: AnimationTree) -> AnimationNodeStateMachine:
 		if node == null:
 			return null
 	return node as AnimationNodeStateMachine
+
+
+func _resolve_playback_path(tree: AnimationTree) -> String:
+	if tree.tree_root is AnimationNodeStateMachine:
+		return "parameters/playback"
+	return state_machine_param_path
 
 
 func _find_initial_state(sm: AnimationNodeStateMachine) -> String:

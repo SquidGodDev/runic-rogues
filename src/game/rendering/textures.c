@@ -128,7 +128,10 @@ const char *bitmapTablePathStrings[] = {
 	"images/player/sword",
 	"images/player/knifeHand",
 	"images/shop/ditherBackground",
-	"images/UI/animations/systemMenuArrow"
+	"images/UI/animations/systemMenuArrow",
+	"images/title/classSelect/knight",
+	"images/title/classSelect/knight",
+	"images/title/classSelect/rogue"
 };
 
 LCDFont *fontTitleEN;
