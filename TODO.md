@@ -1,9 +1,4 @@
-# DEMO
-- Recording
-  - Area 2 boss
-  - Tutorial
-- PlaydateSimulator.exe not found error in build
-# FULL RELEASE
+# TODO
 ## Tweaks
 - Redraw Warrior sword animation
 - Area entry popup
