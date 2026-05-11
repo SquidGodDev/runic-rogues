@@ -5,7 +5,7 @@
             "label": "Playdate: Kill Simulator",
             "type": "shell",
             "windows": {
-                "command": "taskkill /IM PlaydateSimulator.exe /F; exit 0"
+                "command": "$p = Get-Process PlaydateSimulator -ErrorAction SilentlyContinue; if ($p) { Stop-Process -Id $p.Id -Force; Write-Host 'Playdate Simulator stopped.' } else { Write-Host 'Playdate Simulator not running.' }"
             },
             "osx": {
                 "command": "pkill -f 'Playdate Simulator' || true"
