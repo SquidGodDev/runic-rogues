@@ -24,8 +24,8 @@ typedef struct ClassBitmapTableData {
 
 static ClassBitmapTableData classBitmapTables[CLASS_COUNT] = {
     [CLASS_MAGE] = {
-        .bitmapTablePath = BITMAP_TABLE_CLASS_SELECT_MAGE,
-        .introEndFrame = 76
+        .bitmapTablePath = BITMAP_TABLE_CLASS_SELECT_RANGER,
+        .introEndFrame = 121
     },
     [CLASS_WARRIOR] = {
         .bitmapTablePath = BITMAP_TABLE_CLASS_SELECT_WARRIOR,

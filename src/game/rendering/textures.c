@@ -131,7 +131,8 @@ const char *bitmapTablePathStrings[] = {
 	"images/UI/animations/systemMenuArrow",
 	"images/title/classSelect/knight",
 	"images/title/classSelect/knight",
-	"images/title/classSelect/rogue"
+	"images/title/classSelect/rogue",
+	"images/title/classSelect/ranger",
 };
 
 LCDFont *fontTitleEN;
