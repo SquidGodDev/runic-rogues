@@ -129,7 +129,7 @@ const char *bitmapTablePathStrings[] = {
 	"images/player/knifeHand",
 	"images/shop/ditherBackground",
 	"images/UI/animations/systemMenuArrow",
-	"images/title/classSelect/knight",
+	"images/title/classSelect/mage",
 	"images/title/classSelect/knight",
 	"images/title/classSelect/rogue",
 	"images/title/classSelect/ranger",

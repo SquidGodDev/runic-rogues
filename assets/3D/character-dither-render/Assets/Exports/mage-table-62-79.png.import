@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bg6hg308d8fbi"
-path="res://.godot/imported/ranger-table-84-65.png-8754a8c946323dd484799aac9663c914.ctex"
+uid="uid://bodfh5ard8o3g"
+path="res://.godot/imported/mage-table-62-79.png-00a36a075405cc42fad5d0c13bbb307e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Exports/ranger-table-84-65.png"
-dest_files=["res://.godot/imported/ranger-table-84-65.png-8754a8c946323dd484799aac9663c914.ctex"]
+source_file="res://Assets/Exports/mage-table-62-79.png"
+dest_files=["res://.godot/imported/mage-table-62-79.png-00a36a075405cc42fad5d0c13bbb307e.ctex"]
 
 [params]
 
