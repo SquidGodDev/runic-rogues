@@ -354,5 +354,5 @@ int updateSceneManager(void* userdata) {
 }
 
 bool isSceneTransitioning(void) {
-    return primary.state == TRANSITION_EXITING_1 || primary.state == TRANSITION_EXITING_2;
+    return primary.state != TRANSITION_NONE && primary.state != TRANSITION_ENTERING;
 }
