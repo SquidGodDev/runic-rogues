@@ -21,6 +21,7 @@
 #include "game/systems/runeManager.h"
 #include "game/systems/shopManager.h"
 #include "game/UI/runeInventory.h"
+#include "game/UI/quitConfirmDialog.h"
 #include "game/systems/timerManager.h"
 #include "game/systems/spawnManager.h"
 #include "game/systems/bossCinematic.h"
@@ -41,6 +42,7 @@ void initRunStart(void) {
 	initRunes();
 	freeRuneInventoryCache();
 	createRuneInventoryMenuItem();
+	createQuitRunMenuItem();
 	initProgressionManager();
 	initTimers();
 	runStatsResetForNewRun();
@@ -111,8 +113,12 @@ void updateGameScene(float deltaTime)
 		renderScene();
 		drawUI(deltaTime, true /*duringCinematic*/);
 		drawPopup(deltaTime);
+	} else if (gameState == GAME_STATE_QUIT_CONFIRM) {
+		updateQuitConfirmDialog(deltaTime);
 	}
-	
+
+	tryCompleteQuitDialogInit();
+
 	if (SETTINGS.drawFPS) {
 		pd->graphics->fillRect(183, 106, 17, 14, kColorBlack);
 		pd->system->drawFPS(185, 108);

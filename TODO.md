@@ -43,8 +43,7 @@
 ## Scenes
 - Improved title
 - Character selection screen
-  - 3D models
-  - Blender -> 1-bit 2D
+  - Show abilities in character select
 - Game Over scene
   - Stats
   - Class used

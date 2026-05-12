@@ -7,6 +7,7 @@
 #include "title/gameOverScene.h"
 #include "game/rendering/textures.h"
 #include "game/UI/runeInventory.h"
+#include "game/UI/quitConfirmDialog.h"
 #include "game/settings/settings.h"
 #include "game/systems/runStats.h"
 #include "game/systems/progressionManager.h"
@@ -187,6 +188,7 @@ static void skipToInteractive(void) {
 
 void initGameOverScene(void) {
     removeRuneInventoryMenuItem();
+    removeQuitRunMenuItem();
     freeRuneInventoryCache();
 
     phase = GO_PHASE_HEADER;

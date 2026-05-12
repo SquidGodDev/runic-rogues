@@ -5,6 +5,7 @@
 #include "globals/helpers.h"
 #include "game/gameScene.h"
 #include "game/UI/runeInventory.h"
+#include "game/UI/quitConfirmDialog.h"
 #include "game/player/player.h"
 #include "game/systems/runeManager.h"
 #include "game/rendering/textures.h"
@@ -295,6 +296,7 @@ void initRuneInventory(void) {
         pd->system->removeMenuItem(menuItem);
     }
     menuItem = pd->system->addMenuItem("Close", onExitMenuItemSelect, NULL);
+    createQuitRunMenuItem();
 
     setGameState(GAME_STATE_RUNE_INVENTORY);
 }
@@ -314,6 +316,7 @@ void createRuneInventoryMenuItem(void) {
         pd->system->removeMenuItem(menuItem);
     }
     menuItem = pd->system->addMenuItem("Runes", onMenuItemSelect, NULL);
+    createQuitRunMenuItem();
 }
 
 void removeRuneInventoryMenuItem(void) {
