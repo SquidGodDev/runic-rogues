@@ -33,9 +33,6 @@
 #define MAX_RADIUS 250
 
 // === Fade transition tuning ===
-// Easing applied to the fade darkness (0 -> 1). Swap to easeInCubic / easeOutCubic /
-// linearEasing / etc. for a different feel.
-static inline float linearEasing(float x) { return x; }
 #define FADE_IN_EASING easeInOutQuad
 #define FADE_OUT_EASING easeInCubic
 // FADE_RAMP_WIDTH: how soft/wide the gradient between fully-dark and fully-clear regions is.
