@@ -10,7 +10,6 @@
 // Strings NOT in this table (and where to find them if you need to edit them):
 //   - Rune names and descriptions: src/game/systems/runeManager.c
 //   - Spell names and descriptions: src/game/player/spells/spellData.c
-//   - Popup labels (bitmap-rendered):  src/game/UI/popups.c
 //   - Shop "Skip" page and "Rune" type: src/game/systems/shopManager.c
 //   These are kept where they live because they are part of structured data
 //   tables rendered into cached bitmaps for both languages simultaneously.
@@ -69,15 +68,25 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
     // In-game room HUD
     [STR_ROOM_BOSS]                      = { "Boss",         "ボス部屋" },
     [STR_ROOM_FORMAT]                    = { "Room %d/%d",   "部屋 %d/%d" },
+
+    // Popup banners
+    [STR_POPUP_ROOM_CLEARED]             = { "Room Cleared",  "部屋クリア" },
+    [STR_POPUP_AREA_CLEARED]             = { "Floor Cleared", "フロア クリア" },
+    [STR_POPUP_ELDER_BOSS]               = { "The Elder",     "エルダー" },
+    [STR_POPUP_WRAITH_BOSS]              = { "The Wraith",    "レイス" },
 };
 
-const char *getLocString(StringKey key) {
+const char *getLocStringFor(StringKey key, Language language) {
     if (key < 0 || key >= STR_COUNT) {
         return "";
     }
     const LocEntry *entry = &LOC_TABLE[key];
-    if (SETTINGS.language == LANGUAGE_JP && entry->jp != NULL) {
+    if (language == LANGUAGE_JP && entry->jp != NULL) {
         return entry->jp;
     }
     return entry->en != NULL ? entry->en : "";
+}
+
+const char *getLocString(StringKey key) {
+    return getLocStringFor(key, SETTINGS.language);
 }

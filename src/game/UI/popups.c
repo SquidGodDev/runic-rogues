@@ -4,19 +4,15 @@
 #include "popups.h"
 
 #include "globals/globals.h"
+#include "globals/localization.h"
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
 
-typedef struct PopupDef {
-    const char *textEN;
-    const char *textJP;
-} PopupDef;
-
-static const PopupDef POPUP_DEFS[POPUP_TYPE_COUNT] = {
-    [POPUP_ROOM_CLEARED] = { "Room Cleared", "部屋クリア" },
-    [POPUP_AREA_CLEARED] = { "Floor Cleared", "フロア クリア" },
-    [POPUP_ELDER_BOSS] = { "The Elder", "エルダー" },
-    [POPUP_WRAITH_BOSS] = { "The Wraith", "レイス" },
+static const StringKey POPUP_STRING_KEYS[POPUP_TYPE_COUNT] = {
+    [POPUP_ROOM_CLEARED] = STR_POPUP_ROOM_CLEARED,
+    [POPUP_AREA_CLEARED] = STR_POPUP_AREA_CLEARED,
+    [POPUP_ELDER_BOSS]   = STR_POPUP_ELDER_BOSS,
+    [POPUP_WRAITH_BOSS]  = STR_POPUP_WRAITH_BOSS,
 };
 
 static const uint8_t POPUP_FADE_PATTERNS[POPUP_FADE_IN_FRAMES][8] = {
@@ -47,8 +43,7 @@ static void buildFadeStencils(void) {
 }
 
 static void buildPopupTable(PopupType type, Language language) {
-    const PopupDef *def = &POPUP_DEFS[type];
-    const char *text = (language == LANGUAGE_JP) ? def->textJP : def->textEN;
+    const char *text = getLocStringFor(POPUP_STRING_KEYS[type], language);
     LCDFont *font = (language == LANGUAGE_JP) ? fontTitleJP : fontTitleEN;
     int len = (int)strlen(text);
 

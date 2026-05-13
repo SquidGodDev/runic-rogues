@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/settings/settings.h"
+
 // Unified localization. All scattered UI strings live in the table in
 // localization.c, indexed by the StringKey enum below. To add or change a
 // string, edit localization.c (and add an enum entry here if it's new).
@@ -54,7 +56,19 @@ typedef enum StringKey {
     STR_ROOM_BOSS,
     STR_ROOM_FORMAT, // printf format: current room index, total rooms
 
+    // Popup banners (rendered to bitmaps for both languages on init)
+    STR_POPUP_ROOM_CLEARED,
+    STR_POPUP_AREA_CLEARED,
+    STR_POPUP_ELDER_BOSS,
+    STR_POPUP_WRAITH_BOSS,
+
     STR_COUNT
 } StringKey;
 
+// Returns the string for the active language (SETTINGS.language), falling back
+// to English if the active-language entry is NULL.
 const char *getLocString(StringKey key);
+
+// Returns the string for a specific language. Use this when you need to render
+// both languages up front (e.g. caching bitmaps for instant language switching).
+const char *getLocStringFor(StringKey key, Language language);
