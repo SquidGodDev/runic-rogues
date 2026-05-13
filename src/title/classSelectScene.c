@@ -3,6 +3,7 @@
 
 #include "globals/globals.h"
 #include "globals/helpers.h"
+#include "globals/localization.h"
 #include "globals/sceneManager.h"
 #include "title/classSelectScene.h"
 #include "game/player/classes/classData.h"
@@ -136,7 +137,7 @@ void updateClassSelectScene(float deltaTime) {
     pd->graphics->setFont(fontTitleEN);
     pd->graphics->setDrawMode(kDrawModeInverted);
 
-    const char *title = "Select Class";
+    const char *title = getLocString(STR_CLASS_SELECT_TITLE);
     int titleWidth = pd->graphics->getTextWidth(fontTitleEN, title, strlen(title), kUTF8Encoding, 0);
     pd->graphics->drawText(title, strlen(title), kUTF8Encoding, (SCREEN_WIDTH - titleWidth) / 2, TITLE_Y);
 

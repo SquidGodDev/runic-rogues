@@ -3,6 +3,7 @@
 
 #include "globals/globals.h"
 #include "globals/helpers.h"
+#include "globals/localization.h"
 #include "globals/sceneManager.h"
 #include "globals/saveSystem.h"
 
@@ -138,7 +139,7 @@ void initTutorialScene(void) {
     initGameScene();
 
     removeSkipTutorialMenuItem();
-    skipMenuItem = pd->system->addMenuItem("Skip Tutorial", onSkipTutorialSelect, NULL);
+    skipMenuItem = pd->system->addMenuItem(getLocString(STR_MENU_SKIP_TUTORIAL), onSkipTutorialSelect, NULL);
 
     tPhase = TUTORIAL_R1_DIALOG;
     r1ArrowStep = 0;

@@ -2,6 +2,7 @@
 #include "pd_api.h"
 
 #include "globals/globals.h"
+#include "globals/localization.h"
 #include "globals/sceneManager.h"
 
 #include "title/titleScene.h"
@@ -28,7 +29,7 @@ void updateTitleScene(float deltaTime) {
     pd->graphics->setFont(fontTitleEN);
     int titleFontHeight = pd->graphics->getFontHeight(fontTitleEN);
 
-    const char *titleLines[2] = { "Raycasting", "Game" };
+    const char *titleLines[2] = { getLocString(STR_TITLE_LINE_1), getLocString(STR_TITLE_LINE_2) };
     for (int i = 0; i < 2; i++) {
         const char *line = titleLines[i];
         int lineLen = strlen(line);
@@ -41,7 +42,7 @@ void updateTitleScene(float deltaTime) {
     pd->graphics->setFont(fontSubEN);
     int subFontHeight = pd->graphics->getFontHeight(fontSubEN);
 
-    const char *labels[BUTTON_COUNT] = { "Start", "Tutorial" };
+    const char *labels[BUTTON_COUNT] = { getLocString(STR_TITLE_BUTTON_START), getLocString(STR_TITLE_BUTTON_TUTORIAL) };
     int buttonsStartY = TITLE_TOP_Y + titleFontHeight * 2 + TITLE_TO_BUTTONS_GAP;
     int buttonStride = subFontHeight + BUTTON_PADDING_Y * 2 + BUTTON_SPACING;
 

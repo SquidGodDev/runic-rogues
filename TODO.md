@@ -3,7 +3,6 @@
 - Redraw Warrior sword animation
 - Area entry popup
 - Bigger mage projectile
-- Quit run menu option (confirmation dialog)
 ## Features
 - Starter rune for each class
 - Settings menu

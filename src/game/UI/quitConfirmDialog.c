@@ -2,6 +2,7 @@
 #include "pd_api.h"
 
 #include "globals/globals.h"
+#include "globals/localization.h"
 #include "globals/sceneManager.h"
 #include "game/gameScene.h"
 #include "game/UI/quitConfirmDialog.h"
@@ -32,21 +33,19 @@ static PDMenuItem *quitMenuItem = NULL;
 static bool initPending = false;
 
 static const char *getHeaderText(void) {
-    return SETTINGS.language == LANGUAGE_JP ? "ランをやめる？" : "Quit Run?";
+    return getLocString(STR_QUIT_RUN_TITLE);
 }
 
 static const char *getBodyText(void) {
-    return SETTINGS.language == LANGUAGE_JP
-        ? "本当にやめますか？進行状況はすべて失われます。"
-        : "Are you sure? All progress will be lost.";
+    return getLocString(STR_QUIT_RUN_BODY);
 }
 
 static const char *getYesText(void) {
-    return SETTINGS.language == LANGUAGE_JP ? "はい" : "Yes";
+    return getLocString(STR_YES);
 }
 
 static const char *getNoText(void) {
-    return SETTINGS.language == LANGUAGE_JP ? "いいえ" : "No";
+    return getLocString(STR_NO);
 }
 
 void initQuitConfirmDialog(void) {
@@ -201,7 +200,7 @@ void createQuitRunMenuItem(void) {
     if (quitMenuItem != NULL) {
         pd->system->removeMenuItem(quitMenuItem);
     }
-    quitMenuItem = pd->system->addMenuItem("Quit Run", onQuitRunMenuItemSelect, NULL);
+    quitMenuItem = pd->system->addMenuItem(getLocString(STR_MENU_QUIT_RUN), onQuitRunMenuItemSelect, NULL);
 }
 
 void removeQuitRunMenuItem(void) {

@@ -1,0 +1,83 @@
+#include <stdbool.h>
+#include <stddef.h>
+
+#include "globals/localization.h"
+#include "game/settings/settings.h"
+
+// Unified string table. Edit this file to add, change, or translate any UI
+// string in the game. Leave the JP column NULL to fall back to the EN value.
+//
+// Strings NOT in this table (and where to find them if you need to edit them):
+//   - Rune names and descriptions: src/game/systems/runeManager.c
+//   - Spell names and descriptions: src/game/player/spells/spellData.c
+//   - Popup labels (bitmap-rendered):  src/game/UI/popups.c
+//   - Shop "Skip" page and "Rune" type: src/game/systems/shopManager.c
+//   These are kept where they live because they are part of structured data
+//   tables rendered into cached bitmaps for both languages simultaneously.
+
+typedef struct LocEntry {
+    const char *en;
+    const char *jp;
+} LocEntry;
+
+static const LocEntry LOC_TABLE[STR_COUNT] = {
+    // System menu items (Playdate system menu is ASCII-only, so JP is left as EN)
+    [STR_MENU_QUIT_RUN]                  = { "Quit Run",      NULL },
+    [STR_MENU_RUNES]                     = { "Runes",         NULL },
+    [STR_MENU_CLOSE]                     = { "Close",         NULL },
+    [STR_MENU_SKIP_TUTORIAL]             = { "Skip Tutorial", NULL },
+
+    // Quit confirmation dialog
+    [STR_QUIT_RUN_TITLE]                 = { "Quit Run?",                                 "ランをやめる？" },
+    [STR_QUIT_RUN_BODY]                  = { "Are you sure? All progress will be lost.",  "本当にやめますか？進行状況はすべて失われます。" },
+    [STR_YES]                            = { "Yes",                                       "はい" },
+    [STR_NO]                             = { "No",                                        "いいえ" },
+
+    // Title scene (currently English-only; add JP translations to enable)
+    [STR_TITLE_LINE_1]                   = { "Raycasting", NULL },
+    [STR_TITLE_LINE_2]                   = { "Game",       NULL },
+    [STR_TITLE_BUTTON_START]             = { "Start",      NULL },
+    [STR_TITLE_BUTTON_TUTORIAL]          = { "Tutorial",   NULL },
+
+    // Class select scene (English-only)
+    [STR_CLASS_SELECT_TITLE]             = { "Select Class", NULL },
+
+    // Loading scene (English-only)
+    [STR_LOADING_DONE]                   = { "Loaded!",             NULL },
+    [STR_LOADING_FONTS]                  = { "Loading fonts...",    NULL },
+    [STR_LOADING_TEXTURES]               = { "Loading textures...", NULL },
+    [STR_LOADING_AUDIO]                  = { "Loading audio...",    NULL },
+
+    // Game over scene
+    [STR_GAMEOVER_VICTORY]               = { "Victory!",           "勝利！" },
+    [STR_GAMEOVER_DEFEATED]              = { "Defeated...",        "敗北..." },
+    [STR_GAMEOVER_LOCATION_FORMAT]       = { "%s - Room %d",       "%s %d" },
+    [STR_GAMEOVER_STAT_TIME]             = { "TIME",               "時間" },
+    [STR_GAMEOVER_STAT_LOCATION]         = { "LOCATION",           "場所" },
+    [STR_GAMEOVER_STAT_DAMAGE_DEALT]     = { "DAMAGE DEALT",       "与ダメージ" },
+    [STR_GAMEOVER_STAT_DAMAGE_TAKEN]     = { "DAMAGE TAKEN",       "被ダメージ" },
+    [STR_GAMEOVER_STAT_ACCURACY]         = { "ACCURACY",           "命中率" },
+    [STR_GAMEOVER_STAT_DODGES]           = { "DODGES",             "回避" },
+    [STR_GAMEOVER_BUTTON_TRY_AGAIN]      = { "Try again?",         "もう一度？" },
+    [STR_GAMEOVER_BUTTON_RETURN_TO_TITLE]= { "Return to title",    "タイトルへ" },
+
+    // Area names
+    [STR_AREA_ECHOING_CAVERNS]           = { "Echoing Caverns", "響きの洞窟" },
+    [STR_AREA_LOST_ARCHIVES]             = { "Lost Archives",   "失われた書庫" },
+    [STR_AREA_TEST]                      = { "Test",            "テスト" },
+
+    // In-game room HUD
+    [STR_ROOM_BOSS]                      = { "Boss",         "ボス部屋" },
+    [STR_ROOM_FORMAT]                    = { "Room %d/%d",   "部屋 %d/%d" },
+};
+
+const char *getLocString(StringKey key) {
+    if (key < 0 || key >= STR_COUNT) {
+        return "";
+    }
+    const LocEntry *entry = &LOC_TABLE[key];
+    if (SETTINGS.language == LANGUAGE_JP && entry->jp != NULL) {
+        return entry->jp;
+    }
+    return entry->en != NULL ? entry->en : "";
+}

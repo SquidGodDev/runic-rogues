@@ -3,6 +3,7 @@
 
 #include "globals/globals.h"
 #include "globals/helpers.h"
+#include "globals/localization.h"
 #include "game/UI/UI.h"
 #include "game/player/player.h"
 #include "game/player/playerStats.h"
@@ -750,9 +751,9 @@ void drawRoomInfo(void) {
 
         char *roomString;
         if (roomIndex >= totalRooms - 1) {
-            pd->system->formatString(&roomString, isJP ? "ボス部屋" : "Boss");
+            pd->system->formatString(&roomString, getLocString(STR_ROOM_BOSS));
         } else {
-            pd->system->formatString(&roomString, isJP ? "部屋 %d/%d" : "Room %d/%d", roomIndex + 1, totalRooms - 1);
+            pd->system->formatString(&roomString, getLocString(STR_ROOM_FORMAT), roomIndex + 1, totalRooms - 1);
         }
         pd->graphics->drawText(roomString, strlen(roomString), kUTF8Encoding, 4, 14);
         pd->system->realloc(roomString, 0);

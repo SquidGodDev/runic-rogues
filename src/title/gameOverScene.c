@@ -2,6 +2,7 @@
 #include "pd_api.h"
 
 #include "globals/globals.h"
+#include "globals/localization.h"
 #include "globals/sceneManager.h"
 
 #include "title/gameOverScene.h"
@@ -81,11 +82,7 @@ static int utf8ByteOffsetForChar(const char *s, int charCount) {
 }
 
 static const char *headerText(void) {
-    bool jp = (SETTINGS.language == LANGUAGE_JP);
-    if (runStatsGetVictory()) {
-        return jp ? "勝利！" : "Victory!";
-    }
-    return jp ? "敗北..." : "Defeated...";
+    return getLocString(runStatsGetVictory() ? STR_GAMEOVER_VICTORY : STR_GAMEOVER_DEFEATED);
 }
 
 static LCDFont *headerFont(void) {
@@ -97,24 +94,22 @@ static LCDFont *bodyFont(void) {
 }
 
 static const char *statLabel(int index) {
-    bool jp = (SETTINGS.language == LANGUAGE_JP);
     switch (index) {
-        case 0: return jp ? "時間"       : "TIME";
-        case 1: return jp ? "場所"       : "LOCATION";
-        case 2: return jp ? "与ダメージ" : "DAMAGE DEALT";
-        case 3: return jp ? "被ダメージ" : "DAMAGE TAKEN";
-        case 4: return jp ? "命中率"     : "ACCURACY";
-        case 5: return jp ? "回避"       : "DODGES";
+        case 0: return getLocString(STR_GAMEOVER_STAT_TIME);
+        case 1: return getLocString(STR_GAMEOVER_STAT_LOCATION);
+        case 2: return getLocString(STR_GAMEOVER_STAT_DAMAGE_DEALT);
+        case 3: return getLocString(STR_GAMEOVER_STAT_DAMAGE_TAKEN);
+        case 4: return getLocString(STR_GAMEOVER_STAT_ACCURACY);
+        case 5: return getLocString(STR_GAMEOVER_STAT_DODGES);
     }
     return "";
 }
 
 static const char *areaName(Area area) {
-    bool jp = (SETTINGS.language == LANGUAGE_JP);
     switch (area) {
-        case AREA_ECHOING_CAVERNS: return jp ? "響きの洞窟"  : "Echoing Caverns";
-        case AREA_LOST_ARCHIVES:   return jp ? "失われた書庫" : "Lost Archives";
-        case AREA_TEST:            return jp ? "テスト"      : "Test";
+        case AREA_ECHOING_CAVERNS: return getLocString(STR_AREA_ECHOING_CAVERNS);
+        case AREA_LOST_ARCHIVES:   return getLocString(STR_AREA_LOST_ARCHIVES);
+        case AREA_TEST:            return getLocString(STR_AREA_TEST);
         default: return "";
     }
 }
@@ -138,14 +133,9 @@ static char *makeTimeString(void) {
 
 static char *makeLocationString(void) {
     char *out = NULL;
-    bool jp = (SETTINGS.language == LANGUAGE_JP);
     const char *area = areaName(runStatsGetFinalArea());
     int room = runStatsGetFinalRoom();
-    if (jp) {
-        pd->system->formatString(&out, "%s %d", area, room);
-    } else {
-        pd->system->formatString(&out, "%s - Room %d", area, room);
-    }
+    pd->system->formatString(&out, getLocString(STR_GAMEOVER_LOCATION_FORMAT), area, room);
     return out;
 }
 
@@ -172,11 +162,7 @@ static char *makeStatValue(int index) {
 }
 
 static const char *buttonText(int index) {
-    bool jp = (SETTINGS.language == LANGUAGE_JP);
-    if (index == 0) {
-        return jp ? "もう一度？" : "Try again?";
-    }
-    return jp ? "タイトルへ" : "Return to title";
+    return getLocString(index == 0 ? STR_GAMEOVER_BUTTON_TRY_AGAIN : STR_GAMEOVER_BUTTON_RETURN_TO_TITLE);
 }
 
 static void skipToInteractive(void) {

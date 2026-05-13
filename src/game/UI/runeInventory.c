@@ -3,6 +3,7 @@
 
 #include "globals/globals.h"
 #include "globals/helpers.h"
+#include "globals/localization.h"
 #include "game/gameScene.h"
 #include "game/UI/runeInventory.h"
 #include "game/UI/quitConfirmDialog.h"
@@ -295,7 +296,7 @@ void initRuneInventory(void) {
     if (menuItem != NULL) {
         pd->system->removeMenuItem(menuItem);
     }
-    menuItem = pd->system->addMenuItem("Close", onExitMenuItemSelect, NULL);
+    menuItem = pd->system->addMenuItem(getLocString(STR_MENU_CLOSE), onExitMenuItemSelect, NULL);
     createQuitRunMenuItem();
 
     setGameState(GAME_STATE_RUNE_INVENTORY);
@@ -315,7 +316,7 @@ void createRuneInventoryMenuItem(void) {
     if (menuItem != NULL) {
         pd->system->removeMenuItem(menuItem);
     }
-    menuItem = pd->system->addMenuItem("Runes", onMenuItemSelect, NULL);
+    menuItem = pd->system->addMenuItem(getLocString(STR_MENU_RUNES), onMenuItemSelect, NULL);
     createQuitRunMenuItem();
 }
 

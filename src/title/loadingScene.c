@@ -2,6 +2,7 @@
 #include "pd_api.h"
 
 #include "globals/globals.h"
+#include "globals/localization.h"
 #include "globals/sceneManager.h"
 #include "globals/saveSystem.h"
 #include "title/loadingScene.h"
@@ -56,13 +57,13 @@ void updateLoadingScene(float deltaTime) {
 
     const char *label;
     if (stepsDone >= totalSteps) {
-        label = "Loaded!";
+        label = getLocString(STR_LOADING_DONE);
     } else if (stepsDone < FONT_COUNT) {
-        label = "Loading fonts...";
+        label = getLocString(STR_LOADING_FONTS);
     } else if (stepsDone < textureCount) {
-        label = "Loading textures...";
+        label = getLocString(STR_LOADING_TEXTURES);
     } else {
-        label = "Loading audio...";
+        label = getLocString(STR_LOADING_AUDIO);
     }
     int labelLen = strlen(label);
     pd->graphics->setFont(fontSubEN);
