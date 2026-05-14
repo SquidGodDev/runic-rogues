@@ -27,7 +27,7 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
     [STR_MENU_SKIP_TUTORIAL]             = { "Skip Tutorial", NULL },
 
     // Quit confirmation dialog
-    [STR_QUIT_RUN_TITLE]                 = { "Quit Run?",                                 "ランをやめる？" },
+    [STR_QUIT_RUN_TITLE]                 = { "Quit Run?", "ランをやめる？" },
     [STR_QUIT_RUN_BODY]                  = { "Are you sure? All progress will be lost.",  "本当にやめますか？進行状況はすべて失われます。" },
     [STR_YES]                            = { "Yes",                                       "はい" },
     [STR_NO]                             = { "No",                                        "いいえ" },
@@ -74,6 +74,27 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
     [STR_POPUP_AREA_CLEARED]             = { "Floor Cleared", "フロア クリア" },
     [STR_POPUP_ELDER_BOSS]               = { "The Elder",     "エルダー" },
     [STR_POPUP_WRAITH_BOSS]              = { "The Wraith",    "レイス" },
+
+    // Tutorial dialog pages (currently English-only; add JP translations to enable)
+    [STR_TUTORIAL_R1_1]                  = { "Use the d-pad to move and the crank to look around.",                NULL },
+    [STR_TUTORIAL_R1_2]                  = { "Dock the crank to use d-pad only controls instead.",                 NULL },
+    [STR_TUTORIAL_R1_3]                  = { "Try moving to each arrow!",                                          NULL },
+    [STR_TUTORIAL_R2_1]                  = { "Press the A button to cast your basic spell.",                       NULL },
+    [STR_TUTORIAL_R2_2]                  = { "Hold A to keep casting whenever it's off cooldown.",                 NULL },
+    [STR_TUTORIAL_R2_3]                  = { "Try hitting the enemy with your basic spell!",                       NULL },
+    [STR_TUTORIAL_R3_1]                  = { "Press the B button to cast your special spell.",                     NULL },
+    [STR_TUTORIAL_R3_2]                  = { "The mage class has a lightning spell that chains between nearby enemies.", NULL },
+    [STR_TUTORIAL_R3_3]                  = { "Try casting your special spell on the groups of enemies!",           NULL },
+    [STR_TUTORIAL_R4_1]                  = { "Double-tap a d-pad direction to dash.",                              NULL },
+    [STR_TUTORIAL_R4_2]                  = { "Dashes are limited but replenish over time.",                        NULL },
+    [STR_TUTORIAL_R4_3]                  = { "You're briefly invincible while dashing.",                           NULL },
+    [STR_TUTORIAL_R4_4]                  = { "Dash across the pit ahead!",                                         NULL },
+    [STR_TUTORIAL_R5_1]                  = { "Each cleared room rewards you with a choice of three runes.",        NULL },
+    [STR_TUTORIAL_R5_2]                  = { "You can view the runes you've collected from the system menu.",      NULL },
+    [STR_TUTORIAL_R5_3]                  = { "Try picking one!",                                                   NULL },
+    [STR_TUTORIAL_R5_4]                  = { "Open it now to take a look!",                                        NULL },
+    [STR_TUTORIAL_R6_1]                  = { "You've finished the tutorial! Enter the gate to start your first run.", NULL },
+    [STR_TUTORIAL_NEXT_ROOM]             = { "Room complete! Follow the arrow to the next room.",                  NULL },
 };
 
 const char *getLocStringFor(StringKey key, Language language) {

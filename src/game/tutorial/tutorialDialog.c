@@ -33,7 +33,7 @@ typedef enum {
 } TDState;
 
 static TDState dState = TD_HIDDEN;
-static const char *const *dPages;
+static const StringKey *dPages;
 static int dPageCount;
 static int dPageIndex;
 static char dLines[TD_MAX_LINES][TD_MAX_LINE_LEN];
@@ -150,7 +150,7 @@ static void wrapPage(const char *text) {
     dCharAccumulator = 0;
 }
 
-void openTutorialDialogPages(const char *const *pages, int pageCount) {
+void openTutorialDialogPages(const StringKey *pages, int pageCount) {
     dPages = pages;
     dPageCount = pageCount;
     dPageIndex = 0;
@@ -158,7 +158,7 @@ void openTutorialDialogPages(const char *const *pages, int pageCount) {
     dTransitionTime = 0;
     dCompletedFlag = false;
     if (pageCount > 0) {
-        wrapPage(pages[0]);
+        wrapPage(getLocString(pages[0]));
     }
 }
 
@@ -216,7 +216,7 @@ void updateTutorialDialog(float deltaTime) {
                 dState = TD_TRANSITION_OUT;
                 dTransitionTime = 0;
             } else {
-                wrapPage(dPages[dPageIndex]);
+                wrapPage(getLocString(dPages[dPageIndex]));
                 dState = TD_TYPING;
             }
         }

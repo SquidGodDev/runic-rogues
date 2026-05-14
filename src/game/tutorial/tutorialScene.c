@@ -82,41 +82,41 @@ static void onSkipTutorialSelect(void *userdata) {
     switchScene(SCENE_GAME);
 }
 
-static const char *r1Pages[] = {
-    "Use the d-pad to move and the crank to look around.",
-    "Dock the crank to use d-pad only controls instead.",
-    "Try moving to each arrow!"
+static const StringKey r1Pages[] = {
+    STR_TUTORIAL_R1_1,
+    STR_TUTORIAL_R1_2,
+    STR_TUTORIAL_R1_3
 };
-static const char *r2Pages[] = {
-    "Press the A button to cast your basic spell.",
-    "Hold A to keep casting whenever it's off cooldown.",
-    "Try hitting the enemy with your basic spell!"
+static const StringKey r2Pages[] = {
+    STR_TUTORIAL_R2_1,
+    STR_TUTORIAL_R2_2,
+    STR_TUTORIAL_R2_3
 };
-static const char *r3Pages[] = {
-    "Press the B button to cast your special spell.",
-    "The mage class has a lightning spell that chains between nearby enemies.",
-    "Try casting your special spell on the groups of enemies!"
+static const StringKey r3Pages[] = {
+    STR_TUTORIAL_R3_1,
+    STR_TUTORIAL_R3_2,
+    STR_TUTORIAL_R3_3
 };
-static const char *r4Pages[] = {
-    "Double-tap a d-pad direction to dash.",
-    "Dashes are limited but replenish over time.",
-    "You're briefly invincible while dashing.",
-    "Dash across the pit ahead!"
+static const StringKey r4Pages[] = {
+    STR_TUTORIAL_R4_1,
+    STR_TUTORIAL_R4_2,
+    STR_TUTORIAL_R4_3,
+    STR_TUTORIAL_R4_4
 };
-static const char *r5PreShopPages[] = {
-    "Each cleared room rewards you with a choice of three runes.",
-    "You can view the runes you've collected from the system menu.",
-    "Try picking one!"
+static const StringKey r5PreShopPages[] = {
+    STR_TUTORIAL_R5_1,
+    STR_TUTORIAL_R5_2,
+    STR_TUTORIAL_R5_3
 };
-static const char *r5PostShopPages[] = {
-    "You can view the runes you've collected from the system menu.",
-    "Open it now to take a look!"
+static const StringKey r5PostShopPages[] = {
+    STR_TUTORIAL_R5_2,
+    STR_TUTORIAL_R5_4
 };
-static const char *r6Pages[] = {
-    "You've finished the tutorial! Enter the gate to start your first run."
+static const StringKey r6Pages[] = {
+    STR_TUTORIAL_R6_1
 };
-static const char *nextRoomPages[] = {
-    "Room complete! Follow the arrow to the next room."
+static const StringKey nextRoomPages[] = {
+    STR_TUTORIAL_NEXT_ROOM
 };
 
 static void setArrowToRoom(int roomIndex) {

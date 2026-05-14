@@ -34,6 +34,7 @@
     - On xp pickup
     - On dodge with dash (check invincibility in player damage function)
   - Black hole (every X specials)
+  - On kill lower special cooldown
   - More damage the closer you are to enemies
   - Rune rarity
 - Make ranger class
@@ -52,7 +53,6 @@
 - SFX
 ## Localization
 - JP Localization
-  - Make localization csv
   - Tutorial
 ## Juice
 - Dash indicator lines
