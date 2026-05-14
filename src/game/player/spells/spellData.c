@@ -95,8 +95,8 @@ SpellData baseSpellData[SPELL_COUNT] = {
         }
     },
     [SPELL_CHAIN_LIGHTNING] = {
-        .name = "Chain Lightning",
-        .name_jp = "",
+        .name = "Lightning",
+        .name_jp = "ライトニング",
         .description = "Fire a bolt that chains to up to 3 nearby enemies.",
         .description_jp = "",
         .spellIconIndex = BITMAP_SPELL_CHAIN_LIGHTNING_ICON,
@@ -128,30 +128,9 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .name = "Chain Lightning Link",
         .cast = chainLightningLinkCast,
     },
-    [SPELL_LASER] = {
-        .name = "Laser",
-        .name_jp = "レーザー",
-        .description = "Fire a continuous shot of projectiles in a straight line.",
-        .description_jp = "直線上に弾を連続で発射する。",
-        .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
-        .cast = projectileCast,
-        .cooldown = 6.0f,
-        .damage = 10,
-        .playerSpeedModifier = -0.7f,
-        .useInitialCastAngle = true,
-        .repeatData = (RepeatData){
-            .activationTime = 0.1f,
-            .repeatCount = 4
-        },
-        .projectileData = (SpellProjectileData) {
-            .speed = 300.0f,
-            .pierceCount = 2,
-            .textureIndex = TEXTURE_PROJECTILE
-        }
-    },
     [SPELL_SWORD] = {
-        .name = "Melee",
-        .name_jp = "近接攻撃",
+        .name = "Sword",
+        .name_jp = "ソード",
         .description = "Perform a melee attack that deals damage to nearby enemies",
         .description_jp = "近くの敵にダメージを与える近接攻撃を行う",
         .spellIconIndex = BITMAP_SPELL_SWORD_ICON,
@@ -173,7 +152,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
     },
     [SPELL_ROARING_SHOUT] = {
         .name = "Roaring Shout",
-        .name_jp = "",
+        .name_jp = "轟音",
         .description = "Emit a powerful shout that damages and knocks back nearby enemies.",
         .description_jp = "",
         .spellIconIndex = BITMAP_SPELL_ROARING_SHOUT_ICON,
@@ -188,7 +167,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
     },
     [SPELL_KNIFE] = {
         .name = "Knife",
-        .name_jp = "",
+        .name_jp = "ナイフ",
         .description = "",
         .description_jp = "",
         .spellIconIndex = BITMAP_SPELL_KNIFE_ICON,
@@ -213,7 +192,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
     },
     [SPELL_FAN_OF_KNIVES] = {
         .name = "Fan of Knives",
-        .name_jp = "",
+        .name_jp = "ナイフの扇",
         .description = "",
         .description_jp = "",
         .spellIconIndex = BITMAP_SPELL_FAN_OF_KNIVES_ICON,

@@ -99,7 +99,7 @@ void swapSpells(int spellIndex1, int spellIndex2) {
 }
 
 LCDBitmap* getSpellIcon(Spell spell) {
-    return BITMAPS[spellData[spell].spellIconIndex];
+    return BITMAPS[baseSpellData[spell].spellIconIndex];
 }
 
 Spell getDeckSpell(int index) {

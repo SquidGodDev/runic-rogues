@@ -10,10 +10,23 @@
 #include "game/gameScene.h"
 #include "game/player/classes/classData.h"
 #include "game/rendering/textures.h"
+#include "game/player/spells/spellData.h"
 
-#define COL_Y 105
-#define TITLE_Y 2
-#define MODEL_Y_OFFSET 5
+#define TITLE_Y 5
+#define MODEL_CENTER_X 50
+#define MODEL_Y_OFFSET 12
+
+#define BASIC_ICON_OFFSET_X 41
+#define BASIC_ICON_Y 45
+#define SPECIAL_ICON_Y 78
+#define BUTTON_OFFSET_X 17
+#define BUTTON_OFFSET_Y (-6)
+#define NAME_OFFSET_X 29
+#define NAME_OFFSET_Y 9
+
+#define LEFT_ARROW_X 1
+#define RIGHT_ARROW_X 187
+#define ARROW_Y 51
 
 #define CLASS_3D_MODEL_FRAME_TIME 1.0f / TARGET_FPS
 #define SLIDE_DURATION 0.35f
@@ -127,30 +140,47 @@ void updateClassSelectScene(float deltaTime) {
 
     for (int i = 0; i < CLASS_COUNT; i++) {
         Class3DModelData *m = &class3DModels[i];
-        float modelCenterX = (float)HALF_SCREEN_WIDTH + ((float)i - displaySelected) * (float)SCREEN_WIDTH;
-        int drawX = (int)(modelCenterX - m->width / 2.0f);
-        int drawY = (SCREEN_HEIGHT - m->height) / 2 + MODEL_Y_OFFSET;
+        float groupX = (float)MODEL_CENTER_X + ((float)i - displaySelected) * (float)SCREEN_WIDTH;
+        int modelDrawX = (int)(groupX - m->width / 2.0f);
+        int modelDrawY = (SCREEN_HEIGHT - m->height) / 2 + MODEL_Y_OFFSET;
         LCDBitmap *frame = pd->graphics->getTableBitmap(m->bitmapTable, m->currentFrame);
-        pd->graphics->drawBitmap(frame, drawX, drawY, kBitmapUnflipped);
+        pd->graphics->drawBitmap(frame, modelDrawX, modelDrawY, kBitmapUnflipped);
+
+        int iconX = (int)groupX + BASIC_ICON_OFFSET_X;
+        LCDBitmap *basicIcon = getSpellIcon(classData[i].basicSpell);
+        LCDBitmap *specialIcon = getSpellIcon(classData[i].specialSpell);
+        pd->graphics->drawBitmap(basicIcon, iconX, BASIC_ICON_Y, kBitmapUnflipped);
+        pd->graphics->drawBitmap(specialIcon, iconX, SPECIAL_ICON_Y, kBitmapUnflipped);
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_SPELL_A_BUTTON_ICON], iconX + BUTTON_OFFSET_X, BASIC_ICON_Y + BUTTON_OFFSET_Y, kBitmapUnflipped);
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_SPELL_B_BUTTON_ICON], iconX + BUTTON_OFFSET_X, SPECIAL_ICON_Y + BUTTON_OFFSET_Y, kBitmapUnflipped);
     }
 
     pd->graphics->setFont(fontTitleEN);
     pd->graphics->setDrawMode(kDrawModeInverted);
-
-    const char *title = getLocString(STR_CLASS_SELECT_TITLE);
+    const char *title = classData[selectedIndex].name;
     int titleWidth = pd->graphics->getTextWidth(fontTitleEN, title, strlen(title), kUTF8Encoding, 0);
     pd->graphics->drawText(title, strlen(title), kUTF8Encoding, (SCREEN_WIDTH - titleWidth) / 2, TITLE_Y);
 
     pd->graphics->setFont(fontSubEN);
-    for (int i = 0; i < CLASS_COUNT; i++) {
-        const char *name = classData[i].name;
-        int nameWidth = pd->graphics->getTextWidth(fontSubEN, name, strlen(name), kUTF8Encoding, 0);
-        float modelCenterX = (float)HALF_SCREEN_WIDTH + ((float)i - displaySelected) * (float)SCREEN_WIDTH;
-        int textX = (int)(modelCenterX - nameWidth / 2.0f);
-        pd->graphics->drawText(name, strlen(name), kUTF8Encoding, textX, COL_Y);
-    }
-
     pd->graphics->setDrawMode(kDrawModeCopy);
+    pd->graphics->pushContext(NULL);
+    pd->graphics->setTextTracking(SETTINGS.language == LANGUAGE_JP ? 0 : -2);
+    for (int i = 0; i < CLASS_COUNT; i++) {
+        float groupX = (float)MODEL_CENTER_X + ((float)i - displaySelected) * (float)SCREEN_WIDTH;
+        int nameX = (int)groupX + BASIC_ICON_OFFSET_X + NAME_OFFSET_X;
+        const char *basicName = baseSpellData[classData[i].basicSpell].name;
+        const char *specialName = baseSpellData[classData[i].specialSpell].name;
+        pd->graphics->drawText(basicName, strlen(basicName), kUTF8Encoding, nameX, BASIC_ICON_Y + NAME_OFFSET_Y);
+        pd->graphics->drawText(specialName, strlen(specialName), kUTF8Encoding, nameX, SPECIAL_ICON_Y + NAME_OFFSET_Y);
+    }
+    pd->graphics->popContext();
+
+    if (selectedIndex > 0) {
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_CLASS_SELECT_LEFT_ARROW], LEFT_ARROW_X, ARROW_Y, kBitmapUnflipped);
+    }
+    if (selectedIndex < CLASS_COUNT - 1) {
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_CLASS_SELECT_RIGHT_ARROW], RIGHT_ARROW_X, ARROW_Y, kBitmapUnflipped);
+    }
 
     PDButtons pushed;
     pd->system->getButtonState(NULL, &pushed, NULL);
@@ -175,6 +205,9 @@ void updateClassSelectScene(float deltaTime) {
             setCurrentClass((ClassType)selectedIndex);
             initRunStart();
             switchScene(SCENE_GAME);
+        }
+        if (pushed & kButtonB) {
+            switchScene(SCENE_TITLE);
         }
     }
 }
