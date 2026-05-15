@@ -42,8 +42,6 @@
 - Ascension difficulty
 ## Scenes
 - Improved title
-- Character selection screen
-  - Show abilities in character select
 - Game Over scene
   - Stats
   - Class used

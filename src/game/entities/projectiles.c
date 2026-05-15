@@ -143,6 +143,7 @@ void updateProjectiles(float deltaTime) {
 					knockbackEnemiesInArea(
 						curProjectile->x, curProjectile->y,
 						(int)sqrtf(PLAYER_PROJECTILE_COLLISION_RANGE),
+						curProjectile->x, curProjectile->y,
 						curProjectile->spellProjectileData.knockbackTime,
 						curProjectile->spellProjectileData.knockbackAmount,
 						true /*awayFromPlayer*/

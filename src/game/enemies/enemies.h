@@ -125,6 +125,6 @@ void killAllNonBossEnemies(void);
 bool damageEnemy(int index, int damage);
 void damageEnemiesAtMapPosition(int mapX, int mapY, int damage);
 void damageEnemiesInArea(float x, float y, int radius, int damage);
-void knockbackEnemiesInArea(float x, float y, int radius, float knockbackTime, float knockbackAmount, bool awayFromPlayer);
+void knockbackEnemiesInArea(float searchX, float searchY, int radius, float sourceX, float sourceY, float knockbackTime, float knockbackAmount, bool awayFromPlayer);
 void slowEnemiesInArea(float x, float y, int radius, float slowTime, float slowAmount);
 bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime, float slowAmount);

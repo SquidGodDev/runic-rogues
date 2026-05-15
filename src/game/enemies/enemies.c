@@ -818,16 +818,16 @@ void damageEnemiesInArea(float x, float y, int radius, int damage) {
 	}
 }
 
-void knockbackEnemiesInArea(float x, float y, int radius, float knockbackTime, float knockbackAmount, bool awayFromPlayer) {
+void knockbackEnemiesInArea(float searchX, float searchY, int radius, float sourceX, float sourceY, float knockbackTime, float knockbackAmount, bool awayFromPlayer) {
 	int radiusSquared = radius * radius;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy enemy = enemies[i];
 		if (!enemy.active) {
 			continue;
 		}
-		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
+		float distSquared = distanceSquared(enemy.x, enemy.y, searchX, searchY);
 		if (distSquared < radiusSquared) {
-			knockbackEnemy(i, x, y, knockbackTime, knockbackAmount, awayFromPlayer);
+			knockbackEnemy(i, sourceX, sourceY, knockbackTime, knockbackAmount, awayFromPlayer);
 		}
 	}
 }

@@ -32,7 +32,7 @@ void swordCast(Spell spell, SpellCastData *castData, float x, float y, float ang
     float knockbackTime = data->knockbackTime;
     float knockbackAmount = data->knockbackAmount;
     damageEnemiesInArea(meleeX, meleeY, damageRadius, damage);
-    knockbackEnemiesInArea(meleeX, meleeY, damageRadius, knockbackTime, knockbackAmount, false /*awayFromPlayer*/);
+    knockbackEnemiesInArea(meleeX, meleeY, damageRadius, x, y, knockbackTime, knockbackAmount, false /*awayFromPlayer*/);
     if (data->meleeData.slowTime > 0) {
         slowEnemiesInArea(meleeX, meleeY, damageRadius, data->meleeData.slowTime, data->meleeData.slowAmount);
     }
@@ -45,7 +45,7 @@ void explosionCast(Spell spell, SpellCastData *castData, float x, float y, float
     float knockbackTime = data->knockbackTime;
     float knockbackAmount = data->knockbackAmount;
     damageEnemiesInArea(x, y, damageRadius, damage);
-    knockbackEnemiesInArea(x, y, damageRadius, knockbackTime, knockbackAmount, false /*awayFromPlayer*/);
+    knockbackEnemiesInArea(x, y, damageRadius, x, y, knockbackTime, knockbackAmount, false /*awayFromPlayer*/);
     if (data->meleeData.slowTime > 0) {
         slowEnemiesInArea(x, y, damageRadius, data->meleeData.slowTime, data->meleeData.slowAmount);
     }
