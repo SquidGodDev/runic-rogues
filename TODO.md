@@ -1,7 +1,6 @@
 # TODO
 ## Tweaks
 - Redraw Warrior sword animation
-- Area entry popup
 - Bigger mage projectile
 ## Features
 - Starter rune for each class

@@ -111,6 +111,23 @@ bool isAreaCompleted(void) {
     return areaCompleted;
 }
 
+void showAreaEnterPopup(void) {
+    PopupType popup;
+    switch (currentArea) {
+        case AREA_ECHOING_CAVERNS:
+            popup = POPUP_AREA_ECHOING_CAVERNS;
+            break;
+        case AREA_LOST_ARCHIVES:
+            popup = POPUP_AREA_LOST_ARCHIVES;
+            break;
+        case AREA_TEST:
+        default:
+            popup = POPUP_AREA_TEST;
+            break;
+    }
+    showPopup(popup, POPUP_POSITION_CENTER);
+}
+
 void incrementToNextRoom(void) {
     currentRoom++;
     if (currentRoom >= MAX_ROOM_COUNT) {

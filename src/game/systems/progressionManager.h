@@ -33,3 +33,4 @@ void setAreaCompleted(bool completed);
 void checkAndSpawnPendingExit(void);
 bool isAreaCompleted(void);
 void incrementToNextRoom(void);
+void showAreaEnterPopup(void);

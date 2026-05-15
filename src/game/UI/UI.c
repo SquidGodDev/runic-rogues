@@ -800,11 +800,11 @@ void drawUI(float deltaTime, bool duringCinematic) {
     drawSpellUI();
     // drawMinimap();
     drawExitArrow();
-    drawPopup(deltaTime);
     drawInteractablePrompt();
     drawRoomInfo();
     // drawExperienceBar();
     drawDirectionIndicators(deltaTime);
+    drawPopup(deltaTime);
 }
 
 void screenShake(ScreenShakeStrength strength) {

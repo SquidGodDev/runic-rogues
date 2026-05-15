@@ -74,6 +74,9 @@ void initGameScene(void)
 
 	// UI
 	initUI();
+	if (getCurrentRoom() == 0) {
+		showAreaEnterPopup();
+	}
 
 	// Player
 	initPlayer();
