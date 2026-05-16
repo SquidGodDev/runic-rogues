@@ -147,7 +147,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .drawX = 61,
             .drawY = 8,
             .frameTime = 0.075f,
-            .activeFrame = 5
+            .activeFrame = 8
         }
     },
     [SPELL_ROARING_SHOUT] = {
