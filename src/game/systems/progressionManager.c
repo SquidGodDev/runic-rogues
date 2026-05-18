@@ -30,6 +30,9 @@ void initProgressionManager(void) {
     #ifdef DEBUG_AREA_OVERRIDE
         currentArea = (Area)DEBUG_AREA_OVERRIDE;
     #endif
+    #if DEBUG_START_IN_TEST_AREA
+        currentArea = AREA_TEST;
+    #endif
     currentRoom = 0;
     currentRoomType = ROOM_TYPE_ENEMY;
     experience = 0.0f;
@@ -51,7 +54,9 @@ void initProgressionManager(void) {
         .wallTexture = TEXTURES[TEXTURE_TEST_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_TEST_CEILING],
         .floorTexture = TEXTURES[TEXTURE_TEST_FLOOR],
-        .gateTexture = TEXTURES[TEXTURE_TEST_WALL]
+        .gateTexture = TEXTURES[TEXTURE_TEST_WALL],
+        .skyboxTexture = TEXTURES[TEXTURE_TEST_SKYBOX],
+        .useSkybox = true
     };
 }
 

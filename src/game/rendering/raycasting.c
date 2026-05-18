@@ -21,10 +21,19 @@
 #define TRIG_TABLE_MASK  (TRIG_TABLE_SIZE - 1)
 #define TRIG_QUARTER     (TRIG_TABLE_SIZE / 4)
 
+// Skybox is a 360° cylindrical panorama. Width matches TRIG_TABLE_SIZE so the
+// per-ray angle index can index directly into the texture. Height covers the
+// upper half of the screen.
+#define SKY_W            TRIG_TABLE_SIZE
+#define SKY_W_BITS       10
+#define SKY_H            HALF_SCREEN_HEIGHT
+
 static uint8_t *wallTexture;
 static uint8_t *ceilingTexture;
 static uint8_t *floorTexture;
 static uint8_t *gateTexture;
+static uint8_t *skyboxTexture;
+static int useSkybox;
 
 static fixed_t sinTable[TRIG_TABLE_SIZE];
 static fixed_t invDyTable[HALF_SCREEN_HEIGHT];
@@ -46,6 +55,7 @@ typedef struct LineData {
 	fixed_t ceilingXModifier;
 	fixed_t ceilingYModifier;
 	uint8_t *wallFogPattern;
+	uint16_t skyboxTextureX;
 } LineData;
 
 static inline int angleToIndex(float radians) {
@@ -75,6 +85,8 @@ void initRaycasting(void) {
 	ceilingTexture = curAreaData.ceilingTexture;
 	floorTexture = curAreaData.floorTexture;
 	gateTexture = curAreaData.gateTexture;
+	skyboxTexture = curAreaData.skyboxTexture;
+	useSkybox = curAreaData.useSkybox && skyboxTexture != NULL;
 
 	for (int i = 0; i < TRIG_TABLE_SIZE; i++) {
 		float angle = (float)i * 2.0f * PI / TRIG_TABLE_SIZE;
@@ -234,6 +246,7 @@ void renderScene(void)
 
 		LineData curLineData;
 		curLineData.wallTexture = wallTexture;
+		curLineData.skyboxTextureX = (uint16_t)rayAngleIndex;
 		fixed_t rayDistance = fixedSqrt(maxDistSq);
 		int isShaded = 0;
 		if (verticalDistance < horizontalDistance) {
@@ -385,11 +398,14 @@ void renderScene(void)
 
 					uint32_t textureX = FP_TO_INT(textureCoordX) & (CELL_SIZE - 1);
 					uint32_t textureY = FP_TO_INT(textureCoordY) & (CELL_SIZE - 1);
-
-					// Draw ceiling
 					uint32_t textureIndex = textureX + (textureY << 4);
-					drawColor = ceilingTexture[textureIndex];
-					drawColor &= ~(-fogReject);
+
+					if (useSkybox) {
+						drawColor = skyboxTexture[curLineData->skyboxTextureX + (drawY << SKY_W_BITS)];
+					} else {
+						drawColor = ceilingTexture[textureIndex];
+						drawColor &= ~(-fogReject);
+					}
 
 					// Draw floor
 					curFloorDrawInt |= (floorTexture[textureIndex] << (31 - (drawBit & 31))) & ~(-fogReject) & ~(-chasmReject);

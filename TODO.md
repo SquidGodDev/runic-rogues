@@ -1,7 +1,14 @@
 # TODO
 ## Tweaks
-- Redraw Warrior sword animation
 - Bigger mage projectile
+- Adjust rogue damage
+- Too many hit particles for rogue attack
+- Change wraith boss back to back summon states
+- Longer wraith boss death animation
+- Warrior melee cancelling attack
+- More tight tutorial
+## Bugs
+- Knockback not working properly
 ## Features
 - Starter rune for each class
 - Settings menu
