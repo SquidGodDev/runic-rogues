@@ -35,6 +35,10 @@ void setGameState(GameState newState) {
 	gameState = newState;
 }
 
+static void showAreaEnterPopupCallback(int repeatCount, void *data) {
+	showAreaEnterPopup();
+}
+
 // Run at the start of every new run
 void initRunStart(void) {
 	setGameState(GAME_STATE_ACTIVE);
@@ -75,7 +79,7 @@ void initGameScene(void)
 	// UI
 	initUI();
 	if (getCurrentRoom() == 0) {
-		showAreaEnterPopup();
+		addTimer(0.7f, 1, showAreaEnterPopupCallback, NULL);
 	}
 
 	// Player
