@@ -14,7 +14,6 @@
 
 #define MAX_FIELD_DEPTH 24
 #define ENVIRONMENT_TEXTURE_SIZE 16
-#define CEILING_RENDER_CONSTANT 65 * SCREEN_WIDTH / 200 // Lower scales larger, higher scales smaller
 #define FRAME_BUFFER_INTS_PER_ROW 13 // ceil(LCD_COLUMNS / 32)
 
 #define TRIG_TABLE_SIZE  1024
@@ -37,6 +36,9 @@ static int useSkybox;
 
 static fixed_t sinTable[TRIG_TABLE_SIZE];
 static fixed_t invDyTable[HALF_SCREEN_HEIGHT];
+
+static fixed_t wallHeightConstFP;     // CELL_SIZE * projPlaneDist
+static fixed_t ceilingRenderConstFP;  // (CELL_SIZE/2) * projPlaneDist
 
 typedef struct RowFogData {
 	uint8_t *fogPattern;
@@ -93,12 +95,15 @@ void initRaycasting(void) {
 		sinTable[i] = FLOAT_TO_FP(sinf(angle));
 	}
 
+	float projPlaneDist = (SCREEN_WIDTH / 2.0f) / tanf(FOV_RAD / 2.0f);
+	wallHeightConstFP = FLOAT_TO_FP(CELL_SIZE * projPlaneDist);
+	ceilingRenderConstFP = FLOAT_TO_FP((CELL_SIZE / 2.0f) * projPlaneDist);
+
 	for (int y = 0; y < HALF_SCREEN_HEIGHT; y++) {
-		float rowDist = (float)HALF_SCREEN_HEIGHT / (HALF_SCREEN_HEIGHT - y);
-		float invDy = 1.0f / (y - HALF_SCREEN_HEIGHT);
+		float invDy = 1.0f / ((float)y - HALF_SCREEN_HEIGHT + 0.5f);
 		invDyTable[y] = FLOAT_TO_FP(invDy);
 
-		float ceilingDist = rowDist * CELL_SIZE;
+		float ceilingDist = (CELL_SIZE / 2.0f) * projPlaneDist / (HALF_SCREEN_HEIGHT - y - 0.5f);
 		RowFogData *fogData = &rowFogTable[y];
 		fogData->skipCeilingFloor = ceilingDist > FOG_MAX_DIST;
 		if (ceilingDist < FOG_MIN_DIST) {
@@ -279,8 +284,8 @@ void renderScene(void)
 		fixed_t fixedOffsetAngle = fpCos(offsetAngleIndex);
 		rayDistance = FP_MUL(rayDistance, fixedOffsetAngle);
 
-		curLineData.ceilingXModifier = FP_DIV(FP_MUL(cosAngle, INT_TO_FP(CEILING_RENDER_CONSTANT * CELL_SIZE)), fixedOffsetAngle);
-		curLineData.ceilingYModifier = FP_DIV(FP_MUL(sinAngle, INT_TO_FP(CEILING_RENDER_CONSTANT * CELL_SIZE)), fixedOffsetAngle);
+		curLineData.ceilingXModifier = FP_DIV(FP_MUL(cosAngle, ceilingRenderConstFP), fixedOffsetAngle);
+		curLineData.ceilingYModifier = FP_DIV(FP_MUL(sinAngle, ceilingRenderConstFP), fixedOffsetAngle);
 
 		if (verticalDistance >= maxDistSq && horizontalDistance >= maxDistSq) {
 			curLineData.lineHeight = 0;
@@ -296,7 +301,7 @@ void renderScene(void)
 		// === Draw 3D Walls ===
 
 		// Get wall slice draw height
-		fixed_t lineHeight = FP_DIV(INT_TO_FP(CELL_SIZE * SCREEN_HEIGHT), rayDistance);
+		fixed_t lineHeight = FP_DIV(wallHeightConstFP, rayDistance);
 		curLineData.lineHeight = FP_TO_INT(lineHeight);
 
 		fixed_t textureYStep = FP_DIV(INT_TO_FP(ENVIRONMENT_TEXTURE_SIZE), lineHeight);
