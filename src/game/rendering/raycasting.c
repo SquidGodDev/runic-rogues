@@ -258,11 +258,11 @@ void renderScene(void)
 			rayX = verticalRayX;
 			rayY = verticalRayY;
 			rayDistance = fixedSqrt(verticalDistance);
+			isShaded = 1;
 		} else if (horizontalDistance < verticalDistance) {
 			rayX = horizontalRayX;
 			rayY = horizontalRayY;
 			rayDistance = fixedSqrt(horizontalDistance);
-			isShaded = 1;
 		}
 
 		int wallType = MAP_WALL;
@@ -317,14 +317,14 @@ void renderScene(void)
 
 		int textureX;
 		if (isShaded == 1) {
-			textureX = FP_TO_INT(rayX) % ENVIRONMENT_TEXTURE_SIZE;
-			if (rayAngle < PI) {
+			textureX = FP_TO_INT(rayY) % ENVIRONMENT_TEXTURE_SIZE;
+			if (rayAngle > P2 && rayAngle < P3) {
 				textureX = ENVIRONMENT_TEXTURE_SIZE - textureX - 1;
 			}
 			textureX += 16;
 		} else {
-			textureX = FP_TO_INT(rayY) % ENVIRONMENT_TEXTURE_SIZE;
-			if (rayAngle > P2 && rayAngle < P3) {
+			textureX = FP_TO_INT(rayX) % ENVIRONMENT_TEXTURE_SIZE;
+			if (rayAngle < PI) {
 				textureX = ENVIRONMENT_TEXTURE_SIZE - textureX - 1;
 			}
 		}
