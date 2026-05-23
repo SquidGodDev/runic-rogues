@@ -12,6 +12,7 @@
 #include "game/systems/timerManager.h"
 #include "game/systems/runeManager.h"
 #include "game/systems/runStats.h"
+#include "game/systems/progressionManager.h"
 #include "game/enemies/enemies.h"
 #include "game/map/map.h"
 
@@ -192,11 +193,19 @@ bool castSpell(int index) {
     Spell spell = spellDeck[index];
     SpellData *data = &spellData[spell];
 
-    spellCooldowns[index] = data->cooldown;
+    float cooldown = data->cooldown;
+    if (index == SPECIAL_SPELL_INDEX && getCurrentArea() == AREA_TUTORIAL) {
+        Spell basicSpell = spellDeck[BASIC_SPELL_INDEX];
+        if (basicSpell != SPELL_NONE) {
+            cooldown = spellData[basicSpell].cooldown * 2.0f;
+        }
+    }
+
+    spellCooldowns[index] = cooldown;
     if (data->repeatData.repeatCount > 0) {
         spellCastData[index] = (SpellCastData) {
             .spell = spell,
-            .maxCooldown = data->cooldown,
+            .maxCooldown = cooldown,
             .castTime = data->repeatData.activationTime * (data->repeatData.repeatCount + 1),
             .activationTime = data->repeatData.activationTime,
             .activationCount = 0,
@@ -204,7 +213,7 @@ bool castSpell(int index) {
         };
     } else {
         spellCastData[index].spell = SPELL_NONE;
-        spellCastData[index].maxCooldown = data->cooldown;
+        spellCastData[index].maxCooldown = cooldown;
     }
 
     playSound(SFX_SHOOT);
