@@ -41,7 +41,7 @@ typedef enum SpawnState {
 } SpawnState;
 
 static AreaEnemyPool areaPools[AREA_COUNT] = {
-    [AREA_ECHOING_CAVERNS] = {
+    [AREA_TWILIGHT_COURT] = {
         .entries = {
             { .type = ENEMY_TYPE_BABY_SLIME, .cost = 1, .weight = 10 },
             { .type = ENEMY_TYPE_SKELETON,   .cost = 3, .weight = 5 },
@@ -63,6 +63,17 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
         .entryCount = 5,
         .bossType = ENEMY_TYPE_WRAITH_BOSS,
     },
+    [AREA_ECHOING_CAVERNS] = {
+        .entries = {
+            { .type = ENEMY_TYPE_BABY_SLIME, .cost = 1, .weight = 10 },
+            { .type = ENEMY_TYPE_SKELETON,   .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_SLIME,      .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_SERPENT,    .cost = 3, .weight = 3 },
+            { .type = ENEMY_TYPE_BAT,        .cost = 3, .weight = 3 },
+        },
+        .entryCount = 5,
+        .bossType = ENEMY_TYPE_ELDER_BOSS,
+    },
     [AREA_TEST] = {
         .entries = {
             { .type = ENEMY_TYPE_BABY_SLIME,   .cost = 1, .weight = 10 },
@@ -77,7 +88,7 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
 };
 
 static const RoomBudget roomBudgets[AREA_COUNT][NON_BOSS_ROOM_COUNT] = {
-    [AREA_ECHOING_CAVERNS] = {
+    [AREA_TWILIGHT_COURT] = {
         { .budget = 5,  .minSpecials = 0 },
         { .budget = 8,  .minSpecials = 1 },
         { .budget = 10, .minSpecials = 2 },
@@ -89,6 +100,13 @@ static const RoomBudget roomBudgets[AREA_COUNT][NON_BOSS_ROOM_COUNT] = {
         { .budget = 8,  .minSpecials = 2 },
         { .budget = 10, .minSpecials = 3 },
         { .budget = 12, .minSpecials = 4 },
+        { .budget = 14, .minSpecials = 4 },
+    },
+    [AREA_ECHOING_CAVERNS] = {
+        { .budget = 5,  .minSpecials = 0 },
+        { .budget = 8,  .minSpecials = 1 },
+        { .budget = 10, .minSpecials = 2 },
+        { .budget = 12, .minSpecials = 3 },
         { .budget = 14, .minSpecials = 4 },
     },
     [AREA_TEST] = {

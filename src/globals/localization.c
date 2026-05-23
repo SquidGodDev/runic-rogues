@@ -145,13 +145,17 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
     },
 
     // Area names
-    [STR_AREA_ECHOING_CAVERNS] = {
-        "Echoing Caverns",
-        "響きの洞窟",
+    [STR_AREA_TWILIGHT_COURT] = {
+        "The Twilight Court",
+        "薄明の宮廷",
     },
     [STR_AREA_LOST_ARCHIVES] = {
         "Lost Archives",
         "失われた書庫",
+    },
+    [STR_AREA_ECHOING_CAVERNS] = {
+        "Echoing Caverns",
+        "響きの洞窟",
     },
     [STR_AREA_TEST] = {
         "Test",

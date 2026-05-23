@@ -26,7 +26,7 @@ static bool bossDefeated;
 static bool pendingExitSpawn;
 
 void initProgressionManager(void) {
-    currentArea = AREA_ECHOING_CAVERNS;
+    currentArea = AREA_TWILIGHT_COURT;
     #ifdef DEBUG_AREA_OVERRIDE
         currentArea = (Area)DEBUG_AREA_OVERRIDE;
     #endif
@@ -38,17 +38,24 @@ void initProgressionManager(void) {
     experience = 0.0f;
     curLevel = 0;
 
-    areaData[AREA_ECHOING_CAVERNS] = (AreaData){
-        .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
-        .ceilingTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_CEILING],
-        .floorTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_FLOOR],
-        .gateTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_GATE]
+    areaData[AREA_TWILIGHT_COURT] = (AreaData){
+        .wallTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_WALL],
+        .floorTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_FLOOR],
+        .gateTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_WALL],
+        .skyboxTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_SKYBOX],
+        .useSkybox = true
     };
     areaData[AREA_LOST_ARCHIVES] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_CEILING],
         .floorTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_FLOOR],
         .gateTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_GATE]
+    };
+    areaData[AREA_ECHOING_CAVERNS] = (AreaData){
+        .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
+        .ceilingTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_CEILING],
+        .floorTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_FLOOR],
+        .gateTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_GATE]
     };
     areaData[AREA_TEST] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_TEST_WALL],
@@ -119,11 +126,14 @@ bool isAreaCompleted(void) {
 void showAreaEnterPopup(void) {
     PopupType popup;
     switch (currentArea) {
-        case AREA_ECHOING_CAVERNS:
-            popup = POPUP_AREA_ECHOING_CAVERNS;
+        case AREA_TWILIGHT_COURT:
+            popup = POPUP_AREA_TWILIGHT_COURT;
             break;
         case AREA_LOST_ARCHIVES:
             popup = POPUP_AREA_LOST_ARCHIVES;
+            break;
+        case AREA_ECHOING_CAVERNS:
+            popup = POPUP_AREA_ECHOING_CAVERNS;
             break;
         case AREA_TEST:
         default:
@@ -139,7 +149,7 @@ void incrementToNextRoom(void) {
         currentRoom = 0;
         currentArea++;
         if (currentArea >= AREA_COUNT) {
-            currentArea = AREA_ECHOING_CAVERNS;
+            currentArea = AREA_TWILIGHT_COURT;
         }
     }
 

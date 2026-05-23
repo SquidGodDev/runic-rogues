@@ -107,8 +107,9 @@ static const char *statLabel(int index) {
 
 static const char *areaName(Area area) {
     switch (area) {
-        case AREA_ECHOING_CAVERNS: return getLocString(STR_AREA_ECHOING_CAVERNS);
+        case AREA_TWILIGHT_COURT:  return getLocString(STR_AREA_TWILIGHT_COURT);
         case AREA_LOST_ARCHIVES:   return getLocString(STR_AREA_LOST_ARCHIVES);
+        case AREA_ECHOING_CAVERNS: return getLocString(STR_AREA_ECHOING_CAVERNS);
         case AREA_TEST:            return getLocString(STR_AREA_TEST);
         default: return "";
     }

@@ -48,8 +48,9 @@ typedef enum StringKey {
     STR_GAMEOVER_BUTTON_RETURN_TO_TITLE,
 
     // Area names
-    STR_AREA_ECHOING_CAVERNS,
+    STR_AREA_TWILIGHT_COURT,
     STR_AREA_LOST_ARCHIVES,
+    STR_AREA_ECHOING_CAVERNS,
     STR_AREA_TEST,
 
     // In-game room HUD

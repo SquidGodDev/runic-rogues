@@ -30,7 +30,7 @@ void runStatsResetForNewRun(void) {
     totalAttacks = 0;
     hitAttacks = 0;
     dodges = 0;
-    finalArea = AREA_ECHOING_CAVERNS;
+    finalArea = AREA_TWILIGHT_COURT;
     finalRoom = 0;
     victory = false;
 

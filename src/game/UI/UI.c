@@ -623,16 +623,19 @@ void drawBossHealthBar(void) {
     
     int titleDrawX = 100;
     int titleDrawY = 21;
+    Area area = getCurrentArea();
+    bool isElderBoss = (area == AREA_TWILIGHT_COURT || area == AREA_ECHOING_CAVERNS);
+    bool isWraithBoss = (area == AREA_LOST_ARCHIVES);
     if (SETTINGS.language == LANGUAGE_EN) {
-        if (getCurrentArea() == AREA_ECHOING_CAVERNS) {
+        if (isElderBoss) {
             drawCenteredBitmap(BITMAPS[BITMAP_ELDER_BOSS_TITLE], titleDrawX, titleDrawY);
-        } else if (getCurrentArea() == AREA_LOST_ARCHIVES) {
+        } else if (isWraithBoss) {
             drawCenteredBitmap(BITMAPS[BITMAP_WRAITH_BOSS_TITLE], titleDrawX, titleDrawY);
         }
     } else if (SETTINGS.language == LANGUAGE_JP) {
-        if (getCurrentArea() == AREA_ECHOING_CAVERNS) {
+        if (isElderBoss) {
             drawCenteredBitmap(BITMAPS[BITMAP_ELDER_BOSS_TITLE_JP], titleDrawX, titleDrawY);
-        } else if (getCurrentArea() == AREA_LOST_ARCHIVES) {
+        } else if (isWraithBoss) {
             drawCenteredBitmap(BITMAPS[BITMAP_WRAITH_BOSS_TITLE_JP], titleDrawX, titleDrawY);
         }
     }
