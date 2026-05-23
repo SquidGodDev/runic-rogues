@@ -11,8 +11,8 @@ typedef enum Area
     AREA_TWILIGHT_COURT,
     AREA_LOST_ARCHIVES,
     AREA_ECHOING_CAVERNS,
-    AREA_TEST,
     AREA_TUTORIAL,
+    AREA_TEST,
     AREA_COUNT
 } Area;
 

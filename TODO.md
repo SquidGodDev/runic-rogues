@@ -7,8 +7,10 @@
 - Longer wraith boss death animation
 - Warrior melee cancelling attack
 - More tight tutorial
+- Flash health UI when getting damaged
 ## Bugs
 - Knockback not working properly
+- Check for memory leaks
 ## Features
 - Starter rune for each class
 - Settings menu

@@ -55,14 +55,7 @@ void initProgressionManager(void) {
         .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_CEILING],
         .floorTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_FLOOR],
-        .gateTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_GATE]
-    };
-    areaData[AREA_TEST] = (AreaData){
-        .wallTexture = TEXTURES[TEXTURE_TEST_WALL],
-        .ceilingTexture = TEXTURES[TEXTURE_TEST_CEILING],
-        .floorTexture = TEXTURES[TEXTURE_TEST_FLOOR],
-        .gateTexture = TEXTURES[TEXTURE_TEST_WALL],
-        .skyboxTexture = TEXTURES[TEXTURE_TEST_SKYBOX],
+        .gateTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_GATE],
         .useSkybox = false
     };
     areaData[AREA_TUTORIAL] = (AreaData){
@@ -71,6 +64,14 @@ void initProgressionManager(void) {
         .floorTexture = TEXTURES[TEXTURE_TUTORIAL_FLOOR],
         .gateTexture = TEXTURES[TEXTURE_TUTORIAL_WALL],
         .useSkybox = false
+    };
+    areaData[AREA_TEST] = (AreaData){
+        .wallTexture = TEXTURES[TEXTURE_TEST_WALL],
+        .ceilingTexture = TEXTURES[TEXTURE_TEST_CEILING],
+        .floorTexture = TEXTURES[TEXTURE_TEST_FLOOR],
+        .gateTexture = TEXTURES[TEXTURE_TEST_WALL],
+        .skyboxTexture = TEXTURES[TEXTURE_TEST_SKYBOX],
+        .useSkybox = true
     };
 }
 
