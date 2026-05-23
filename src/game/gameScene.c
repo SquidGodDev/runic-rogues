@@ -78,7 +78,7 @@ void initGameScene(void)
 
 	// UI
 	initUI();
-	if (getCurrentRoom() == 0) {
+	if (getCurrentRoom() == 0 && getCurrentArea() != AREA_TUTORIAL) {
 		addTimer(0.7f, 1, showAreaEnterPopupCallback, NULL);
 	}
 
