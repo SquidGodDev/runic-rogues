@@ -12,6 +12,7 @@ typedef enum Area
     AREA_LOST_ARCHIVES,
     AREA_ECHOING_CAVERNS,
     AREA_TEST,
+    AREA_TUTORIAL,
     AREA_COUNT
 } Area;
 
@@ -30,6 +31,7 @@ float getExperiencePercentToNextLevel(void);
 void addExperience(float amount);
 AreaData getCurrentAreaData(void);
 Area getCurrentArea(void);
+void setCurrentArea(Area area);
 int getCurrentRoom(void);
 RoomType getCurrentRoomType(void);
 void setAreaCompleted(bool completed);

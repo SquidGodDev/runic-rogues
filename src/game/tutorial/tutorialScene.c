@@ -19,6 +19,7 @@
 #include "game/systems/shopManager.h"
 #include "game/systems/runeManager.h"
 #include "game/systems/spawnManager.h"
+#include "game/systems/progressionManager.h"
 #include "game/settings/settings.h"
 
 #include "game/tutorial/tutorialScene.h"
@@ -136,6 +137,7 @@ static int dummiesAlive(void) {
 }
 
 void initTutorialScene(void) {
+    setCurrentArea(AREA_TUTORIAL);
     initGameScene();
 
     removeSkipTutorialMenuItem();

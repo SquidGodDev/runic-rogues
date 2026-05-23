@@ -63,7 +63,14 @@ void initProgressionManager(void) {
         .floorTexture = TEXTURES[TEXTURE_TEST_FLOOR],
         .gateTexture = TEXTURES[TEXTURE_TEST_WALL],
         .skyboxTexture = TEXTURES[TEXTURE_TEST_SKYBOX],
-        .useSkybox = true
+        .useSkybox = false
+    };
+    areaData[AREA_TUTORIAL] = (AreaData){
+        .wallTexture = TEXTURES[TEXTURE_TUTORIAL_WALL],
+        .ceilingTexture = TEXTURES[TEXTURE_TUTORIAL_CEILING],
+        .floorTexture = TEXTURES[TEXTURE_TUTORIAL_FLOOR],
+        .gateTexture = TEXTURES[TEXTURE_TUTORIAL_WALL],
+        .useSkybox = false
     };
 }
 
@@ -94,6 +101,10 @@ AreaData getCurrentAreaData(void) {
 
 Area getCurrentArea(void) {
     return currentArea;
+}
+
+void setCurrentArea(Area area) {
+    currentArea = area;
 }
 
 int getCurrentRoom(void) {
