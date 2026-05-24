@@ -700,6 +700,24 @@ void knockbackEnemy(int index, int knockbackSourceX, int knockbackSourceY, float
 	}
 }
 
+void cancelEnemyAttack(int index) {
+	Enemy *curEnemy = &enemies[index];
+	if (!curEnemy->active || enemyData[curEnemy->type].knockbackResistant) {
+		return;
+	}
+
+	if (curEnemy->state == ENEMY_STATE_PREP ||
+		curEnemy->state == ENEMY_STATE_ATTACK_1 ||
+		curEnemy->state == ENEMY_STATE_ATTACK_2 ||
+		curEnemy->state == ENEMY_STATE_ATTACK_3) {
+		curEnemy->attackedPlayer = false;
+		curEnemy->stateTimer = 0;
+		curEnemy->stateCount = 0;
+		curEnemy->attackCooldown = enemyData[curEnemy->type].attackCooldown;
+		transitionToState(curEnemy, ENEMY_STATE_IDLE);
+	}
+}
+
 void killEnemy(int index) {
 	Enemy curEnemy = enemies[index];
 	if (curEnemy.active && curEnemy.state != ENEMY_STATE_DEAD) {
@@ -828,6 +846,20 @@ void knockbackEnemiesInArea(float searchX, float searchY, int radius, float sour
 		float distSquared = distanceSquared(enemy.x, enemy.y, searchX, searchY);
 		if (distSquared < radiusSquared) {
 			knockbackEnemy(i, sourceX, sourceY, knockbackTime, knockbackAmount, awayFromPlayer);
+		}
+	}
+}
+
+void cancelEnemyAttacksInArea(float x, float y, int radius) {
+	int radiusSquared = radius * radius;
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		Enemy enemy = enemies[i];
+		if (!enemy.active) {
+			continue;
+		}
+		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
+		if (distSquared < radiusSquared) {
+			cancelEnemyAttack(i);
 		}
 	}
 }

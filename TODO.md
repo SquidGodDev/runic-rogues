@@ -4,7 +4,6 @@
 - Adjust rogue damage
 - Too many hit particles for rogue attack
 - Change wraith boss back to back summon states
-- Warrior melee cancelling attack
 - More tight tutorial
 - Flash health UI when getting damaged
 ## Bugs
