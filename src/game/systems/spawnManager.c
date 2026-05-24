@@ -65,7 +65,7 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
     },
     [AREA_ECHOING_CAVERNS] = {
         .entries = {
-            { .type = ENEMY_TYPE_BABY_SLIME, .cost = 1, .weight = 10 },
+            { .type = ENEMY_TYPE_TEST, .cost = 1, .weight = 10 },
             { .type = ENEMY_TYPE_SKELETON,   .cost = 3, .weight = 5 },
             { .type = ENEMY_TYPE_SLIME,      .cost = 3, .weight = 5 },
             { .type = ENEMY_TYPE_SERPENT,    .cost = 3, .weight = 3 },

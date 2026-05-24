@@ -62,6 +62,8 @@ const char *texturePathStrings[] = {
 	"images/enemies/mummy",
 	"images/enemies/wraithBoss",
 	"images/enemies/wraith",
+	"images/enemies/bomber",
+	"images/enemies/elemental",
 	"images/enemies/dragon",
 	"images/interactables/portal",
 	"images/interactables/campfire",
