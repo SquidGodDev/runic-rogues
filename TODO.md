@@ -5,7 +5,6 @@
 - Too many hit particles for rogue attack
 - Change wraith boss back to back summon states
 - More tight tutorial
-- Flash health UI when getting damaged
 ## Bugs
 - Knockback not working properly
 - Check for memory leaks

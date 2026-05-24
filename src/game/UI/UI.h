@@ -19,6 +19,7 @@ void removeUIAnimation(int index);
 void setArrowPosition(int worldX, int worldY);
 void clearArrow(void);
 void addDamageIndicator(float sourceX, float sourceY);
+void flashHealthUI(void);
 void addAttackIntentIndicator(float sourceX, float sourceY, float duration);
 void screenShake(ScreenShakeStrength strength);
 void screenShakeCustom(float duration, float magnitude);

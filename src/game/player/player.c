@@ -513,6 +513,7 @@ void damagePlayer(float amount) {
 
 	playSound(SFX_PLAYER_HIT);
     screenShake(SCREEN_SHAKE_MEDIUM);
+    flashHealthUI();
     playerState.hitInvincibility = HIT_INVINCIBILITY_TIME;
     signalRuneTrigger(RUNE_TRIGGER_DAMAGED, 1.0f);
     runStatsRecordDamageTaken((int)amount);

@@ -93,6 +93,9 @@ static DirectionIndicator directionIndicators[MAX_DIRECTION_INDICATORS];
 static float screenShakeTime;
 static int shakeMagnitude;
 
+#define HEALTH_FLASH_TIME 0.2f
+static float healthFlashTimer;
+
 static bool exitActive;
 static int exitWorldX;
 static int exitWorldY;
@@ -117,6 +120,7 @@ UIAnimation uiAnimations[MAX_UI_ANIMATIONS];
 void initUI(void) {
     screenShakeTime = 0;
     shakeMagnitude = 0;
+    healthFlashTimer = 0;
     pd->display->setOffset(0, 0);
     pd->graphics->setBackgroundColor(kColorBlack);
 
@@ -339,22 +343,37 @@ static void drawDirectionIndicators(float deltaTime) {
     }
 }
 
-void drawHealth(void) {
+void flashHealthUI(void) {
+    healthFlashTimer = HEALTH_FLASH_TIME;
+}
+
+void drawHealth(float deltaTime) {
+    if (healthFlashTimer > 0) {
+        healthFlashTimer -= deltaTime;
+        if (healthFlashTimer < 0) {
+            healthFlashTimer = 0;
+        }
+    }
+    bool flashing = healthFlashTimer > 0;
+
     int healthBarWidth = 66;
     int healthBarHeight = 3;
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_HEALTH_BAR], 10, 4, kBitmapUnflipped);
-    pd->graphics->fillRect(12, 7, healthBarWidth * (playerHealth / getPlayerMaxHealth()), healthBarHeight, kColorWhite);
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_HEART], 2, 2, kBitmapUnflipped);
-    char *healthString;
-    pd->system->formatString(&healthString, "%d", (int)playerHealth);
     pd->graphics->pushContext(NULL);
+        if (flashing) {
+            pd->graphics->setDrawMode(kDrawModeFillWhite);
+        }
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_HEALTH_BAR], 10, 4, kBitmapUnflipped);
+        pd->graphics->fillRect(12, 7, healthBarWidth * (playerHealth / getPlayerMaxHealth()), healthBarHeight, kColorWhite);
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_HEART], 2, 2, kBitmapUnflipped);
+        char *healthString;
+        pd->system->formatString(&healthString, "%d", (int)playerHealth);
         pd->graphics->setFont(fontSubEN);
         int tracking = -1;
         pd->graphics->setTextTracking(tracking);
         int textWidth = pd->graphics->getTextWidth(fontSubEN, healthString, strlen(healthString), kUTF8Encoding, tracking);
         pd->graphics->drawText(healthString, strlen(healthString), kUTF8Encoding, 45 - textWidth / 2, 4);
+        pd->system->realloc(healthString, 0);
     pd->graphics->popContext();
-    pd->system->realloc(healthString, 0);
 }
 
 void drawEntityToMinimap(float entityX, float entityY, uint8_t *texture, float playerAngleCos, float playerAngleSin, uint8_t *frameBuffer) {
@@ -797,7 +816,7 @@ void drawUI(float deltaTime, bool duringCinematic) {
         return;
     }
 
-    drawHealth();
+    drawHealth(deltaTime);
     drawUIAnimations(deltaTime);
     drawWeapon(deltaTime);
     drawSpellUI();
