@@ -43,6 +43,16 @@ file(GLOB_RECURSE IMAGES CONFIGURE_DEPENDS
 	"Source/fonts/*"
 )
 
+# Force a relink (which re-runs the pdc POST_BUILD step) whenever an asset
+# changes, so editing a PNG/font/etc is picked up without touching C source.
+set(ASSETS_TRIGGER "${CMAKE_CURRENT_BINARY_DIR}/assets_trigger.c")
+add_custom_command(
+	OUTPUT ${ASSETS_TRIGGER}
+	COMMAND ${CMAKE_COMMAND} -E touch ${ASSETS_TRIGGER}
+	DEPENDS ${IMAGES}
+	COMMENT "Asset change detected — re-running pdc"
+)
+
 if (TOOLCHAIN STREQUAL "armgcc")
     add_executable(${PLAYDATE_GAME_DEVICE} ${SOURCES} ${ASSETS_TRIGGER})
 	target_include_directories(${PLAYDATE_GAME_DEVICE} PRIVATE 
