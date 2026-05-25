@@ -7,3 +7,4 @@
 .sentry-native
 .claude
 **__record
+*.stackdump
