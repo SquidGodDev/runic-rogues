@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.21)
 set(CMAKE_C_STANDARD 11)
 
 set(ENVSDK $ENV{PLAYDATE_SDK_PATH})
@@ -54,9 +54,9 @@ add_custom_command(
 )
 
 if (TOOLCHAIN STREQUAL "armgcc")
-    add_executable(${PLAYDATE_GAME_DEVICE} ${SOURCES} ${ASSETS_TRIGGER})
-	target_include_directories(${PLAYDATE_GAME_DEVICE} PRIVATE ${CMAKE_SOURCE_DIR}/src)
-	target_compile_options(${PLAYDATE_GAME_DEVICE} PRIVATE 
+	add_executable(${PLAYDATE_GAME_DEVICE} ${SOURCES} ${HEADERS} ${ASSETS_TRIGGER})
+	set(GAME_TARGET ${PLAYDATE_GAME_DEVICE})
+	target_compile_options(${GAME_TARGET} PRIVATE
 		-ffast-math
 		-falign-functions=32
 		-falign-loops=32
@@ -64,16 +64,17 @@ if (TOOLCHAIN STREQUAL "armgcc")
 	)
 else()
 	add_library(${PLAYDATE_GAME_NAME} SHARED ${SOURCES} ${HEADERS} ${ASSETS_TRIGGER})
-	target_include_directories(${PLAYDATE_GAME_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
-	target_compile_options(${PLAYDATE_GAME_NAME} PRIVATE 
+	set(GAME_TARGET ${PLAYDATE_GAME_NAME})
+	target_compile_options(${GAME_TARGET} PRIVATE
 		-Wall
 		-Werror
 		-Wno-declaration-after-statement
-		-Wno-unsafe-buffer-usage
 		-Wdouble-promotion
 		-Wno-unused-parameter
-		-Wno-implicit-function-declaration
+		-Wno-unsafe-buffer-usage
 	)
 endif()
+
+target_include_directories(${GAME_TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 include(${SDK}/C_API/buildsupport/playdate_game.cmake)
