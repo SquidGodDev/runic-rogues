@@ -84,7 +84,7 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
         },
         .entryCount = 5,
         .bossType = ENEMY_TYPE_WRAITH_BOSS,
-    },
+    }
 };
 
 static const RoomBudget roomBudgets[AREA_COUNT][NON_BOSS_ROOM_COUNT] = {

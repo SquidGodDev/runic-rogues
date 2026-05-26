@@ -43,11 +43,11 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDamage = 1,
 		.attackCooldown = 1.0f,
 		.moveSpeed = 0.15f,
-		.textureIndex = TEXTURE_ELEMENTAL,
-		.idleFrameEnd = 8,
-		.deathFrameStart = 9,
-		.deathFrameEnd = 12,
-		.frameTime = 0.15f,
+		.textureIndex = TEXTURE_BANSHEE,
+		.idleFrameEnd = 6,
+		.deathFrameStart = 7,
+		.deathFrameEnd = 10,
+		.frameTime = 0.1f,
 		.update = proximityEnemyUpdate
 	},
 	[ENEMY_TYPE_BAT] = (EnemyData){

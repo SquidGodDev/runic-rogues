@@ -316,6 +316,172 @@ void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	}
 }
 
+// Melee that scurries directly away from the player during recovery (hit-and-run)
+void hitAndRunEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		if (curEnemy->stateCount == 1) {
+			if (curEnemy->stateTimer > 0) {
+				float awayX = curEnemy->x - playerX;
+				float awayY = curEnemy->y - playerY;
+				float length = sqrtf(awayX * awayX + awayY * awayY);
+				if (length > 0.001f) {
+					float retreatTargetX = curEnemy->x + (awayX / length) * CELL_SIZE * 4;
+					float retreatTargetY = curEnemy->y + (awayY / length) * CELL_SIZE * 4;
+					moveEnemy(curEnemy, index, retreatTargetX, retreatTargetY, curEnemyData->moveSpeed);
+				}
+				return;
+			}
+			curEnemy->stateCount = 0;
+		}
+
+		if (playerInAttackDetectionRange(index)) {
+			if (curEnemy->attackCooldown <= 0) {
+				curEnemy->attackCooldown = curEnemyData->attackCooldown;
+				curEnemy->stateTimer = curEnemyData->prepTime;
+				transitionToState(curEnemy, ENEMY_STATE_PREP);
+				addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemyData->prepTime);
+			}
+		} else {
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+		}
+
+		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+	} else if (curEnemy->state == ENEMY_STATE_PREP) {
+		if (curEnemy->stateTimer <= 0) {
+			if (curEnemyData->abilityDataPrimary > 0) {
+				curEnemy->targetX = playerX;
+				curEnemy->targetY = playerY;
+				curEnemy->abilityCooldown = curEnemyData->abilityDataSecondary;
+			}
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		if (curEnemy->abilityCooldown > 0) {
+			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
+		}
+
+		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			if (!curEnemy->attackedPlayer && playerInAttackDistance(index)) {
+				curEnemy->attackedPlayer = true;
+				damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
+			}
+		}
+
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			curEnemy->stateTimer = curEnemyData->postAttackTime;
+			curEnemy->stateCount = 1;
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
+// Two-hit melee: a jab (ATTACK_1) that chains into a second swing (ATTACK_2).
+void comboMeleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		if (playerInAttackDetectionRange(index)) {
+			if (curEnemy->attackCooldown <= 0) {
+				curEnemy->attackCooldown = curEnemyData->attackCooldown;
+				curEnemy->stateTimer = curEnemyData->prepTime;
+				transitionToState(curEnemy, ENEMY_STATE_PREP);
+				addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemyData->prepTime);
+			}
+		} else {
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+		}
+
+		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+	} else if (curEnemy->state == ENEMY_STATE_PREP) {
+		if (curEnemy->stateTimer <= 0) {
+			if (curEnemyData->abilityDataPrimary > 0) {
+				curEnemy->targetX = playerX;
+				curEnemy->targetY = playerY;
+				curEnemy->abilityCooldown = curEnemyData->abilityDataSecondary;
+			}
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		// Lunge into the first hit
+		if (curEnemy->abilityCooldown > 0) {
+			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
+		}
+
+		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			if (!curEnemy->attackedPlayer && playerInAttackDistance(index)) {
+				curEnemy->attackedPlayer = true;
+				damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
+			}
+		}
+
+		// Chain straight into the second swing
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_2);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_2) {
+		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			if (!curEnemy->attackedPlayer && playerInAttackDistance(index)) {
+				curEnemy->attackedPlayer = true;
+				damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
+			}
+		}
+
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			curEnemy->stateTimer = curEnemyData->postAttackTime;
+			curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
+			transitionToState(curEnemy, ENEMY_STATE_POST_ATTACK);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_POST_ATTACK) {
+		if (curEnemy->stateTimer <= 0) {
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
+// Stationary windup into a self-centered AoE slam. abilityDataPrimary is the slam radius.
+void slamEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			curEnemy->stateTimer = curEnemyData->prepTime;
+			transitionToState(curEnemy, ENEMY_STATE_PREP);
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemyData->prepTime);
+			spawnParticle(PARTICLE_TYPE_WARNING, curEnemy->x, curEnemy->y, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+		}
+
+		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+	} else if (curEnemy->state == ENEMY_STATE_PREP) {
+		if (curEnemy->stateTimer <= 0) {
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			if (!curEnemy->attackedPlayer) {
+				curEnemy->attackedPlayer = true;
+				float slamRadius = curEnemyData->abilityDataPrimary;
+				if (distanceSquared(playerX, playerY, curEnemy->x, curEnemy->y) <= slamRadius * slamRadius) {
+					damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
+				}
+			}
+		}
+
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			curEnemy->stateTimer = curEnemyData->postAttackTime;
+			curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
+			transitionToState(curEnemy, ENEMY_STATE_POST_ATTACK);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_POST_ATTACK) {
+		if (curEnemy->stateTimer <= 0) {
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
 void projectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		// Start shooting projectile if player is in range
@@ -352,6 +518,56 @@ void projectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, 
 		}
 
 		// Transition back to idle state after attack animation ends
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
+// Kites to a standoff distance and lobs a single slow, telegraphed projectile.
+// abilityDataPrimary is projectile speed, abilityDataSecondary is the preferred standoff distance.
+void lobberEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			curEnemy->stateTimer = curEnemyData->prepTime;
+			transitionToState(curEnemy, ENEMY_STATE_PREP);
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemyData->prepTime);
+		}
+
+		// Hold a preferred standoff distance: retreat when too close, approach when too far
+		float standoff = curEnemyData->abilityDataSecondary;
+		float distToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy->x, curEnemy->y));
+		if (distToPlayer < standoff * 0.75f) {
+			float awayX = curEnemy->x - playerX;
+			float awayY = curEnemy->y - playerY;
+			float length = sqrtf(awayX * awayX + awayY * awayY);
+			if (length > 0.001f) {
+				float retreatTargetX = curEnemy->x + (awayX / length) * CELL_SIZE * 4;
+				float retreatTargetY = curEnemy->y + (awayY / length) * CELL_SIZE * 4;
+				moveEnemy(curEnemy, index, retreatTargetX, retreatTargetY, curEnemyData->moveSpeed);
+			}
+		} else if (distToPlayer > standoff) {
+			moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_PREP) {
+		if (curEnemy->stateTimer <= 0) {
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			curEnemy->attackedPlayer = true;
+			float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy->x, curEnemy->y));
+			float deltaX = (playerX - curEnemy->x) / distanceToPlayer;
+			float deltaY = (playerY - curEnemy->y) / distanceToPlayer;
+			float projectileSpeed = curEnemyData->abilityDataPrimary;
+			float damage = curEnemyData->attackDamage;
+			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage);
+		}
+
 		if (attackAnimationReset) {
 			curEnemy->attackedPlayer = false;
 			transitionToState(curEnemy, ENEMY_STATE_IDLE);
