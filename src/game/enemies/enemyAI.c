@@ -832,6 +832,63 @@ void airElementalUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, boo
 	}
 }
 
+// === Rock Golem ===
+static void rockGolemSummonRubble(Enemy *curEnemy, EnemyData *curEnemyData) {
+	int rubbleCount = (int)curEnemyData->abilityDataPrimary;
+	float spacing = curEnemyData->abilityDataSecondary;
+
+	float dx = playerX - curEnemy->x;
+	float dy = playerY - curEnemy->y;
+	float length = sqrtf(dx * dx + dy * dy);
+	if (length < 0.001f) {
+		dx = 1.0f;
+		dy = 0.0f;
+	} else {
+		dx /= length;
+		dy /= length;
+	}
+
+	for (int i = 1; i <= rubbleCount; i++) {
+		float distance = i * spacing;
+		float spawnX = curEnemy->x + dx * distance;
+		float spawnY = curEnemy->y + dy * distance;
+		if (isBlocked((int)(spawnX / CELL_SIZE), (int)(spawnY / CELL_SIZE))) {
+			break;
+		}
+		spawnParticle(PARTICLE_TYPE_WARNING, spawnX, spawnY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_RUBBLE, true /* enemyParticle */);
+	}
+}
+
+// Walks toward the player; once in attack detection range it slams, dealing damage to the player
+// within attackDistance and summoning a line of rubble towards the player on the active attack frame.
+void rockGolemUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+		}
+
+		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			curEnemy->attackedPlayer = true;
+
+			// Slam: damage the player if within the radius around the golem
+			if (playerInAttackDistance(index)) {
+				damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
+			}
+
+			rockGolemSummonRubble(curEnemy, curEnemyData);
+		}
+
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
 // === Serpent constants ===
 #define SERPENT_TAIL_SPREAD_ANGLE_DEG 30.0f
 #define SERPENT_TAIL_SPREAD_ANGLE_RAD (SERPENT_TAIL_SPREAD_ANGLE_DEG * PI / 180.0f)

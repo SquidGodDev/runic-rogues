@@ -97,6 +97,14 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damage = 0,
 		.damageRadius = 0
 	},
+	[PARTICLE_TYPE_RUBBLE] = {
+		.frameCount = 9,
+		.animationTime = 0.1f,
+		.textureIndex = TEXTURE_PARTICLE_RUBBLE,
+		.damageFrame = 2,
+		.damage = 10,
+		.damageRadius = CELL_SIZE
+	},
 	[PARTICLE_TYPE_SPAWN] = {
 		.frameCount = 18,
 		.animationTime = 0.05f,

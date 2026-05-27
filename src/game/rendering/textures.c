@@ -47,6 +47,7 @@ const char *texturePathStrings[] = {
 	"images/particles/bomb",
 	"images/particles/miniBomb",
 	"images/particles/blackHole",
+	"images/particles/rubble",
 	"images/particles/spawn",
 	"images/particles/tornado",
 	"images/enemies/enemyProjectile",

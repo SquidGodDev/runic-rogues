@@ -411,6 +411,27 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 			.frameTime = 0.1f,
 		},
 		.update = airElementalUpdate
+	},
+	[ENEMY_TYPE_ROCK_GOLEM] = (EnemyData){
+		.name = "Rock Golem",
+		.health = 150,
+		.attackDetectionRange = 20,
+		.attackDistance = 15,
+		.attackDamage = 20,
+		.attackCooldown = 2.0f,
+		.moveSpeed = 0.2f,
+		.abilityDataPrimary = 6, // Number of rubble spawns
+		.abilityDataSecondary = CELL_SIZE, // Spacing between rubble in the line
+		.textureIndex = TEXTURE_ROCK_GOLEM,
+		.idleFrameEnd = 8,
+		.attackFrameStart = 9,
+		.attackFrameEnd = 29,
+		.attackActiveFrame = 18,
+		.deathFrameStart = 30,
+		.deathFrameEnd = 33,
+		.frameTime = 0.175f,
+		.update = rockGolemUpdate,
+		.knockbackResistant = true
 	}
 };
 
