@@ -76,7 +76,7 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
     },
     [AREA_TEST] = {
         .entries = {
-            { .type = ENEMY_TYPE_BOMBER,   .cost = 1, .weight = 10 },
+            { .type = ENEMY_TYPE_BABY_DRAGON,   .cost = 1, .weight = 10 },
             { .type = ENEMY_TYPE_LIVING_ARMOR, .cost = 3, .weight = 5 },
             { .type = ENEMY_TYPE_WRAITH,       .cost = 3, .weight = 5 },
             { .type = ENEMY_TYPE_FLYING_TOME,  .cost = 3, .weight = 3 },

@@ -525,6 +525,43 @@ void projectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, 
 	}
 }
 
+// Walks straight toward the player like a proximity enemy, then once the player is within
+// attack detection range it stops to fire a single projectile (like projectileEnemyUpdate).
+void proximityProjectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		// Start shooting projectile if player is in range
+		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+		}
+
+		// Walk straight towards the player while not in attack range
+		if (!playerInAttackDetectionRange(index)) {
+			moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		// Fire projectile towards player if attack animation passes active frame
+		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			curEnemy->attackedPlayer = true;
+			float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy->x, curEnemy->y));
+			float deltaX = (playerX - curEnemy->x) / distanceToPlayer;
+			float deltaY = (playerY - curEnemy->y) / distanceToPlayer;
+			float projectileSpeed = curEnemyData->abilityDataPrimary;
+			float damage = curEnemyData->attackDamage;
+			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage);
+		}
+
+		// Transition back to idle state after attack animation ends
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
 // Kites to a standoff distance and lobs a single slow, telegraphed projectile.
 // abilityDataPrimary is projectile speed, abilityDataSecondary is the preferred standoff distance.
 void lobberEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {

@@ -368,6 +368,24 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameEnd = 19,
 		.frameTime = 0.12f,
 		.update = dummyUpdate
+	},
+	[ENEMY_TYPE_BABY_DRAGON] = (EnemyData){
+		.name = "Baby Dragon",
+		.health = 80,
+		.attackDetectionRange = 25,
+		.attackDamage = 12,
+		.attackCooldown = 3.0f,
+		.moveSpeed = 0.3f,
+		.abilityDataPrimary = 30.0f, // Projectile speed
+		.textureIndex = TEXTURE_BABY_DRAGON,
+		.idleFrameEnd = 6,
+		.attackFrameStart = 7,
+		.attackFrameEnd = 18,
+		.attackActiveFrame = 11,
+		.deathFrameStart = 19,
+		.deathFrameEnd = 22,
+		.frameTime = 0.1f,
+		.update = proximityProjectileEnemyUpdate
 	}
 };
 

@@ -9,6 +9,7 @@ void hitAndRunEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackA
 void comboMeleeEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void slamEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void projectileEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
+void proximityProjectileEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void lobberEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void rushEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void turretEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
