@@ -2,6 +2,7 @@
 
 #include "stdbool.h"
 #include "globals/helpers.h"
+#include "game/player/spells/spells.h"
 
 #define MAX_ENEMY_COUNT 50
 
@@ -29,6 +30,7 @@ typedef enum EnemyType
 	ENEMY_TYPE_BOMBER,
 	ENEMY_TYPE_DUMMY,
 	ENEMY_TYPE_BABY_DRAGON,
+	ENEMY_TYPE_AIR_ELEMENTAL,
 	ENEMY_TYPE_COUNT
 } EnemyType;
 
@@ -103,6 +105,7 @@ struct EnemyData {
 	int deathFrameStart;
 	int deathFrameEnd;
 	float frameTime;
+	SpellProjectileData projectileData;
 	EnemyUpdateFn update;
 	bool knockbackResistant;
 };

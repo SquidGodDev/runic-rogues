@@ -78,8 +78,9 @@ void firePlayerProjectile(float x, float y, float deltaX, float deltaY, int dama
 	fireProjectile(x, y, x, y, deltaX, deltaY, spellProjectileData.speed, damage, spellProjectileData.textureIndex, 0 /*isEnemy*/, spellProjectileData);
 }
 
-void fireEnemyProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, int damage) {
-	fireProjectile(x, y, sourceX, sourceY, deltaX, deltaY, speed, damage, TEXTURE_ENEMY_PROJECTILE, 1 /*isEnemy*/, (SpellProjectileData){0});
+void fireEnemyProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, int damage, SpellProjectileData spellProjectileData) {
+	int textureIndex = spellProjectileData.textureIndex != 0 ? spellProjectileData.textureIndex : TEXTURE_ENEMY_PROJECTILE;
+	fireProjectile(x, y, sourceX, sourceY, deltaX, deltaY, speed, damage, textureIndex, 1 /*isEnemy*/, spellProjectileData);
 }
 
 void updateProjectiles(float deltaTime) {

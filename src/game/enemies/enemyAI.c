@@ -514,7 +514,7 @@ void projectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, 
 			float damage = curEnemyData->attackDamage;
 			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
-			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage);
+			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage, curEnemyData->projectileData);
 		}
 
 		// Transition back to idle state after attack animation ends
@@ -551,7 +551,7 @@ void proximityProjectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, in
 			float damage = curEnemyData->attackDamage;
 			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
-			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage);
+			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage, curEnemyData->projectileData);
 		}
 
 		// Transition back to idle state after attack animation ends
@@ -602,7 +602,7 @@ void lobberEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool
 			float damage = curEnemyData->attackDamage;
 			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
-			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage);
+			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage, curEnemyData->projectileData);
 		}
 
 		if (attackAnimationReset) {
@@ -680,19 +680,17 @@ void mummyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attac
 	}
 }
 
-// === Bomber constants ===
-#define BOMBER_TARGET_MAX_ATTEMPTS 20
-#define BOMBER_MIN_WANDER_COUNT 1
-#define BOMBER_MAX_WANDER_COUNT 1
+// === Random room target ===
+#define ROOM_TARGET_MAX_ATTEMPTS 20
 
-// Picks a random floor cell in the bomber's room that is at least minDistance away from
-// the bomber's current position, and stores it as the next target.
-static void bomberPickTarget(Enemy *curEnemy, float minDistance) {
+// Picks a random floor cell in the enemy's room that is at least minDistance away from
+// the enemy's current position, and stores it as the next target.
+static void pickRandomRoomTarget(Enemy *curEnemy, float minDistance) {
 	int roomIndex = getCurrentRoomIndex();
 	Point interiorMin = getRoomInteriorMin(roomIndex);
 	Point interiorMax = getRoomInteriorMax(roomIndex);
 	float minDistanceSq = minDistance * minDistance;
-	for (int attempt = 0; attempt < BOMBER_TARGET_MAX_ATTEMPTS; attempt++) {
+	for (int attempt = 0; attempt < ROOM_TARGET_MAX_ATTEMPTS; attempt++) {
 		int cellX = randInt(interiorMin.x, interiorMax.x);
 		int cellY = randInt(interiorMin.y, interiorMax.y);
 		if (isBlocked(cellX, cellY)) {
@@ -710,6 +708,10 @@ static void bomberPickTarget(Enemy *curEnemy, float minDistance) {
 	}
 }
 
+// === Bomber constants ===
+#define BOMBER_MIN_WANDER_COUNT 1
+#define BOMBER_MAX_WANDER_COUNT 1
+
 // Bomber cycle phases, stored in Enemy.attackCycle.
 typedef enum BomberPhase {
 	BOMBER_PHASE_WANDER,   // Visiting random positions without bombing
@@ -720,14 +722,9 @@ typedef enum BomberPhase {
 static void bomberStartCycle(Enemy *curEnemy, EnemyData *curEnemyData) {
 	curEnemy->attackCycle = BOMBER_PHASE_WANDER;
 	curEnemy->stateCount = randInt(BOMBER_MIN_WANDER_COUNT, BOMBER_MAX_WANDER_COUNT);
-	bomberPickTarget(curEnemy, curEnemyData->abilityDataPrimary);
+	pickRandomRoomTarget(curEnemy, curEnemyData->abilityDataPrimary);
 }
 
-// Walks to a random number (BOMBER_MIN_WANDER_COUNT..BOMBER_MAX_WANDER_COUNT) of random
-// positions without bombing, then locks in the player's current position, walks to it, and plants a
-// PARTICLE_TYPE_BOMB on the active attack frame.
-// abilityDataPrimary is the minimum distance between random positions, abilityDataSecondary
-// is the arrival radius for considering a position reached.
 void bomberUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		// On spawn the bomber is wandering with no positions queued yet — start a fresh cycle
@@ -749,7 +746,7 @@ void bomberUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool atta
 			curEnemy->stateCount--;
 			if (curEnemy->stateCount > 0) {
 				// More random positions to visit
-				bomberPickTarget(curEnemy, curEnemyData->abilityDataPrimary);
+				pickRandomRoomTarget(curEnemy, curEnemyData->abilityDataPrimary);
 			} else {
 				// Done wandering: lock in the player's position and head there to bomb
 				curEnemy->attackCycle = BOMBER_PHASE_BOMB_RUN;
@@ -781,6 +778,55 @@ void bomberUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool atta
 		if (attackAnimationReset) {
 			curEnemy->attackedPlayer = false;
 			bomberStartCycle(curEnemy, curEnemyData);
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
+// === Air Elemental constants ===
+static const float AIR_ELEMENTAL_CARDINAL_X[4] = { 1.0f, -1.0f, 0.0f, 0.0f };
+static const float AIR_ELEMENTAL_CARDINAL_Y[4] = { 0.0f, 0.0f, 1.0f, -1.0f };
+
+// Floats to random positions around the room; on arrival it fires a projectile in each of the
+// four cardinal directions. abilityDataPrimary is the minimum distance between random positions,
+// abilityDataSecondary is the arrival radius, and projectileData.speed is the projectile speed.
+void airElementalUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		// On spawn no position is queued yet — pick the first random position
+		if (curEnemy->stateCount == 0) {
+			pickRandomRoomTarget(curEnemy, curEnemyData->abilityDataPrimary);
+			curEnemy->stateCount = 1;
+		}
+
+		float arrivalRadius = curEnemyData->abilityDataSecondary;
+		float dx = curEnemy->targetX - curEnemy->x;
+		float dy = curEnemy->targetY - curEnemy->y;
+		if (dx * dx + dy * dy > arrivalRadius * arrivalRadius) {
+			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
+			return;
+		}
+
+		transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+		addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		// Fire a projectile in all four cardinal directions once the attack animation reaches the active frame
+		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			curEnemy->attackedPlayer = true;
+			float projectileSpeed = curEnemyData->projectileData.speed;
+			float damage = curEnemyData->attackDamage;
+			for (int i = 0; i < 4; i++) {
+				float deltaX = AIR_ELEMENTAL_CARDINAL_X[i];
+				float deltaY = AIR_ELEMENTAL_CARDINAL_Y[i];
+				float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+				float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+				fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage, curEnemyData->projectileData);
+			}
+		}
+
+		// Once the attack animation ends, queue the next random position
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			pickRandomRoomTarget(curEnemy, curEnemyData->abilityDataPrimary);
 			transitionToState(curEnemy, ENEMY_STATE_IDLE);
 		}
 	}
@@ -864,7 +910,7 @@ void turretEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool
 			float damage = curEnemyData->attackDamage;
 			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
-			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage);
+			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage, curEnemyData->projectileData);
 
 			curEnemy->stateCount += 1;
 			if (curEnemy->stateCount >= curEnemyData->abilityDataPrimary) {
@@ -913,7 +959,7 @@ static void elderFireProjectileWave(Enemy *curEnemy, EnemyData *curEnemyData, in
 		float dy = sinf(angle);
 		float px = curEnemy->x + dx * PROJECTILE_OFFSET;
 		float py = curEnemy->y + dy * PROJECTILE_OFFSET;
-		fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, dx, dy, elderProperties->projectileSpeed, elderProperties->projectileDamage);
+		fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, dx, dy, elderProperties->projectileSpeed, elderProperties->projectileDamage, curEnemyData->projectileData);
 	}
 }
 
@@ -1136,7 +1182,7 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				float damage = curEnemyData->attackDamage;
 				float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 				float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
-				fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage);
+				fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage, curEnemyData->projectileData);
 			}
 		} else if (curEnemy->state == WRAITH_STATE_SUMMON) {
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);

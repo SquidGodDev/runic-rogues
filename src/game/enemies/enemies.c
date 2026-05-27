@@ -386,6 +386,31 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameEnd = 22,
 		.frameTime = 0.1f,
 		.update = proximityProjectileEnemyUpdate
+	},
+	[ENEMY_TYPE_AIR_ELEMENTAL] = (EnemyData){
+		.name = "Air Elemental",
+		.health = 60,
+		.attackDetectionRange = 25,
+		.attackDamage = 10,
+		.attackCooldown = 0,
+		.moveSpeed = 0.5f,
+		.abilityDataPrimary = CELL_SIZE * 4.0f, // Minimum distance between random positions
+		.abilityDataSecondary = CELL_SIZE * 0.75f, // Arrival radius for reaching a position
+		.textureIndex = TEXTURE_AIR_ELEMENTAL,
+		.idleFrameEnd = 8,
+		.attackFrameStart = 9,
+		.attackFrameEnd = 18,
+		.attackActiveFrame = 17,
+		.deathFrameStart = 19,
+		.deathFrameEnd = 22,
+		.frameTime = 0.1f,
+		.projectileData = {
+			.speed = 25.0f,
+			.textureIndex = TEXTURE_TORNADO,
+			.frameCount = 8,
+			.frameTime = 0.1f,
+		},
+		.update = airElementalUpdate
 	}
 };
 

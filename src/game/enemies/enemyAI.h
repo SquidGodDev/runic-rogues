@@ -16,6 +16,7 @@ void turretEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnim
 void mummyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void bomberUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void serpentUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
+void airElementalUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void circlingChargeEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void chargeEnemyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void dummyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
