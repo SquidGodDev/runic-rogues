@@ -336,6 +336,24 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.frameTime = 0.15f,
 		.update = proximityEnemyUpdate
 	},
+	[ENEMY_TYPE_BOMBER] = (EnemyData){
+		.name = "Bomber",
+		.health = 70,
+		.attackDamage = 20,
+		.attackCooldown = 0,
+		.moveSpeed = 0.6f,
+		.abilityDataPrimary = CELL_SIZE * 5.0f, // Minimum distance between random positions
+		.abilityDataSecondary = CELL_SIZE * 0.75f, // Arrival radius for reaching a position
+		.textureIndex = TEXTURE_BOMBER,
+		.idleFrameEnd = 10,
+		.attackFrameStart = 11,
+		.attackFrameEnd = 21,
+		.attackActiveFrame = 14,
+		.deathFrameStart = 22,
+		.deathFrameEnd = 25,
+		.frameTime = 0.1f,
+		.update = bomberUpdate
+	},
 	[ENEMY_TYPE_DUMMY] = (EnemyData){
 		.name = "Dummy",
 		.health = 15,

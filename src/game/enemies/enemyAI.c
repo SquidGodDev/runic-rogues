@@ -643,6 +643,112 @@ void mummyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attac
 	}
 }
 
+// === Bomber constants ===
+#define BOMBER_TARGET_MAX_ATTEMPTS 20
+#define BOMBER_MIN_WANDER_COUNT 1
+#define BOMBER_MAX_WANDER_COUNT 1
+
+// Picks a random floor cell in the bomber's room that is at least minDistance away from
+// the bomber's current position, and stores it as the next target.
+static void bomberPickTarget(Enemy *curEnemy, float minDistance) {
+	int roomIndex = getCurrentRoomIndex();
+	Point interiorMin = getRoomInteriorMin(roomIndex);
+	Point interiorMax = getRoomInteriorMax(roomIndex);
+	float minDistanceSq = minDistance * minDistance;
+	for (int attempt = 0; attempt < BOMBER_TARGET_MAX_ATTEMPTS; attempt++) {
+		int cellX = randInt(interiorMin.x, interiorMax.x);
+		int cellY = randInt(interiorMin.y, interiorMax.y);
+		if (isBlocked(cellX, cellY)) {
+			continue;
+		}
+		float candidateX = cellX * CELL_SIZE + CELL_SIZE / 2.0f;
+		float candidateY = cellY * CELL_SIZE + CELL_SIZE / 2.0f;
+		float dx = candidateX - curEnemy->x;
+		float dy = candidateY - curEnemy->y;
+		if (dx * dx + dy * dy >= minDistanceSq) {
+			curEnemy->targetX = candidateX;
+			curEnemy->targetY = candidateY;
+			return;
+		}
+	}
+}
+
+// Bomber cycle phases, stored in Enemy.attackCycle.
+typedef enum BomberPhase {
+	BOMBER_PHASE_WANDER,   // Visiting random positions without bombing
+	BOMBER_PHASE_BOMB_RUN  // Heading to the saved player position to drop a bomb
+} BomberPhase;
+
+// Begins a new cycle: roll a wander count and queue up the first random position.
+static void bomberStartCycle(Enemy *curEnemy, EnemyData *curEnemyData) {
+	curEnemy->attackCycle = BOMBER_PHASE_WANDER;
+	curEnemy->stateCount = randInt(BOMBER_MIN_WANDER_COUNT, BOMBER_MAX_WANDER_COUNT);
+	bomberPickTarget(curEnemy, curEnemyData->abilityDataPrimary);
+}
+
+// Walks to a random number (BOMBER_MIN_WANDER_COUNT..BOMBER_MAX_WANDER_COUNT) of random
+// positions without bombing, then locks in the player's current position, walks to it, and plants a
+// PARTICLE_TYPE_BOMB on the active attack frame.
+// abilityDataPrimary is the minimum distance between random positions, abilityDataSecondary
+// is the arrival radius for considering a position reached.
+void bomberUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		// On spawn the bomber is wandering with no positions queued yet — start a fresh cycle
+		if (curEnemy->attackCycle == BOMBER_PHASE_WANDER && curEnemy->stateCount == 0) {
+			bomberStartCycle(curEnemy, curEnemyData);
+		}
+
+		float arrivalRadius = curEnemyData->abilityDataSecondary;
+		float dx = curEnemy->targetX - curEnemy->x;
+		float dy = curEnemy->targetY - curEnemy->y;
+		bool arrived = dx * dx + dy * dy <= arrivalRadius * arrivalRadius;
+
+		if (!arrived) {
+			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
+			return;
+		}
+
+		if (curEnemy->attackCycle == BOMBER_PHASE_WANDER) {
+			curEnemy->stateCount--;
+			if (curEnemy->stateCount > 0) {
+				// More random positions to visit
+				bomberPickTarget(curEnemy, curEnemyData->abilityDataPrimary);
+			} else {
+				// Done wandering: lock in the player's position and head there to bomb
+				curEnemy->attackCycle = BOMBER_PHASE_BOMB_RUN;
+				curEnemy->targetX = playerX;
+				curEnemy->targetY = playerY;
+			}
+		} else {
+			// Reached the saved player position — plant the bomb
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		// Plant a bomb half a cell towards the player once the attack animation reaches the active frame
+		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			curEnemy->attackedPlayer = true;
+			float toPlayerX = playerX - curEnemy->x;
+			float toPlayerY = playerY - curEnemy->y;
+			float length = sqrtf(toPlayerX * toPlayerX + toPlayerY * toPlayerY);
+			float bombX = curEnemy->x;
+			float bombY = curEnemy->y;
+			if (length > 0.001f) {
+				bombX += (toPlayerX / length) * (CELL_SIZE * 0.2f);
+				bombY += (toPlayerY / length) * (CELL_SIZE * 0.2f);
+			}
+			spawnParticle(PARTICLE_TYPE_MINI_BOMB, bombX, bombY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+		}
+
+		// Once the attack animation ends, start the next wander cycle
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			bomberStartCycle(curEnemy, curEnemyData);
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
 // === Serpent constants ===
 #define SERPENT_TAIL_SPREAD_ANGLE_DEG 30.0f
 #define SERPENT_TAIL_SPREAD_ANGLE_RAD (SERPENT_TAIL_SPREAD_ANGLE_DEG * PI / 180.0f)

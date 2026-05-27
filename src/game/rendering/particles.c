@@ -78,7 +78,15 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.animationTime = 0.03f,
 		.textureIndex = TEXTURE_PARTICLE_BOMB,
 		.damageFrame = 47,
-		.damage = 40,
+		.damage = 20,
+		.damageRadius = CELL_SIZE
+	},
+	[PARTICLE_TYPE_MINI_BOMB] = {
+		.frameCount = 66,
+		.animationTime = 0.05f,
+		.textureIndex = TEXTURE_PARTICLE_MINI_BOMB,
+		.damageFrame = 47,
+		.damage = 10,
 		.damageRadius = CELL_SIZE
 	},
 	[PARTICLE_TYPE_BLACK_HOLE] = {
