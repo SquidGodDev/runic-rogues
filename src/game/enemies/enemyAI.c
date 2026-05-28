@@ -863,8 +863,10 @@ static void rockGolemSummonRubble(Enemy *curEnemy, EnemyData *curEnemyData) {
 // within attackDistance and summoning a line of rubble towards the player on the active attack frame.
 void rockGolemUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
-		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
+		bool forceAttack = curEnemy->stateTimer <= 0;
+		if (forceAttack || (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index))) {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			curEnemy->stateTimer = curEnemyData->abilityDataTertiary + randFloat(-1.0f, 1.0f);
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 		}

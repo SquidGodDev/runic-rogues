@@ -422,6 +422,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.moveSpeed = 0.2f,
 		.abilityDataPrimary = 6, // Number of rubble spawns
 		.abilityDataSecondary = CELL_SIZE, // Spacing between rubble in the line
+		.abilityDataTertiary = 5.0f, // Seconds before forcing an attack if it hasn't attacked
 		.textureIndex = TEXTURE_ROCK_GOLEM,
 		.idleFrameEnd = 8,
 		.attackFrameStart = 9,
@@ -541,6 +542,8 @@ int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 	} else if (enemyType == ENEMY_TYPE_ELDER_BOSS) {
 		bossIndex = newEnemyIndex;
 		enemies[newEnemyIndex].stateTimer = 2.0f; // Initial idle time before first attack
+	} else if (enemyType == ENEMY_TYPE_ROCK_GOLEM) {
+		enemies[newEnemyIndex].stateTimer = curEnemyData.abilityDataTertiary + randFloat(-1.0f, 1.0f); // Force-attack timer
 	}
 
 	return newEnemyIndex;

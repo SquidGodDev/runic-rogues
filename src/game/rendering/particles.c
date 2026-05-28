@@ -103,7 +103,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_RUBBLE,
 		.damageFrame = 2,
 		.damage = 10,
-		.damageRadius = CELL_SIZE
+		.damageRadius = CELL_SIZE * 0.5f
 	},
 	[PARTICLE_TYPE_SPAWN] = {
 		.frameCount = 18,

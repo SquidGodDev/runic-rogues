@@ -65,7 +65,7 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
     },
     [AREA_ECHOING_CAVERNS] = {
         .entries = {
-            { .type = ENEMY_TYPE_TEST,       .cost = 1, .weight = 10 },
+            { .type = ENEMY_TYPE_BABY_DRAGON,       .cost = 1, .weight = 10 },
             { .type = ENEMY_TYPE_SKELETON,   .cost = 3, .weight = 5 },
             { .type = ENEMY_TYPE_SLIME,      .cost = 3, .weight = 5 },
             { .type = ENEMY_TYPE_SERPENT,    .cost = 3, .weight = 3 },
@@ -77,10 +77,10 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
     [AREA_TEST] = {
         .entries = {
             { .type = ENEMY_TYPE_ROCK_GOLEM,   .cost = 1, .weight = 10 },
-            { .type = ENEMY_TYPE_LIVING_ARMOR, .cost = 3, .weight = 5 },
-            { .type = ENEMY_TYPE_WRAITH,       .cost = 3, .weight = 5 },
-            { .type = ENEMY_TYPE_FLYING_TOME,  .cost = 3, .weight = 3 },
-            { .type = ENEMY_TYPE_BAT,          .cost = 3, .weight = 3 },
+            { .type = ENEMY_TYPE_BOMBER, .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_ROCK_GOLEM,       .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_AIR_ELEMENTAL,  .cost = 3, .weight = 3 },
+            { .type = ENEMY_TYPE_MUMMY,          .cost = 3, .weight = 3 },
         },
         .entryCount = 5,
         .bossType = ENEMY_TYPE_WRAITH_BOSS,

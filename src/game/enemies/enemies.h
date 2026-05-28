@@ -94,6 +94,7 @@ struct EnemyData {
 	float moveSpeed;
 	float abilityDataPrimary; // Flexible property for enemy-specific behaviors or traits
 	float abilityDataSecondary; // Flexible property for enemy-specific behaviors or traits
+	float abilityDataTertiary; // Flexible property for enemy-specific behaviors or traits
 	float prepTime;       // Seconds spent in ENEMY_STATE_PREP before attacking
 	float postAttackTime; // Seconds spent in ENEMY_STATE_POST_ATTACK after attack ends
 	int textureIndex;
