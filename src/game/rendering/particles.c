@@ -105,6 +105,14 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damage = 10,
 		.damageRadius = CELL_SIZE * 0.5f
 	},
+	[PARTICLE_TYPE_HEAL] = {
+		.frameCount = 8,
+		.animationTime = 0.1f,
+		.textureIndex = TEXTURE_PARTICLE_HEAL,
+		.damageFrame = 0,
+		.damage = 0,
+		.damageRadius = 0
+	},
 	[PARTICLE_TYPE_SPAWN] = {
 		.frameCount = 18,
 		.animationTime = 0.05f,

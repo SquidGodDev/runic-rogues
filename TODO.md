@@ -46,6 +46,7 @@
 - Level ups and unlocks
 - Ascension difficulty
 ## Scenes
+- Show area map progression (e.g. tiny rogues)
 - Improved title
 - Game Over scene
   - Stats

@@ -433,6 +433,27 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.frameTime = 0.175f,
 		.update = rockGolemUpdate,
 		.knockbackResistant = true
+	},
+	[ENEMY_TYPE_BANSHEE] = (EnemyData){
+		.name = "Banshee",
+		.health = 70,
+		.attackDetectionRange = 150,
+		.attackDamage = 0,
+		.attackCooldown = 0,
+		.moveSpeed = 0.45f,
+		.abilityDataPrimary = CELL_SIZE * 3.0f, // Heal search radius
+		.abilityDataSecondary = CELL_SIZE * 0.75f, // Arrival radius for reaching an ally
+		.abilityDataTertiary = 10, // Heal amount
+		.postAttackTime = 2.0f,
+		.textureIndex = TEXTURE_BANSHEE,
+		.idleFrameEnd = 6,
+		.attackFrameStart = 7,
+		.attackFrameEnd = 15,
+		.attackActiveFrame = 11,
+		.deathFrameStart = 16,
+		.deathFrameEnd = 19,
+		.frameTime = 0.12f,
+		.update = bansheeUpdate
 	}
 };
 
