@@ -18,6 +18,7 @@ typedef struct EnemyPoolEntry {
     EnemyType type;
     int cost;
     int weight;
+    int maxCount; // 0 = unlimited
 } EnemyPoolEntry;
 
 typedef struct AreaEnemyPool {
@@ -65,24 +66,24 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
     },
     [AREA_ECHOING_CAVERNS] = {
         .entries = {
-            { .type = ENEMY_TYPE_BABY_DRAGON,       .cost = 1, .weight = 10 },
-            { .type = ENEMY_TYPE_SKELETON,   .cost = 3, .weight = 5 },
-            { .type = ENEMY_TYPE_SLIME,      .cost = 3, .weight = 5 },
-            { .type = ENEMY_TYPE_SERPENT,    .cost = 3, .weight = 3 },
-            { .type = ENEMY_TYPE_BAT,        .cost = 3, .weight = 3 },
+            { .type = ENEMY_TYPE_BABY_DRAGON,   .cost = 1, .weight = 10 },
+            { .type = ENEMY_TYPE_ROCK_GOLEM,    .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_BOMBER,        .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_BANSHEE,       .cost = 3, .weight = 3, .maxCount = 3 },
+            { .type = ENEMY_TYPE_AIR_ELEMENTAL, .cost = 3, .weight = 3 },
         },
         .entryCount = 5,
         .bossType = ENEMY_TYPE_ELDER_BOSS,
     },
     [AREA_TEST] = {
         .entries = {
-            { .type = ENEMY_TYPE_BANSHEE,   .cost = 1, .weight = 10 },
-            { .type = ENEMY_TYPE_BOMBER, .cost = 3, .weight = 5 },
-            { .type = ENEMY_TYPE_ROCK_GOLEM,       .cost = 3, .weight = 5 },
-            { .type = ENEMY_TYPE_AIR_ELEMENTAL,  .cost = 3, .weight = 3 },
-            { .type = ENEMY_TYPE_MUMMY,          .cost = 3, .weight = 3 },
+            { .type = ENEMY_TYPE_BABY_DRAGON,   .cost = 1, .weight = 10 },
+            { .type = ENEMY_TYPE_BOMBER,        .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_ROCK_GOLEM,    .cost = 3, .weight = 5 },
+            { .type = ENEMY_TYPE_AIR_ELEMENTAL, .cost = 3, .weight = 3 },
+            { .type = ENEMY_TYPE_MUMMY,         .cost = 3, .weight = 3 },
         },
-        .entryCount = 6,
+        .entryCount = 5,
         .bossType = ENEMY_TYPE_WRAITH_BOSS,
     }
 };
@@ -124,17 +125,25 @@ static int currentRoomIndex;
 static bool bossActive;
 static int arrowTargetRoom;
 
-static int pickWeightedEnemy(const AreaEnemyPool *pool, int affordableCost, bool specialsOnly) {
+static bool isEntryEligible(const EnemyPoolEntry *e, int affordableCost, bool specialsOnly, int pickedCount) {
+    if (e->cost > affordableCost) {
+        return false;
+    }
+    if (specialsOnly && e->cost < SPECIAL_COST_THRESHOLD) {
+        return false;
+    }
+    if (e->maxCount > 0 && pickedCount >= e->maxCount) {
+        return false;
+    }
+    return true;
+}
+
+static int pickWeightedEnemy(const AreaEnemyPool *pool, int affordableCost, bool specialsOnly, const int *pickedCounts) {
     int totalWeight = 0;
     for (int i = 0; i < pool->entryCount; i++) {
-        const EnemyPoolEntry *e = &pool->entries[i];
-        if (e->cost > affordableCost) {
-            continue;
+        if (isEntryEligible(&pool->entries[i], affordableCost, specialsOnly, pickedCounts[i])) {
+            totalWeight += pool->entries[i].weight;
         }
-        if (specialsOnly && e->cost < SPECIAL_COST_THRESHOLD) {
-            continue;
-        }
-        totalWeight += e->weight;
     }
     if (totalWeight <= 0) {
         return -1;
@@ -142,14 +151,10 @@ static int pickWeightedEnemy(const AreaEnemyPool *pool, int affordableCost, bool
 
     int roll = randInt(0, totalWeight - 1);
     for (int i = 0; i < pool->entryCount; i++) {
-        const EnemyPoolEntry *e = &pool->entries[i];
-        if (e->cost > affordableCost) {
+        if (!isEntryEligible(&pool->entries[i], affordableCost, specialsOnly, pickedCounts[i])) {
             continue;
         }
-        if (specialsOnly && e->cost < SPECIAL_COST_THRESHOLD) {
-            continue;
-        }
-        roll -= e->weight;
+        roll -= pool->entries[i].weight;
         if (roll < 0) {
             return i;
         }
@@ -178,22 +183,25 @@ int rollEnemiesFromBudget(EnemyType *outTypes, int maxOut, int budget, int minSp
         return count;
     }
 
+    int pickedCounts[MAX_POOL_ENTRIES] = {0};
     int count = 0;
     for (int i = 0; i < minSpecials && count < maxOut; i++) {
-        int idx = pickWeightedEnemy(pool, budget, true /*specialsOnly*/);
+        int idx = pickWeightedEnemy(pool, budget, true /*specialsOnly*/, pickedCounts);
         if (idx < 0) {
             break;
         }
         outTypes[count++] = pool->entries[idx].type;
+        pickedCounts[idx]++;
         budget -= pool->entries[idx].cost;
     }
 
     while (count < maxOut) {
-        int idx = pickWeightedEnemy(pool, budget, false /*specialsOnly*/);
+        int idx = pickWeightedEnemy(pool, budget, false /*specialsOnly*/, pickedCounts);
         if (idx < 0) {
             break;
         }
         outTypes[count++] = pool->entries[idx].type;
+        pickedCounts[idx]++;
         budget -= pool->entries[idx].cost;
     }
 
