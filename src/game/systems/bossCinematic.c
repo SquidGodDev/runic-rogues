@@ -154,9 +154,18 @@ void updateBossCinematic(float deltaTime) {
 			phase = BOSS_CINEMATIC_MIDDLE;
 			phaseTimer = 0;
 			if (bossEnemyIndex >= 0 && enemies[bossEnemyIndex].phase == 0) {
-				PopupType bossPopup = (enemies[bossEnemyIndex].type == ENEMY_TYPE_WRAITH_BOSS)
-					? POPUP_WRAITH_BOSS
-					: POPUP_ELDER_BOSS;
+				PopupType bossPopup;
+				switch (enemies[bossEnemyIndex].type) {
+					case ENEMY_TYPE_WRAITH_BOSS:
+						bossPopup = POPUP_WRAITH_BOSS;
+						break;
+					case ENEMY_TYPE_DRAGON_BOSS:
+						bossPopup = POPUP_DRAGON_BOSS;
+						break;
+					default:
+						bossPopup = POPUP_ELDER_BOSS;
+						break;
+				}
 				showPopup(bossPopup, POPUP_POSITION_TOP);
 			}
 		}

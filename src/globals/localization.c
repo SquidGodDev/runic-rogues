@@ -189,6 +189,10 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
         "The Wraith",
         "レイス",
     },
+    [STR_POPUP_DRAGON_BOSS] = {
+        "The Dragon",
+        "ドラゴン",
+    },
 
     // Tutorial dialog pages (currently English-only; add JP translations to enable)
     [STR_TUTORIAL_R1_1] = {

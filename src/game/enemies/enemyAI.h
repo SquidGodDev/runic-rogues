@@ -26,3 +26,4 @@ void dummyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationR
 // Boss update functions
 void elderBossUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
 void wraithBossUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);
+void dragonBossUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset);

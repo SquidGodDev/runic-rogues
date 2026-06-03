@@ -244,6 +244,127 @@ static const WraithBossProperties *wraithProperties;
 #define WRAITH_STATE_SUMMON      ENEMY_STATE_ATTACK_3
 #define WRAITH_STATE_SPAWN       ENEMY_STATE_POST_ATTACK
 
+// === Dragon Boss properties ===
+typedef struct DragonBossProperties {
+	// Attack 1 — slow projectile rings
+	int   ringCount;              // Number of rings shot per attack
+	float ringSpacing;           // Seconds between rings (animation holds last frame)
+	float ringProjectileSpeed;
+	int   ringProjectileDamage;
+	// Attack 2 — four-armed sweeping sprinkler
+	int   sprinklerShots;            // Number of 4-way bursts fired
+	float sprinklerShotSpacing;      // Seconds between bursts
+	float sprinklerSweepStep;        // Radians the sprinkler rotates per burst
+	float sprinklerProjectileSpeed;
+	int   sprinklerProjectileDamage;
+	// Attack 3 — rapid aimed volleys
+	int   volleyShots;           // Projectiles per volley
+	int   volleyCount;           // Number of volleys per attack
+	float volleyShotSpacing;     // Seconds between shots within a volley
+	float volleySpacing;         // Seconds between volleys (animation holds last frame)
+	float volleyProjectileSpeed;
+	int   volleyProjectileDamage;
+} DragonBossProperties;
+
+static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BOSS_PHASE_COUNT] = {
+	// Difficulty 0
+	{
+		// Phase 0
+		{
+			.ringCount             = 3,
+			.ringSpacing           = 0.5f,
+			.ringProjectileSpeed   = 25.0f,
+			.ringProjectileDamage  = 12,
+			.sprinklerShots            = 20,
+			.sprinklerShotSpacing      = 0.06f,
+			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
+			.sprinklerProjectileSpeed  = 40.0f,
+			.sprinklerProjectileDamage = 12,
+			.volleyShots           = 7,
+			.volleyCount           = 2,
+			.volleyShotSpacing     = 0.2f,
+			.volleySpacing         = 1.5f,
+			.volleyProjectileSpeed = 100.0f,
+			.volleyProjectileDamage = 12,
+		},
+		// Phase 1
+		{
+			.ringCount             = 4,
+			.ringSpacing           = 0.5f,
+			.ringProjectileSpeed   = 25.0f,
+			.ringProjectileDamage  = 14,
+			.sprinklerShots            = 30,
+			.sprinklerShotSpacing      = 0.06f,
+			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
+			.sprinklerProjectileSpeed  = 40.0f,
+			.sprinklerProjectileDamage = 14,
+			.volleyShots           = 10,
+			.volleyCount           = 3,
+			.volleyShotSpacing     = 0.2f,
+			.volleySpacing         = 1.5f,
+			.volleyProjectileSpeed = 100.0f,
+			.volleyProjectileDamage = 14,
+		},
+	},
+	// Difficulty 1 — placeholder copies of difficulty 0
+	{
+		{
+			.ringCount             = 3,
+			.ringSpacing           = 0.5f,
+			.ringProjectileSpeed   = 25.0f,
+			.ringProjectileDamage  = 12,
+			.sprinklerShots            = 20,
+			.sprinklerShotSpacing      = 0.06f,
+			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
+			.sprinklerProjectileSpeed  = 40.0f,
+			.sprinklerProjectileDamage = 12,
+			.volleyShots           = 7,
+			.volleyCount           = 2,
+			.volleyShotSpacing     = 0.2f,
+			.volleySpacing         = 1.5f,
+			.volleyProjectileSpeed = 100.0f,
+			.volleyProjectileDamage = 12,
+		},
+		{
+			.ringCount             = 4,
+			.ringSpacing           = 0.5f,
+			.ringProjectileSpeed   = 25.0f,
+			.ringProjectileDamage  = 14,
+			.sprinklerShots            = 30,
+			.sprinklerShotSpacing      = 0.06f,
+			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
+			.sprinklerProjectileSpeed  = 40.0f,
+			.sprinklerProjectileDamage = 14,
+			.volleyShots           = 10,
+			.volleyCount           = 3,
+			.volleyShotSpacing     = 0.2f,
+			.volleySpacing         = 1.5f,
+			.volleyProjectileSpeed = 100.0f,
+			.volleyProjectileDamage = 14,
+		},
+	},
+};
+
+static const DragonBossProperties *dragonProperties;
+
+// Round-robin attack cycle, stored in Enemy.attackCycle.
+typedef enum DragonAttackCycle {
+	DRAGON_ATTACK_CYCLE_RINGS,
+	DRAGON_ATTACK_CYCLE_SPRINKLER,
+	DRAGON_ATTACK_CYCLE_VOLLEY,
+	DRAGON_ATTACK_CYCLE_COUNT
+} DragonAttackCycle;
+
+// Sub-state within a multi-shot attack, stored in Enemy.nextState.
+#define DRAGON_SUBSTATE_ATTACKING 0  // Playing the attack animation / firing
+#define DRAGON_SUBSTATE_SPACING   1  // Holding the last attack frame between shots
+
+// Sprinkler sub-states (Attack 2), stored in Enemy.nextState.
+#define DRAGON_SPRINKLER_MOVING 0  // Repositioning to the room center
+#define DRAGON_SPRINKLER_FIRING 1  // Sweeping the four-armed burst
+
+#define DRAGON_RING_SLOTS 32  // Ring positions before the two gaps are removed
+
 void proximityEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	// Constantly attack nearby player
 	if (playerInAttackDistance(index)) {
@@ -1340,6 +1461,272 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		} else if (curEnemy->state == WRAITH_STATE_SUMMON) {
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
 		}
+	}
+}
+
+// === Dragon Boss ===
+
+// Fires a full ring of projectiles minus two diametrically opposed gaps: one slot chosen at
+// random and the slot directly opposite it, leaving DRAGON_RING_SLOTS - 2 projectiles.
+static void dragonFireRing(Enemy *curEnemy, EnemyData *curEnemyData) {
+	int gap = randInt(0, DRAGON_RING_SLOTS - 1);
+	int oppositeGap = (gap + DRAGON_RING_SLOTS / 2) % DRAGON_RING_SLOTS;
+	for (int i = 0; i < DRAGON_RING_SLOTS; i++) {
+		if (i == gap || i == oppositeGap) {
+			continue;
+		}
+		float angle = i * (2.0f * PI / (float)DRAGON_RING_SLOTS);
+		float dx = cosf(angle);
+		float dy = sinf(angle);
+		float px = curEnemy->x + dx * PROJECTILE_OFFSET;
+		float py = curEnemy->y + dy * PROJECTILE_OFFSET;
+		fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, dx, dy, dragonProperties->ringProjectileSpeed, dragonProperties->ringProjectileDamage, curEnemyData->projectileData);
+	}
+}
+
+// Fires a single projectile from the dragon towards a fixed world position.
+static void dragonFireAtTarget(Enemy *curEnemy, EnemyData *curEnemyData, float targetX, float targetY) {
+	float distance = sqrtf(distanceSquared(targetX, targetY, curEnemy->x, curEnemy->y));
+	if (distance < 0.001f) {
+		distance = 1.0f;
+	}
+	float dx = (targetX - curEnemy->x) / distance;
+	float dy = (targetY - curEnemy->y) / distance;
+	float px = curEnemy->x + dx * PROJECTILE_OFFSET;
+	float py = curEnemy->y + dy * PROJECTILE_OFFSET;
+	fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, dx, dy, dragonProperties->volleyProjectileSpeed, dragonProperties->volleyProjectileDamage, curEnemyData->projectileData);
+}
+
+#define DRAGON_VOLLEY_WARNING_SPACING CELL_SIZE
+#define DRAGON_VOLLEY_WARNING_LEAD    0.4f
+
+// Lays a line of short warning particles from the dragon out towards the locked target, telegraphing
+// the path the volley will take before any projectiles are fired.
+static void dragonSpawnVolleyWarningLine(Enemy *curEnemy, float targetX, float targetY) {
+	float dx = targetX - curEnemy->x;
+	float dy = targetY - curEnemy->y;
+	float distance = sqrtf(dx * dx + dy * dy);
+	if (distance < 0.001f) {
+		return;
+	}
+	float nx = dx / distance;
+	float ny = dy / distance;
+	float wallX, wallY;
+	castRayToWall(curEnemy->x, curEnemy->y, targetX, targetY, &wallX, &wallY);
+	float wallDist = sqrtf(distanceSquared(wallX, wallY, curEnemy->x, curEnemy->y));
+	for (float d = DRAGON_VOLLEY_WARNING_SPACING; d < wallDist; d += DRAGON_VOLLEY_WARNING_SPACING) {
+		float x = curEnemy->x + nx * d;
+		float y = curEnemy->y + ny * d;
+		spawnParticle(PARTICLE_TYPE_WARNING_SHORT, x, y, x, y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+	}
+}
+
+// Computes the world-space center of the current boss room.
+static void dragonRoomCenter(float *centerX, float *centerY) {
+	int roomIndex = getCurrentRoomIndex();
+	Point interiorMin = getRoomInteriorMin(roomIndex);
+	Point interiorMax = getRoomInteriorMax(roomIndex);
+	float centerCellX = (interiorMin.x + interiorMax.x) / 2.0f;
+	float centerCellY = (interiorMin.y + interiorMax.y) / 2.0f;
+	*centerX = centerCellX * CELL_SIZE + CELL_SIZE / 2.0f;
+	*centerY = centerCellY * CELL_SIZE + CELL_SIZE / 2.0f;
+}
+
+// Fires a single four-way burst (90 degrees apart) starting from baseAngle.
+static void dragonFireSprinkler(Enemy *curEnemy, EnemyData *curEnemyData, float baseAngle) {
+	for (int k = 0; k < 4; k++) {
+		float angle = baseAngle + k * (PI / 2.0f);
+		float dx = cosf(angle);
+		float dy = sinf(angle);
+		float px = curEnemy->x + dx * PROJECTILE_OFFSET;
+		float py = curEnemy->y + dy * PROJECTILE_OFFSET;
+		fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, dx, dy, dragonProperties->sprinklerProjectileSpeed, dragonProperties->sprinklerProjectileDamage, curEnemyData->projectileData);
+	}
+}
+
+#define DRAGON_WANDER_MIN_SPACING (CELL_SIZE * 4.0f)
+#define DRAGON_WANDER_ARRIVAL_RADIUS (CELL_SIZE * 0.5f)
+
+static void dragonReturnToIdle(Enemy *curEnemy, EnemyData *curEnemyData) {
+	transitionToState(curEnemy, ENEMY_STATE_IDLE);
+	curEnemy->stateTimer = curEnemyData->attackCooldown;
+	curEnemy->stateCount = 0;
+	curEnemy->attackedPlayer = false;
+	pickRandomRoomTarget(curEnemy, DRAGON_WANDER_MIN_SPACING);
+}
+
+// Reads the current round-robin attack from attackCycle, enters its state, and advances the cycle.
+static void dragonBeginAttack(Enemy *curEnemy) {
+	DragonAttackCycle cycle = (DragonAttackCycle)curEnemy->attackCycle;
+	curEnemy->attackCycle = (curEnemy->attackCycle + 1) % DRAGON_ATTACK_CYCLE_COUNT;
+	curEnemy->stateCount = 0;
+	curEnemy->attackedPlayer = false;
+	curEnemy->nextState = DRAGON_SUBSTATE_ATTACKING;
+	curEnemy->abilityCooldown = 0;
+
+	switch (cycle) {
+		case DRAGON_ATTACK_CYCLE_RINGS: {
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+			break;
+		}
+		case DRAGON_ATTACK_CYCLE_SPRINKLER: {
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_2);
+			curEnemy->nextState = DRAGON_SPRINKLER_MOVING;
+			break;
+		}
+		case DRAGON_ATTACK_CYCLE_VOLLEY: {
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_3);
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+			break;
+		}
+		default: {
+			break;
+		}
+	}
+}
+
+void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (isBossCinematicActive()) {
+		return;
+	}
+	dragonProperties = &DRAGON_BOSS_PROPERTIES[0][curEnemy->phase];
+
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		// Wander between random room positions until the attack cooldown elapses, then start the next attack
+		if (curEnemy->stateTimer <= 0) {
+			dragonBeginAttack(curEnemy);
+		} else {
+			float dx = curEnemy->targetX - curEnemy->x;
+			float dy = curEnemy->targetY - curEnemy->y;
+			if (dx * dx + dy * dy <= DRAGON_WANDER_ARRIVAL_RADIUS * DRAGON_WANDER_ARRIVAL_RADIUS) {
+				pickRandomRoomTarget(curEnemy, DRAGON_WANDER_MIN_SPACING);
+			}
+			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
+		}
+		return;
+	}
+
+	if (curEnemy->state == ENEMY_STATE_PREP) {
+		// Only reached when the phase-transition cinematic leaves the boss in PREP; resume the loop
+		dragonReturnToIdle(curEnemy, curEnemyData);
+		return;
+	}
+
+	if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		// == Slow projectile rings ==
+		if (curEnemy->nextState == DRAGON_SUBSTATE_SPACING) {
+			// Hold the last attack frame during the gap between rings
+			curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
+			if (curEnemy->stateTimer <= 0) {
+				curEnemy->nextState = DRAGON_SUBSTATE_ATTACKING;
+				curEnemy->attackedPlayer = false;
+				curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
+				curEnemy->animationTime = curEnemyData->frameTime;
+			}
+			return;
+		}
+
+		// Fire one ring once the attack animation reaches the active frame
+		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			curEnemy->attackedPlayer = true;
+			dragonFireRing(curEnemy, curEnemyData);
+			curEnemy->stateCount++;
+		}
+
+		// Once the animation finishes, either rest or hold for the next ring
+		if (attackAnimationReset) {
+			if (curEnemy->stateCount >= dragonProperties->ringCount) {
+				dragonReturnToIdle(curEnemy, curEnemyData);
+			} else {
+				curEnemy->nextState = DRAGON_SUBSTATE_SPACING;
+				curEnemy->stateTimer = dragonProperties->ringSpacing;
+				curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
+			}
+		}
+		return;
+	}
+
+	if (curEnemy->state == ENEMY_STATE_ATTACK_2) {
+		// == Four-armed sweeping sprinkler ==
+		if (curEnemy->nextState == DRAGON_SPRINKLER_MOVING) {
+			// Reposition to the room center before opening fire
+			float centerX, centerY;
+			dragonRoomCenter(&centerX, &centerY);
+			float dx = centerX - curEnemy->x;
+			float dy = centerY - curEnemy->y;
+			if (dx * dx + dy * dy <= DRAGON_WANDER_ARRIVAL_RADIUS * DRAGON_WANDER_ARRIVAL_RADIUS) {
+				// Arrived: lock the initial sweep so one arm aims at the player, then start firing
+				curEnemy->nextState = DRAGON_SPRINKLER_FIRING;
+				curEnemy->stateCount = 0;
+				curEnemy->abilityCooldown = 0;
+				curEnemy->targetX = atan2f(playerY - curEnemy->y, playerX - curEnemy->x);
+			} else {
+				moveEnemy(curEnemy, index, centerX, centerY, curEnemyData->moveSpeed);
+			}
+			return;
+		}
+
+		// Fire one rotating burst per shot until the sweep is spent
+		if (curEnemy->abilityCooldown <= 0) {
+			float baseAngle = curEnemy->targetX - curEnemy->stateCount * dragonProperties->sprinklerSweepStep;
+			dragonFireSprinkler(curEnemy, curEnemyData, baseAngle);
+			curEnemy->stateCount++;
+			curEnemy->abilityCooldown = dragonProperties->sprinklerShotSpacing;
+			if (curEnemy->stateCount >= dragonProperties->sprinklerShots) {
+				dragonReturnToIdle(curEnemy, curEnemyData);
+			}
+		}
+		return;
+	}
+
+	if (curEnemy->state == ENEMY_STATE_ATTACK_3) {
+		// == Rapid aimed volleys ==
+		int shotsPerVolley = dragonProperties->volleyShots;
+		int totalShots = shotsPerVolley * dragonProperties->volleyCount;
+
+		if (curEnemy->nextState == DRAGON_SUBSTATE_SPACING) {
+			// Hold the last attack frame during the gap between volleys
+			curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
+			if (curEnemy->stateTimer <= 0) {
+				curEnemy->nextState = DRAGON_SUBSTATE_ATTACKING;
+				curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
+				curEnemy->animationTime = curEnemyData->frameTime;
+				curEnemy->abilityCooldown = 0;
+			}
+			return;
+		}
+
+		bool firstShotOfVolley = (curEnemy->stateCount % shotsPerVolley == 0);
+
+		// Lock aim and lay down a warning line before the first shot of each volley
+		if (firstShotOfVolley && !curEnemy->attackedPlayer) {
+			curEnemy->targetX = playerX;
+			curEnemy->targetY = playerY;
+			dragonSpawnVolleyWarningLine(curEnemy, curEnemy->targetX, curEnemy->targetY);
+			curEnemy->attackedPlayer = true;
+			curEnemy->abilityCooldown = DRAGON_VOLLEY_WARNING_LEAD;
+		}
+
+		// The first shot of each volley waits for the attack animation to wind up to the active frame
+		bool windupReady = !firstShotOfVolley || curEnemy->animationFrame >= curEnemyData->attackActiveFrame;
+		if (curEnemy->abilityCooldown <= 0 && windupReady) {
+			dragonFireAtTarget(curEnemy, curEnemyData, curEnemy->targetX, curEnemy->targetY);
+			curEnemy->stateCount++;
+			curEnemy->abilityCooldown = dragonProperties->volleyShotSpacing;
+
+			if (curEnemy->stateCount % shotsPerVolley == 0) {
+				curEnemy->attackedPlayer = false;
+				if (curEnemy->stateCount >= totalShots) {
+					dragonReturnToIdle(curEnemy, curEnemyData);
+				} else {
+					curEnemy->nextState = DRAGON_SUBSTATE_SPACING;
+					curEnemy->stateTimer = dragonProperties->volleySpacing;
+					curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
+				}
+			}
+		}
+		return;
 	}
 }
 

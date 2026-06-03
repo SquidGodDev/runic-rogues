@@ -41,6 +41,22 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damage = 0,
 		.damageRadius = 0
 	},
+	[PARTICLE_TYPE_WARNING_SHORT] = {
+		.frameCount = 2,
+		.animationTime = 0.3f,
+		.textureIndex = TEXTURE_PARTICLE_WARNING,
+		.damageFrame = 0,
+		.damage = 0,
+		.damageRadius = 0
+	},
+	[PARTICLE_TYPE_WARNING_LONG] = {
+		.frameCount = 6,
+		.animationTime = 0.3f,
+		.textureIndex = TEXTURE_PARTICLE_WARNING,
+		.damageFrame = 0,
+		.damage = 0,
+		.damageRadius = 0
+	},
 	[PARTICLE_TYPE_BOSS_ROOT_ATTACK] = {
 		.frameCount = 10,
 		.animationTime = 0.1f,

@@ -1,4 +1,5 @@
 # TODO
+- Change boss title prompt to generated + make one for the dragon
 ## Tweaks
 - Bigger mage projectile
 - Adjust rogue damage
@@ -8,6 +9,12 @@
 ## Bugs
 - Knockback not working properly
 - Check for memory leaks
+## Boss Patterns
+- Shooting out projectiles periodically during idle move
+- Shooting projectiles and rotating 360 degrees
+- More movement during attacks
+- Scattered shotgun of projectiles
+- Shoot spread of projectiles, and then offset it by half angle
 ## Features
 - Starter rune for each class
 - Settings menu

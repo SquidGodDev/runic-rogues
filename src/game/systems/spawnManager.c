@@ -73,7 +73,7 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
             { .type = ENEMY_TYPE_AIR_ELEMENTAL, .cost = 3, .weight = 3 },
         },
         .entryCount = 5,
-        .bossType = ENEMY_TYPE_ELDER_BOSS,
+        .bossType = ENEMY_TYPE_DRAGON_BOSS,
     },
     [AREA_TEST] = {
         .entries = {

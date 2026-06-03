@@ -62,6 +62,7 @@ typedef enum StringKey {
     STR_POPUP_AREA_CLEARED,
     STR_POPUP_ELDER_BOSS,
     STR_POPUP_WRAITH_BOSS,
+    STR_POPUP_DRAGON_BOSS,
 
     // Tutorial dialog pages
     STR_TUTORIAL_R1_1,

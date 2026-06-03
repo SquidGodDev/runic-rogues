@@ -454,6 +454,27 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameEnd = 19,
 		.frameTime = 0.12f,
 		.update = bansheeUpdate
+	},
+	[ENEMY_TYPE_DRAGON_BOSS] = (EnemyData){
+		.name = "Dragon",
+		.health = 1000,
+		.attackDetectionRange = 10,
+		.attackDistance = 10,
+		.attackDamage = 20,
+		.attackCooldown = 1.5f,
+		.moveSpeed = 0.3f,
+		.textureIndex = TEXTURE_DRAGON,
+		.idleFrameEnd = 14,
+		.prepFrameStart = 15,
+		.prepFrameEnd = 22,
+		.attackFrameStart = 23,
+		.attackFrameEnd = 33,
+		.attackActiveFrame = 23,
+		.deathFrameStart = 34,
+		.deathFrameEnd = 47,
+		.frameTime = 0.1f,
+		.update = dragonBossUpdate,
+		.knockbackResistant = true
 	}
 };
 
@@ -561,6 +582,9 @@ int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 		bossIndex = newEnemyIndex;
 		enemies[newEnemyIndex].stateTimer = 2.0f; // Initial idle time before first attack
 	} else if (enemyType == ENEMY_TYPE_ELDER_BOSS) {
+		bossIndex = newEnemyIndex;
+		enemies[newEnemyIndex].stateTimer = 2.0f; // Initial idle time before first attack
+	} else if (enemyType == ENEMY_TYPE_DRAGON_BOSS) {
 		bossIndex = newEnemyIndex;
 		enemies[newEnemyIndex].stateTimer = 2.0f; // Initial idle time before first attack
 	} else if (enemyType == ENEMY_TYPE_ROCK_GOLEM) {
