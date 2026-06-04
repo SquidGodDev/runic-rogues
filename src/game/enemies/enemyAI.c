@@ -937,6 +937,25 @@ void bomberUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool atta
 // === Air Elemental constants ===
 static const float AIR_ELEMENTAL_CARDINAL_X[4] = { 1.0f, -1.0f, 0.0f, 0.0f };
 static const float AIR_ELEMENTAL_CARDINAL_Y[4] = { 0.0f, 0.0f, 1.0f, -1.0f };
+#define AIR_ELEMENTAL_WARNING_CELLS 6
+
+// Spawns a line of warning particles along each cardinal direction, spaced one cell apart, so the
+// player can see where the projectiles will travel before they fire.
+static void airElementalSpawnWarnings(Enemy *curEnemy) {
+	for (int i = 0; i < 4; i++) {
+		float deltaX = AIR_ELEMENTAL_CARDINAL_X[i];
+		float deltaY = AIR_ELEMENTAL_CARDINAL_Y[i];
+		for (int cell = 1; cell <= AIR_ELEMENTAL_WARNING_CELLS; cell++) {
+			float distance = cell * CELL_SIZE;
+			float spawnX = curEnemy->x + deltaX * distance;
+			float spawnY = curEnemy->y + deltaY * distance;
+			if (isBlocked((int)(spawnX / CELL_SIZE), (int)(spawnY / CELL_SIZE))) {
+				break;
+			}
+			spawnParticle(PARTICLE_TYPE_WARNING, spawnX, spawnY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+		}
+	}
+}
 
 // Floats to random positions around the room; on arrival it fires a projectile in each of the
 // four cardinal directions. abilityDataPrimary is the minimum distance between random positions,
@@ -959,6 +978,7 @@ void airElementalUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, boo
 
 		transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
 		addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+		airElementalSpawnWarnings(curEnemy);
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
 		// Fire a projectile in all four cardinal directions once the attack animation reaches the active frame
 		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
