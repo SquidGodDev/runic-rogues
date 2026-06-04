@@ -130,6 +130,7 @@ int getAliveMinionCount(void);
 int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion);
 void updateEnemies(float deltaTime);
 float getBossHealthPercentage(void);
+EnemyType getBossEnemyType(void);
 void killAllEnemies(void);
 void killAllNonBossEnemies(void);
 bool damageEnemy(int index, int damage);

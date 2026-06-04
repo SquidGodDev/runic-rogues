@@ -27,7 +27,7 @@ static const uint8_t POPUP_FADE_PATTERNS[POPUP_FADE_IN_FRAMES][8] = {
     {0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x00},
 };
 
-static LCDBitmap *popupBitmaps[POPUP_TYPE_COUNT][2][POPUP_BITMAP_COUNT];
+static LCDBitmap *popupBitmaps[POPUP_TYPE_COUNT][LANGUAGE_COUNT][POPUP_BITMAP_COUNT];
 static LCDBitmap *fadeStencils[POPUP_FADE_IN_FRAMES];
 
 static void buildFadeStencils(void) {
@@ -77,8 +77,9 @@ static void buildPopupTable(PopupType type, Language language) {
 void initPopups(void) {
     buildFadeStencils();
     for (int type = 0; type < POPUP_TYPE_COUNT; type++) {
-        buildPopupTable((PopupType)type, LANGUAGE_EN);
-        buildPopupTable((PopupType)type, LANGUAGE_JP);
+        for (Language language = 0; language < LANGUAGE_COUNT; language++) {
+            buildPopupTable((PopupType)type, language);
+        }
     }
 }
 

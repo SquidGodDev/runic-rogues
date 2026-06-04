@@ -2,7 +2,8 @@
 
 typedef enum Language {
     LANGUAGE_EN,
-    LANGUAGE_JP
+    LANGUAGE_JP,
+    LANGUAGE_COUNT
 } Language;
 
 typedef struct Settings {

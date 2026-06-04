@@ -5,6 +5,7 @@
 #include "globals/helpers.h"
 #include "globals/localization.h"
 #include "game/UI/UI.h"
+#include "game/UI/bossTitle.h"
 #include "game/player/player.h"
 #include "game/player/playerStats.h"
 #include "game/player/spells/spells.h"
@@ -642,22 +643,21 @@ void drawBossHealthBar(void) {
     
     int titleDrawX = 100;
     int titleDrawY = 21;
-    Area area = getCurrentArea();
-    bool isElderBoss = (area == AREA_TWILIGHT_COURT || area == AREA_ECHOING_CAVERNS);
-    bool isWraithBoss = (area == AREA_LOST_ARCHIVES);
-    if (SETTINGS.language == LANGUAGE_EN) {
-        if (isElderBoss) {
-            drawCenteredBitmap(BITMAPS[BITMAP_ELDER_BOSS_TITLE], titleDrawX, titleDrawY);
-        } else if (isWraithBoss) {
-            drawCenteredBitmap(BITMAPS[BITMAP_WRAITH_BOSS_TITLE], titleDrawX, titleDrawY);
-        }
-    } else if (SETTINGS.language == LANGUAGE_JP) {
-        if (isElderBoss) {
-            drawCenteredBitmap(BITMAPS[BITMAP_ELDER_BOSS_TITLE_JP], titleDrawX, titleDrawY);
-        } else if (isWraithBoss) {
-            drawCenteredBitmap(BITMAPS[BITMAP_WRAITH_BOSS_TITLE_JP], titleDrawX, titleDrawY);
-        }
+    BossTitle title;
+    switch (getBossEnemyType()) {
+        case ENEMY_TYPE_WRAITH_BOSS:
+            title = BOSS_TITLE_WRAITH;
+            break;
+        case ENEMY_TYPE_DRAGON_BOSS:
+            title = BOSS_TITLE_DRAGON;
+            break;
+        case ENEMY_TYPE_ELDER_BOSS:
+            title = BOSS_TITLE_ELDER;
+            break;
+        default:
+            return;
     }
+    drawCenteredBitmap(getBossTitleBitmap(title), titleDrawX, titleDrawY);
 }
 
 void addUIAnimation(int bitmapTableIndex, float frameTime, int drawX, int drawY) {

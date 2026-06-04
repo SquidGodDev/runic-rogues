@@ -4,6 +4,7 @@
 #include "globals/globals.h"
 #include "game/rendering/textures.h"
 #include "game/UI/popups.h"
+#include "game/UI/bossTitle.h"
 
 uint8_t* TEXTURES[TEXTURE_COUNT];
 TextureBounds* TEXTURE_BOUNDS[TEXTURE_COUNT];
@@ -104,10 +105,6 @@ const char *bitmapPathStrings[] = {
 	"images/shop/skipCursor",
 	"images/shop/skipIcon",
 	"images/UI/prompts/bossHealthBar",
-	"images/UI/prompts/elderBossTitle",
-	"images/UI/prompts/elderBossTitle_JP",
-	"images/UI/prompts/wraithBossTitle",
-	"images/UI/prompts/wraithBossTitle_JP",
 	"images/UI/spells/AButton",
 	"images/UI/spells/BButton",
 	"images/UI/spells/empty",
@@ -260,7 +257,7 @@ void loadDefaultFont(void) {
 }
 
 int getTextureAssetCount(void) {
-	return FONT_COUNT + TEXTURE_COUNT + BITMAP_PATHS_COUNT + BITMAP_TABLE_PATHS_COUNT;
+	return FONT_COUNT + TEXTURE_COUNT + BITMAP_PATHS_COUNT + BITMAP_TABLE_PATHS_COUNT + getBossTitleAssetCount();
 }
 
 void loadTextureAsset(int step) {
@@ -305,6 +302,12 @@ void loadTextureAsset(int step) {
 		if (step == BITMAP_TABLE_PATHS_COUNT - 1) {
 			initPopups();
 		}
+		return;
+	}
+	step -= BITMAP_TABLE_PATHS_COUNT;
+
+	if (step < getBossTitleAssetCount()) {
+		buildBossTitle(step);
 		return;
 	}
 }

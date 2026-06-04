@@ -800,6 +800,13 @@ bool enemyDeathEffect(int index) {
 	return false;
 }
 
+EnemyType getBossEnemyType(void) {
+	if (bossIndex == -1) {
+		return ENEMY_TYPE_COUNT;
+	}
+	return enemies[bossIndex].type;
+}
+
 float getBossHealthPercentage(void) {
 	if (bossIndex == -1) {
 		return 0;
