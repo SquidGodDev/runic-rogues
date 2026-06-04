@@ -238,10 +238,6 @@ void updateBossCinematic(float deltaTime) {
 			phase = BOSS_CINEMATIC_INACTIVE;
 			onBossDefeated();
 			setGameState(GAME_STATE_ACTIVE);
-			if (getCurrentArea() == AREA_ECHOING_CAVERNS) {
-				runStatsCaptureFinal(true);
-				switchScene(SCENE_GAME_OVER);
-			}
 		}
 	}
 }

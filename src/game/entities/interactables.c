@@ -11,6 +11,7 @@
 #include "game/entities/entities.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/shopManager.h"
+#include "game/systems/runStats.h"
 
 #define CAMPFIRE_HEAL_AMOUNT 2
 #define INTERACT_DISTANCE 500
@@ -73,8 +74,13 @@ void interact(int interactableIndex) {
 
 	switch (curInteractable.type) {
 		case INTERACTABLE_TYPE_EXIT:
-			incrementToNextRoom();
-			switchScene(SCENE_GAME);
+			if (getCurrentArea() == AREA_ECHOING_CAVERNS && isAreaCompleted()) {
+				runStatsCaptureFinal(true);
+				switchScene(SCENE_GAME_OVER);
+			} else {
+				incrementToNextRoom();
+				switchScene(SCENE_GAME);
+			}
 			break;
 		case INTERACTABLE_TYPE_CAMPFIRE:
 			healPlayer(CAMPFIRE_HEAL_AMOUNT);
