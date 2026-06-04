@@ -258,12 +258,18 @@ typedef struct DragonBossProperties {
 	float sprinklerProjectileSpeed;
 	int   sprinklerProjectileDamage;
 	// Attack 3 — rapid aimed volleys
-	int   volleyShots;           // Projectiles per volley
+	int   volleyLineCount;       // Radial lines fired per shot (one aimed at the player)
+	int   volleyShots;           // Projectiles per line per volley
 	int   volleyCount;           // Number of volleys per attack
 	float volleyShotSpacing;     // Seconds between shots within a volley
 	float volleySpacing;         // Seconds between volleys (animation holds last frame)
 	float volleyProjectileSpeed;
 	int   volleyProjectileDamage;
+	// Attack 4 — summon adds
+	int   summonCount;           // Enemies summoned per attack (also caps active non-boss enemies)
+	int   summonMinSpecials;     // Minimum specials among the summons (0 = all basic fodder)
+	float summonRadius;          // Spawn scatter radius around the dragon
+	float summonTime;            // Seconds spent holding the summon pose before resuming
 } DragonBossProperties;
 
 static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BOSS_PHASE_COUNT] = {
@@ -280,12 +286,17 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
 			.sprinklerProjectileSpeed  = 40.0f,
 			.sprinklerProjectileDamage = 12,
+			.volleyLineCount       = 16,
 			.volleyShots           = 7,
-			.volleyCount           = 2,
+			.volleyCount           = 3,
 			.volleyShotSpacing     = 0.2f,
 			.volleySpacing         = 1.5f,
 			.volleyProjectileSpeed = 100.0f,
 			.volleyProjectileDamage = 12,
+			.summonCount           = 4,
+			.summonMinSpecials     = 0,
+			.summonRadius          = CELL_SIZE * 2.0f,
+			.summonTime            = 1.5f,
 		},
 		// Phase 1
 		{
@@ -298,12 +309,17 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
 			.sprinklerProjectileSpeed  = 40.0f,
 			.sprinklerProjectileDamage = 14,
+			.volleyLineCount       = 16,
 			.volleyShots           = 10,
-			.volleyCount           = 3,
+			.volleyCount           = 5,
 			.volleyShotSpacing     = 0.2f,
 			.volleySpacing         = 1.5f,
 			.volleyProjectileSpeed = 100.0f,
 			.volleyProjectileDamage = 14,
+			.summonCount           = 4,
+			.summonMinSpecials     = 4,
+			.summonRadius          = CELL_SIZE * 2.0f,
+			.summonTime            = 1.5f,
 		},
 	},
 	// Difficulty 1 — placeholder copies of difficulty 0
@@ -318,12 +334,17 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
 			.sprinklerProjectileSpeed  = 40.0f,
 			.sprinklerProjectileDamage = 12,
+			.volleyLineCount       = 16,
 			.volleyShots           = 7,
-			.volleyCount           = 2,
+			.volleyCount           = 3,
 			.volleyShotSpacing     = 0.2f,
 			.volleySpacing         = 1.5f,
 			.volleyProjectileSpeed = 100.0f,
 			.volleyProjectileDamage = 12,
+			.summonCount           = 4,
+			.summonMinSpecials     = 0,
+			.summonRadius          = CELL_SIZE * 2.0f,
+			.summonTime            = 1.5f,
 		},
 		{
 			.ringCount             = 4,
@@ -335,12 +356,17 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
 			.sprinklerProjectileSpeed  = 40.0f,
 			.sprinklerProjectileDamage = 14,
+			.volleyLineCount       = 16,
 			.volleyShots           = 10,
-			.volleyCount           = 3,
+			.volleyCount           = 5,
 			.volleyShotSpacing     = 0.2f,
 			.volleySpacing         = 1.5f,
 			.volleyProjectileSpeed = 100.0f,
 			.volleyProjectileDamage = 14,
+			.summonCount           = 4,
+			.summonMinSpecials     = 4,
+			.summonRadius          = CELL_SIZE * 2.0f,
+			.summonTime            = 1.5f,
 		},
 	},
 };
@@ -352,8 +378,12 @@ typedef enum DragonAttackCycle {
 	DRAGON_ATTACK_CYCLE_RINGS,
 	DRAGON_ATTACK_CYCLE_SPRINKLER,
 	DRAGON_ATTACK_CYCLE_VOLLEY,
+	DRAGON_ATTACK_CYCLE_SUMMON,
 	DRAGON_ATTACK_CYCLE_COUNT
 } DragonAttackCycle;
+
+// Summon attack holds in the post-attack (held) pose; the dragon otherwise never uses POST_ATTACK.
+#define DRAGON_STATE_SUMMON ENEMY_STATE_POST_ATTACK
 
 // Sub-state within a multi-shot attack, stored in Enemy.nextState.
 #define DRAGON_SUBSTATE_ATTACKING 0  // Playing the attack animation / firing
@@ -1213,16 +1243,24 @@ static void elderSpawnRootWarnings(Enemy *curEnemy) {
 
 #define BOSS_MAX_SUMMONS 20
 
-static void bossSpawnSummonsFromBudget(Enemy *curEnemy, int summonBudget, int summonMinSpecials, float summonRadius) {
-	EnemyType summons[BOSS_MAX_SUMMONS];
-	int count = rollEnemiesFromBudget(summons, BOSS_MAX_SUMMONS, summonBudget, summonMinSpecials);
-	for (int i = 0; i < count; i++) {
+// Spawns the rolled summons scattered around the boss, but caps the spawn so the active non-boss enemy
+// total never climbs past `count` (this summon's count). The player can thin adds out between summons
+// instead of drowning under an ever-growing pile.
+static void bossSpawnSummonsCapped(Enemy *curEnemy, const EnemyType *summons, int count, float summonRadius) {
+	int toSpawn = count - getAliveMinionCount();
+	for (int i = 0; i < toSpawn; i++) {
 		float angle = randFloat(0.0f, 2.0f * PI);
 		float radius = randFloat(0.0f, summonRadius);
 		float sx = curEnemy->x + cosf(angle) * radius;
 		float sy = curEnemy->y + sinf(angle) * radius;
 		spawnEnemyWithSpawnParticle(summons[i], sx, sy);
 	}
+}
+
+static void bossSpawnSummonsFromBudget(Enemy *curEnemy, int summonBudget, int summonMinSpecials, float summonRadius) {
+	EnemyType summons[BOSS_MAX_SUMMONS];
+	int count = rollEnemiesFromBudget(summons, BOSS_MAX_SUMMONS, summonBudget, summonMinSpecials);
+	bossSpawnSummonsCapped(curEnemy, summons, count, summonRadius);
 }
 
 static void elderFireProjectileWave(Enemy *curEnemy, EnemyData *curEnemyData, int waveIndex) {
@@ -1424,7 +1462,9 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				Point bossRoomCenter = getRoomWorldCenter(DUNGEON_ROOM_COUNT - 1);
 				curEnemy->targetX = bossRoomCenter.x;
 				curEnemy->targetY = bossRoomCenter.y;
-				for (int i = 0; i < wraithProperties->spawnCount; i++) {
+				// Cap the circle so active non-boss enemies never exceed the summon count
+				int toSpawn = wraithProperties->spawnCount - getAliveMinionCount();
+				for (int i = 0; i < toSpawn; i++) {
 					float angle = (float)i / (float)wraithProperties->spawnCount * 2.0f * PI;
 					float offsetX = cosf(angle) * CELL_SIZE;
 					float offsetY = sinf(angle) * CELL_SIZE;
@@ -1484,35 +1524,40 @@ static void dragonFireRing(Enemy *curEnemy, EnemyData *curEnemyData) {
 	}
 }
 
-// Fires a single projectile from the dragon towards a fixed world position.
-static void dragonFireAtTarget(Enemy *curEnemy, EnemyData *curEnemyData, float targetX, float targetY) {
-	float distance = sqrtf(distanceSquared(targetX, targetY, curEnemy->x, curEnemy->y));
-	if (distance < 0.001f) {
-		distance = 1.0f;
+// Base angle for a volley's radial lines: aimed at the locked target, with odd volleys rotated half a
+// sector so their lines fall in the previous volley's gaps and force the player to keep moving.
+static float dragonVolleyBaseAngle(Enemy *curEnemy, int lineCount, int volleyIndex) {
+	float angleToTarget = atan2f(curEnemy->targetY - curEnemy->y, curEnemy->targetX - curEnemy->x);
+	float sector = 2.0f * PI / lineCount;
+	return angleToTarget + (volleyIndex % 2) * (sector * 0.5f);
+}
+
+// Fires one projectile down each of lineCount evenly-spaced directions, starting from baseAngle.
+static void dragonFireVolley(Enemy *curEnemy, EnemyData *curEnemyData, float baseAngle, int lineCount) {
+	float sector = 2.0f * PI / lineCount;
+	for (int k = 0; k < lineCount; k++) {
+		float angle = baseAngle + k * sector;
+		float dx = cosf(angle);
+		float dy = sinf(angle);
+		float px = curEnemy->x + dx * PROJECTILE_OFFSET;
+		float py = curEnemy->y + dy * PROJECTILE_OFFSET;
+		fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, dx, dy, dragonProperties->volleyProjectileSpeed, dragonProperties->volleyProjectileDamage, curEnemyData->projectileData);
 	}
-	float dx = (targetX - curEnemy->x) / distance;
-	float dy = (targetY - curEnemy->y) / distance;
-	float px = curEnemy->x + dx * PROJECTILE_OFFSET;
-	float py = curEnemy->y + dy * PROJECTILE_OFFSET;
-	fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, dx, dy, dragonProperties->volleyProjectileSpeed, dragonProperties->volleyProjectileDamage, curEnemyData->projectileData);
 }
 
 #define DRAGON_VOLLEY_WARNING_SPACING CELL_SIZE
 #define DRAGON_VOLLEY_WARNING_LEAD    0.4f
 
-// Lays a line of short warning particles from the dragon out towards the locked target, telegraphing
-// the path the volley will take before any projectiles are fired.
-static void dragonSpawnVolleyWarningLine(Enemy *curEnemy, float targetX, float targetY) {
-	float dx = targetX - curEnemy->x;
-	float dy = targetY - curEnemy->y;
-	float distance = sqrtf(dx * dx + dy * dy);
-	if (distance < 0.001f) {
-		return;
-	}
-	float nx = dx / distance;
-	float ny = dy / distance;
+// Lays a line of short warning particles from the dragon out along the given angle until it hits a wall,
+// telegraphing the path one of the volley's lines will take before any projectiles are fired.
+static void dragonSpawnVolleyWarningLine(Enemy *curEnemy, float angle) {
+	float nx = cosf(angle);
+	float ny = sinf(angle);
+	float farDistance = (MAP_WIDTH + MAP_HEIGHT) * CELL_SIZE;
+	float farX = curEnemy->x + nx * farDistance;
+	float farY = curEnemy->y + ny * farDistance;
 	float wallX, wallY;
-	castRayToWall(curEnemy->x, curEnemy->y, targetX, targetY, &wallX, &wallY);
+	castRayToWall(curEnemy->x, curEnemy->y, farX, farY, &wallX, &wallY);
 	float wallDist = sqrtf(distanceSquared(wallX, wallY, curEnemy->x, curEnemy->y));
 	for (float d = DRAGON_VOLLEY_WARNING_SPACING; d < wallDist; d += DRAGON_VOLLEY_WARNING_SPACING) {
 		float x = curEnemy->x + nx * d;
@@ -1542,6 +1587,19 @@ static void dragonFireSprinkler(Enemy *curEnemy, EnemyData *curEnemyData, float 
 		float py = curEnemy->y + dy * PROJECTILE_OFFSET;
 		fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, dx, dy, dragonProperties->sprinklerProjectileSpeed, dragonProperties->sprinklerProjectileDamage, curEnemyData->projectileData);
 	}
+}
+
+// Summons summonCount adds around the dragon (basic fodder, or specials when summonMinSpecials is set).
+// The roll is capped by the count, which doubles as the active non-boss enemy limit in bossSpawnSummonsCapped.
+static void dragonSummonAdds(Enemy *curEnemy) {
+	int count = dragonProperties->summonCount;
+	if (count > BOSS_MAX_SUMMONS) {
+		count = BOSS_MAX_SUMMONS;
+	}
+	EnemyType summons[BOSS_MAX_SUMMONS];
+	// Budget is kept generous so the roll always affords `count` picks; the count itself caps the roll.
+	int rolled = rollEnemiesFromBudget(summons, count, count * 10, dragonProperties->summonMinSpecials);
+	bossSpawnSummonsCapped(curEnemy, summons, rolled, dragonProperties->summonRadius);
 }
 
 #define DRAGON_WANDER_MIN_SPACING (CELL_SIZE * 4.0f)
@@ -1580,6 +1638,13 @@ static void dragonBeginAttack(Enemy *curEnemy) {
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 			break;
 		}
+		case DRAGON_ATTACK_CYCLE_SUMMON: {
+			transitionToState(curEnemy, DRAGON_STATE_SUMMON);
+			curEnemy->stateTimer = dragonProperties->summonTime;
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+			dragonSummonAdds(curEnemy);
+			break;
+		}
 		default: {
 			break;
 		}
@@ -1610,6 +1675,15 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	if (curEnemy->state == ENEMY_STATE_PREP) {
 		// Only reached when the phase-transition cinematic leaves the boss in PREP; resume the loop
 		dragonReturnToIdle(curEnemy, curEnemyData);
+		return;
+	}
+
+	if (curEnemy->state == DRAGON_STATE_SUMMON) {
+		// == Summon adds ==
+		// Adds were spawned on entry; hold the pose until the summon timer elapses, then resume.
+		if (curEnemy->stateTimer <= 0) {
+			dragonReturnToIdle(curEnemy, curEnemyData);
+		}
 		return;
 	}
 
@@ -1682,6 +1756,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 
 	if (curEnemy->state == ENEMY_STATE_ATTACK_3) {
 		// == Rapid aimed volleys ==
+		int lineCount = dragonProperties->volleyLineCount;
 		int shotsPerVolley = dragonProperties->volleyShots;
 		int totalShots = shotsPerVolley * dragonProperties->volleyCount;
 
@@ -1699,11 +1774,15 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 
 		bool firstShotOfVolley = (curEnemy->stateCount % shotsPerVolley == 0);
 
-		// Lock aim and lay down a warning line before the first shot of each volley
+		// Lock aim and lay down warning lines along every volley direction before the first shot
 		if (firstShotOfVolley && !curEnemy->attackedPlayer) {
 			curEnemy->targetX = playerX;
 			curEnemy->targetY = playerY;
-			dragonSpawnVolleyWarningLine(curEnemy, curEnemy->targetX, curEnemy->targetY);
+			float baseAngle = dragonVolleyBaseAngle(curEnemy, lineCount, curEnemy->stateCount / shotsPerVolley);
+			float sector = 2.0f * PI / lineCount;
+			for (int k = 0; k < lineCount; k++) {
+				dragonSpawnVolleyWarningLine(curEnemy, baseAngle + k * sector);
+			}
 			curEnemy->attackedPlayer = true;
 			curEnemy->abilityCooldown = DRAGON_VOLLEY_WARNING_LEAD;
 		}
@@ -1711,7 +1790,8 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		// The first shot of each volley waits for the attack animation to wind up to the active frame
 		bool windupReady = !firstShotOfVolley || curEnemy->animationFrame >= curEnemyData->attackActiveFrame;
 		if (curEnemy->abilityCooldown <= 0 && windupReady) {
-			dragonFireAtTarget(curEnemy, curEnemyData, curEnemy->targetX, curEnemy->targetY);
+			float baseAngle = dragonVolleyBaseAngle(curEnemy, lineCount, curEnemy->stateCount / shotsPerVolley);
+			dragonFireVolley(curEnemy, curEnemyData, baseAngle, lineCount);
 			curEnemy->stateCount++;
 			curEnemy->abilityCooldown = dragonProperties->volleyShotSpacing;
 

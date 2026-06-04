@@ -626,6 +626,16 @@ int getAliveNonMinionEnemyCount(void) {
 	return count;
 }
 
+int getAliveMinionCount(void) {
+	int count = 0;
+	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+		if (enemies[i].active && enemies[i].state != ENEMY_STATE_DEAD && enemies[i].isMinion) {
+			count++;
+		}
+	}
+	return count;
+}
+
 int playerInAttackDetectionRange(int enemyIndex) {
 	Enemy curEnemy = enemies[enemyIndex];
 	EnemyData curEnemyData = enemyData[curEnemy.type];
