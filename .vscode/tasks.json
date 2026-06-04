@@ -21,6 +21,50 @@
             "problemMatcher": []
         },
         {
+            "label": "CMake: Configure Sim",
+            "type": "shell",
+            "windows": {
+                "command": "if (-not (Test-Path build/build-sim/CMakeCache.txt)) { cmake --preset sim } else { Write-Host 'Sim already configured.' }"
+            },
+            "linux": {
+                "command": "test -f build/build-sim/CMakeCache.txt || cmake --preset sim"
+            },
+            "osx": {
+                "command": "test -f build/build-sim/CMakeCache.txt || cmake --preset sim"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake: Configure Device",
+            "type": "shell",
+            "windows": {
+                "command": "if (-not (Test-Path build/build-device/CMakeCache.txt)) { cmake --preset device } else { Write-Host 'Device already configured.' }"
+            },
+            "linux": {
+                "command": "test -f build/build-device/CMakeCache.txt || cmake --preset device"
+            },
+            "osx": {
+                "command": "test -f build/build-device/CMakeCache.txt || cmake --preset device"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake: Configure All",
+            "dependsOn": [
+                "CMake: Configure Sim",
+                "CMake: Configure Device"
+            ],
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared",
+                "showReuseMessage": false
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "Playdate: Build C for simulator",
             "type": "shell",
             "command": "cmake",

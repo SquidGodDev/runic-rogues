@@ -39,6 +39,10 @@
 
     // ====== CMake Tools Settings ======
     "cmake.useCMakePresets": "always",
+    // Don't show the "configure a preset" popup on open — the
+    // "CMake: Configure All" task (tasks.json) configures both
+    // sim + device automatically on folder open instead.
+    "cmake.configureOnOpen": false,
     "files.associations": {
         "*.h": "c"
     }
