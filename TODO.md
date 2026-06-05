@@ -3,7 +3,6 @@
 - In-between area map progression
 - Custom Rat AI
 - Show HP over shop UI gradient
-- Door textures for Area 1/3
 - Update flying tome AI (too strong, more cd after attack)
 - Get rid of double spawn phase for Wraith Boss
   - Add projectile oen

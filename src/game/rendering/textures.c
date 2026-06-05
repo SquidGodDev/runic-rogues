@@ -18,6 +18,7 @@ const char *texturePathStrings[] = {
 	"images/UI/minimap/minimapShopItem",
 	"images/environment/twilightCourt/twilightCourtWall",
 	"images/environment/twilightCourt/twilightCourtFloor",
+	"images/environment/twilightCourt/twilightCourtGate",
 	"images/environment/twilightCourt/twilightCourtSkybox",
 	"images/environment/lostArchives/lostArchivesWall",
 	"images/environment/lostArchives/lostArchivesCeiling",

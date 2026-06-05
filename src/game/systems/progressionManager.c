@@ -41,7 +41,7 @@ void initProgressionManager(void) {
     areaData[AREA_TWILIGHT_COURT] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_WALL],
         .floorTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_FLOOR],
-        .gateTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_WALL],
+        .gateTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_GATE],
         .skyboxTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_SKYBOX],
         .useSkybox = true
     };
