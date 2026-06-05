@@ -1830,9 +1830,6 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	}
 }
 
-// === Circling charge constants ===
-#define ORBIT_LEAD       0.15f   // radians ahead of current angle for orbit target (must keep target > 5 units from enemy)
-
 // Trapezoidal speed curve: accelerate 0-25%, coast 25-75%, decelerate 75-100%.
 static float chargeSpeedAt(float progressRatio, float maxSpeed) {
     if (progressRatio < 0.0f) { progressRatio = 0.0f; }
@@ -1846,7 +1843,9 @@ static float chargeSpeedAt(float progressRatio, float maxSpeed) {
     }
 }
 
-static void setupCharge(Enemy *curEnemy, EnemyData *curEnemyData, float chargeDistance, float chargeSpeed) {
+// Computes and stores the charge destination toward the player, capped at the charge distance
+// (or the nearest wall). Locked in at prep-start so the telegraph matches the actual charge.
+static void lockChargeTarget(Enemy *curEnemy, float chargeDistance) {
     float wallX, wallY;
     castRayToWall(curEnemy->x, curEnemy->y, playerX, playerY, &wallX, &wallY);
     float dx = wallX - curEnemy->x;
@@ -1862,6 +1861,13 @@ static void setupCharge(Enemy *curEnemy, EnemyData *curEnemyData, float chargeDi
         curEnemy->targetX = curEnemy->x;
         curEnemy->targetY = curEnemy->y;
     }
+}
+
+// Starts the charge toward the already-locked target, estimating its travel time.
+static void beginCharge(Enemy *curEnemy, float chargeSpeed) {
+    float dx = curEnemy->targetX - curEnemy->x;
+    float dy = curEnemy->targetY - curEnemy->y;
+    float dist = sqrtf(dx * dx + dy * dy);
     curEnemy->attackedPlayer = false;
     // Trapezoidal (accel+coast+decel) total time estimate: 1.5 × (dist / speed_per_frame / fps)
     float totalDuration = dist / (chargeSpeed * (float)TARGET_FPS) * 1.5f;
@@ -1869,15 +1875,56 @@ static void setupCharge(Enemy *curEnemy, EnemyData *curEnemyData, float chargeDi
     curEnemy->abilityCooldown = -totalDuration; // negative so auto-decrement is skipped; used as reference in ATTACK_1
 }
 
+static void setupCharge(Enemy *curEnemy, EnemyData *curEnemyData, float chargeDistance, float chargeSpeed) {
+    lockChargeTarget(curEnemy, chargeDistance);
+    beginCharge(curEnemy, chargeSpeed);
+}
+
+#define CHARGE_WARNING_SPACING CELL_SIZE
+
+// Lays a line of short warning particles along the locked charge path, from the enemy to its target.
+static void chargeSpawnWarningLine(Enemy *curEnemy) {
+    float dx = curEnemy->targetX - curEnemy->x;
+    float dy = curEnemy->targetY - curEnemy->y;
+    float dist = sqrtf(dx * dx + dy * dy);
+    if (dist <= 0.0f) {
+        return;
+    }
+    float nx = dx / dist;
+    float ny = dy / dist;
+    for (float d = CHARGE_WARNING_SPACING; d < dist; d += CHARGE_WARNING_SPACING) {
+        float x = curEnemy->x + nx * d;
+        float y = curEnemy->y + ny * d;
+        spawnParticle(PARTICLE_TYPE_WARNING, x, y, x, y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+    }
+}
+
+#define CHARGE_WANDER_MIN_SPACING (CELL_SIZE * 3.0f)
+#define CHARGE_WANDER_ARRIVAL_RADIUS (CELL_SIZE * 0.5f)
+
 static void chargeEnemyIdle(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
     if (playerInAttackDetectionRange(index)) {
-        curEnemy->stateCount = (randInt(0, 1) == 0) ? 1 : -1;
-        curEnemy->stateTimer = curEnemyData->prepTime;
-        transitionToState(curEnemy, ENEMY_STATE_PREP);
-        addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemy->stateTimer);
+        if (curEnemy->attackCooldown <= 0) {
+            curEnemy->attackCooldown = curEnemyData->attackCooldown;
+            curEnemy->stateCount = (randInt(0, 1) == 0) ? 1 : -1;
+            curEnemy->stateTimer = curEnemyData->prepTime;
+            transitionToState(curEnemy, ENEMY_STATE_PREP);
+            lockChargeTarget(curEnemy, curEnemyData->abilityDataSecondary);
+            addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemy->stateTimer);
+            chargeSpawnWarningLine(curEnemy);
+            return;
+        }
     } else {
-        moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+        curEnemy->attackCooldown = curEnemyData->attackCooldown;
     }
+
+    // Wander between random room positions while waiting to attack
+    float dx = curEnemy->targetX - curEnemy->x;
+    float dy = curEnemy->targetY - curEnemy->y;
+    if (dx * dx + dy * dy <= CHARGE_WANDER_ARRIVAL_RADIUS * CHARGE_WANDER_ARRIVAL_RADIUS) {
+        pickRandomRoomTarget(curEnemy, CHARGE_WANDER_MIN_SPACING);
+    }
+    moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
 }
 
 static void chargeEnemyAttack(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
@@ -1904,15 +1951,9 @@ void circlingChargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int ind
     if (curEnemy->state == ENEMY_STATE_IDLE) {
         chargeEnemyIdle(curEnemy, curEnemyData, index);
     } else if (curEnemy->state == ENEMY_STATE_PREP) {
-        float dx = curEnemy->x - playerX;
-        float dy = curEnemy->y - playerY;
-        float angle = atan2f(dy, dx) + ORBIT_LEAD * curEnemy->stateCount;
-        float orbitX = playerX + cosf(angle) * curEnemyData->attackDetectionRange;
-        float orbitY = playerY + sinf(angle) * curEnemyData->attackDetectionRange;
-        moveEnemy(curEnemy, index, orbitX, orbitY, curEnemyData->moveSpeed);
-
+        // Hold position while winding up; the charge target was locked in at prep-start
         if (curEnemy->stateTimer <= 0) {
-            setupCharge(curEnemy, curEnemyData, curEnemyData->abilityDataSecondary, curEnemyData->abilityDataPrimary);
+            beginCharge(curEnemy, curEnemyData->abilityDataPrimary);
             transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
         }
     } else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
@@ -1928,8 +1969,9 @@ void chargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool
     if (curEnemy->state == ENEMY_STATE_IDLE) {
         chargeEnemyIdle(curEnemy, curEnemyData, index);
     } else if (curEnemy->state == ENEMY_STATE_PREP) {
+        // Hold position while winding up; the charge target was locked in at prep-start
         if (curEnemy->stateTimer <= 0) {
-            setupCharge(curEnemy, curEnemyData, curEnemyData->abilityDataSecondary, curEnemyData->abilityDataPrimary);
+            beginCharge(curEnemy, curEnemyData->abilityDataPrimary);
             transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
         }
     } else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {

@@ -4,7 +4,7 @@
 #include "globals/helpers.h"
 #include "stdbool.h"
 
-#define MAX_PARTICLE_COUNT 150
+#define MAX_PARTICLE_COUNT 200
 
 typedef enum ParticleType {
 	PARTICLE_TYPE_NONE,

@@ -244,6 +244,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.attackDamage = 20,
 		.attackCooldown = 4.0f,
 		.moveSpeed = 0.2f,
+		.prepTime = 1.0f,
 		.abilityDataPrimary = 1.4f, // Charge speed
 		.abilityDataSecondary = CELL_SIZE * 8.0f, // Charge distance
 		.textureIndex = TEXTURE_FLYING_TOME,

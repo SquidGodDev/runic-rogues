@@ -17,11 +17,11 @@
 #define MAP_HEIGHT 32
 
 // 1..4 = enemy rooms, 5 = boss room
-#define DEBUG_SKIP_TO_ROOM 5
-#define DEBUG_AREA_OVERRIDE 2
+#define DEBUG_SKIP_TO_ROOM 0
+#define DEBUG_AREA_OVERRIDE 0
 #define DEBUG_INSTANT_ROOM_CLEAR 0
 #define DEBUG_INSTANT_KILL_BOSS 0
-#define DEBUG_START_IN_TEST_AREA 0
+#define DEBUG_START_IN_TEST_AREA 1
 
 #define FOG_LEVELS 16
 #define FOG_STEP 6
