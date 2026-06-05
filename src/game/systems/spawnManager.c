@@ -339,7 +339,9 @@ void updateSpawnManager(void) {
 
         case SPAWN_STATE_BOSS_POPUP_WAIT:
             if (!isPopupActive()) {
-                initShop();
+                if (getCurrentArea() != AREA_ECHOING_CAVERNS) {
+                    initShop();
+                }
                 spawnState = SPAWN_STATE_BOSS_DONE;
             }
             break;

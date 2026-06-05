@@ -1,5 +1,22 @@
 # TODO
-- Change boss title prompt to generated + make one for the dragon
+## Playtest Action Items
+- In-between area map progression
+- Custom Rat AI
+- Show HP over shop UI gradient
+- Door textures for Area 1/3
+- Update flying tome AI (too strong, more cd after attack)
+- Get rid of double spawn phase for Wraith Boss
+  - Add projectile oen
+- Pause on Wraith Boss second phase (start idle)
+- Reduce projectile break texture
+- Add more hp to area 3 enemies
+- Make rock golem use short warning
+- Make dragon fight way easier
+
+- Show possible grips in tutorial
+- Slow effect doesn't feel impactful
+- Projectile speed feels so-so (make base speed slower?)
+
 ## Tweaks
 - Bigger mage projectile
 - Adjust rogue damage
