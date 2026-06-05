@@ -2,11 +2,8 @@
 ## Playtest Action Items
 - In-between area map progression
 - Custom Rat AI
-- Show HP over shop UI gradient
-- Update flying tome AI (too strong, more cd after attack)
 - Get rid of double spawn phase for Wraith Boss
-  - Add projectile oen
-- Pause on Wraith Boss second phase (start idle)
+  - Add projectile one
 - Reduce projectile break texture
 - Add more hp to area 3 enemies
 - Make rock golem use short warning

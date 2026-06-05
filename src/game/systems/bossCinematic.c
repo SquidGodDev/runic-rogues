@@ -151,6 +151,9 @@ void updateBossCinematic(float deltaTime) {
 			screenShake(SCREEN_SHAKE_MEDIUM);
 			Enemy *boss = &enemies[bossEnemyIndex];
 			transitionToState(boss, ENEMY_STATE_PREP);
+			if (boss->type == ENEMY_TYPE_WRAITH_BOSS) {
+				boss->nextState = ENEMY_STATE_IDLE;
+			}
 			phase = BOSS_CINEMATIC_MIDDLE;
 			phaseTimer = 0;
 			if (bossEnemyIndex >= 0 && enemies[bossEnemyIndex].phase == 0) {

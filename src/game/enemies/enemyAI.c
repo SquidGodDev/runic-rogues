@@ -1444,6 +1444,14 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
 	}
 
+	if (curEnemy->state == ENEMY_STATE_PREP && curEnemy->nextState == ENEMY_STATE_IDLE) {
+		// The phase-transition cinematic leaves the boss in PREP; begin from idle with a fresh attack cycle.
+		transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		curEnemy->stateTimer = wraithProperties->idleTime;
+		curEnemy->nextState = WRAITH_STATE_DASH;
+		return;
+	}
+
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		if (curEnemy->stateTimer <= 0) {
 			transitionToState(curEnemy, ENEMY_STATE_PREP);
