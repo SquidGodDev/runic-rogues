@@ -27,6 +27,7 @@
 #include "game/systems/bossCinematic.h"
 #include "game/systems/runStats.h"
 #include "game/settings/settings.h"
+#include "game/tutorial/tutorialScene.h"
 
 PlaydateAPI *pd = NULL;
 
@@ -42,6 +43,7 @@ static void showAreaEnterPopupCallback(int repeatCount, void *data) {
 // Run at the start of every new run
 void initRunStart(void) {
 	setGameState(GAME_STATE_ACTIVE);
+	setTutorialActive(false);
 	initSpells();
 	initRunes();
 	freeRuneInventoryCache();

@@ -10,6 +10,7 @@
 #include "game/gameScene.h"
 #include "game/map/map.h"
 #include "game/UI/UI.h"
+#include "game/UI/quitConfirmDialog.h"
 #include "game/UI/runeInventory.h"
 #include "game/player/player.h"
 #include "game/enemies/enemies.h"
@@ -66,6 +67,16 @@ static int r2DummyStage;
 static bool prevDialogActive;
 
 static PDMenuItem *skipMenuItem;
+
+static bool tutorialActive;
+
+bool isTutorialActive(void) {
+    return tutorialActive;
+}
+
+void setTutorialActive(bool active) {
+    tutorialActive = active;
+}
 
 static void removeSkipTutorialMenuItem(void) {
     if (skipMenuItem != NULL) {
@@ -138,6 +149,8 @@ static int dummiesAlive(void) {
 
 void initTutorialScene(void) {
     setCurrentArea(AREA_TUTORIAL);
+    setTutorialActive(true);
+    removeQuitRunMenuItem();
     initGameScene();
 
     removeSkipTutorialMenuItem();

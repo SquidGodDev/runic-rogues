@@ -10,6 +10,7 @@
 #include "game/player/player.h"
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
+#include "game/tutorial/tutorialScene.h"
 
 #define DIALOG_WIDTH 160
 #define DIALOG_HEIGHT 88
@@ -197,6 +198,9 @@ static void onQuitRunMenuItemSelect(void *userdata) {
 }
 
 void createQuitRunMenuItem(void) {
+    if (isTutorialActive()) {
+        return;
+    }
     if (quitMenuItem != NULL) {
         pd->system->removeMenuItem(quitMenuItem);
     }
