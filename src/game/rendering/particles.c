@@ -22,9 +22,33 @@ typedef struct ParticleData {
 Particle particles[MAX_PARTICLE_COUNT] = {0};
 ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 	[PARTICLE_TYPE_PROJECTILE_BREAK] = {
-		.frameCount = 21,
+		.frameCount = 16,
 		.animationTime = 0.016f,
 		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK,
+		.damageFrame = 0,
+	},
+	[PARTICLE_TYPE_PROJECTILE_BREAK_2] = {
+		.frameCount = 16,
+		.animationTime = 0.016f,
+		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK_2,
+		.damageFrame = 0,
+	},
+	[PARTICLE_TYPE_PROJECTILE_BREAK_3] = {
+		.frameCount = 17,
+		.animationTime = 0.016f,
+		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK_3,
+		.damageFrame = 0,
+	},
+	[PARTICLE_TYPE_PROJECTILE_BREAK_4] = {
+		.frameCount = 15,
+		.animationTime = 0.016f,
+		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK_4,
+		.damageFrame = 0,
+	},
+	[PARTICLE_TYPE_PROJECTILE_BREAK_5] = {
+		.frameCount = 15,
+		.animationTime = 0.016f,
+		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK_5,
 		.damageFrame = 0,
 	},
 	[PARTICLE_TYPE_PROJECTILE_SHRINK] = {

@@ -1,13 +1,11 @@
 # TODO
 ## Playtest Action Items
-- In-between area map progression
 - Custom Rat AI
 - Get rid of double spawn phase for Wraith Boss
   - Add projectile one
-- Reduce projectile break texture
-- Add more hp to area 3 enemies
 - Make rock golem use short warning
 - Make dragon fight way easier
+- In-between area map progression
 
 - Show possible grips in tutorial
 - Slow effect doesn't feel impactful

@@ -43,7 +43,8 @@ void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX
 			Set *hitEnemies = projectiles[i].hitEnemies;
 			setClear(hitEnemies);
 			if (spellProjectileData.hitParticle == PARTICLE_TYPE_NONE) {
-				spellProjectileData.hitParticle = PARTICLE_TYPE_PROJECTILE_BREAK;
+				ParticleType breakParticles[] = {PARTICLE_TYPE_PROJECTILE_BREAK, PARTICLE_TYPE_PROJECTILE_BREAK_2, PARTICLE_TYPE_PROJECTILE_BREAK_3, PARTICLE_TYPE_PROJECTILE_BREAK_4, PARTICLE_TYPE_PROJECTILE_BREAK_5};
+				spellProjectileData.hitParticle = breakParticles[randInt(0, 4)];
 			}
 			projectiles[i] = (Projectile) {
 				.x = x,
