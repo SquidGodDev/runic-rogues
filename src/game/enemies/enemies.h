@@ -61,6 +61,7 @@ typedef struct Enemy {
 	float animationTime;
 	int animationFrame;
 	bool active;
+	bool invisible; // Skips rendering while set (e.g. wraith boss teleport)
 	int state;
 	int stateCount;
 	float stateTimer;

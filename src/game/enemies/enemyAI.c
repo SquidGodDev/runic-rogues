@@ -159,8 +159,10 @@ typedef struct WraithBossProperties {
 	float idleTime;
 	float prepTime;
 	float dashTime;
-	float projectileTime;
-	float projectileCooldown;
+	int   teleportCount;      // Teleport-and-shoot repetitions in the PROJECTILE phase
+	int   teleportShotCount;  // Aimed projectiles fired after each teleport
+	float teleportIntentLead; // Attack intent warning shown on reveal before the shots start
+	float projectileCooldown; // Seconds between aimed projectiles
 	float summonTime;
 	int   spawnCount;         // Count of wraiths spawned in a circle by the SUMMON phase
 	int   spawnBudget;        // Budget passed to rollEnemiesFromBudget for the SUMMON phase
@@ -181,7 +183,9 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.idleTime           = 2.0f,
 			.prepTime           = 1.0f,
 			.dashTime           = 2.5f,
-			.projectileTime     = 2.0f,
+			.teleportCount      = 3,
+			.teleportShotCount  = 3,
+			.teleportIntentLead = 1.5f,
 			.projectileCooldown = 0.5f,
 			.summonTime         = 5.0f,
 			.spawnCount         = 2,
@@ -199,7 +203,9 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.idleTime           = 1.0f,
 			.prepTime           = 0.5f,
 			.dashTime           = 2.5f,
-			.projectileTime     = 2.5f,
+			.teleportCount      = 3,
+			.teleportShotCount  = 5,
+			.teleportIntentLead = 1.5f,
 			.projectileCooldown = 0.3f,
 			.summonTime         = 5.0f,
 			.spawnCount         = 4,
@@ -219,7 +225,9 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.idleTime           = 2.0f,
 			.prepTime           = 1.0f,
 			.dashTime           = 2.5f,
-			.projectileTime     = 2.0f,
+			.teleportCount      = 2,
+			.teleportShotCount  = 3,
+			.teleportIntentLead = 1.5f,
 			.projectileCooldown = 0.5f,
 			.summonTime         = 5.0f,
 			.spawnCount         = 2,
@@ -236,7 +244,9 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.idleTime           = 1.0f,
 			.prepTime           = 0.5f,
 			.dashTime           = 2.5f,
-			.projectileTime     = 2.5f,
+			.teleportCount      = 3,
+			.teleportShotCount  = 5,
+			.teleportIntentLead = 1.5f,
 			.projectileCooldown = 0.3f,
 			.summonTime         = 5.0f,
 			.spawnCount         = 4,
@@ -260,6 +270,20 @@ static const WraithBossProperties *wraithProperties;
 #define WRAITH_STATE_VOLLEY      ENEMY_STATE_POST_ATTACK  // Holds the attack pose while the volley fires
 
 #define WRAITH_VOLLEY_WARNING_LEAD 0.4f
+
+#define WRAITH_TELEPORT_HIDE_DELAY   0.1f  // Time the disguise particle covers the boss before it vanishes
+#define WRAITH_TELEPORT_REVEAL_PRE_DELAY 0.55f  // Time the reveal particle plays before the boss reappears
+#define WRAITH_TELEPORT_REVEAL_DELAY 1.5f  // Time spent invisible at the new spot before reappearing
+#define WRAITH_TELEPORT_MIN_PLAYER_DISTANCE (CELL_SIZE * 2.0f)
+#define WRAITH_TELEPORT_MAX_PLAYER_DISTANCE (CELL_SIZE * 6.0f)
+
+// Teleport-attack sub-phases for WRAITH_STATE_PROJECTILE, stored in Enemy.attackCycle.
+typedef enum WraithTeleportPhase {
+	WRAITH_TELEPORT_PHASE_DISGUISE, // A spawn particle covers the boss before it goes invisible
+	WRAITH_TELEPORT_PHASE_HIDDEN,   // Invisible at the new spot, waiting to drop the reveal particle
+	WRAITH_TELEPORT_PHASE_REVEAL,   // Reveal particle playing, waiting to reappear under it
+	WRAITH_TELEPORT_PHASE_FIRE      // Revealed, firing the aimed shots
+} WraithTeleportPhase;
 
 // === Dragon Boss properties ===
 typedef struct DragonBossProperties {
@@ -876,6 +900,31 @@ static void pickRandomRoomTarget(Enemy *curEnemy, float minDistance) {
 	}
 }
 
+// Picks a random floor cell in the enemy's room within [minDistance, maxDistance] of the player,
+// and stores it as the next target. Leaves the target unchanged if no candidate is found.
+static void pickRandomRoomTargetNearPlayer(Enemy *curEnemy, float minDistance, float maxDistance) {
+	int roomIndex = getCurrentRoomIndex();
+	Point interiorMin = getRoomInteriorMin(roomIndex);
+	Point interiorMax = getRoomInteriorMax(roomIndex);
+	float minDistanceSq = minDistance * minDistance;
+	float maxDistanceSq = maxDistance * maxDistance;
+	for (int attempt = 0; attempt < ROOM_TARGET_MAX_ATTEMPTS; attempt++) {
+		int cellX = randInt(interiorMin.x, interiorMax.x);
+		int cellY = randInt(interiorMin.y, interiorMax.y);
+		if (isBlocked(cellX, cellY)) {
+			continue;
+		}
+		float candidateX = cellX * CELL_SIZE + CELL_SIZE / 2.0f;
+		float candidateY = cellY * CELL_SIZE + CELL_SIZE / 2.0f;
+		float distSq = distanceSquared(candidateX, candidateY, playerX, playerY);
+		if (distSq >= minDistanceSq && distSq <= maxDistanceSq) {
+			curEnemy->targetX = candidateX;
+			curEnemy->targetY = candidateY;
+			return;
+		}
+	}
+}
+
 // === Bomber constants ===
 #define BOMBER_MIN_WANDER_COUNT 1
 #define BOMBER_MAX_WANDER_COUNT 1
@@ -1481,6 +1530,62 @@ static void wraithFireVolleyShot(Enemy *curEnemy, EnemyData *curEnemyData) {
 	fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, wraithProperties->volleyProjectileSpeed, curEnemyData->attackDamage, curEnemyData->projectileData);
 }
 
+// Starts one teleport rep: a spawn particle covers the boss, then it vanishes and relocates.
+static void wraithBeginTeleportDisguise(Enemy *curEnemy) {
+	spawnParticle(PARTICLE_TYPE_SPAWN, curEnemy->x, curEnemy->y, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+	curEnemy->attackCycle = WRAITH_TELEPORT_PHASE_DISGUISE;
+	curEnemy->abilityCooldown = WRAITH_TELEPORT_HIDE_DELAY;
+}
+
+// Runs the teleport-attack sub-phases stored in attackCycle: hide under a spawn particle, vanish
+// and relocate, reveal with an attack intent, then fire aimed shots. stateCount counts total shots;
+// every teleportShotCount shots completes one teleport rep.
+static void wraithUpdateTeleportAttack(Enemy *curEnemy, EnemyData *curEnemyData) {
+	if (curEnemy->abilityCooldown > 0) {
+		return;
+	}
+
+	if (curEnemy->attackCycle == WRAITH_TELEPORT_PHASE_DISGUISE) {
+		curEnemy->invisible = true;
+		// Fall back to teleporting in place if no candidate cell is found near the player
+		curEnemy->targetX = curEnemy->x;
+		curEnemy->targetY = curEnemy->y;
+		pickRandomRoomTargetNearPlayer(curEnemy, WRAITH_TELEPORT_MIN_PLAYER_DISTANCE, WRAITH_TELEPORT_MAX_PLAYER_DISTANCE);
+		curEnemy->x = curEnemy->targetX;
+		curEnemy->y = curEnemy->targetY;
+		curEnemy->attackCycle = WRAITH_TELEPORT_PHASE_HIDDEN;
+		curEnemy->abilityCooldown = WRAITH_TELEPORT_REVEAL_DELAY - WRAITH_TELEPORT_REVEAL_PRE_DELAY;
+	} else if (curEnemy->attackCycle == WRAITH_TELEPORT_PHASE_HIDDEN) {
+		// Drop the reveal particle so it leads the reappearance by the same delay as the disguise
+		spawnParticle(PARTICLE_TYPE_SPAWN, curEnemy->x, curEnemy->y, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+		curEnemy->attackCycle = WRAITH_TELEPORT_PHASE_REVEAL;
+		curEnemy->abilityCooldown = WRAITH_TELEPORT_REVEAL_PRE_DELAY;
+	} else if (curEnemy->attackCycle == WRAITH_TELEPORT_PHASE_REVEAL) {
+		curEnemy->invisible = false;
+		addAttackIntentIndicator(curEnemy->x, curEnemy->y, wraithProperties->teleportIntentLead);
+		curEnemy->attackCycle = WRAITH_TELEPORT_PHASE_FIRE;
+		curEnemy->abilityCooldown = wraithProperties->teleportIntentLead;
+	} else {
+		float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy->x, curEnemy->y));
+		float deltaX = (playerX - curEnemy->x) / distanceToPlayer;
+		float deltaY = (playerY - curEnemy->y) / distanceToPlayer;
+		float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+		float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+		fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, curEnemyData->abilityDataSecondary, curEnemyData->attackDamage, curEnemyData->projectileData);
+		curEnemy->stateCount++;
+		curEnemy->abilityCooldown = wraithProperties->projectileCooldown;
+		if (curEnemy->stateCount % wraithProperties->teleportShotCount == 0) {
+			if (curEnemy->stateCount >= wraithProperties->teleportCount * wraithProperties->teleportShotCount) {
+				curEnemy->stateCount = 0;
+				transitionToState(curEnemy, ENEMY_STATE_IDLE);
+				curEnemy->stateTimer = wraithProperties->idleTime;
+			} else {
+				wraithBeginTeleportDisguise(curEnemy);
+			}
+		}
+	}
+}
+
 void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (isBossCinematicActive()) {
 		return;
@@ -1526,10 +1631,11 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 					curEnemy->nextState = WRAITH_STATE_PROJECTILE;
 				}
 			} else if (curEnemy->nextState == WRAITH_STATE_PROJECTILE) {
-				// == Projectile attack ==
+				// == Teleporting projectile attack: vanish, relocate, reveal, fire aimed shots ==
 				transitionToState(curEnemy, WRAITH_STATE_PROJECTILE);
-				curEnemy->stateTimer = wraithProperties->projectileTime;
 				curEnemy->nextState = WRAITH_STATE_VOLLEY;
+				curEnemy->stateCount = 0;
+				wraithBeginTeleportDisguise(curEnemy);
 			} else if (curEnemy->nextState == WRAITH_STATE_VOLLEY) {
 				// == Volley: rapid shots scattered within a cone locked onto the player ==
 				transitionToState(curEnemy, WRAITH_STATE_VOLLEY);
@@ -1566,7 +1672,8 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 			}
 		}
 	} else if (curEnemy->state == WRAITH_STATE_DASH || curEnemy->state == WRAITH_STATE_PROJECTILE || curEnemy->state == WRAITH_STATE_SUMMON || curEnemy->state == WRAITH_STATE_VOLLEY) {
-		if (curEnemy->stateTimer <= 0) {
+		// The PROJECTILE teleport attack manages its own exit; the others run on stateTimer
+		if (curEnemy->state != WRAITH_STATE_PROJECTILE && curEnemy->stateTimer <= 0) {
 			transitionToState(curEnemy, ENEMY_STATE_IDLE);
 			curEnemy->stateTimer = wraithProperties->idleTime;
 		}
@@ -1574,17 +1681,7 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		if (curEnemy->state == WRAITH_STATE_DASH) {
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
 		} else if (curEnemy->state == WRAITH_STATE_PROJECTILE) {
-			if (curEnemy->attackCooldown <= 0) {
-				curEnemy->attackCooldown = wraithProperties->projectileCooldown;
-				float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy->x, curEnemy->y));
-				float deltaX = (playerX - curEnemy->x) / distanceToPlayer;
-				float deltaY = (playerY - curEnemy->y) / distanceToPlayer;
-				float projectileSpeed = curEnemyData->abilityDataSecondary;
-				float damage = curEnemyData->attackDamage;
-				float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
-				float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
-				fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage, curEnemyData->projectileData);
-			}
+			wraithUpdateTeleportAttack(curEnemy, curEnemyData);
 		} else if (curEnemy->state == WRAITH_STATE_SUMMON) {
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
 		} else if (curEnemy->state == WRAITH_STATE_VOLLEY) {

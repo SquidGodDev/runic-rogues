@@ -320,7 +320,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.health = 850,
 		.attackDetectionRange = 10,
 		.attackDistance = 10,
-		.attackDamage = 20,
+		.attackDamage = 10,
 		.attackCooldown = 1.5f,
 		.moveSpeed = 0.25f,
 		.abilityDataPrimary = 1.2f, // Rush move speed
@@ -566,6 +566,7 @@ int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 		.animationTime = randFloat(0, curEnemyData.frameTime),
 		.animationFrame = randInt(0, curEnemyData.idleFrameEnd - 1),
 		.active = 1,
+		.invisible = false,
 		.state = ENEMY_STATE_IDLE,
 		.stateCount = 0,
 		.stateTimer = 0,
@@ -780,7 +781,9 @@ void updateEnemies(float deltaTime) {
 			curEnemyData->update(curEnemy, curEnemyData, i, attackAnimationReset);
 		}
 
-		addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->textureIndex, curEnemy->animationFrame);
+		if (!curEnemy->invisible) {
+			addEntityToRenderQueue(curEnemy->x, curEnemy->y, ENEMY, i, curEnemyData->textureIndex, curEnemy->animationFrame);
+		}
 	}
 }
 
@@ -874,6 +877,7 @@ void killEnemy(int index) {
 		curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
 		curEnemy.animationTime = curEnemyData.frameTime;
 		curEnemy.hitFlashTime = 0;
+		curEnemy.invisible = false;
 		enemies[index] = curEnemy;
 	}
 }
@@ -914,6 +918,7 @@ bool damageEnemy(int index, int damage) {
 			curEnemy.phase = 1;
 			curEnemy.health = curEnemyData.health;
 			curEnemy.hitFlashTime = 0;
+			curEnemy.invisible = false;
 			enemies[index] = curEnemy;
 			clearProjectiles();
 			clearParticles();
@@ -932,6 +937,7 @@ bool damageEnemy(int index, int damage) {
 		curEnemy.animationFrame = curEnemyData.deathFrameStart - 1;
 		curEnemy.animationTime = curEnemyData.frameTime;
 		curEnemy.hitFlashTime = 0;
+		curEnemy.invisible = false;
 
 		if (index == bossIndex) {
 			clearProjectiles();
