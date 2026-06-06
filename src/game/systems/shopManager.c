@@ -16,6 +16,7 @@
 #include "game/map/map.h"
 
 typedef enum ShopState {
+    SHOP_STATE_INACTIVE,
     SHOP_STATE_ENTERING,
     SHOP_STATE_ACTIVE,
     SHOP_STATE_EXITING
@@ -85,6 +86,13 @@ ShopPageData createShopPage(char *name, char *desc, char* type, LCDBitmap *icon,
     int descHeight = pd->graphics->getTextHeightForMaxWidth(fontSub, desc, strlen(desc), SHOP_DESC_MAX_WIDTH, kUTF8Encoding, kWrapWord, tracking, leading);
     int totalHeight = titleFontHeight + SHOP_TITLE_DESC_SPACING + descHeight;
     LCDBitmap *shopDescBitmap = pd->graphics->newBitmap(SHOP_DESC_MAX_WIDTH, totalHeight, kColorClear);
+    if (shopDescBitmap == NULL) {
+        pd->system->logToConsole("shopManager: newBitmap failed (%dx%d) for '%s'", SHOP_DESC_MAX_WIDTH, totalHeight, name);
+        return (ShopPageData){
+            .shopDescBitmap = NULL,
+            .descHeight = totalHeight
+        };
+    }
     pd->graphics->pushContext(shopDescBitmap);
         // Title
         pd->graphics->setFont(fontTitle);
@@ -117,6 +125,19 @@ ShopPageData createRuneShopPage(RuneType runeType, Language language) {
     ShopPageData result = createShopPage(nameWithLevel, desc, type, BITMAPS[getRuneIconIndex(runeType)], language);
     pd->system->realloc(nameWithLevel, 0);
     return result;
+}
+
+static void freeShopItemBitmaps(void) {
+    for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
+        if (shopItems[i].shopDescBitmapEN != NULL) {
+            pd->graphics->freeBitmap(shopItems[i].shopDescBitmapEN);
+            shopItems[i].shopDescBitmapEN = NULL;
+        }
+        if (shopItems[i].shopDescBitmapJP != NULL) {
+            pd->graphics->freeBitmap(shopItems[i].shopDescBitmapJP);
+            shopItems[i].shopDescBitmapJP = NULL;
+        }
+    }
 }
 
 void createShopOptions(void) {
@@ -223,6 +244,7 @@ static void buildSkipPages(void) {
 
 void initShop(void) {
     isTutorialShop = false;
+    freeShopItemBitmaps();
     createShopOptions();
     buildSkipPages();
     initShopCommon();
@@ -230,6 +252,7 @@ void initShop(void) {
 
 void initShopWithRunes(RuneType runes[3]) {
     isTutorialShop = true;
+    freeShopItemBitmaps();
     for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
         ShopPageData en = createRuneShopPage(runes[i], LANGUAGE_EN);
         ShopPageData jp = createRuneShopPage(runes[i], LANGUAGE_JP);
@@ -274,23 +297,30 @@ void drawShop(float deltaTime) {
 
         int frameCount;
         LCDBitmapTable *ditherBitmapTable = BITMAP_TABLES[BITMAP_TABLE_SHOP_DITHER_BACKGROUND];
-        pd->graphics->getBitmapTableInfo(ditherBitmapTable, NULL, &frameCount);
+        pd->graphics->getBitmapTableInfo(ditherBitmapTable, &frameCount, NULL);
+
+        int ditherFrame = (int)(transitionProgress * frameCount);
+        if (ditherFrame > frameCount - 1) {
+            ditherFrame = frameCount - 1;
+        } else if (ditherFrame < 0) {
+            ditherFrame = 0;
+        }
 
         if (shopState == SHOP_STATE_ENTERING) {
             pd->graphics->setDrawOffset(0, 0);
-            LCDBitmap *ditherBitmap = pd->graphics->getTableBitmap(ditherBitmapTable, (int)(transitionProgress * frameCount));
+            LCDBitmap *ditherBitmap = pd->graphics->getTableBitmap(ditherBitmapTable, ditherFrame);
             pd->graphics->drawBitmap(ditherBitmap, 0, 0, kBitmapUnflipped);
             pd->graphics->setDrawOffset(0, SCREEN_HEIGHT - transitionOffset);
         } else if (shopState == SHOP_STATE_EXITING) {
             pd->graphics->setDrawOffset(0, 0);
-            LCDBitmap *ditherBitmap = pd->graphics->getTableBitmap(ditherBitmapTable, frameCount - 1 - (int)(transitionProgress * frameCount));
+            LCDBitmap *ditherBitmap = pd->graphics->getTableBitmap(ditherBitmapTable, frameCount - 1 - ditherFrame);
             pd->graphics->drawBitmap(ditherBitmap, 0, 0, kBitmapUnflipped);
             pd->graphics->setDrawOffset(0, transitionOffset);
         }
     } else if (shopState != SHOP_STATE_EXITING) {
         LCDBitmapTable *ditherBitmapTable = BITMAP_TABLES[BITMAP_TABLE_SHOP_DITHER_BACKGROUND];
         int frameCount;
-        pd->graphics->getBitmapTableInfo(ditherBitmapTable, NULL, &frameCount);
+        pd->graphics->getBitmapTableInfo(ditherBitmapTable, &frameCount, NULL);
         LCDBitmap *ditherBitmap = pd->graphics->getTableBitmap(ditherBitmapTable, frameCount - 1);
         pd->graphics->drawBitmap(ditherBitmap, 0, 0, kBitmapUnflipped);
         pd->graphics->setDrawOffset(0, 0);
@@ -340,9 +370,13 @@ void drawShop(float deltaTime) {
         shopDescBitmap = curShopItem.shopDescBitmapEN;
         descHeight = curShopItem.descHeightEN;
     }
-    pd->graphics->setClipRect(SHOP_DESC_X, SHOP_DESC_Y, SHOP_DESC_MAX_WIDTH, SHOP_DESC_MAX_HEIGHT);
-    pd->graphics->drawBitmap(shopDescBitmap, SHOP_DESC_X, SHOP_DESC_Y - shopDescOffset, kBitmapUnflipped);
-    pd->graphics->clearClipRect();
+    if (shopDescBitmap != NULL) {
+        pd->graphics->setClipRect(SHOP_DESC_X, SHOP_DESC_Y, SHOP_DESC_MAX_WIDTH, SHOP_DESC_MAX_HEIGHT);
+        pd->graphics->drawBitmap(shopDescBitmap, SHOP_DESC_X, SHOP_DESC_Y - shopDescOffset, kBitmapUnflipped);
+        pd->graphics->clearClipRect();
+    } else {
+        pd->system->logToConsole("shopManager: NULL desc bitmap for option %d (state %d)", selectedShopOptionIndex, shopState);
+    }
 
     // Scrollbar
     if (maxDescOffset > 0) {
@@ -364,10 +398,16 @@ void drawShop(float deltaTime) {
 }
 
 void updateShop(float deltaTime) {
+    if (shopState == SHOP_STATE_INACTIVE) {
+        // Shop already tore itself down; recover instead of re-running the exit path
+        setGameState(GAME_STATE_ACTIVE);
+        return;
+    }
+
     if (shopState == SHOP_STATE_ENTERING) {
         if (shopTransitionTime > 0) {
             shopTransitionTime -= deltaTime;
-            if (shopTransitionTime < 0) {
+            if (shopTransitionTime <= 0) {
                 shopTransitionTime = 0;
                 shopState = SHOP_STATE_ACTIVE;
             }
@@ -376,20 +416,22 @@ void updateShop(float deltaTime) {
         shopTransitionTime -= deltaTime;
         if (shopTransitionTime <= 0) {
             shopTransitionTime = 0;
+            shopState = SHOP_STATE_INACTIVE;
             setGameState(GAME_STATE_ACTIVE);
             if (!isTutorialShop) {
                 checkAndSpawnPendingExit();
                 onShopCompleted();
             }
             isTutorialShop = false;
-            for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
-                pd->graphics->freeBitmap(shopItems[i].shopDescBitmapEN);
-                pd->graphics->freeBitmap(shopItems[i].shopDescBitmapJP);
+            freeShopItemBitmaps();
+            if (skipDescBitmapEN != NULL) {
+                pd->graphics->freeBitmap(skipDescBitmapEN);
+                skipDescBitmapEN = NULL;
             }
-            pd->graphics->freeBitmap(skipDescBitmapEN);
-            skipDescBitmapEN = NULL;
-            pd->graphics->freeBitmap(skipDescBitmapJP);
-            skipDescBitmapJP = NULL;
+            if (skipDescBitmapJP != NULL) {
+                pd->graphics->freeBitmap(skipDescBitmapJP);
+                skipDescBitmapJP = NULL;
+            }
             return;
         }
     }

@@ -191,7 +191,7 @@ void updateQuitConfirmDialog(float deltaTime) {
 }
 
 static void onQuitRunMenuItemSelect(void *userdata) {
-    if (gameState == GAME_STATE_QUIT_CONFIRM) {
+    if (gameState == GAME_STATE_QUIT_CONFIRM || gameState == GAME_STATE_SHOP) {
         return;
     }
     initQuitConfirmDialog();

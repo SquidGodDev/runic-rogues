@@ -309,9 +309,16 @@ static void advanceTransition(Transition* t, float deltaTime) {
     }
 }
 
+// Cap wall-clock frame deltas (system menu, lag spikes) to 4 frames at 40 FPS
+// so timers, transitions, and lerps never see a multi-second jump
+#define MAX_DELTA_TIME 0.1f
+
 int updateSceneManager(void* userdata) {
     float deltaTime = pd->system->getElapsedTime(); // In seconds
 	pd->system->resetElapsedTime();
+    if (deltaTime > MAX_DELTA_TIME) {
+        deltaTime = MAX_DELTA_TIME;
+    }
     switch (currentScene) {
         case SCENE_LOADING:
             updateLoadingScene(deltaTime);

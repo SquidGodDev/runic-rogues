@@ -45,6 +45,9 @@ static void chainLinkTimerCallback(int repeatCount, void *data) {
 }
 
 static void chainFromPosition(float searchX, float searchY, int chainCount, bool *hitEnemies) {
+    if (chainCount > CHAIN_LIGHTNING_MAX_CHAINS) {
+        chainCount = CHAIN_LIGHTNING_MAX_CHAINS;
+    }
     for (int link = 0; link < chainCount; link++) {
         float maxDistSq = (float)(CHAIN_LIGHTNING_CHAIN_RANGE * CHAIN_LIGHTNING_CHAIN_RANGE);
         int nearestIndex = findNearestActiveEnemy(searchX, searchY, maxDistSq, hitEnemies);
