@@ -1,8 +1,6 @@
 # TODO
 ## Playtest Action Items
 - Custom Rat AI
-- Get rid of double spawn phase for Wraith Boss
-  - Add projectile one
 - Make rock golem use short warning
 - Make dragon fight way easier
 - In-between area map progression

@@ -311,12 +311,12 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .applySpellModifierSecondary = modifyRepeatActivationTime,
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
     },
-    [RUNE_TYPE_THUNDER_STONE] = {
-        .nameEN = "Thunder Stone",
+    [RUNE_TYPE_THUNDERCLOUD] = {
+        .nameEN = "Thundercloud",
         .nameJP = "",
         .descriptionEN = "Strike a nearby enemy with lightning every {T}s for {1} damage, chaining to {2} enemies.",
         .descriptionJP = "",
-        .iconIndex = BITMAP_RUNE_HEALTHY,
+        .iconIndex = BITMAP_RUNE_THUNDERCLOUD,
         .primaryBaseValue   = 10, // damage
         .primaryPerLevel    = 0,
         .secondaryBaseValue = 1, // chain count
@@ -354,11 +354,11 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_ICE_LANCE, 1);
     // setRuneLevel(RUNE_TYPE_NEEDLE_AND_THREAD, 1);
     // setRuneLevel(RUNE_TYPE_HAMMER_AND_NAILS, 1);
-    setRuneLevel(RUNE_TYPE_MAGNIFYING_GLASS, 1);
+    // setRuneLevel(RUNE_TYPE_MAGNIFYING_GLASS, 1);
     // setRuneLevel(RUNE_TYPE_QUARTZ_CLUSTER, 1);
-    setRuneLevel(RUNE_TYPE_ENCHANTED_AMULET, 1);
+    // setRuneLevel(RUNE_TYPE_ENCHANTED_AMULET, 1);
     // setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
-    // setRuneLevel(RUNE_TYPE_THUNDER_STONE, 1);
+    // setRuneLevel(RUNE_TYPE_THUNDERCLOUD, 1);
 }
 
 bool runeIsOwned(RuneType type) {

@@ -139,7 +139,8 @@ const char *bitmapPathStrings[] = {
 	"images/runes/magnifyingGlass",
 	"images/runes/quartzCluster",
 	"images/runes/enchantedAmulet",
-	"images/runes/arcaneStaff"
+	"images/runes/arcaneStaff",
+	"images/runes/thundercloud"
 };
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];
