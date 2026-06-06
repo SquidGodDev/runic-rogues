@@ -56,9 +56,12 @@
     - On kill enemy
     - On xp pickup
     - On dodge with dash (check invincibility in player damage function)
-  - Black hole (every X specials)
-  - On kill lower special cooldown
-  - More damage the closer you are to enemies
+  - Rune ideas
+    - Black hole (every X specials)
+    - On kill lower special cooldown
+    - More damage the closer you are to enemies
+    - Clear nearby projectiles
+    - Pet
   - Rune rarity
 - Make ranger class
 - Level ups and unlocks

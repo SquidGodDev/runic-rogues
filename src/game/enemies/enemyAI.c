@@ -163,11 +163,14 @@ typedef struct WraithBossProperties {
 	float projectileCooldown;
 	float summonTime;
 	int   spawnCount;         // Count of wraiths spawned in a circle by the SUMMON phase
-	float spawnTime;          // Idle time after the SPAWN-from-pool phase
-	int   spawnBudget;        // Budget passed to rollEnemiesFromBudget for the SPAWN phase
-	int   spawnMinSpecials;   // Minimum specials passed to rollEnemiesFromBudget for the SPAWN phase
-	float spawnRadius;        // Scatter radius for the SPAWN phase
+	int   spawnBudget;        // Budget passed to rollEnemiesFromBudget for the SUMMON phase
+	int   spawnMinSpecials;   // Minimum specials passed to rollEnemiesFromBudget for the SUMMON phase
+	float spawnRadius;        // Scatter radius for the budget spawns in the SUMMON phase
 	int   rushCount;
+	int   volleyCount;            // Projectiles fired by the VOLLEY phase
+	float volleyShotSpacing;      // Seconds between volley shots
+	float volleyConeAngle;        // Full cone angle the shots scatter within, radians
+	float volleyProjectileSpeed;
 } WraithBossProperties;
 
 static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BOSS_PHASE_COUNT] = {
@@ -181,12 +184,15 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.projectileTime     = 2.0f,
 			.projectileCooldown = 0.5f,
 			.summonTime         = 5.0f,
-			.spawnCount         = 3,
-			.spawnTime          = 5.0f,
-			.spawnBudget        = 5,
+			.spawnCount         = 2,
+			.spawnBudget        = 6,
 			.spawnMinSpecials   = 0,
 			.spawnRadius        = CELL_SIZE * 2.0f,
 			.rushCount          = 3,
+			.volleyCount           = 10,
+			.volleyShotSpacing     = 0.1f,
+			.volleyConeAngle       = 15.0f * PI / 180.0f,
+			.volleyProjectileSpeed = 60.0f,
 		},
 		// Phase 1
 		{
@@ -196,12 +202,15 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.projectileTime     = 2.5f,
 			.projectileCooldown = 0.3f,
 			.summonTime         = 5.0f,
-			.spawnCount         = 5,
-			.spawnTime          = 5.0f,
+			.spawnCount         = 4,
 			.spawnBudget        = 10,
 			.spawnMinSpecials   = 2,
 			.spawnRadius        = CELL_SIZE * 2.0f,
 			.rushCount          = 4,
+			.volleyCount           = 15,
+			.volleyShotSpacing     = 0.1f,
+			.volleyConeAngle       = 20.0f * PI / 180.0f,
+			.volleyProjectileSpeed = 60.0f,
 		},
 	},
 	// Difficulty 1 — placeholder copies of difficulty 0
@@ -213,12 +222,15 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.projectileTime     = 2.0f,
 			.projectileCooldown = 0.5f,
 			.summonTime         = 5.0f,
-			.spawnCount         = 3,
-			.spawnTime          = 5.0f,
+			.spawnCount         = 2,
 			.spawnBudget        = 8,
 			.spawnMinSpecials   = 1,
 			.spawnRadius        = CELL_SIZE * 2.0f,
 			.rushCount          = 3,
+			.volleyCount           = 10,
+			.volleyShotSpacing     = 0.1f,
+			.volleyConeAngle       = 15.0f * PI / 180.0f,
+			.volleyProjectileSpeed = 60.0f,
 		},
 		{
 			.idleTime           = 1.0f,
@@ -227,12 +239,15 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.projectileTime     = 2.5f,
 			.projectileCooldown = 0.3f,
 			.summonTime         = 5.0f,
-			.spawnCount         = 5,
-			.spawnTime          = 5.0f,
+			.spawnCount         = 4,
 			.spawnBudget        = 8,
 			.spawnMinSpecials   = 1,
 			.spawnRadius        = CELL_SIZE * 2.0f,
 			.rushCount          = 4,
+			.volleyCount           = 15,
+			.volleyShotSpacing     = 0.1f,
+			.volleyConeAngle       = 20.0f * PI / 180.0f,
+			.volleyProjectileSpeed = 60.0f,
 		},
 	},
 };
@@ -242,7 +257,9 @@ static const WraithBossProperties *wraithProperties;
 #define WRAITH_STATE_DASH        ENEMY_STATE_ATTACK_1
 #define WRAITH_STATE_PROJECTILE  ENEMY_STATE_ATTACK_2
 #define WRAITH_STATE_SUMMON      ENEMY_STATE_ATTACK_3
-#define WRAITH_STATE_SPAWN       ENEMY_STATE_POST_ATTACK
+#define WRAITH_STATE_VOLLEY      ENEMY_STATE_POST_ATTACK  // Holds the attack pose while the volley fires
+
+#define WRAITH_VOLLEY_WARNING_LEAD 0.4f
 
 // === Dragon Boss properties ===
 typedef struct DragonBossProperties {
@@ -1283,6 +1300,26 @@ static void bossSpawnSummonsFromBudget(Enemy *curEnemy, int summonBudget, int su
 	bossSpawnSummonsCapped(curEnemy, summons, count, summonRadius);
 }
 
+#define BOSS_WARNING_LINE_SPACING CELL_SIZE
+
+// Lays a line of short warning particles from the boss out along the given angle until it hits a wall,
+// telegraphing the path projectiles will take before any are fired.
+static void bossSpawnWarningLine(Enemy *curEnemy, float angle) {
+	float nx = cosf(angle);
+	float ny = sinf(angle);
+	float farDistance = (MAP_WIDTH + MAP_HEIGHT) * CELL_SIZE;
+	float farX = curEnemy->x + nx * farDistance;
+	float farY = curEnemy->y + ny * farDistance;
+	float wallX, wallY;
+	castRayToWall(curEnemy->x, curEnemy->y, farX, farY, &wallX, &wallY);
+	float wallDist = sqrtf(distanceSquared(wallX, wallY, curEnemy->x, curEnemy->y));
+	for (float d = BOSS_WARNING_LINE_SPACING; d < wallDist; d += BOSS_WARNING_LINE_SPACING) {
+		float x = curEnemy->x + nx * d;
+		float y = curEnemy->y + ny * d;
+		spawnParticle(PARTICLE_TYPE_WARNING_SHORT, x, y, x, y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+	}
+}
+
 static void elderFireProjectileWave(Enemy *curEnemy, EnemyData *curEnemyData, int waveIndex) {
 	float angleOffset = (float)waveIndex * elderProperties->waveAngleOffset;
 	for (int i = 0; i < elderProperties->projectilesPerWave; i++) {
@@ -1433,6 +1470,17 @@ void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 
 }
 
+// Fires a single volley shot at the aim point locked when the volley started, deflected by a
+// random angle within the cone.
+static void wraithFireVolleyShot(Enemy *curEnemy, EnemyData *curEnemyData) {
+	float angle = atan2f(curEnemy->targetY - curEnemy->y, curEnemy->targetX - curEnemy->x) + randFloat(-0.5f, 0.5f) * wraithProperties->volleyConeAngle;
+	float deltaX = cosf(angle);
+	float deltaY = sinf(angle);
+	float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+	float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+	fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, wraithProperties->volleyProjectileSpeed, curEnemyData->attackDamage, curEnemyData->projectileData);
+}
+
 void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (isBossCinematicActive()) {
 		return;
@@ -1481,12 +1529,28 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				// == Projectile attack ==
 				transitionToState(curEnemy, WRAITH_STATE_PROJECTILE);
 				curEnemy->stateTimer = wraithProperties->projectileTime;
+				curEnemy->nextState = WRAITH_STATE_VOLLEY;
+			} else if (curEnemy->nextState == WRAITH_STATE_VOLLEY) {
+				// == Volley: rapid shots scattered within a cone locked onto the player ==
+				transitionToState(curEnemy, WRAITH_STATE_VOLLEY);
+				curEnemy->stateTimer = WRAITH_VOLLEY_WARNING_LEAD + wraithProperties->volleyCount * wraithProperties->volleyShotSpacing;
+				curEnemy->stateCount = 0;
+				curEnemy->abilityCooldown = WRAITH_VOLLEY_WARNING_LEAD;
 				curEnemy->nextState = WRAITH_STATE_SUMMON;
+				curEnemy->targetX = playerX;
+				curEnemy->targetY = playerY;
+				// Telegraph the cone: one line down the center and one along each edge
+				float aimAngle = atan2f(playerY - curEnemy->y, playerX - curEnemy->x);
+				float halfCone = wraithProperties->volleyConeAngle * 0.5f;
+				bossSpawnWarningLine(curEnemy, aimAngle);
+				bossSpawnWarningLine(curEnemy, aimAngle - halfCone);
+				bossSpawnWarningLine(curEnemy, aimAngle + halfCone);
 			} else if (curEnemy->nextState == WRAITH_STATE_SUMMON) {
-				// == Summon wraiths in a circle around the boss ==
+				// == Summon wraiths in a circle around the boss, plus enemies from the area pool ==
 				transitionToState(curEnemy, ENEMY_STATE_IDLE);
 				curEnemy->stateTimer = wraithProperties->summonTime;
-				curEnemy->nextState = WRAITH_STATE_SPAWN;
+				curEnemy->nextState = WRAITH_STATE_DASH;
+				curEnemy->stateCount = 0;  // The volley leaves this at volleyCount; clear it for the dash cycle
 				Point bossRoomCenter = getRoomWorldCenter(DUNGEON_ROOM_COUNT - 1);
 				curEnemy->targetX = bossRoomCenter.x;
 				curEnemy->targetY = bossRoomCenter.y;
@@ -1498,15 +1562,10 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 					float offsetY = sinf(angle) * CELL_SIZE;
 					spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x + offsetX, curEnemy->y + offsetY, true /*isMinion*/);
 				}
-			} else if (curEnemy->nextState == WRAITH_STATE_SPAWN) {
-				// == Spawn enemies from the area pool ==
-				transitionToState(curEnemy, ENEMY_STATE_IDLE);
-				curEnemy->stateTimer = wraithProperties->spawnTime;
-				curEnemy->nextState = WRAITH_STATE_DASH;
 				bossSpawnSummonsFromBudget(curEnemy, wraithProperties->spawnBudget, wraithProperties->spawnMinSpecials, wraithProperties->spawnRadius);
 			}
 		}
-	} else if (curEnemy->state == WRAITH_STATE_DASH || curEnemy->state == WRAITH_STATE_PROJECTILE || curEnemy->state == WRAITH_STATE_SUMMON) {
+	} else if (curEnemy->state == WRAITH_STATE_DASH || curEnemy->state == WRAITH_STATE_PROJECTILE || curEnemy->state == WRAITH_STATE_SUMMON || curEnemy->state == WRAITH_STATE_VOLLEY) {
 		if (curEnemy->stateTimer <= 0) {
 			transitionToState(curEnemy, ENEMY_STATE_IDLE);
 			curEnemy->stateTimer = wraithProperties->idleTime;
@@ -1528,6 +1587,12 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 			}
 		} else if (curEnemy->state == WRAITH_STATE_SUMMON) {
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
+		} else if (curEnemy->state == WRAITH_STATE_VOLLEY) {
+			if (curEnemy->stateCount < wraithProperties->volleyCount && curEnemy->abilityCooldown <= 0) {
+				wraithFireVolleyShot(curEnemy, curEnemyData);
+				curEnemy->stateCount++;
+				curEnemy->abilityCooldown = wraithProperties->volleyShotSpacing;
+			}
 		}
 	}
 }
@@ -1573,26 +1638,7 @@ static void dragonFireVolley(Enemy *curEnemy, EnemyData *curEnemyData, float bas
 	}
 }
 
-#define DRAGON_VOLLEY_WARNING_SPACING CELL_SIZE
-#define DRAGON_VOLLEY_WARNING_LEAD    0.4f
-
-// Lays a line of short warning particles from the dragon out along the given angle until it hits a wall,
-// telegraphing the path one of the volley's lines will take before any projectiles are fired.
-static void dragonSpawnVolleyWarningLine(Enemy *curEnemy, float angle) {
-	float nx = cosf(angle);
-	float ny = sinf(angle);
-	float farDistance = (MAP_WIDTH + MAP_HEIGHT) * CELL_SIZE;
-	float farX = curEnemy->x + nx * farDistance;
-	float farY = curEnemy->y + ny * farDistance;
-	float wallX, wallY;
-	castRayToWall(curEnemy->x, curEnemy->y, farX, farY, &wallX, &wallY);
-	float wallDist = sqrtf(distanceSquared(wallX, wallY, curEnemy->x, curEnemy->y));
-	for (float d = DRAGON_VOLLEY_WARNING_SPACING; d < wallDist; d += DRAGON_VOLLEY_WARNING_SPACING) {
-		float x = curEnemy->x + nx * d;
-		float y = curEnemy->y + ny * d;
-		spawnParticle(PARTICLE_TYPE_WARNING_SHORT, x, y, x, y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
-	}
-}
+#define DRAGON_VOLLEY_WARNING_LEAD 0.4f
 
 // Computes the world-space center of the current boss room.
 static void dragonRoomCenter(float *centerX, float *centerY) {
@@ -1809,7 +1855,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 			float baseAngle = dragonVolleyBaseAngle(curEnemy, lineCount, curEnemy->stateCount / shotsPerVolley);
 			float sector = 2.0f * PI / lineCount;
 			for (int k = 0; k < lineCount; k++) {
-				dragonSpawnVolleyWarningLine(curEnemy, baseAngle + k * sector);
+				bossSpawnWarningLine(curEnemy, baseAngle + k * sector);
 			}
 			curEnemy->attackedPlayer = true;
 			curEnemy->abilityCooldown = DRAGON_VOLLEY_WARNING_LEAD;
