@@ -76,7 +76,7 @@ void tryCompleteQuitDialogInit(void) {
     setGameState(GAME_STATE_QUIT_CONFIRM);
 }
 
-static void freeScreenshot(void) {
+void freeQuitScreenshot(void) {
     if (gameScreenshot != NULL) {
         pd->graphics->freeBitmap(gameScreenshot);
         gameScreenshot = NULL;
@@ -84,17 +84,22 @@ static void freeScreenshot(void) {
 }
 
 static void closeDialog(void) {
-    freeScreenshot();
+    freeQuitScreenshot();
     suppressHeldPlayerButtons();
     setGameState(previousGameState);
 }
 
 static void confirmQuit(void) {
-    freeScreenshot();
     removeRuneInventoryMenuItem();
     removeQuitRunMenuItem();
-    setGameState(GAME_STATE_ACTIVE);
+    setGameState(GAME_STATE_QUITTING);
     switchScene(SCENE_TITLE);
+}
+
+void drawQuitScreenshot(void) {
+    if (gameScreenshot != NULL) {
+        pd->graphics->drawBitmap(gameScreenshot, 0, 0, kBitmapUnflipped);
+    }
 }
 
 static void drawDialog(void) {

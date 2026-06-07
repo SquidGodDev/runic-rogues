@@ -43,6 +43,7 @@ static void showAreaEnterPopupCallback(int repeatCount, void *data) {
 // Run at the start of every new run
 void initRunStart(void) {
 	setGameState(GAME_STATE_ACTIVE);
+	freeQuitScreenshot();
 	setTutorialActive(false);
 	initSpells();
 	initRunes();
@@ -108,6 +109,8 @@ void updateGameplaySubsystems(float deltaTime)
 
 void updateGameScene(float deltaTime)
 {
+	tryCompleteQuitDialogInit();
+
 	runStatsTick(deltaTime);
 	if (gameState == GAME_STATE_ACTIVE) {
 		updateSpawnManager();
@@ -124,9 +127,9 @@ void updateGameScene(float deltaTime)
 		drawPopup(deltaTime);
 	} else if (gameState == GAME_STATE_QUIT_CONFIRM) {
 		updateQuitConfirmDialog(deltaTime);
+	} else if (gameState == GAME_STATE_QUITTING) {
+		drawQuitScreenshot();
 	}
-
-	tryCompleteQuitDialogInit();
 
 	if (SETTINGS.drawFPS) {
 		pd->graphics->fillRect(183, 106, 17, 14, kColorBlack);
