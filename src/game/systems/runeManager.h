@@ -36,7 +36,7 @@ struct SpellData;
 
 typedef int RuneClassFilter;
 #define RUNE_CLASS_FILTER_MAGE    (1 << CLASS_MAGE)
-#define RUNE_CLASS_FILTER_WARRIOR (1 << CLASS_WARRIOR)
+#define RUNE_CLASS_FILTER_KNIGHT  (1 << CLASS_KNIGHT)
 #define RUNE_CLASS_FILTER_ROGUE   (1 << CLASS_ROGUE)
 
 typedef enum RuneSpellTarget {

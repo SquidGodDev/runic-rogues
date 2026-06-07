@@ -5,7 +5,7 @@
 
 typedef enum ClassType {
     CLASS_MAGE,
-    CLASS_WARRIOR,
+    CLASS_KNIGHT,
     CLASS_ROGUE,
     CLASS_COUNT
 } ClassType;

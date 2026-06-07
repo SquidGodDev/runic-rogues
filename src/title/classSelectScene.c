@@ -41,8 +41,8 @@ static ClassBitmapTableData classBitmapTables[CLASS_COUNT] = {
         .bitmapTablePath = BITMAP_TABLE_CLASS_SELECT_MAGE,
         .introEndFrame = 138
     },
-    [CLASS_WARRIOR] = {
-        .bitmapTablePath = BITMAP_TABLE_CLASS_SELECT_WARRIOR,
+    [CLASS_KNIGHT] = {
+        .bitmapTablePath = BITMAP_TABLE_CLASS_SELECT_KNIGHT,
         .introEndFrame = 76
     },
     [CLASS_ROGUE] = {

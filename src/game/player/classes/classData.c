@@ -12,9 +12,9 @@ const ClassData classData[CLASS_COUNT] = {
         .basicSpell = SPELL_FIREBALL,
         .specialSpell = SPELL_CHAIN_LIGHTNING
     },
-    [CLASS_WARRIOR] = {
-        .classType = CLASS_WARRIOR,
-        .name = "Warrior",
+    [CLASS_KNIGHT] = {
+        .classType = CLASS_KNIGHT,
+        .name = "Knight",
         .desc = "",
         .nameJP = "",
         .descJP = "",
@@ -36,7 +36,7 @@ const ClassData classData[CLASS_COUNT] = {
     }
 };
 
-ClassType currentClass = CLASS_WARRIOR;
+ClassType currentClass = CLASS_KNIGHT;
 
 ClassType getCurrentClassType(void) {
     return currentClass;
