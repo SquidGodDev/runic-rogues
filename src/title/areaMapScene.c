@@ -38,7 +38,7 @@
 
 #define ADVANCE_START_DELAY_TIME 0.5f
 #define ADVANCE_MOVE_TIME 1.0f
-#define POP_TIME 0.4f
+#define POP_TIME 0.3f
 #define POP_HEIGHT 3.0f
 #define END_WAIT_TIME 1.0f
 

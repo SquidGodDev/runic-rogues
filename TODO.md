@@ -3,7 +3,6 @@
 - Custom Rat AI
 - Make rock golem use short warning
 - Make dragon fight way easier
-- In-between area map progression
 
 - Show possible grips in tutorial
 - Slow effect doesn't feel impactful
@@ -66,7 +65,6 @@
 - Level ups and unlocks
 - Ascension difficulty
 ## Scenes
-- Show area map progression (e.g. tiny rogues)
 - Improved title
 - Game Over scene
   - Stats
