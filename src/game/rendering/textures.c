@@ -140,7 +140,18 @@ const char *bitmapPathStrings[] = {
 	"images/runes/quartzCluster",
 	"images/runes/enchantedAmulet",
 	"images/runes/arcaneStaff",
-	"images/runes/thundercloud"
+	"images/runes/thundercloud",
+	"images/areaMap/cornerPieceTL",
+	"images/areaMap/cornerPieceTR",
+	"images/areaMap/cornerPieceBL",
+	"images/areaMap/cornerPieceBR",
+	"images/areaMap/twilightCourtIcon",
+	"images/areaMap/lostArchivesIcon",
+	"images/areaMap/echoingCavernsIcon",
+	"images/areaMap/knightIcon",
+	"images/areaMap/mageIcon",
+	"images/areaMap/rogueIcon",
+	"images/areaMap/rangerIcon"
 };
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];

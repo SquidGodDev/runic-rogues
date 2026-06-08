@@ -91,7 +91,7 @@ static void onSkipTutorialSelect(void *userdata) {
     tPhase = TUTORIAL_DONE;
     setTutorialCompleted(true);
     initRunStart();
-    switchScene(SCENE_GAME);
+    switchScene(SCENE_AREA_MAP);
 }
 
 static const StringKey r1Pages[] = {
@@ -424,7 +424,7 @@ static void updateTutorialPhase(float deltaTime) {
                     tPhase = TUTORIAL_DONE;
                     setTutorialCompleted(true);
                     initRunStart();
-                    switchScene(SCENE_GAME);
+                    switchScene(SCENE_AREA_MAP);
                 }
             }
             break;

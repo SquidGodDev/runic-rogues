@@ -6,6 +6,7 @@ typedef enum Scene {
     SCENE_TITLE,
     SCENE_GAME,
     SCENE_ROOM_MAP,
+    SCENE_AREA_MAP,
     SCENE_GAME_OVER,
     SCENE_TUTORIAL
 } Scene;

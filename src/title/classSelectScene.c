@@ -204,7 +204,7 @@ void updateClassSelectScene(float deltaTime) {
         if (pushed & kButtonA) {
             setCurrentClass((ClassType)selectedIndex);
             initRunStart();
-            switchScene(SCENE_GAME);
+            switchScene(SCENE_AREA_MAP);
         }
         if (pushed & kButtonB) {
             switchScene(SCENE_TITLE);

@@ -1,8 +1,6 @@
 #define TARGET_EXTENSION 1
 #include "pd_api.h"
 
-#include "globals/sceneManager.h"
-
 #include "game/systems/progressionManager.h"
 #include "game/systems/shopManager.h"
 #include "game/rendering/textures.h"
@@ -170,6 +168,4 @@ void incrementToNextRoom(void) {
     } else {
         currentRoomType = ROOM_TYPE_ENEMY;
     }
-
-    switchScene(SCENE_GAME);
 }

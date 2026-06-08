@@ -9,6 +9,7 @@
 #include "title/classSelectScene.h"
 #include "title/titleScene.h"
 #include "title/roomMapScene.h"
+#include "title/areaMapScene.h"
 #include "title/gameOverScene.h"
 #include "game/gameScene.h"
 #include "game/tutorial/tutorialScene.h"
@@ -162,6 +163,9 @@ void initNextScene(void) {
             break;
         case SCENE_ROOM_MAP:
             initRoomMapScene();
+            break;
+        case SCENE_AREA_MAP:
+            initAreaMapScene();
             break;
         case SCENE_GAME_OVER:
             initGameOverScene();
@@ -334,6 +338,9 @@ int updateSceneManager(void* userdata) {
             break;
         case SCENE_ROOM_MAP:
             updateRoomMapScene(deltaTime);
+            break;
+        case SCENE_AREA_MAP:
+            updateAreaMapScene(deltaTime);
             break;
         case SCENE_GAME_OVER:
             updateGameOverScene(deltaTime);

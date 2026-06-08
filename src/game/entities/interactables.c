@@ -78,8 +78,13 @@ void interact(int interactableIndex) {
 				runStatsCaptureFinal(true);
 				switchScene(SCENE_GAME_OVER);
 			} else {
+				Area previousArea = getCurrentArea();
 				incrementToNextRoom();
-				switchScene(SCENE_GAME);
+				if (getCurrentArea() != previousArea) {
+					switchScene(SCENE_AREA_MAP);
+				} else {
+					switchScene(SCENE_GAME);
+				}
 			}
 			break;
 		case INTERACTABLE_TYPE_CAMPFIRE:

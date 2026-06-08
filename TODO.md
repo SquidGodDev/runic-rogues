@@ -60,6 +60,7 @@
     - More damage the closer you are to enemies
     - Clear nearby projectiles
     - Pet
+    - Less range, double damage
   - Rune rarity
 - Make ranger class
 - Level ups and unlocks
@@ -71,6 +72,13 @@
   - Stats
   - Class used
   - Show runes
+- Credits
+  - https://kaylousberg.itch.io/kaykit-adventurers
+  - https://piiixl.itch.io/1-bit-patterns-and-tiles
+  - https://community.arduboy.com/t/catacombs-of-the-damned/6565
+  - 3D Sage raycasting
+  - https://lodev.org/cgtutor/raycasting.html
+  - Fonts
 ## Audio
 - Music
 - SFX
