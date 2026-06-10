@@ -317,6 +317,7 @@ typedef struct DragonBossProperties {
 	float volleySpacing;         // Seconds between volleys (animation holds last frame)
 	float volleyProjectileSpeed;
 	int   volleyProjectileDamage;
+	float volleyWarningLead;     // Seconds the warning lines show before the first shot of each volley
 	// Attack 4 — summon adds
 	int   summonCount;           // Enemies summoned per attack (also caps active non-boss enemies)
 	int   summonMinSpecials;     // Minimum specials among the summons (0 = all basic fodder)
@@ -346,6 +347,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleySpacing         = 1.5f,
 			.volleyProjectileSpeed = 100.0f,
 			.volleyProjectileDamage = 12,
+			.volleyWarningLead     = 0.8f,
 			.summonCount           = 4,
 			.summonMinSpecials     = 0,
 			.summonRadius          = CELL_SIZE * 2.0f,
@@ -370,6 +372,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleySpacing         = 1.5f,
 			.volleyProjectileSpeed = 100.0f,
 			.volleyProjectileDamage = 14,
+			.volleyWarningLead     = 0.6f,
 			.summonCount           = 4,
 			.summonMinSpecials     = 4,
 			.summonRadius          = CELL_SIZE * 2.0f,
@@ -396,6 +399,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleySpacing         = 1.5f,
 			.volleyProjectileSpeed = 100.0f,
 			.volleyProjectileDamage = 12,
+			.volleyWarningLead     = 0.6f,
 			.summonCount           = 4,
 			.summonMinSpecials     = 0,
 			.summonRadius          = CELL_SIZE * 2.0f,
@@ -419,6 +423,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleySpacing         = 1.5f,
 			.volleyProjectileSpeed = 100.0f,
 			.volleyProjectileDamage = 14,
+			.volleyWarningLead     = 0.4f,
 			.summonCount           = 4,
 			.summonMinSpecials     = 4,
 			.summonRadius          = CELL_SIZE * 2.0f,
@@ -1753,8 +1758,6 @@ static void dragonFireVolley(Enemy *curEnemy, EnemyData *curEnemyData, float bas
 	}
 }
 
-#define DRAGON_VOLLEY_WARNING_LEAD 0.4f
-
 // Computes the world-space center of the current boss room.
 static void dragonRoomCenter(float *centerX, float *centerY) {
 	int roomIndex = getCurrentRoomIndex();
@@ -1973,7 +1976,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				bossSpawnWarningLine(curEnemy, baseAngle + k * sector);
 			}
 			curEnemy->attackedPlayer = true;
-			curEnemy->abilityCooldown = DRAGON_VOLLEY_WARNING_LEAD;
+			curEnemy->abilityCooldown = dragonProperties->volleyWarningLead;
 		}
 
 		// The first shot of each volley waits for the attack animation to wind up to the active frame
