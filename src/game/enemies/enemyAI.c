@@ -1380,7 +1380,7 @@ static void bossSpawnWarningLine(Enemy *curEnemy, float angle) {
 	for (float d = BOSS_WARNING_LINE_SPACING; d < wallDist; d += BOSS_WARNING_LINE_SPACING) {
 		float x = curEnemy->x + nx * d;
 		float y = curEnemy->y + ny * d;
-		spawnParticle(PARTICLE_TYPE_WARNING_SHORT, x, y, x, y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+		spawnParticle(PARTICLE_TYPE_WARNING, x, y, x, y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
 	}
 }
 
@@ -1711,13 +1711,16 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 
 // === Dragon Boss ===
 
-// Fires a full ring of projectiles minus two diametrically opposed gaps: one slot chosen at
-// random and the slot directly opposite it, leaving DRAGON_RING_SLOTS - 2 projectiles.
+// Fires a full ring of projectiles minus four evenly-spaced gaps, one per quadrant: a random
+// slot plus the slots a quarter, half, and three-quarters of the way around, leaving
+// DRAGON_RING_SLOTS - 4 projectiles.
 static void dragonFireRing(Enemy *curEnemy, EnemyData *curEnemyData) {
 	int gap = randInt(0, DRAGON_RING_SLOTS - 1);
-	int oppositeGap = (gap + DRAGON_RING_SLOTS / 2) % DRAGON_RING_SLOTS;
+	int gap2 = (gap + DRAGON_RING_SLOTS / 4) % DRAGON_RING_SLOTS;
+	int gap3 = (gap + DRAGON_RING_SLOTS / 2) % DRAGON_RING_SLOTS;
+	int gap4 = (gap + 3 * DRAGON_RING_SLOTS / 4) % DRAGON_RING_SLOTS;
 	for (int i = 0; i < DRAGON_RING_SLOTS; i++) {
-		if (i == gap || i == oppositeGap) {
+		if (i == gap || i == gap2 || i == gap3 || i == gap4) {
 			continue;
 		}
 		float angle = i * (2.0f * PI / (float)DRAGON_RING_SLOTS);
