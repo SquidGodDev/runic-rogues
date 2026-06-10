@@ -1967,10 +1967,15 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 
 		bool firstShotOfVolley = (curEnemy->stateCount % shotsPerVolley == 0);
 
-		// Lock aim and lay down warning lines along every volley direction before the first shot
+		// Lay down warning lines along every volley direction before the first shot of each volley
 		if (firstShotOfVolley && !curEnemy->attackedPlayer) {
-			curEnemy->targetX = playerX;
-			curEnemy->targetY = playerY;
+			// Lock the aim once at the very start of the attack so one line points at the player.
+			// Later volleys reuse this aim, with dragonVolleyBaseAngle's alternating half-sector
+			// offset dropping their lines into the previous volley's gaps.
+			if (curEnemy->stateCount == 0) {
+				curEnemy->targetX = playerX;
+				curEnemy->targetY = playerY;
+			}
 			float baseAngle = dragonVolleyBaseAngle(curEnemy, lineCount, curEnemy->stateCount / shotsPerVolley);
 			float sector = 2.0f * PI / lineCount;
 			for (int k = 0; k < lineCount; k++) {
