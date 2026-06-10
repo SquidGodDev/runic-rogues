@@ -450,8 +450,8 @@ typedef enum DragonAttackCycle {
 #define DRAGON_SUBSTATE_ATTACKING 0  // Playing the attack animation / firing
 #define DRAGON_SUBSTATE_SPACING   1  // Holding the last attack frame between shots
 
-// Sprinkler sub-states (Attack 2), stored in Enemy.nextState.
-#define DRAGON_SPRINKLER_MOVING 0  // Repositioning to the room center
+// Sprinkler firing sub-state, stored in Enemy.nextState while in ENEMY_STATE_ATTACK_2. The dragon
+// homes in on the room center during its idle wander, so the sweep opens fire from there immediately.
 #define DRAGON_SPRINKLER_FIRING 1  // Sweeping the four-armed burst
 
 #define DRAGON_RING_SLOTS 32  // Ring positions before the two gaps are removed
@@ -1822,8 +1822,10 @@ static void dragonBeginAttack(Enemy *curEnemy) {
 			break;
 		}
 		case DRAGON_ATTACK_CYCLE_SPRINKLER: {
+			// Already homed in on the room center during idle, so open fire immediately
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_2);
-			curEnemy->nextState = DRAGON_SPRINKLER_MOVING;
+			curEnemy->nextState = DRAGON_SPRINKLER_FIRING;
+			curEnemy->targetX = atan2f(playerY - curEnemy->y, playerX - curEnemy->x);
 			break;
 		}
 		case DRAGON_ATTACK_CYCLE_VOLLEY: {
@@ -1851,9 +1853,13 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	dragonProperties = &DRAGON_BOSS_PROPERTIES[0][curEnemy->phase];
 
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
-		// Wander between random room positions until the attack cooldown elapses, then start the next attack
+		// Wander between random room positions until the attack cooldown elapses, then start the next attack.
+		// When the sprinkler is up next, home in on the room center instead so the sweep opens fire from there.
 		if (curEnemy->stateTimer <= 0) {
 			dragonBeginAttack(curEnemy);
+		} else if (curEnemy->attackCycle == DRAGON_ATTACK_CYCLE_SPRINKLER) {
+			dragonRoomCenter(&curEnemy->targetX, &curEnemy->targetY);
+			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
 		} else {
 			float dx = curEnemy->targetX - curEnemy->x;
 			float dy = curEnemy->targetY - curEnemy->y;
@@ -1916,24 +1922,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 
 	if (curEnemy->state == ENEMY_STATE_ATTACK_2) {
 		// == Four-armed sweeping sprinkler ==
-		if (curEnemy->nextState == DRAGON_SPRINKLER_MOVING) {
-			// Reposition to the room center before opening fire
-			float centerX, centerY;
-			dragonRoomCenter(&centerX, &centerY);
-			float dx = centerX - curEnemy->x;
-			float dy = centerY - curEnemy->y;
-			if (dx * dx + dy * dy <= DRAGON_WANDER_ARRIVAL_RADIUS * DRAGON_WANDER_ARRIVAL_RADIUS) {
-				// Arrived: lock the initial sweep so one arm aims at the player, then start firing
-				curEnemy->nextState = DRAGON_SPRINKLER_FIRING;
-				curEnemy->stateCount = 0;
-				curEnemy->abilityCooldown = 0;
-				curEnemy->targetX = atan2f(playerY - curEnemy->y, playerX - curEnemy->x);
-			} else {
-				moveEnemy(curEnemy, index, centerX, centerY, curEnemyData->moveSpeed);
-			}
-			return;
-		}
-
+		// The reposition-to-center happens in ENEMY_STATE_IDLE; here the dragon is already centered.
 		// Fire one rotating burst per shot until the sweep is spent
 		if (curEnemy->abilityCooldown <= 0) {
 			float baseAngle = curEnemy->targetX - curEnemy->stateCount * dragonProperties->sprinklerSweepStep;
