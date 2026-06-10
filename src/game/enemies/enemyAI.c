@@ -23,6 +23,7 @@ void dummyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationR
 
 // === Elder Boss properties ===
 typedef struct ElderBossProperties {
+	float attackCooldown;
 	float idleTime;
 	float prepTime;
 	int   attack2Count;
@@ -48,6 +49,7 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 	{
 		// Phase 0
 		{
+			.attackCooldown     = 1.5f,
 			.idleTime           = 5.0f,
 			.prepTime           = 5.0f,
 			.attack2Count       = 4, // Root attack count
@@ -69,6 +71,7 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 		},
 		// Phase 1
 		{
+			.attackCooldown     = 1.5f,
 			.idleTime           = 3.0f,
 			.prepTime           = 3.0f,
 			.attack2Count       = 7, // Root attack count
@@ -92,6 +95,7 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 	// Difficulty 1 — placeholder copies of difficulty 0
 	{
 		{
+			.attackCooldown     = 1.5f,
 			.idleTime           = 5.0f,
 			.prepTime           = 5.0f,
 			.attack2Count       = 5, // Root attack count
@@ -112,6 +116,7 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 			.summonTime         = 2.0f,
 		},
 		{
+			.attackCooldown     = 1.5f,
 			.idleTime           = 5.0f,
 			.prepTime           = 5.0f,
 			.attack2Count       = 5, // Root attack count
@@ -156,6 +161,7 @@ typedef enum ElderAttackCycle {
 
 // === Wraith Boss properties ===
 typedef struct WraithBossProperties {
+	float attackCooldown;     // Seconds between contact attacks
 	float idleTime;
 	float prepTime;
 	float dashTime;
@@ -180,6 +186,7 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 	{
 		// Phase 0
 		{
+			.attackCooldown     = 1.5f,
 			.idleTime           = 2.0f,
 			.prepTime           = 1.0f,
 			.dashTime           = 2.5f,
@@ -200,6 +207,7 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 		},
 		// Phase 1
 		{
+			.attackCooldown     = 1.5f,
 			.idleTime           = 1.0f,
 			.prepTime           = 0.5f,
 			.dashTime           = 2.5f,
@@ -222,6 +230,7 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 	// Difficulty 1 — placeholder copies of difficulty 0
 	{
 		{
+			.attackCooldown     = 1.5f,
 			.idleTime           = 2.0f,
 			.prepTime           = 1.0f,
 			.dashTime           = 2.5f,
@@ -241,6 +250,7 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyProjectileSpeed = 60.0f,
 		},
 		{
+			.attackCooldown     = 1.5f,
 			.idleTime           = 1.0f,
 			.prepTime           = 0.5f,
 			.dashTime           = 2.5f,
@@ -287,6 +297,7 @@ typedef enum WraithTeleportPhase {
 
 // === Dragon Boss properties ===
 typedef struct DragonBossProperties {
+	float attackCooldown;         // Seconds the dragon rests in idle between attacks
 	// Attack 1 — slow projectile rings
 	int   ringCount;              // Number of rings shot per attack
 	float ringSpacing;           // Seconds between rings (animation holds last frame)
@@ -318,11 +329,12 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 	{
 		// Phase 0
 		{
+			.attackCooldown        = 6.0f,
 			.ringCount             = 3,
 			.ringSpacing           = 0.5f,
 			.ringProjectileSpeed   = 25.0f,
 			.ringProjectileDamage  = 12,
-			.sprinklerShots            = 20,
+			.sprinklerShots            = 10,
 			.sprinklerShotSpacing      = 0.06f,
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
 			.sprinklerProjectileSpeed  = 40.0f,
@@ -341,11 +353,12 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 		},
 		// Phase 1
 		{
+			.attackCooldown        = 3.0f,
 			.ringCount             = 4,
 			.ringSpacing           = 0.5f,
 			.ringProjectileSpeed   = 25.0f,
 			.ringProjectileDamage  = 14,
-			.sprinklerShots            = 30,
+			.sprinklerShots            = 15,
 			.sprinklerShotSpacing      = 0.06f,
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
 			.sprinklerProjectileSpeed  = 40.0f,
@@ -363,9 +376,10 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.summonTime            = 1.5f,
 		},
 	},
-	// Difficulty 1 — placeholder copies of difficulty 0
+	// Difficulty 1
 	{
 		{
+			.attackCooldown        = 1.5f,
 			.ringCount             = 3,
 			.ringSpacing           = 0.5f,
 			.ringProjectileSpeed   = 25.0f,
@@ -388,6 +402,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.summonTime            = 1.5f,
 		},
 		{
+			.attackCooldown        = 1.5f,
 			.ringCount             = 4,
 			.ringSpacing           = 0.5f,
 			.ringProjectileSpeed   = 25.0f,
@@ -1593,7 +1608,7 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	wraithProperties = &WRAITH_BOSS_PROPERTIES[0][curEnemy->phase];
 
 	if (curEnemy->attackCooldown <= 0 && playerInAttackDistance(index)) {
-		curEnemy->attackCooldown = curEnemyData->attackCooldown;
+		curEnemy->attackCooldown = wraithProperties->attackCooldown;
 		damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
 	}
 
@@ -1776,9 +1791,9 @@ static void dragonSummonAdds(Enemy *curEnemy) {
 #define DRAGON_WANDER_MIN_SPACING (CELL_SIZE * 4.0f)
 #define DRAGON_WANDER_ARRIVAL_RADIUS (CELL_SIZE * 0.5f)
 
-static void dragonReturnToIdle(Enemy *curEnemy, EnemyData *curEnemyData) {
+static void dragonReturnToIdle(Enemy *curEnemy) {
 	transitionToState(curEnemy, ENEMY_STATE_IDLE);
-	curEnemy->stateTimer = curEnemyData->attackCooldown;
+	curEnemy->stateTimer = dragonProperties->attackCooldown;
 	curEnemy->stateCount = 0;
 	curEnemy->attackedPlayer = false;
 	pickRandomRoomTarget(curEnemy, DRAGON_WANDER_MIN_SPACING);
@@ -1845,7 +1860,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 
 	if (curEnemy->state == ENEMY_STATE_PREP) {
 		// Only reached when the phase-transition cinematic leaves the boss in PREP; resume the loop
-		dragonReturnToIdle(curEnemy, curEnemyData);
+		dragonReturnToIdle(curEnemy);
 		return;
 	}
 
@@ -1853,7 +1868,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		// == Summon adds ==
 		// Adds were spawned on entry; hold the pose until the summon timer elapses, then resume.
 		if (curEnemy->stateTimer <= 0) {
-			dragonReturnToIdle(curEnemy, curEnemyData);
+			dragonReturnToIdle(curEnemy);
 		}
 		return;
 	}
@@ -1882,7 +1897,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		// Once the animation finishes, either rest or hold for the next ring
 		if (attackAnimationReset) {
 			if (curEnemy->stateCount >= dragonProperties->ringCount) {
-				dragonReturnToIdle(curEnemy, curEnemyData);
+				dragonReturnToIdle(curEnemy);
 			} else {
 				curEnemy->nextState = DRAGON_SUBSTATE_SPACING;
 				curEnemy->stateTimer = dragonProperties->ringSpacing;
@@ -1919,7 +1934,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 			curEnemy->stateCount++;
 			curEnemy->abilityCooldown = dragonProperties->sprinklerShotSpacing;
 			if (curEnemy->stateCount >= dragonProperties->sprinklerShots) {
-				dragonReturnToIdle(curEnemy, curEnemyData);
+				dragonReturnToIdle(curEnemy);
 			}
 		}
 		return;
@@ -1969,7 +1984,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 			if (curEnemy->stateCount % shotsPerVolley == 0) {
 				curEnemy->attackedPlayer = false;
 				if (curEnemy->stateCount >= totalShots) {
-					dragonReturnToIdle(curEnemy, curEnemyData);
+					dragonReturnToIdle(curEnemy);
 				} else {
 					curEnemy->nextState = DRAGON_SUBSTATE_SPACING;
 					curEnemy->stateTimer = dragonProperties->volleySpacing;

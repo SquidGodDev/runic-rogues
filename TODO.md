@@ -1,19 +1,16 @@
 # TODO
-## Playtest Action Items
+## Tweaks
+- Make health + boss UI border thicker
+## Balance
 - Custom Rat AI
 - Make rock golem use short warning
-- Make dragon fight way easier
-
-- Show possible grips in tutorial
+- Bigger mage projectile
 - Slow effect doesn't feel impactful
 - Projectile speed feels so-so (make base speed slower?)
-
-## Tweaks
-- Bigger mage projectile
 - Adjust rogue damage
-- Too many hit particles for rogue attack
-- Change wraith boss back to back summon states
+## Tutorial
 - More tight tutorial
+- Show possible grips in tutorial
 ## Bugs
 - Knockback not working properly
 - Check for memory leaks
@@ -60,10 +57,22 @@
     - Clear nearby projectiles
     - Pet
     - Less range, double damage
+    - More damage low health
+    - More damage full health
   - Rune rarity
 - Make ranger class
 - Level ups and unlocks
 - Ascension difficulty
+  - Less health
+  - Heal less after each area
+  - No healing
+  - Enemies attack faster
+  - Enemies move faster
+  - Enemies more challenging attack patterns
+  - Enemies more damage
+  - Enemies more health
+  - Boss more challenging attack patterns
+  - Boss even more challenging
 ## Scenes
 - Improved title
 - Game Over scene
