@@ -1716,16 +1716,17 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 
 // === Dragon Boss ===
 
-// Fires a full ring of projectiles minus four evenly-spaced gaps, one per quadrant: a random
-// slot plus the slots a quarter, half, and three-quarters of the way around, leaving
-// DRAGON_RING_SLOTS - 4 projectiles.
+// Fires a full ring of projectiles. In phase 0 it leaves four evenly-spaced gaps, one per
+// quadrant: a random slot plus the slots a quarter, half, and three-quarters of the way around,
+// leaving DRAGON_RING_SLOTS - 4 projectiles. In phase 1 the ring is fired solid with no gaps.
 static void dragonFireRing(Enemy *curEnemy, EnemyData *curEnemyData) {
+	bool leaveGaps = (curEnemy->phase == 0);
 	int gap = randInt(0, DRAGON_RING_SLOTS - 1);
 	int gap2 = (gap + DRAGON_RING_SLOTS / 4) % DRAGON_RING_SLOTS;
 	int gap3 = (gap + DRAGON_RING_SLOTS / 2) % DRAGON_RING_SLOTS;
 	int gap4 = (gap + 3 * DRAGON_RING_SLOTS / 4) % DRAGON_RING_SLOTS;
 	for (int i = 0; i < DRAGON_RING_SLOTS; i++) {
-		if (i == gap || i == gap2 || i == gap3 || i == gap4) {
+		if (leaveGaps && (i == gap || i == gap2 || i == gap3 || i == gap4)) {
 			continue;
 		}
 		float angle = i * (2.0f * PI / (float)DRAGON_RING_SLOTS);
