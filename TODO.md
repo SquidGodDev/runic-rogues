@@ -1,7 +1,8 @@
 # TODO
-## Tweaks
-- Make summoned wraiths hit player and self destruct
-- Make summon use spawn particle
+## Tutorial
+- Give a ~30s backup prompt if the player is stuck
+- More indication when arrow target changes
+- More tight tutorial
 ## Balance
 - Custom Rat AI
 - Make rock golem use short warning
@@ -9,9 +10,6 @@
 - Slow effect doesn't feel impactful
 - Projectile speed feels so-so (make base speed slower?)
 - Adjust rogue damage
-## Tutorial
-- More tight tutorial
-- Show possible grips in tutorial
 ## Bugs
 - Knockback not working properly
 - Check for memory leaks
