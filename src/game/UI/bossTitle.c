@@ -18,7 +18,7 @@ static LCDBitmap *bossTitleBitmaps[BOSS_TITLE_COUNT][LANGUAGE_COUNT];
 
 static LCDBitmap *renderBossTitle(BossTitle title, Language language) {
     const char *text = getLocStringFor(BOSS_TITLE_STRING_KEYS[title], language);
-    LCDFont *font = (language == LANGUAGE_JP) ? fontSubJP : fontSubEN;
+    LCDFont *font = (language == LANGUAGE_JP) ? fontSubJPDoubleOutline : fontSubENDoubleOutline;
     int len = (int)strlen(text);
 
     int tracking = (language == LANGUAGE_JP) ? 0 : -1;

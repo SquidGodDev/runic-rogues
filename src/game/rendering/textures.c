@@ -171,8 +171,9 @@ const char *bitmapTablePathStrings[] = {
 LCDFont *fontTitleEN;
 LCDFont *fontTitleJP;
 LCDFont *fontSubEN;
-LCDFont *fontSubJP;
 LCDFont *fontSubENDoubleOutline;
+LCDFont *fontSubJP;
+LCDFont *fontSubJPDoubleOutline;
 
 uint8_t fogPatterns[FOG_LEVELS][8] = {{0x11, 0x00, 0x44, 0x00, 0x11, 0x00, 0x44, 0x00},
 								  {0x55, 0x00, 0x44, 0x00, 0x55, 0x00, 0x44, 0x00},
@@ -259,17 +260,19 @@ void loadTexture(int textureIndex) {
 
 static const char *fontPathStrings[FONT_COUNT] = {
 	"fonts/m6x11-12",
-	"fonts/KH-Dot-Kabutochou-16-Outline",
+	"fonts/KH-Dot-Kabutochou-16",
 	"fonts/m5x7-12",
-	"fonts/KH-Dot-Kodenmachou-12-Outline",
-	"fonts/m5x7-12-double-outline"
+	"fonts/m5x7-12-double-outline",
+	"fonts/KH-Dot-Kodenmachou-12",
+	"fonts/KH-Dot-Kodenmachou-12-double-outline"
 };
 static LCDFont **fontSlots[FONT_COUNT] = {
 	&fontTitleEN,
 	&fontTitleJP,
 	&fontSubEN,
+	&fontSubENDoubleOutline,
 	&fontSubJP,
-	&fontSubENDoubleOutline
+	&fontSubJPDoubleOutline,
 };
 
 void loadDefaultFont(void) {

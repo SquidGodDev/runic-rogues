@@ -179,12 +179,12 @@ extern LCDBitmapTable* BITMAP_TABLES[];
 extern LCDFont *fontTitleEN;
 extern LCDFont *fontTitleJP;
 extern LCDFont *fontSubEN;
-extern LCDFont *fontSubJP;
 extern LCDFont *fontSubENDoubleOutline;
-
+extern LCDFont *fontSubJP;
+extern LCDFont *fontSubJPDoubleOutline;
 extern uint8_t fogPatterns[FOG_LEVELS][8];
 
-#define FONT_COUNT 5
+#define FONT_COUNT 6
 
 void loadDefaultFont(void);
 int getTextureAssetCount(void);

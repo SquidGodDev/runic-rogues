@@ -639,8 +639,10 @@ void drawBossHealthBar(void) {
     }
     int healthBarWidth = healthPercentage * 68;
 
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_BOSS_HEALTH_BAR], 64, 28, kBitmapUnflipped);
-    pd->graphics->fillRect(66, 30, healthBarWidth, 4, kColorWhite);
+    int healthBarX = 63;
+    int healthBarY = 29;
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_BOSS_HEALTH_BAR], healthBarX, healthBarY, kBitmapUnflipped);
+    pd->graphics->fillRect(healthBarX + 3, healthBarY + 3, healthBarWidth, 4, kColorWhite);
     
     int titleDrawX = 100;
     int titleDrawY = 21;
@@ -768,14 +770,15 @@ void drawRoomInfo(void) {
     }
 
     pd->graphics->pushContext(NULL);
-        pd->graphics->setFont(fontSubENDoubleOutline);
-        pd->graphics->setTextTracking(-3);
+        bool isJP = SETTINGS.language == LANGUAGE_JP;
+        pd->graphics->setFont(isJP ? fontSubJPDoubleOutline : fontSubENDoubleOutline);
+        pd->graphics->setTextTracking(isJP ? -1 : -3);
 
         char *roomString;
         if (roomIndex >= totalRooms - 1) {
-            pd->system->formatString(&roomString, getLocStringFor(STR_ROOM_BOSS, LANGUAGE_EN), totalRooms - 1);
+            pd->system->formatString(&roomString, getLocString(STR_ROOM_BOSS));
         } else {
-            pd->system->formatString(&roomString, getLocStringFor(STR_ROOM_FORMAT, LANGUAGE_EN), roomIndex + 1, totalRooms - 1);
+            pd->system->formatString(&roomString, getLocString(STR_ROOM_FORMAT), roomIndex + 1, totalRooms - 1);
         }
         pd->graphics->drawText(roomString, strlen(roomString), kUTF8Encoding, 6, 16);
         pd->system->realloc(roomString, 0);
