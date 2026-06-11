@@ -339,7 +339,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.name = "Wraith",
 		.health = 20,
 		.attackDetectionRange = 10,
-		.attackDistance = 15,
+		.attackDistance = 5,
 		.attackDamage = 15,
 		.attackCooldown = 1.0f,
 		.moveSpeed = 0.6f,
@@ -348,7 +348,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameStart = 5,
 		.deathFrameEnd = 8,
 		.frameTime = 0.15f,
-		.update = proximityEnemyUpdate
+		.update = selfDestructEnemyUpdate
 	},
 	[ENEMY_TYPE_BABY_DRAGON] = (EnemyData){
 		.name = "Baby Dragon",

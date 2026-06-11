@@ -135,6 +135,7 @@ EnemyType getBossEnemyType(void);
 void killAllEnemies(void);
 void killAllNonBossEnemies(void);
 bool damageEnemy(int index, int damage);
+void killEnemy(int index);
 void damageEnemiesAtMapPosition(int mapX, int mapY, int damage);
 void damageEnemiesInArea(float x, float y, int radius, int damage);
 void knockbackEnemiesInArea(float searchX, float searchY, int radius, float sourceX, float sourceY, float knockbackTime, float knockbackAmount, bool awayFromPlayer);

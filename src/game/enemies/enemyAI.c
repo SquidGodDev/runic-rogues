@@ -473,6 +473,16 @@ void proximityEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, b
 	}
 }
 
+void selfDestructEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	// Charge the player; on contact deal damage once and immediately die
+	if (playerInAttackDistance(index)) {
+		damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
+		killEnemy(index);
+	} else {
+		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+	}
+}
+
 void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		// Begin prep phase if player is in range and cooldown is ready
@@ -879,7 +889,7 @@ void mummyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attac
 		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			if (!curEnemy->attackedPlayer) {
 				curEnemy->attackedPlayer = true;
-				spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x, curEnemy->y, true /*isMinion*/);
+				spawnEnemyWithSpawnParticle(ENEMY_TYPE_WRAITH, curEnemy->x, curEnemy->y);
 			}
 		}
 
@@ -1686,7 +1696,7 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 					float angle = (float)i / (float)wraithProperties->spawnCount * 2.0f * PI;
 					float offsetX = cosf(angle) * CELL_SIZE;
 					float offsetY = sinf(angle) * CELL_SIZE;
-					spawnEnemy(ENEMY_TYPE_WRAITH, curEnemy->x + offsetX, curEnemy->y + offsetY, true /*isMinion*/);
+					spawnEnemyWithSpawnParticle(ENEMY_TYPE_WRAITH, curEnemy->x + offsetX, curEnemy->y + offsetY);
 				}
 				bossSpawnSummonsFromBudget(curEnemy, wraithProperties->spawnBudget, wraithProperties->spawnMinSpecials, wraithProperties->spawnRadius);
 			}
