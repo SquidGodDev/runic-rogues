@@ -180,10 +180,11 @@ extern LCDFont *fontTitleEN;
 extern LCDFont *fontTitleJP;
 extern LCDFont *fontSubEN;
 extern LCDFont *fontSubJP;
+extern LCDFont *fontSubENDoubleOutline;
 
 extern uint8_t fogPatterns[FOG_LEVELS][8];
 
-#define FONT_COUNT 4
+#define FONT_COUNT 5
 
 void loadDefaultFont(void);
 int getTextureAssetCount(void);

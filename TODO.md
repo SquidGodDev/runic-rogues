@@ -1,6 +1,7 @@
 # TODO
 ## Tweaks
-- Make health + boss UI border thicker
+- Make summoned wraiths hit player and self destruct
+- Make summon use spawn particle
 ## Balance
 - Custom Rat AI
 - Make rock golem use short warning

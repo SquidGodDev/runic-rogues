@@ -357,22 +357,23 @@ void drawHealth(float deltaTime) {
     }
     bool flashing = healthFlashTimer > 0;
 
-    int healthBarWidth = 66;
-    int healthBarHeight = 3;
+    int healthBarWidth = 64;
+    int healthBarHeight = 4;
+    int healthBarX = 1;
+    int healthBarY = 1;
     pd->graphics->pushContext(NULL);
         if (flashing) {
             pd->graphics->setDrawMode(kDrawModeFillWhite);
         }
-        pd->graphics->drawBitmap(BITMAPS[BITMAP_HEALTH_BAR], 10, 4, kBitmapUnflipped);
-        pd->graphics->fillRect(12, 7, healthBarWidth * (playerHealth / getPlayerMaxHealth()), healthBarHeight, kColorWhite);
-        pd->graphics->drawBitmap(BITMAPS[BITMAP_HEART], 2, 2, kBitmapUnflipped);
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_HEALTH_BAR], healthBarX, healthBarY, kBitmapUnflipped);
+        pd->graphics->fillRoundRect(13 + healthBarX, 5 + healthBarY, healthBarWidth * (playerHealth / getPlayerMaxHealth()), healthBarHeight, 2, kColorWhite);
         char *healthString;
         pd->system->formatString(&healthString, "%d", (int)playerHealth);
         pd->graphics->setFont(fontSubEN);
         int tracking = -1;
         pd->graphics->setTextTracking(tracking);
         int textWidth = pd->graphics->getTextWidth(fontSubEN, healthString, strlen(healthString), kUTF8Encoding, tracking);
-        pd->graphics->drawText(healthString, strlen(healthString), kUTF8Encoding, 45 - textWidth / 2, 4);
+        pd->graphics->drawText(healthString, strlen(healthString), kUTF8Encoding, healthBarY + 43 - textWidth / 2, healthBarY + 3);
         pd->system->realloc(healthString, 0);
     pd->graphics->popContext();
 }
@@ -767,17 +768,16 @@ void drawRoomInfo(void) {
     }
 
     pd->graphics->pushContext(NULL);
-        bool isJP = SETTINGS.language == LANGUAGE_JP;
-        pd->graphics->setFont(isJP ? fontSubJP : fontSubEN);
-        pd->graphics->setTextTracking(isJP ? 0 : -1);
+        pd->graphics->setFont(fontSubENDoubleOutline);
+        pd->graphics->setTextTracking(-3);
 
         char *roomString;
         if (roomIndex >= totalRooms - 1) {
-            pd->system->formatString(&roomString, getLocString(STR_ROOM_BOSS));
+            pd->system->formatString(&roomString, getLocStringFor(STR_ROOM_BOSS, LANGUAGE_EN), totalRooms - 1);
         } else {
-            pd->system->formatString(&roomString, getLocString(STR_ROOM_FORMAT), roomIndex + 1, totalRooms - 1);
+            pd->system->formatString(&roomString, getLocStringFor(STR_ROOM_FORMAT, LANGUAGE_EN), roomIndex + 1, totalRooms - 1);
         }
-        pd->graphics->drawText(roomString, strlen(roomString), kUTF8Encoding, 4, 14);
+        pd->graphics->drawText(roomString, strlen(roomString), kUTF8Encoding, 6, 16);
         pd->system->realloc(roomString, 0);
     pd->graphics->popContext();
 }
