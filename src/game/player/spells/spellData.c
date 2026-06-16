@@ -91,7 +91,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .drawY = 71,
             .activeOffsetX = 0,
             .activeOffsetY = -7,
-            .frameTime = 0.6f,
+            .frameTime = 0.3f,
             .activeFrame = 0
         }
     },
