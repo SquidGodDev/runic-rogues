@@ -58,6 +58,7 @@
     - Less range, double damage
     - More damage low health
     - More damage full health
+    - Spawn random buff areas/pickups around map
   - Rune rarity
 - Make ranger class
 - Level ups and unlocks
@@ -85,6 +86,7 @@
   - 3D Sage raycasting
   - https://lodev.org/cgtutor/raycasting.html
   - Fonts
+    - Metamorphous (title)
 ## Audio
 - Music
 - SFX
