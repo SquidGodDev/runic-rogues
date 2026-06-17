@@ -10,8 +10,8 @@
 #include "game/player/classes/classData.h"
 #include "game/rendering/textures.h"
 
-#define TITLE_TOP_Y 22
-#define TITLE_TO_BUTTONS_GAP 14
+#define TITLE_TOP_Y 5
+#define TITLE_TO_BUTTONS_GAP 39
 #define BUTTON_PADDING_X 6
 #define BUTTON_PADDING_Y 2
 #define BUTTON_SPACING 4
@@ -26,22 +26,14 @@ void initTitleScene(void) {
 void updateTitleScene(float deltaTime) {
     pd->graphics->clear(kColorBlack);
 
-    pd->graphics->setFont(fontTitleEN);
-    int titleFontHeight = pd->graphics->getFontHeight(fontTitleEN);
-
-    const char *titleLines[2] = { getLocString(STR_TITLE_LINE_1), getLocString(STR_TITLE_LINE_2) };
-    for (int i = 0; i < 2; i++) {
-        const char *line = titleLines[i];
-        int lineLen = strlen(line);
-        int lineWidth = pd->graphics->getTextWidth(fontTitleEN, line, lineLen, kUTF8Encoding, 0);
-        int x = (SCREEN_WIDTH - lineWidth) / 2;
-        int y = TITLE_TOP_Y + i * titleFontHeight;
-        pd->graphics->drawText(line, lineLen, kUTF8Encoding, x, y);
-    }
-
+    int width, height;
+    pd->graphics->getBitmapData(BITMAPS[BITMAP_TITLE_TEXT], &width, &height, NULL, NULL, NULL);
+    pd->graphics->drawBitmap(BITMAPS[BITMAP_TITLE_TEXT], (SCREEN_WIDTH - width) / 2, TITLE_TOP_Y, kBitmapUnflipped);
+    
     pd->graphics->setFont(fontSubEN);
     int subFontHeight = pd->graphics->getFontHeight(fontSubEN);
-
+    
+    int titleFontHeight = pd->graphics->getFontHeight(fontTitleEN);
     const char *labels[BUTTON_COUNT] = { getLocString(STR_TITLE_BUTTON_START), getLocString(STR_TITLE_BUTTON_TUTORIAL) };
     int buttonsStartY = TITLE_TOP_Y + titleFontHeight * 2 + TITLE_TO_BUTTONS_GAP;
     int buttonStride = subFontHeight + BUTTON_PADDING_Y * 2 + BUTTON_SPACING;

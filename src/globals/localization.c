@@ -56,15 +56,6 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
         "いいえ",
     },
 
-    // Title scene (currently English-only; add JP translations to enable)
-    [STR_TITLE_LINE_1] = {
-        "Raycasting",
-        NULL,
-    },
-    [STR_TITLE_LINE_2] = {
-        "Game",
-        NULL,
-    },
     [STR_TITLE_BUTTON_START] = {
         "Start",
         NULL,

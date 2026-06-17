@@ -20,8 +20,6 @@ typedef enum StringKey {
     STR_NO,
 
     // Title scene
-    STR_TITLE_LINE_1,
-    STR_TITLE_LINE_2,
     STR_TITLE_BUTTON_START,
     STR_TITLE_BUTTON_TUTORIAL,
 
