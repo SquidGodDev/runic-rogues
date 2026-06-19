@@ -25,8 +25,8 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release")
 set(CMAKE_XCODE_GENERATE_SCHEME TRUE)
 
 # Game Name Customization
-set(PLAYDATE_GAME_NAME Game)
-set(PLAYDATE_GAME_DEVICE Game)
+set(PLAYDATE_GAME_NAME "RunicRogues")
+set(PLAYDATE_GAME_DEVICE "RunicRogues")
 
 project(${PLAYDATE_GAME_NAME} C ASM)
 
