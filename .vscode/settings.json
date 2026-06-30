@@ -33,7 +33,7 @@
 
     // ====== Playdate Debug Settings ======
     // Name of produced simulator PDX -> matches CMakeLists.txt
-    "playdate-debug.productName": "Game",
+    "playdate-debug.productName": "RunicRogues",
     // Name of Lua source folder
     "playdate-debug.sourcePath": "Source",
 
