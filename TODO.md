@@ -12,6 +12,7 @@
 - Adjust rogue damage
 ## Bugs
 - Knockback not working properly
+- Make skybox always pixel aligned
 - Check for memory leaks
 ## Boss Patterns
 - Shooting out projectiles periodically during idle move

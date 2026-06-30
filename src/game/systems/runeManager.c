@@ -121,7 +121,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifyProjectileSpeed,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_LONGBOW] = {
         .nameEN = "Longbow",
@@ -135,7 +135,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifyProjectileSpeed,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_BEAR_PAW] = {
         .nameEN = "Bear Paw",
@@ -187,7 +187,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .secondaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary   = modifySlowTime,
         .applySpellModifierSecondary = modifySlowAmount,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_ICE_LANCE] = {
         .nameEN = "Ice Lance",
@@ -205,7 +205,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .secondaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary   = modifySlowTime,
         .applySpellModifierSecondary = modifySlowAmount,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_NEEDLE_AND_THREAD] = {
         .nameEN = "Needle and Thread",
@@ -219,7 +219,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary = modifyProjectilePierceCount,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_HAMMER_AND_NAILS] = {
         .nameEN = "Hammer and Nails",
@@ -233,7 +233,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary = modifyProjectilePierceCount,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_MAGNIFYING_GLASS] = {
         .nameEN = "Magnifying Glass",
@@ -254,7 +254,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .applySpellModifierPrimary   = modifyProjectileSpreadCount,
         .applySpellModifierSecondary = modifyProjectileSpreadAngle,
         .applySpellModifierTertiary  = modifySpellDamage,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_QUARTZ_CLUSTER] = {
         .nameEN = "Quartz Cluster",
@@ -275,7 +275,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .applySpellModifierPrimary   = modifyProjectileSpreadCount,
         .applySpellModifierSecondary = modifyProjectileSpreadAngle,
         .applySpellModifierTertiary  = modifySpellDamage,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_ENCHANTED_AMULET] = {
         .nameEN = "Enchanted Amulet",
@@ -292,7 +292,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
         .applySpellModifierPrimary   = modifyRepeatCount,
         .applySpellModifierSecondary = modifyRepeatActivationTime,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_ARCANE_STAFF] = {
         .nameEN = "Arcane Staff",
@@ -309,7 +309,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .secondaryModifyOperation = MODIFY_OP_REPLACE_IF_ZERO,
         .applySpellModifierPrimary   = modifyRepeatCount,
         .applySpellModifierSecondary = modifyRepeatActivationTime,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_THUNDERCLOUD] = {
         .nameEN = "Thundercloud",

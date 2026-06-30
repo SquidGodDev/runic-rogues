@@ -21,6 +21,7 @@ static SpellCastData spellCastData[SPELL_EQUIP_MAX];
 float spellCooldowns[SPELL_EQUIP_MAX];
 static int utilitySpellCount;
 static float utilitySpellCharge;
+static int pendingChargeLevel; // charge level applied to the next cast (0 = uncharged)
 
 SpellData spellData[SPELL_COUNT];
 
@@ -215,6 +216,7 @@ bool castSpell(int index) {
         spellCastData[index].spell = SPELL_NONE;
         spellCastData[index].maxCooldown = cooldown;
     }
+    spellCastData[index].chargeLevel = pendingChargeLevel;
 
     playSound(SFX_SHOOT);
     int attackId = runStatsBeginAttack();
@@ -233,6 +235,21 @@ bool castBasicSpell(void) {
         signalRuneTrigger(RUNE_TRIGGER_BASIC_CAST, 1.0f);
     }
     return cast;
+}
+
+bool castBasicSpellCharged(int chargeLevel) {
+    pendingChargeLevel = chargeLevel;
+    bool cast = castBasicSpell();
+    pendingChargeLevel = 0;
+    return cast;
+}
+
+const ChargeData *getBasicSpellChargeData(void) {
+    return &spellData[getBasicSpell()].chargeData;
+}
+
+bool spellIsCharged(Spell spell) {
+    return spellData[spell].chargeData.levelCount > 0;
 }
 
 bool castSpecialSpell(void) {

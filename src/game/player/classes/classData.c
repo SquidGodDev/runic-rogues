@@ -33,6 +33,17 @@ const ClassData classData[CLASS_COUNT] = {
         .baseSpeed = 15,
         .basicSpell = SPELL_KNIFE,
         .specialSpell = SPELL_FAN_OF_KNIVES
+    },
+    [CLASS_RANGER] = {
+        .classType = CLASS_RANGER,
+        .name = "Ranger",
+        .desc = "",
+        .nameJP = "",
+        .descJP = "",
+        .baseHealth = 100,
+        .baseSpeed = 12,
+        .basicSpell = SPELL_BOW_SHOT,
+        .specialSpell = SPELL_CHAIN_LIGHTNING
     }
 };
 

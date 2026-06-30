@@ -49,10 +49,10 @@ static ClassBitmapTableData classBitmapTables[CLASS_COUNT] = {
         .bitmapTablePath = BITMAP_TABLE_CLASS_SELECT_ROGUE,
         .introEndFrame = 109
     },
-    // [CLASS_RANGER] = {
-    //     .bitmapTablePath = BITMAP_TABLE_CLASS_SELECT_RANGER,
-    //     .introEndFrame = 121
-    // },
+    [CLASS_RANGER] = {
+        .bitmapTablePath = BITMAP_TABLE_CLASS_SELECT_RANGER,
+        .introEndFrame = 121
+    },
 };
 
 typedef enum {

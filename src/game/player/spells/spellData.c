@@ -9,18 +9,43 @@
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
-void projectileCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
-    SpellData data = spellData[spell];
-    int spreadCount = data.projectileData.spreadCount;
+static void fireProjectileSpread(float x, float y, float angle, int damage, SpellProjectileData projectileData) {
+    int spreadCount = projectileData.spreadCount;
     spreadCount = spreadCount < 1 ? 1 : spreadCount;
-    float spreadAngle = data.projectileData.spreadAngle;
+    float spreadAngle = projectileData.spreadAngle;
     float startAngle = angle - (spreadAngle * (spreadCount - 1) / 2);
     for (int i = 0; i < spreadCount; i++) {
         float castAngle = startAngle + spreadAngle * i;
         float projectileX = x + cosf(castAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
         float projectileY = y + sinf(castAngle + FIRE_ANGLE_OFFSET) * FIRE_POSITION_OFFSET;
-        firePlayerProjectile(projectileX, projectileY, cosf(castAngle), sinf(castAngle), data.damage, data.projectileData);
+        firePlayerProjectile(projectileX, projectileY, cosf(castAngle), sinf(castAngle), damage, projectileData);
     }
+}
+
+void projectileCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
+    SpellData data = spellData[spell];
+    fireProjectileSpread(x, y, angle, data.damage, data.projectileData);
+}
+
+void bowCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
+    SpellData data = spellData[spell];
+    const ChargeData *charge = &data.chargeData;
+
+    int chargeLevel = castData ? castData->chargeLevel : 1;
+    if (chargeLevel < 1) {
+        chargeLevel = 1;
+    }
+    if (chargeLevel > charge->levelCount) {
+        chargeLevel = charge->levelCount;
+    }
+    const ChargeLevelData *level = &charge->levels[chargeLevel - 1];
+
+    SpellProjectileData projectile = data.projectileData;
+    projectile.speed += level->speedBonus;
+    projectile.pierceCount += level->pierceBonus;
+    int damage = data.damage + level->damageBonus;
+
+    fireProjectileSpread(x, y, angle, damage, projectile);
 }
 
 void swordCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
@@ -212,6 +237,46 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .textureIndex = TEXTURE_KNIFE,
             .frameCount = 8,
             .frameTime = 0.07f
+        }
+    },
+    [SPELL_BOW_SHOT] = {
+        .name = "Bow Shot",
+        .name_jp = "ボウショット",
+        .description = "Hold to draw the bow. The longer the charge, the more damage, speed, and pierce the arrow gains.",
+        .description_jp = "長く引くほど威力・速度・貫通が増す矢を放つ。",
+        .spellIconIndex = BITMAP_SPELL_BOW_SHOT_ICON,
+        .cast = bowCast,
+        .cooldown = 0.5f,
+        .damage = 10,
+        // Base stats represent charge level 1; higher levels add the bonuses below.
+        .projectileData = (SpellProjectileData) {
+            .speed = 40.0f,
+            .pierceCount = 0,
+            .textureIndex = TEXTURE_BOW_ARROW,
+            .frameCount = 1,
+            .frameTime = 0.09f
+        },
+        .weaponData = (WeaponData) {
+            .weaponBitmapTable = BITMAP_TABLE_BOW,
+            .drawX = 0,
+            .drawY = 0,
+            .activeOffsetX = 0,
+            .activeOffsetY = 0,
+            .frameTime = 0.15f,
+            .activeFrame = 0
+        },
+        .chargeData = (ChargeData) {
+            .levelCount = 3,
+            .timePerLevel = 0.5f,
+            .jiggleAtMax = true,
+            .levels = {
+                // Level 1 (instant draw)
+                { .damageBonus = 0,  .speedBonus = 0.0f,  .pierceBonus = 0, .playerSpeedModifier = -0.50f },
+                // Level 2
+                { .damageBonus = 8,  .speedBonus = 30.0f, .pierceBonus = 1, .playerSpeedModifier = -0.60f },
+                // Level 3 (max)
+                { .damageBonus = 18, .speedBonus = 80.0f, .pierceBonus = 2, .playerSpeedModifier = -0.70f }
+            }
         }
     }
 };

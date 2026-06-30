@@ -7,6 +7,7 @@ typedef enum ClassType {
     CLASS_MAGE,
     CLASS_KNIGHT,
     CLASS_ROGUE,
+    CLASS_RANGER,
     CLASS_COUNT
 } ClassType;
 

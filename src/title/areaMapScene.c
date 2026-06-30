@@ -60,7 +60,8 @@ static const BitmapPath areaIconBitmaps[MAP_AREA_COUNT] = {
 static const BitmapPath classIconBitmaps[CLASS_COUNT] = {
     [CLASS_MAGE] = BITMAP_AREA_MAP_MAGE_ICON,
     [CLASS_KNIGHT] = BITMAP_AREA_MAP_KNIGHT_ICON,
-    [CLASS_ROGUE] = BITMAP_AREA_MAP_ROGUE_ICON
+    [CLASS_ROGUE] = BITMAP_AREA_MAP_ROGUE_ICON,
+    [CLASS_RANGER] = BITMAP_AREA_MAP_RANGER_ICON
 };
 
 // Bayer dither densities from ~87.5% down to ~12.5%, used as an opacity ramp

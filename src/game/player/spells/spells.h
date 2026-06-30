@@ -20,6 +20,7 @@ typedef enum Spell {
     SPELL_ROARING_SHOUT,
     SPELL_KNIFE,
     SPELL_FAN_OF_KNIVES,
+    SPELL_BOW_SHOT,
     SPELL_COUNT
 } Spell;
 
@@ -31,8 +32,26 @@ typedef struct SpellCastData {
     int activationCount;
     float initialCastAngle;
     int attackId;
+    int chargeLevel;
     Point spellPosition;
 } SpellCastData;
+
+#define CHARGE_LEVEL_MAX 3
+
+// Per-level bonuses applied additively on top of the spell's (rune-modified) base stats
+typedef struct ChargeLevelData {
+    int damageBonus;
+    float speedBonus;
+    int pierceBonus;
+    float playerSpeedModifier; // negative slows the player while charging at this level
+} ChargeLevelData;
+
+typedef struct ChargeData {
+    int levelCount;          // 0 means the spell does not charge
+    float timePerLevel;      // seconds held before advancing to the next level
+    bool jiggleAtMax;        // continuous weapon jiggle once fully charged
+    ChargeLevelData levels[CHARGE_LEVEL_MAX];
+} ChargeData;
 
 typedef struct RepeatData {
     int repeatCount;
@@ -93,6 +112,7 @@ typedef struct SpellData {
     SpellProjectileData projectileData;
     MeleeData meleeData;
     WeaponData weaponData;
+    ChargeData chargeData;
 } SpellData;
 
 typedef enum ModifyOperation {
@@ -137,6 +157,9 @@ Spell getBasicSpell(void);
 Spell getSpecialSpell(void);
 float getSpellCooldownPercentage(int index);
 float getPlayerSpeedModifier(void);
+const ChargeData *getBasicSpellChargeData(void);
+bool spellIsCharged(Spell spell);
+bool castBasicSpellCharged(int chargeLevel);
 int getMaxUtilitySpells(void);
 int getUtilitySpellCount(void);
 float getUtilitySpellCharge(void);

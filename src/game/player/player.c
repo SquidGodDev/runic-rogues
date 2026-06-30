@@ -86,6 +86,7 @@ typedef struct WeaponAnimation {
 	int bitmapFrames;
 	float frameTime;
 	int activeFrame;
+	bool isChargeSpell;
 	// Dynamic values
 	int spellIndex;
 	bool spellCasted;
@@ -96,6 +97,9 @@ typedef struct WeaponAnimation {
 	float targetDrawY;
 	int curFrame;
 	float curFrameTime;
+	int chargeLevel;     // 0 = not drawing the bow; 1..N = current charge level
+	float chargeTimer;   // time accumulated toward the next charge level
+	float jigglePhase;   // drives the max-charge jiggle
 } WeaponAnimation;
 
 static PlayerState playerState;
@@ -180,6 +184,7 @@ void initPlayer(void) {
 		.bitmapFrames = frameCount,
 		.frameTime = weaponData.frameTime,
 		.activeFrame = weaponData.activeFrame,
+		.isChargeSpell = spellIsCharged(basicSpell),
 		// Dynamic values
 		.spellIndex = -1,
 		.spellCasted = false,
@@ -189,7 +194,10 @@ void initPlayer(void) {
 		.targetDrawX = weaponBasePositionX,
 		.targetDrawY = weaponBasePositionY,
 		.curFrame = 0,
-		.curFrameTime = 0
+		.curFrameTime = 0,
+		.chargeLevel = 0,
+		.chargeTimer = 0,
+		.jigglePhase = 0
 	};
 }
 
@@ -198,6 +206,51 @@ void startWeaponAnimation(int spellIndex) {
 	weaponAnimation.spellCasted = false;
 	weaponAnimation.curFrameTime = weaponAnimation.frameTime;
 	weaponAnimation.curFrame = 1;
+}
+
+static void updateBasicSpellCharge(float deltaTime, bool aHeld) {
+	bool blocked = playerState.interactableIndex != -1 || playerState.interactedOnPress;
+	bool holding = aHeld && !blocked;
+
+	if (weaponAnimation.chargeLevel == 0) {
+		if (holding && spellIsCastable(BASIC_SPELL_INDEX)) {
+			weaponAnimation.chargeLevel = 1;
+			weaponAnimation.chargeTimer = 0.0f;
+			weaponAnimation.curFrame = 1;
+		}
+		return;
+	}
+
+	if (holding) {
+		const ChargeData *charge = getBasicSpellChargeData();
+		weaponAnimation.chargeTimer += deltaTime;
+		if (weaponAnimation.chargeLevel < charge->levelCount) {
+			if (weaponAnimation.chargeTimer >= charge->timePerLevel) {
+				weaponAnimation.chargeTimer -= charge->timePerLevel;
+				weaponAnimation.chargeLevel++;
+			}
+		} else {
+			weaponAnimation.chargeTimer = 0.0f;
+		}
+		weaponAnimation.curFrame = weaponAnimation.chargeLevel;
+	} else {
+		castBasicSpellCharged(weaponAnimation.chargeLevel);
+		weaponAnimation.chargeLevel = 0;
+		weaponAnimation.chargeTimer = 0.0f;
+		weaponAnimation.curFrame = 0;
+	}
+}
+
+static float getBasicSpellChargeSpeedModifier(void) {
+	if (!weaponAnimation.isChargeSpell || weaponAnimation.chargeLevel == 0) {
+		return 1.0f;
+	}
+	const ChargeData *charge = getBasicSpellChargeData();
+	int levelIndex = weaponAnimation.chargeLevel - 1;
+	if (levelIndex >= charge->levelCount) {
+		levelIndex = charge->levelCount - 1;
+	}
+	return 1.0f + charge->levels[levelIndex].playerSpeedModifier;
 }
 
 void handleInput(float deltaTime)
@@ -236,7 +289,11 @@ void handleInput(float deltaTime)
 			interact(playerState.interactableIndex);
 			playerState.interactedOnPress = true;
 		}
-	} else if ((current & kButtonA) && !playerState.interactedOnPress) {
+	}
+
+	if (weaponAnimation.isChargeSpell) {
+		updateBasicSpellCharge(deltaTime, current & kButtonA);
+	} else if (playerState.interactableIndex == -1 && (current & kButtonA) && !playerState.interactedOnPress) {
 		bool animationCancellable = weaponAnimation.curFrame == 0 || weaponAnimation.curFrame > weaponAnimation.activeFrame;
 		if(spellIsCastable(BASIC_SPELL_INDEX) && animationCancellable) {
 			startWeaponAnimation(BASIC_SPELL_INDEX);
@@ -264,7 +321,7 @@ void handleInput(float deltaTime)
 	// }
 
 	if (current & kButtonB) {
-		if (castSpecialSpell() && getCurrentClassType() == CLASS_MAGE) {
+		if (castSpecialSpell() && (getCurrentClassType() == CLASS_MAGE || getCurrentClassType() == CLASS_RANGER)) {
 			startWeaponAnimation(SPECIAL_SPELL_INDEX);
 		}
 	}
@@ -321,6 +378,7 @@ void handleInput(float deltaTime)
 
 	float maxSpeed = getPlayerMoveSpeed();
 	maxSpeed *= getPlayerSpeedModifier();
+	maxSpeed *= getBasicSpellChargeSpeedModifier();
 	float acceleration = movementStats.acceleration;
 	PDButtons movementDir = playerIsDashing ? movementStats.dashMovementDir : current;
 
@@ -474,7 +532,7 @@ void handleInput(float deltaTime)
 		weaponAnimation.targetDrawY = weaponAnimation.basePositionY;
 	}
 
-	if (weaponAnimation.curFrame > 0) {
+	if (weaponAnimation.curFrame > 0 && weaponAnimation.chargeLevel == 0) {
 		weaponAnimation.targetDrawX = weaponAnimation.basePositionX + weaponAnimation.activeXOffset;
 		weaponAnimation.targetDrawY = weaponAnimation.basePositionY + weaponAnimation.activeYOffset;
 	}
@@ -535,29 +593,48 @@ void damagePlayerFromDirection(float amount, float sourceX, float sourceY) {
     damagePlayer(amount);
 }
 
+// Continuous side-to-side shake added once the bow is fully charged
+#define MAX_CHARGE_JIGGLE_SPEED 35.0f
+#define MAX_CHARGE_JIGGLE_AMOUNT 2.0f
+
 void drawWeapon(float deltaTime) {
 	float lerpSpeed = 0.2f;
 	weaponAnimation.drawX = lerp(weaponAnimation.drawX, weaponAnimation.targetDrawX, lerpSpeed);
 	weaponAnimation.drawY = lerp(weaponAnimation.drawY, weaponAnimation.targetDrawY, lerpSpeed);
-	if (weaponAnimation.curFrame > 0 && weaponAnimation.curFrameTime > 0) {
-		weaponAnimation.curFrameTime -= deltaTime;
-		if (weaponAnimation.curFrameTime <= 0) {
-			weaponAnimation.curFrameTime = weaponAnimation.frameTime;
-			weaponAnimation.curFrame++;
-			if (weaponAnimation.curFrame >= weaponAnimation.bitmapFrames) {
-				weaponAnimation.curFrame = 0;
-				weaponAnimation.spellIndex = -1;
+
+	bool charging = weaponAnimation.chargeLevel > 0;
+	if (!charging) {
+		if (weaponAnimation.curFrame > 0 && weaponAnimation.curFrameTime > 0) {
+			weaponAnimation.curFrameTime -= deltaTime;
+			if (weaponAnimation.curFrameTime <= 0) {
+				weaponAnimation.curFrameTime = weaponAnimation.frameTime;
+				weaponAnimation.curFrame++;
+				if (weaponAnimation.curFrame >= weaponAnimation.bitmapFrames) {
+					weaponAnimation.curFrame = 0;
+					weaponAnimation.spellIndex = -1;
+				}
 			}
+		}
+
+		if (!weaponAnimation.spellCasted && weaponAnimation.curFrame >= weaponAnimation.activeFrame && weaponAnimation.spellIndex == BASIC_SPELL_INDEX) {
+			castSpell(BASIC_SPELL_INDEX);
+			weaponAnimation.spellCasted = true;
 		}
 	}
 
-	if (!weaponAnimation.spellCasted && weaponAnimation.curFrame >= weaponAnimation.activeFrame && weaponAnimation.spellIndex == BASIC_SPELL_INDEX) {
-		castSpell(BASIC_SPELL_INDEX);
-		weaponAnimation.spellCasted = true;
+	float drawX = weaponAnimation.drawX;
+	float drawY = weaponAnimation.drawY;
+	const ChargeData *charge = getBasicSpellChargeData();
+	bool fullyCharged = charging && weaponAnimation.chargeLevel >= charge->levelCount;
+	if (fullyCharged && charge->jiggleAtMax) {
+		weaponAnimation.jigglePhase += deltaTime * MAX_CHARGE_JIGGLE_SPEED;
+		drawX += sinf(weaponAnimation.jigglePhase) * MAX_CHARGE_JIGGLE_AMOUNT;
+	} else {
+		weaponAnimation.jigglePhase = 0.0f;
 	}
 
 	LCDBitmap *weaponBitmap = pd->graphics->getTableBitmap(weaponAnimation.bitmapTable, weaponAnimation.curFrame);
-	pd->graphics->drawBitmap(weaponBitmap, weaponAnimation.drawX, weaponAnimation.drawY, kBitmapUnflipped);
+	pd->graphics->drawBitmap(weaponBitmap, drawX, drawY, kBitmapUnflipped);
 }
 
 void updatePlayer(float deltaTime) {
