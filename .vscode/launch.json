@@ -11,13 +11,19 @@
             "name": "C Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${env:PLAYDATE_SDK_PATH}\\bin\\PlaydateSimulator.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "externalConsole": false,
-            "MIMode": "gdb",
-            "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
+            "windows": {
+                "program": "${env:PLAYDATE_SDK_PATH}\\bin\\PlaydateSimulator.exe",
+                "MIMode": "gdb",
+                "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe"
+            },
+            "osx": {
+                "program": "${env:PLAYDATE_SDK_PATH}/bin/Playdate Simulator.app/Contents/MacOS/Playdate Simulator",
+                "MIMode": "lldb"
+            },
             "preLaunchTask": "Debug Prelaunch Tasks"
         }
     ],
