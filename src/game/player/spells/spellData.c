@@ -4,6 +4,7 @@
 #include "game/enemies/enemies.h"
 #include "game/UI/UI.h"
 #include "game/systems/chainLightningManager.h"
+#include "game/entities/turret.h"
 
 // Spawn the projectile slightly to the right to match hand
 #define FIRE_ANGLE_OFFSET PI / 8
@@ -86,6 +87,10 @@ void lightningArcCast(Spell spell, SpellCastData *castData, float x, float y, fl
 void chainLightningLinkCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
     SpellData *data = &spellData[SPELL_CHAIN_LIGHTNING];
     startChainLightning(x, y, data->damage, (int)data->projectileData.primaryData);
+}
+
+void turretCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
+    spawnTurret();
 }
 
 SpellData baseSpellData[SPELL_COUNT] = {
@@ -277,6 +282,33 @@ SpellData baseSpellData[SPELL_COUNT] = {
                 // Level 3 (max)
                 { .damageBonus = 18, .speedBonus = 80.0f, .pierceBonus = 2, .playerSpeedModifier = -0.70f }
             }
+        }
+    },
+    [SPELL_TURRET] = {
+        .name = "Turret",
+        .name_jp = "タレット",
+        .description = "Deploy a turret that fires a ring of arrows in all directions for a short time.",
+        .description_jp = "一定時間、全方向に矢を放つタレットを設置する。",
+        .spellIconIndex = BITMAP_SPELL_BOW_SHOT_ICON,
+        .cast = turretCast,
+        .cooldown = 10.0f,
+        .damage = 10, // matches Fireball
+        // Fireball projectile stats, rendered with the arrow texture
+        .projectileData = (SpellProjectileData) {
+            .speed = 50.0f,
+            .textureIndex = TEXTURE_BOW_ARROW,
+            .frameCount = 1,
+            .frameTime = 0.09f,
+            .hitParticle = PARTICLE_TYPE_BLANK
+        },
+        .turretData = (TurretData) {
+            .fireMode = TURRET_FIRE_RING,
+            .lifetime = 7.0f,
+            .fireInterval = 1.5f,
+            .range = 150.0f,
+            .ringProjectileCount = 16,
+            .targetedProjectileCount = 1,
+            .targetedSpreadAngle = 15.0f * (PI / 180.0f)
         }
     }
 };

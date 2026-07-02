@@ -8,6 +8,7 @@
 #include "game/entities/projectiles.h"
 #include "game/entities/pickups.h"
 #include "game/entities/interactables.h"
+#include "game/entities/turret.h"
 #include "game/rendering/particles.h"
 #include "game/rendering/raycasting.h"
 #include "game/rendering/textures.h"
@@ -74,6 +75,7 @@ void initGameScene(void)
 	initEnemies();
 	initProjectiles();
 	initParticles();
+	initTurrets();
 
 	// Map
 	initMap();
@@ -99,6 +101,7 @@ void updateGameplaySubsystems(float deltaTime)
 	updateSpells(deltaTime);
 	updatePlayer(deltaTime);
 	updateEnemies(deltaTime);
+	updateTurrets(deltaTime);
 	updateProjectiles(deltaTime);
 	updateParticles(deltaTime);
 	updateInteractables(deltaTime);

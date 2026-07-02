@@ -321,7 +321,7 @@ void handleInput(float deltaTime)
 	// }
 
 	if (current & kButtonB) {
-		if (castSpecialSpell() && (getCurrentClassType() == CLASS_MAGE || getCurrentClassType() == CLASS_RANGER)) {
+		if (castSpecialSpell() && (getCurrentClassType() == CLASS_MAGE)) {
 			startWeaponAnimation(SPECIAL_SPELL_INDEX);
 		}
 	}

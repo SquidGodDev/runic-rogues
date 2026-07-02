@@ -21,6 +21,7 @@ typedef enum Spell {
     SPELL_KNIFE,
     SPELL_FAN_OF_KNIVES,
     SPELL_BOW_SHOT,
+    SPELL_TURRET,
     SPELL_COUNT
 } Spell;
 
@@ -85,6 +86,21 @@ typedef struct MeleeData {
     float slowAmount;
 } MeleeData;
 
+typedef enum TurretFireMode {
+    TURRET_FIRE_RING,     // fire a full ring of projectiles in all directions
+    TURRET_FIRE_NEAREST,  // aim a spread at the nearest enemy
+} TurretFireMode;
+
+typedef struct TurretData {
+    TurretFireMode fireMode;
+    float lifetime;              // seconds the turret stays active
+    float fireInterval;          // seconds between volleys
+    float range;                 // detection range for TURRET_FIRE_NEAREST
+    int ringProjectileCount;     // projectiles per volley in ring mode, spread evenly around a full circle
+    int targetedProjectileCount; // projectiles per volley in nearest mode (center shot plus side shots)
+    float targetedSpreadAngle;   // radians between adjacent shots in nearest mode
+} TurretData;
+
 typedef struct WeaponData {
     BitmapTablePath weaponBitmapTable;
     int drawX;
@@ -113,6 +129,7 @@ typedef struct SpellData {
     MeleeData meleeData;
     WeaponData weaponData;
     ChargeData chargeData;
+    TurretData turretData;
 } SpellData;
 
 typedef enum ModifyOperation {

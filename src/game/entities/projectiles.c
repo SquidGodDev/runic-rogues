@@ -117,7 +117,9 @@ void updateProjectiles(float deltaTime) {
 			int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
 			int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
 			ParticleType hitParticle = curProjectile->spellProjectileData.hitParticle;
-			spawnParticle(hitParticle, particleX, particleY, curProjectile->sourceX, curProjectile->sourceY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
+			if (hitParticle != PARTICLE_TYPE_BLANK) {
+				spawnParticle(hitParticle, particleX, particleY, curProjectile->sourceX, curProjectile->sourceY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
+			}
 		} else {
 			bool collided = false;
 			if (curProjectile->isEnemy) {

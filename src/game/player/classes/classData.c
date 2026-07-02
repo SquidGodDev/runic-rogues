@@ -43,7 +43,7 @@ const ClassData classData[CLASS_COUNT] = {
         .baseHealth = 100,
         .baseSpeed = 12,
         .basicSpell = SPELL_BOW_SHOT,
-        .specialSpell = SPELL_CHAIN_LIGHTNING
+        .specialSpell = SPELL_TURRET
     }
 };
 
