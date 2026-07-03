@@ -81,6 +81,7 @@ typedef struct SpellProjectileData {
     TexturePaths textureIndex;
     int frameCount;
 	float frameTime;
+    bool holdLastFrame; // play the frame animation once, then hold the final frame instead of looping
 } SpellProjectileData;
 
 typedef struct MeleeData {

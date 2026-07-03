@@ -191,7 +191,11 @@ void updateProjectiles(float deltaTime) {
 				curProjectile->currentFrameTime = 0.0f;
 				curProjectile->currentFrame++;
 				if (curProjectile->currentFrame >= curProjectile->frameCount) {
-					curProjectile->currentFrame = 0;
+					if (curProjectile->spellProjectileData.holdLastFrame) {
+						curProjectile->currentFrame = curProjectile->frameCount - 1;
+					} else {
+						curProjectile->currentFrame = 0;
+					}
 				}
 			}
 		}

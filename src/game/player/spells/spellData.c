@@ -316,20 +316,22 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .name_jp = "ネットトラップ",
         .description = "Hold to charge, then fire a net that drags struck enemies toward you. Charging only speeds up the throw.",
         .description_jp = "溜めて放つと敵を引き寄せる網を投げる。溜めるほど投げる速度が上がる。",
-        .spellIconIndex = BITMAP_SPELL_BOW_SHOT_ICON,
+        .spellIconIndex = BITMAP_SPELL_NET_TRAP_ICON,
         .cast = chargedProjectileCast,
         .cooldown = 4.0f,
         .damage = 10,
         // Base stats represent charge level 1; higher levels add the speed bonuses below.
         .projectileData = (SpellProjectileData) {
-            .speed = 60.0f,
+            .speed = 100.0f,
+            .acceleration = 0.0f,
             .knockbackTime = 0.2f,
             .knockbackAmount = -3.0f,
             .knockbackFromProjectile = true,
             .knockbackRadius = 3.0f,
-            .textureIndex = TEXTURE_BOW_ARROW,
-            .frameCount = 1,
-            .frameTime = 0.09f
+            .textureIndex = TEXTURE_NET,
+            .frameCount = 5,
+            .frameTime = 0.05f,
+            .holdLastFrame = true
         }
     }
 };
