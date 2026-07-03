@@ -14,12 +14,6 @@
 - Knockback not working properly
 - Make skybox always pixel aligned
 - Check for memory leaks
-## Boss Patterns
-- Shooting out projectiles periodically during idle move
-- Shooting projectiles and rotating 360 degrees
-- More movement during attacks
-- Scattered shotgun of projectiles
-- Shoot spread of projectiles, and then offset it by half angle
 ## Features
 - Starter rune for each class
 - Settings menu

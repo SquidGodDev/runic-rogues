@@ -28,7 +28,7 @@ void projectileCast(Spell spell, SpellCastData *castData, float x, float y, floa
     fireProjectileSpread(x, y, angle, data.damage, data.projectileData);
 }
 
-void bowCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
+void chargedProjectileCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
     SpellData data = spellData[spell];
     const ChargeData *charge = &data.chargeData;
 
@@ -250,7 +250,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .description = "Hold to draw the bow. The longer the charge, the more damage, speed, and pierce the arrow gains.",
         .description_jp = "長く引くほど威力・速度・貫通が増す矢を放つ。",
         .spellIconIndex = BITMAP_SPELL_BOW_SHOT_ICON,
-        .cast = bowCast,
+        .cast = chargedProjectileCast,
         .cooldown = 0.5f,
         .damage = 10,
         // Base stats represent charge level 1; higher levels add the bonuses below.
@@ -309,6 +309,27 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .ringProjectileCount = 16,
             .targetedProjectileCount = 1,
             .targetedSpreadAngle = 15.0f * (PI / 180.0f)
+        }
+    },
+    [SPELL_NET_TRAP] = {
+        .name = "Net Trap",
+        .name_jp = "ネットトラップ",
+        .description = "Hold to charge, then fire a net that drags struck enemies toward you. Charging only speeds up the throw.",
+        .description_jp = "溜めて放つと敵を引き寄せる網を投げる。溜めるほど投げる速度が上がる。",
+        .spellIconIndex = BITMAP_SPELL_BOW_SHOT_ICON,
+        .cast = chargedProjectileCast,
+        .cooldown = 4.0f,
+        .damage = 10,
+        // Base stats represent charge level 1; higher levels add the speed bonuses below.
+        .projectileData = (SpellProjectileData) {
+            .speed = 60.0f,
+            .knockbackTime = 0.2f,
+            .knockbackAmount = -3.0f,
+            .knockbackFromProjectile = true,
+            .knockbackRadius = 3.0f,
+            .textureIndex = TEXTURE_BOW_ARROW,
+            .frameCount = 1,
+            .frameTime = 0.09f
         }
     }
 };

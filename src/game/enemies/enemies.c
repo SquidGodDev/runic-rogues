@@ -1029,8 +1029,7 @@ void slowEnemiesInArea(float x, float y, int radius, float slowTime, float slowA
 	}
 }
 
-bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime, float slowAmount) {
-	bool collided = false; 
+int checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime, float slowAmount) {
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy curEnemy = enemies[i];
 		if (!curEnemy.active || setContains(hitEnemies, i)) {
@@ -1045,10 +1044,10 @@ bool checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange
 			bool enemyDamaged = damageEnemy(i, damage);
 			if (enemyDamaged) {
 				setAdd(hitEnemies, i);
-				collided = true;
+				return i;
 			}
 		}
 	}
-	return collided;
+	return -1;
 }
 

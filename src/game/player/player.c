@@ -106,6 +106,10 @@ static PlayerState playerState;
 static PlayerMovementStats movementStats;
 static WeaponAnimation weaponAnimation;
 
+// Charge state for a chargeable special spell (the basic spell charges via weaponAnimation).
+static int specialChargeLevel;   // 0 = not charging; 1..N = current charge level
+static float specialChargeTimer; // time accumulated toward the next charge level
+
 static bool defaultStrafeSetting = false;
 static bool toggleMovementSetting = false;
 static bool movementToggled = false;
@@ -199,6 +203,9 @@ void initPlayer(void) {
 		.chargeTimer = 0,
 		.jigglePhase = 0
 	};
+
+	specialChargeLevel = 0;
+	specialChargeTimer = 0.0f;
 }
 
 void startWeaponAnimation(int spellIndex) {
@@ -251,6 +258,36 @@ static float getBasicSpellChargeSpeedModifier(void) {
 		levelIndex = charge->levelCount - 1;
 	}
 	return 1.0f + charge->levels[levelIndex].playerSpeedModifier;
+}
+
+static void updateSpecialSpellCharge(float deltaTime, bool bHeld) {
+	bool blocked = playerState.interactableIndex != -1 || playerState.interactedOnPress;
+	bool holding = bHeld && !blocked;
+
+	if (specialChargeLevel == 0) {
+		if (holding && spellIsCastable(SPECIAL_SPELL_INDEX)) {
+			specialChargeLevel = 1;
+			specialChargeTimer = 0.0f;
+		}
+		return;
+	}
+
+	if (holding) {
+		const ChargeData *charge = getSpecialSpellChargeData();
+		specialChargeTimer += deltaTime;
+		if (specialChargeLevel < charge->levelCount) {
+			if (specialChargeTimer >= charge->timePerLevel) {
+				specialChargeTimer -= charge->timePerLevel;
+				specialChargeLevel++;
+			}
+		} else {
+			specialChargeTimer = 0.0f;
+		}
+	} else {
+		castSpecialSpellCharged(specialChargeLevel);
+		specialChargeLevel = 0;
+		specialChargeTimer = 0.0f;
+	}
 }
 
 void handleInput(float deltaTime)
@@ -320,7 +357,9 @@ void handleInput(float deltaTime)
 	// 	movementToggled ^= 1;
 	// }
 
-	if (current & kButtonB) {
+	if (spellIsCharged(getSpecialSpell())) {
+		updateSpecialSpellCharge(deltaTime, current & kButtonB);
+	} else if (current & kButtonB) {
 		if (castSpecialSpell() && (getCurrentClassType() == CLASS_MAGE)) {
 			startWeaponAnimation(SPECIAL_SPELL_INDEX);
 		}

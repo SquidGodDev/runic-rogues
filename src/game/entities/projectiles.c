@@ -122,6 +122,7 @@ void updateProjectiles(float deltaTime) {
 			}
 		} else {
 			bool collided = false;
+			int hitEnemyIndex = -1;
 			if (curProjectile->isEnemy) {
 				float distSquared = distanceSquared(curProjectile->x, curProjectile->y, playerX, playerY);
 				if (distSquared < ENEMY_PROJECTILE_COLLISION_RANGE) {
@@ -129,29 +130,38 @@ void updateProjectiles(float deltaTime) {
 					damagePlayerFromDirection(curProjectile->damage, curProjectile->sourceX, curProjectile->sourceY);
 				}
 			} else {
-				collided = checkEnemyCollision(
-					curProjectile->x, 
-					curProjectile->y, 
-					curProjectile->hitEnemies, 
-					PLAYER_PROJECTILE_COLLISION_RANGE, 
-					curProjectile->damage, 
-					curProjectile->spellProjectileData.slowTime, 
+				hitEnemyIndex = checkEnemyCollision(
+					curProjectile->x,
+					curProjectile->y,
+					curProjectile->hitEnemies,
+					PLAYER_PROJECTILE_COLLISION_RANGE,
+					curProjectile->damage,
+					curProjectile->spellProjectileData.slowTime,
 					curProjectile->spellProjectileData.slowAmount
 				);
+				collided = hitEnemyIndex != -1;
 				if (collided) {
 					runStatsRecordHitForAttack(curProjectile->attackId);
 				}
 			}
 			if (collided) {
 				if (!curProjectile->isEnemy && curProjectile->spellProjectileData.knockbackTime > 0) {
-					knockbackEnemiesInArea(
-						curProjectile->x, curProjectile->y,
-						(int)sqrtf(PLAYER_PROJECTILE_COLLISION_RANGE),
-						curProjectile->x, curProjectile->y,
-						curProjectile->spellProjectileData.knockbackTime,
-						curProjectile->spellProjectileData.knockbackAmount,
-						true /*awayFromPlayer*/
-					);
+					SpellProjectileData *projData = &curProjectile->spellProjectileData;
+					bool awayFromPlayer = !projData->knockbackFromProjectile;
+					if (projData->knockbackRadius > 0) {
+						knockbackEnemiesInArea(
+							curProjectile->x, curProjectile->y,
+							(int)(projData->knockbackRadius * CELL_SIZE),
+							curProjectile->x, curProjectile->y,
+							projData->knockbackTime, projData->knockbackAmount, awayFromPlayer
+						);
+					} else {
+						knockbackEnemy(
+							hitEnemyIndex,
+							(int)curProjectile->x, (int)curProjectile->y,
+							projData->knockbackTime, projData->knockbackAmount, awayFromPlayer
+						);
+					}
 				}
 				int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
 				int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;

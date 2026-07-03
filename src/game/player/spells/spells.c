@@ -248,6 +248,10 @@ const ChargeData *getBasicSpellChargeData(void) {
     return &spellData[getBasicSpell()].chargeData;
 }
 
+const ChargeData *getSpecialSpellChargeData(void) {
+    return &spellData[getSpecialSpell()].chargeData;
+}
+
 bool spellIsCharged(Spell spell) {
     return spellData[spell].chargeData.levelCount > 0;
 }
@@ -257,6 +261,13 @@ bool castSpecialSpell(void) {
     if (cast) {
         signalRuneTrigger(RUNE_TRIGGER_SPECIAL_CAST, 1.0f);
     }
+    return cast;
+}
+
+bool castSpecialSpellCharged(int chargeLevel) {
+    pendingChargeLevel = chargeLevel;
+    bool cast = castSpecialSpell();
+    pendingChargeLevel = 0;
     return cast;
 }
 

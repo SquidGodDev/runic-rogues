@@ -22,6 +22,7 @@ typedef enum Spell {
     SPELL_FAN_OF_KNIVES,
     SPELL_BOW_SHOT,
     SPELL_TURRET,
+    SPELL_NET_TRAP,
     SPELL_COUNT
 } Spell;
 
@@ -67,6 +68,8 @@ typedef struct SpellProjectileData {
     float slowAmount;
     float knockbackTime;
     float knockbackAmount;
+    bool knockbackFromProjectile;
+    float knockbackRadius; // knockback area radius in cells; 0 = only the hit enemy
     int spreadCount;
     float spreadAngle;
     float activeTime;
@@ -175,8 +178,10 @@ Spell getSpecialSpell(void);
 float getSpellCooldownPercentage(int index);
 float getPlayerSpeedModifier(void);
 const ChargeData *getBasicSpellChargeData(void);
+const ChargeData *getSpecialSpellChargeData(void);
 bool spellIsCharged(Spell spell);
 bool castBasicSpellCharged(int chargeLevel);
+bool castSpecialSpellCharged(int chargeLevel);
 int getMaxUtilitySpells(void);
 int getUtilitySpellCount(void);
 float getUtilitySpellCharge(void);
