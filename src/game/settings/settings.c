@@ -8,8 +8,18 @@ Settings SETTINGS;
 void initSettings(void) {
     SETTINGS = (Settings) {
         .language = LANGUAGE_EN,
-        .drawMinimapWalls = true,
         .spellButtonsReversed = false,
-        .drawFPS = true
+        .drawFPS = true,
+        // 
+        // - Language [enum] (EN, JP)
+        // - Turn speed [int] (d-pad, crank)
+        // - Turn acceleration [int] (d-pad, crank)
+        // - Strafing enabled [bool] (crank)
+        // - Absolute angle [bool] (crank)
+        // - Swap spell controls [bool]
+        // - Inverse controls [bool]
+        // - Music Volume [int]
+        // - SFX Volume [int]
+        .drawMinimapWalls = true,
     };
 }

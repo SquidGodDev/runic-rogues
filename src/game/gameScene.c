@@ -118,6 +118,10 @@ void updateGameScene(float deltaTime)
 	if (gameState == GAME_STATE_ACTIVE) {
 		updateSpawnManager();
 		updateGameplaySubsystems(deltaTime);
+		if (SETTINGS.drawFPS) {
+			pd->graphics->fillRect(183, 106, 17, 14, kColorBlack);
+			pd->system->drawFPS(185, 108);
+		}
 	} else if (gameState == GAME_STATE_SHOP) {
 		updateShop(deltaTime);
 	} else if (gameState == GAME_STATE_RUNE_INVENTORY) {
@@ -134,9 +138,5 @@ void updateGameScene(float deltaTime)
 		drawQuitScreenshot();
 	}
 
-	if (SETTINGS.drawFPS) {
-		pd->graphics->fillRect(183, 106, 17, 14, kColorBlack);
-		pd->system->drawFPS(185, 108);
-	}
 	pd->lua->pushNil();
 }
