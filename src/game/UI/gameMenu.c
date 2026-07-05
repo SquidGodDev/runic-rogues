@@ -47,6 +47,7 @@ typedef enum MenuFocus {
 #define ROW_GAP          2     // vertical space between list rows
 #define ROW_STRIDE       (ROW_HEIGHT + ROW_GAP)
 #define VISIBLE_ROWS     ((SCREEN_HEIGHT - LIST_TOP) / ROW_STRIDE)  // rows that fit fully on screen
+#define LIST_CLIP_TOP    (TAB_BASELINE_Y + 1)  // rows scroll under the tab bar; clip above this
 #define ROW_X            4
 #define ROW_WIDTH        192
 #define CONTROL_RIGHT_X  190
@@ -61,7 +62,8 @@ typedef enum MenuFocus {
 #define SETTINGS_SCROLLBAR_W        5
 #define SETTINGS_SCROLLBAR_Y        19
 #define SETTINGS_SCROLLBAR_TRACK_H  100
-#define SETTINGS_SCROLL_SENSITIVITY 0.02f
+#define SETTINGS_SCROLL_SENSITIVITY 0.4f   // pixels of scroll per crank degree
+#define SETTINGS_SCROLL_LERP        0.4f   // per-frame approach toward the scroll target
 
 // Confirmation dialog layout
 #define DIALOG_WIDTH 170
@@ -126,13 +128,14 @@ static MenuTab activeTab;
 static MenuTab selectedTab;
 static MenuFocus focus;
 static int listSelRow;
-static int listScroll;
 static int exitSelRow;
 static int confirmSel;
 
+static float scrollPx;        // current animated list scroll offset in pixels
+static float scrollTargetPx;  // where the list is scrolling toward
+
 static PDButtons adjHeldDir;
 static float adjHoldTimer;
-static float settingsScrollAccum;
 
 static void createCloseMenuItem(void);
 
@@ -154,11 +157,11 @@ static void enterTabSelect(void) {
 
 static void resetContentState(void) {
     listSelRow = 0;
-    listScroll = 0;
     exitSelRow = 0;
     adjHeldDir = 0;
     adjHoldTimer = 0.0f;
-    settingsScrollAccum = 0.0f;
+    scrollPx = 0.0f;
+    scrollTargetPx = 0.0f;
 }
 
 static void enterContent(void) {
@@ -166,11 +169,20 @@ static void enterContent(void) {
     resetContentState();
 }
 
+static float settingsMaxScrollPx(const SettingsTabDef *tab) {
+    int extraRows = tab->rowCount - VISIBLE_ROWS;
+    return extraRows > 0 ? (float)(extraRows * ROW_STRIDE) : 0.0f;
+}
+
+// Nudge the scroll target so the selected row sits fully within the visible band.
+// Leaves the target untouched (preserving a free crank offset) while the row is visible.
 static void ensureRowVisible(void) {
-    if (listSelRow < listScroll) {
-        listScroll = listSelRow;
-    } else if (listSelRow >= listScroll + VISIBLE_ROWS) {
-        listScroll = listSelRow - VISIBLE_ROWS + 1;
+    float selTop = (float)(listSelRow * ROW_STRIDE);
+    float bandBottom = (float)((VISIBLE_ROWS - 1) * ROW_STRIDE);
+    if (selTop < scrollTargetPx) {
+        scrollTargetPx = selTop;
+    } else if (selTop > scrollTargetPx + bandBottom) {
+        scrollTargetPx = selTop - bandBottom;
     }
 }
 
@@ -274,6 +286,13 @@ static void drawTabBar(void) {
 }
 
 static void drawSettingsTab(const SettingsTabDef *tab) {
+    float scrollDiff = scrollTargetPx - scrollPx;
+    scrollPx += scrollDiff * SETTINGS_SCROLL_LERP;
+    if (scrollDiff < 0.5f && scrollDiff > -0.5f) {
+        scrollPx = scrollTargetPx;
+    }
+    int scrollOffset = (int)(scrollPx + 0.5f);
+
     LCDFont *font = SETTINGS.language == LANGUAGE_JP ? fontSubJP : fontSubEN;
     int tracking = SETTINGS.language == LANGUAGE_JP ? 1 : -2;
     pd->graphics->setFont(font);
@@ -285,12 +304,16 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
     int controlRightX = hasScrollbar ? CONTROL_RIGHT_X - SETTINGS_SCROLLBAR_GAP : CONTROL_RIGHT_X;
     int rowWidth = hasScrollbar ? ROW_WIDTH - SETTINGS_SCROLLBAR_GAP : ROW_WIDTH;
 
-    // Draw one row past VISIBLE_ROWS so a partially-visible row still peeks in at the
-    // bottom (scroll/selection logic keeps the selected row fully on screen).
-    for (int i = 0; i <= VISIBLE_ROWS && listScroll + i < tab->rowCount; i++) {
-        int rowIndex = listScroll + i;
+    // Clip rows to the list region so partially-scrolled rows are cut off cleanly
+    // and slide under the tab bar rather than drawing over it.
+    pd->graphics->setClipRect(0, LIST_CLIP_TOP, SCREEN_WIDTH, SCREEN_HEIGHT - LIST_CLIP_TOP);
+
+    for (int rowIndex = 0; rowIndex < tab->rowCount; rowIndex++) {
         const SettingRowDef *row = &tab->rows[rowIndex];
-        int rowY = LIST_TOP + i * ROW_STRIDE;
+        int rowY = LIST_TOP + rowIndex * ROW_STRIDE - scrollOffset;
+        if (rowY > SCREEN_HEIGHT || rowY + ROW_HEIGHT < LIST_CLIP_TOP) {
+            continue;
+        }
         bool rowFocused = focus != FOCUS_TABS && rowIndex == listSelRow;
         int textY = rowY + (ROW_HEIGHT - fontH) / 2;
         if (SETTINGS.language == LANGUAGE_JP) {
@@ -303,6 +326,7 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             int labelW = pd->graphics->getTextWidth(font, label, labelLen, kUTF8Encoding, tracking);
             int btnW = labelW + 16;
             int btnX = (SCREEN_WIDTH - btnW) / 2;
+            textY += 3;
             pd->graphics->drawText(label, labelLen, kUTF8Encoding, btnX + 8, textY);
             if (rowFocused) {
                 pd->graphics->drawRoundRect(btnX, rowY - 1, btnW, ROW_HEIGHT + 1, 3, 2, kColorWhite);
@@ -349,9 +373,12 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
         }
     }
 
+    pd->graphics->clearClipRect();
+
     if (hasScrollbar) {
+        int contentH = tab->rowCount * ROW_STRIDE;
         int thumbH = SETTINGS_SCROLLBAR_TRACK_H * VISIBLE_ROWS / tab->rowCount;
-        int thumbY = SETTINGS_SCROLLBAR_Y + SETTINGS_SCROLLBAR_TRACK_H * listScroll / tab->rowCount;
+        int thumbY = SETTINGS_SCROLLBAR_Y + (int)(SETTINGS_SCROLLBAR_TRACK_H * scrollPx / contentH + 0.5f);
         pd->graphics->drawRoundRect(SETTINGS_SCROLLBAR_X, SETTINGS_SCROLLBAR_Y, SETTINGS_SCROLLBAR_W, SETTINGS_SCROLLBAR_TRACK_H, 2, 1, kColorWhite);
         pd->graphics->fillRect(SETTINGS_SCROLLBAR_X + 2, thumbY + 3, 1, thumbH - 5, kColorWhite);
     }
@@ -531,18 +558,15 @@ void updateGameMenu(float deltaTime) {
             handleSettingsRowInput(&tab->rows[listSelRow], current, pushed, deltaTime);
         }
 
-        int maxScroll = tab->rowCount - VISIBLE_ROWS;
-        if (maxScroll > 0) {
+        float maxScrollPx = settingsMaxScrollPx(tab);
+        if (maxScrollPx > 0.0f) {
             float crankChange = pd->system->getCrankChange();
             if (crankChange != 0) {
-                settingsScrollAccum += crankChange * SETTINGS_SCROLL_SENSITIVITY;
-                int step = (int)settingsScrollAccum;
-                settingsScrollAccum -= step;
-                listScroll += step;
-                if (listScroll < 0) {
-                    listScroll = 0;
-                } else if (listScroll > maxScroll) {
-                    listScroll = maxScroll;
+                scrollTargetPx += crankChange * SETTINGS_SCROLL_SENSITIVITY;
+                if (scrollTargetPx < 0.0f) {
+                    scrollTargetPx = 0.0f;
+                } else if (scrollTargetPx > maxScrollPx) {
+                    scrollTargetPx = maxScrollPx;
                 }
             }
         }
