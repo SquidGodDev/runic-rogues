@@ -44,12 +44,24 @@ typedef enum MenuFocus {
 // Settings list layout
 #define LIST_TOP         20
 #define ROW_HEIGHT       16
-#define VISIBLE_ROWS     6
+#define ROW_GAP          2     // vertical space between list rows
+#define ROW_STRIDE       (ROW_HEIGHT + ROW_GAP)
+#define VISIBLE_ROWS     ((SCREEN_HEIGHT - LIST_TOP) / ROW_STRIDE)  // rows that fit fully on screen
 #define ROW_X            4
 #define ROW_WIDTH        192
 #define CONTROL_RIGHT_X  190
 #define BAR_WIDTH        44
 #define BAR_HEIGHT       9
+
+// Settings scrollbar — position indicator shown when a tab's list exceeds VISIBLE_ROWS.
+// Not selectable; the crank scrolls the list. When present, controls and the selection
+// outline shift left by SETTINGS_SCROLLBAR_GAP to make room.
+#define SETTINGS_SCROLLBAR_GAP      5
+#define SETTINGS_SCROLLBAR_X        193
+#define SETTINGS_SCROLLBAR_W        5
+#define SETTINGS_SCROLLBAR_Y        19
+#define SETTINGS_SCROLLBAR_TRACK_H  100
+#define SETTINGS_SCROLL_SENSITIVITY 0.02f
 
 // Confirmation dialog layout
 #define DIALOG_WIDTH 170
@@ -120,6 +132,7 @@ static int confirmSel;
 
 static PDButtons adjHeldDir;
 static float adjHoldTimer;
+static float settingsScrollAccum;
 
 static void createCloseMenuItem(void);
 
@@ -139,13 +152,18 @@ static void enterTabSelect(void) {
     selectedTab = activeTab;
 }
 
-static void enterContent(void) {
-    focus = FOCUS_CONTENT;
+static void resetContentState(void) {
     listSelRow = 0;
     listScroll = 0;
     exitSelRow = 0;
     adjHeldDir = 0;
     adjHoldTimer = 0.0f;
+    settingsScrollAccum = 0.0f;
+}
+
+static void enterContent(void) {
+    focus = FOCUS_CONTENT;
+    resetContentState();
 }
 
 static void ensureRowVisible(void) {
@@ -241,7 +259,7 @@ static void drawTabBar(void) {
 
         if (isOutlined) {
             pd->graphics->setClipRect(x - 2, 1, TAB_WIDTH + 4, isActive ? 14 : 15);
-            pd->graphics->drawRoundRect(x - 2, 1, TAB_WIDTH + 4, 22, 3, 2, kColorWhite);
+            pd->graphics->drawRoundRect(x - 2, 1, TAB_WIDTH + 4, 22, 3, 3, kColorWhite);
             pd->graphics->clearClipRect();
         } else if (isActive) {
             pd->graphics->setClipRect(x - 1, 2, TAB_WIDTH + 2, 13);
@@ -263,12 +281,21 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
     pd->graphics->setDrawMode(kDrawModeCopy);
     int fontH = pd->graphics->getFontHeight(font);
 
-    for (int i = 0; i < VISIBLE_ROWS && listScroll + i < tab->rowCount; i++) {
+    bool hasScrollbar = tab->rowCount > VISIBLE_ROWS;
+    int controlRightX = hasScrollbar ? CONTROL_RIGHT_X - SETTINGS_SCROLLBAR_GAP : CONTROL_RIGHT_X;
+    int rowWidth = hasScrollbar ? ROW_WIDTH - SETTINGS_SCROLLBAR_GAP : ROW_WIDTH;
+
+    // Draw one row past VISIBLE_ROWS so a partially-visible row still peeks in at the
+    // bottom (scroll/selection logic keeps the selected row fully on screen).
+    for (int i = 0; i <= VISIBLE_ROWS && listScroll + i < tab->rowCount; i++) {
         int rowIndex = listScroll + i;
         const SettingRowDef *row = &tab->rows[rowIndex];
-        int rowY = LIST_TOP + i * ROW_HEIGHT;
+        int rowY = LIST_TOP + i * ROW_STRIDE;
         bool rowFocused = focus != FOCUS_TABS && rowIndex == listSelRow;
         int textY = rowY + (ROW_HEIGHT - fontH) / 2;
+        if (SETTINGS.language == LANGUAGE_JP) {
+            textY -= 1;
+        }
 
         if (row->type == CONTROL_RESET_BUTTON) {
             const char *label = getLocString(row->nameKey);
@@ -278,7 +305,7 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             int btnX = (SCREEN_WIDTH - btnW) / 2;
             pd->graphics->drawText(label, labelLen, kUTF8Encoding, btnX + 8, textY);
             if (rowFocused) {
-                pd->graphics->drawRoundRect(btnX, rowY, btnW, ROW_HEIGHT, 3, 2, kColorWhite);
+                pd->graphics->drawRoundRect(btnX, rowY - 1, btnW, ROW_HEIGHT + 1, 3, 2, kColorWhite);
             } else {
                 pd->graphics->drawRoundRect(btnX + 1, rowY + 1, btnW - 2, ROW_HEIGHT - 2, 3, 1, kColorWhite);
             }
@@ -290,7 +317,7 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
 
         if (row->type == CONTROL_CHECKBOX) {
             bool value = *(bool *)row->value;
-            int boxX = CONTROL_RIGHT_X - 9;
+            int boxX = controlRightX - 9;
             int boxY = rowY + (ROW_HEIGHT - 9) / 2;
             pd->graphics->drawRect(boxX, boxY, 9, 9, kColorWhite);
             if (value) {
@@ -298,7 +325,7 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             }
         } else if (row->type == CONTROL_BAR) {
             int level = *(int *)row->value;
-            int barX = CONTROL_RIGHT_X - BAR_WIDTH;
+            int barX = controlRightX - BAR_WIDTH;
             int barY = rowY + (ROW_HEIGHT - BAR_HEIGHT) / 2;
             pd->graphics->drawRect(barX, barY, BAR_WIDTH, BAR_HEIGHT, kColorWhite);
             if (level > 0) {
@@ -313,13 +340,20 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             const char *value = SETTINGS.language == LANGUAGE_JP ? "JP" : "EN";
             int valueLen = strlen(value);
             int valueW = pd->graphics->getTextWidth(fontSubEN, value, valueLen, kUTF8Encoding, tracking);
-            pd->graphics->drawText(value, valueLen, kUTF8Encoding, CONTROL_RIGHT_X - valueW, textY);
+            pd->graphics->drawText(value, valueLen, kUTF8Encoding, controlRightX - valueW, textY);
             pd->graphics->popContext();
         }
 
         if (rowFocused) {
-            pd->graphics->drawRoundRect(ROW_X, rowY, ROW_WIDTH, ROW_HEIGHT, 3, 1, kColorWhite);
+            pd->graphics->drawRoundRect(ROW_X, rowY - 1, rowWidth, ROW_HEIGHT + 1, 3, 1, kColorWhite);
         }
+    }
+
+    if (hasScrollbar) {
+        int thumbH = SETTINGS_SCROLLBAR_TRACK_H * VISIBLE_ROWS / tab->rowCount;
+        int thumbY = SETTINGS_SCROLLBAR_Y + SETTINGS_SCROLLBAR_TRACK_H * listScroll / tab->rowCount;
+        pd->graphics->drawRoundRect(SETTINGS_SCROLLBAR_X, SETTINGS_SCROLLBAR_Y, SETTINGS_SCROLLBAR_W, SETTINGS_SCROLLBAR_TRACK_H, 2, 1, kColorWhite);
+        pd->graphics->fillRect(SETTINGS_SCROLLBAR_X + 2, thumbY + 3, 1, thumbH - 5, kColorWhite);
     }
 }
 
@@ -429,13 +463,14 @@ void updateGameMenu(float deltaTime) {
     } else if (focus == FOCUS_TABS) {
         if (pushed & kButtonLeft) {
             selectedTab = (selectedTab + MENU_TAB_COUNT - 1) % MENU_TAB_COUNT;
+            activeTab = selectedTab;
+            resetContentState();
         } else if (pushed & kButtonRight) {
             selectedTab = (selectedTab + 1) % MENU_TAB_COUNT;
-        }
-        if (pushed & kButtonA) {
             activeTab = selectedTab;
-            enterContent();
-        } else if (pushed & kButtonDown) {
+            resetContentState();
+        }
+        if (pushed & (kButtonA | kButtonDown)) {
             enterContent();
         } else if (pushed & kButtonB) {
             closeGameMenu();
@@ -447,9 +482,12 @@ void updateGameMenu(float deltaTime) {
                 enterTabSelect();
             } else if ((pushed & (kButtonA | kButtonDown)) && runeInventoryHasScrollbar()) {
                 focus = FOCUS_SCROLLBAR;
+                notifyEnterRuneScrollbar();
             }
         } else if (focus == FOCUS_SCROLLBAR) {
             if (pushed & kButtonB) {
+                focus = FOCUS_CONTENT;
+            } else if ((pushed & kButtonUp) && runeInventoryAtScrollTop()) {
                 focus = FOCUS_CONTENT;
             }
         }
@@ -492,6 +530,22 @@ void updateGameMenu(float deltaTime) {
         } else {
             handleSettingsRowInput(&tab->rows[listSelRow], current, pushed, deltaTime);
         }
+
+        int maxScroll = tab->rowCount - VISIBLE_ROWS;
+        if (maxScroll > 0) {
+            float crankChange = pd->system->getCrankChange();
+            if (crankChange != 0) {
+                settingsScrollAccum += crankChange * SETTINGS_SCROLL_SENSITIVITY;
+                int step = (int)settingsScrollAccum;
+                settingsScrollAccum -= step;
+                listScroll += step;
+                if (listScroll < 0) {
+                    listScroll = 0;
+                } else if (listScroll > maxScroll) {
+                    listScroll = maxScroll;
+                }
+            }
+        }
     }
 
     if (activeTab == MENU_TAB_INVENTORY) {
@@ -518,7 +572,8 @@ void updateGameMenu(float deltaTime) {
 void initGameMenu(void) {
     initRuneInventoryTab();
     activeTab = MENU_TAB_INVENTORY;
-    enterContent();
+    resetContentState();
+    enterTabSelect();
     createCloseMenuItem();
     setGameState(GAME_STATE_MENU);
 }

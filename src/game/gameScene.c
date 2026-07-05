@@ -50,7 +50,6 @@ void initRunStart(void) {
 	initSpells();
 	initRunes();
 	freeRuneInventoryCache();
-	createGameMenuItem();
 	initProgressionManager();
 	initTimers();
 	runStatsResetForNewRun();

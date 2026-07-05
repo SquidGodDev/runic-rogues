@@ -54,6 +54,10 @@ static float scrollAccum;
 static PDButtons heldDir;
 static float holdTimer;
 
+// When entering the scrollbar via a held Down press, ignore scroll input until the
+// player releases Down and presses it again.
+static bool scrollInputSuppressed;
+
 static const char *ROMAN_NUMERALS[] = { "", "I", "II", "III", "IV", "V" };
 
 static RunePageData getRunePage(RuneType runeType) {
@@ -177,7 +181,7 @@ static void drawRuneInventoryTab(RuneInventoryFocus focus) {
 
         if (maxDescScrollOffset > 0) {
             float viewRatio = (float)RUNE_DESC_HEIGHT / pageHeight;
-            int thumbH = (int)(RUNE_SCROLLBAR_TRACK_H * viewRatio);
+            int thumbH = (int)(RUNE_SCROLLBAR_TRACK_H * viewRatio) - 4;
             int thumbY = RUNE_SCROLLBAR_Y + (int)(RUNE_SCROLLBAR_TRACK_H * ((float)descScrollOffset / pageHeight)) + 1;
             pd->graphics->drawRoundRect(RUNE_SCROLLBAR_X, RUNE_SCROLLBAR_Y, 5, RUNE_SCROLLBAR_TRACK_H, 2, 1, kColorWhite);
             if (focus == RUNE_INV_FOCUS_SCROLLBAR) {
@@ -256,11 +260,17 @@ void updateRuneInventoryTab(float deltaTime, RuneInventoryFocus focus) {
             holdTimer = 0.0f;
         }
     } else if (focus == RUNE_INV_FOCUS_SCROLLBAR) {
-        if (current & kButtonUp) {
-            applyScroll(-RUNE_SCROLL_BUTTON_SPEED * deltaTime);
-        }
-        if (current & kButtonDown) {
-            applyScroll(RUNE_SCROLL_BUTTON_SPEED * deltaTime);
+        if (scrollInputSuppressed) {
+            if (!(current & kButtonDown)) {
+                scrollInputSuppressed = false;
+            }
+        } else {
+            if (current & kButtonUp) {
+                applyScroll(-RUNE_SCROLL_BUTTON_SPEED * deltaTime);
+            }
+            if (current & kButtonDown) {
+                applyScroll(RUNE_SCROLL_BUTTON_SPEED * deltaTime);
+            }
         }
     }
 
@@ -292,6 +302,14 @@ bool runeInventoryHasScrollbar(void) {
     return pageHeight > RUNE_DESC_HEIGHT;
 }
 
+bool runeInventoryAtScrollTop(void) {
+    return descScrollOffset <= 0;
+}
+
+void notifyEnterRuneScrollbar(void) {
+    scrollInputSuppressed = true;
+}
+
 void initRuneInventoryTab(void) {
     ownedRuneCount = 0;
     for (int i = RUNE_TYPE_NONE + 1; i < RUNE_TYPE_COUNT; i++) {
@@ -305,6 +323,7 @@ void initRuneInventoryTab(void) {
     animCursorIndex = 0.0f;
     heldDir = 0;
     holdTimer = 0.0f;
+    scrollInputSuppressed = false;
     resetDescScrollOffset();
 }
 

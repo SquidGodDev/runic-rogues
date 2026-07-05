@@ -11,4 +11,6 @@ typedef enum RuneInventoryFocus {
 void initRuneInventoryTab(void);
 void updateRuneInventoryTab(float deltaTime, RuneInventoryFocus focus);
 bool runeInventoryHasScrollbar(void);
+bool runeInventoryAtScrollTop(void);
+void notifyEnterRuneScrollbar(void);
 void freeRuneInventoryCache(void);

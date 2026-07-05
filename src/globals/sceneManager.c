@@ -13,6 +13,7 @@
 #include "title/gameOverScene.h"
 #include "game/gameScene.h"
 #include "game/tutorial/tutorialScene.h"
+#include "game/UI/gameMenu.h"
 
 // === Transition style selector ===
 // Swap this to switch between transition effects.
@@ -173,6 +174,12 @@ void initNextScene(void) {
         case SCENE_TUTORIAL:
             initTutorialScene();
             break;
+    }
+
+    if (currentScene == SCENE_GAME) {
+        createGameMenuItem();
+    } else {
+        removeGameMenuItem();
     }
 }
 
