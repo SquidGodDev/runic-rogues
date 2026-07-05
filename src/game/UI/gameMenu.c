@@ -270,15 +270,17 @@ static void drawTabBar(void) {
         }
 
         if (isOutlined) {
-            pd->graphics->setClipRect(x - 2, 1, TAB_WIDTH + 4, isActive ? 14 : 15);
-            pd->graphics->drawRoundRect(x - 2, 1, TAB_WIDTH + 4, 22, 3, 3, kColorWhite);
+            pd->graphics->setClipRect(x - 3, 1, TAB_WIDTH + 6, isActive ? 14 : 15);
+            pd->graphics->drawRoundRect(x - 2, 2, TAB_WIDTH + 4, 22, 3, 2, kColorWhite);
             pd->graphics->clearClipRect();
         } else if (isActive) {
             pd->graphics->setClipRect(x - 1, 2, TAB_WIDTH + 2, 13);
             pd->graphics->drawRoundRect(x - 1, 2, TAB_WIDTH + 2, 20, 2, 1, kColorWhite);
             pd->graphics->clearClipRect();
         } else {
-            pd->graphics->drawRoundRect(x, 3, TAB_WIDTH, 13, 2, 1, kColorWhite);
+            pd->graphics->setClipRect(x - 1, 2, TAB_WIDTH + 2, 13);
+            pd->graphics->drawRoundRect(x, 3, TAB_WIDTH, 14, 2, 1, kColorWhite);
+            pd->graphics->clearClipRect();
         }
 
         pd->graphics->drawBitmap(BITMAPS[TAB_ICONS[i]], x + 1, 4, kBitmapUnflipped);
@@ -326,12 +328,12 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             int labelW = pd->graphics->getTextWidth(font, label, labelLen, kUTF8Encoding, tracking);
             int btnW = labelW + 16;
             int btnX = (SCREEN_WIDTH - btnW) / 2;
-            textY += 3;
+            textY += 1;
             pd->graphics->drawText(label, labelLen, kUTF8Encoding, btnX + 8, textY);
             if (rowFocused) {
-                pd->graphics->drawRoundRect(btnX, rowY - 1, btnW, ROW_HEIGHT + 1, 3, 2, kColorWhite);
+                pd->graphics->drawRoundRect(btnX + 1, rowY, btnW - 2, ROW_HEIGHT - 1, 3, 2, kColorWhite);
             } else {
-                pd->graphics->drawRoundRect(btnX + 1, rowY + 1, btnW - 2, ROW_HEIGHT - 2, 3, 1, kColorWhite);
+                pd->graphics->drawRoundRect(btnX + 1, rowY, btnW - 2, ROW_HEIGHT - 1, 3, 1, kColorWhite);
             }
             continue;
         }
@@ -405,9 +407,9 @@ static void drawExitTab(void) {
         int textY = buttonY[i] + (buttonH - fontH) / 2;
         pd->graphics->drawText(label, labelLen, kUTF8Encoding, btnX + 12, textY);
         if (focus != FOCUS_TABS && exitSelRow == i) {
-            pd->graphics->drawRoundRect(btnX, buttonY[i], btnW, buttonH, 3, 2, kColorWhite);
+            pd->graphics->drawRoundRect(btnX, buttonY[i] + 1, btnW - 2, buttonH - 2, 3, 2, kColorWhite);
         } else {
-            pd->graphics->drawRoundRect(btnX + 1, buttonY[i] + 1, btnW - 2, buttonH - 2, 3, 1, kColorWhite);
+            pd->graphics->drawRoundRect(btnX, buttonY[i] + 1, btnW - 2, buttonH - 2, 3, 1, kColorWhite);
         }
     }
 }

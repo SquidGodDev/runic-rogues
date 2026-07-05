@@ -47,6 +47,7 @@ static bool runePageCached[RUNE_TYPE_COUNT];
 static int descScrollOffset;
 static int maxDescScrollOffset;
 static float scrollAccum;
+static Language lastPageLanguage;  // locale the scroll bounds were last computed for
 
 #define HOLD_DELAY      0.3f
 #define HOLD_REPEAT     0.2f
@@ -132,6 +133,7 @@ static RunePageData getRunePage(RuneType runeType) {
 }
 
 static void resetDescScrollOffset(void);
+static void updateMaxDescScrollOffset(void);
 
 static void drawRuneInventoryTab(RuneInventoryFocus focus) {
     if (ownedRuneCount > 0) {
@@ -226,6 +228,16 @@ static void applyScroll(float amount) {
 }
 
 void updateRuneInventoryTab(float deltaTime, RuneInventoryFocus focus) {
+    // The description page height differs per locale; if the language changed while the
+    // menu was open, recompute the scroll bounds before drawing with the new locale.
+    if (SETTINGS.language != lastPageLanguage) {
+        lastPageLanguage = SETTINGS.language;
+        updateMaxDescScrollOffset();
+        if (descScrollOffset > maxDescScrollOffset) {
+            descScrollOffset = maxDescScrollOffset;
+        }
+    }
+
     animCursorIndex = lerp(animCursorIndex, (float)cursorIndex, 0.2f);
 
     drawRuneInventoryTab(focus);
@@ -280,9 +292,7 @@ void updateRuneInventoryTab(float deltaTime, RuneInventoryFocus focus) {
     }
 }
 
-static void resetDescScrollOffset(void) {
-    descScrollOffset = 0;
-    scrollAccum = 0.0f;
+static void updateMaxDescScrollOffset(void) {
     if (ownedRuneCount == 0) {
         maxDescScrollOffset = 0;
         return;
@@ -291,6 +301,13 @@ static void resetDescScrollOffset(void) {
     int pageHeight = SETTINGS.language == LANGUAGE_JP ? page.pageHeightJP : page.pageHeightEN;
     int overflow = pageHeight - RUNE_DESC_HEIGHT;
     maxDescScrollOffset = overflow > 0 ? overflow : 0;
+}
+
+static void resetDescScrollOffset(void) {
+    descScrollOffset = 0;
+    scrollAccum = 0.0f;
+    lastPageLanguage = SETTINGS.language;
+    updateMaxDescScrollOffset();
 }
 
 bool runeInventoryHasScrollbar(void) {
