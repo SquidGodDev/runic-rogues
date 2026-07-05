@@ -133,6 +133,12 @@ void initSceneManager(void) {
 }
 
 void switchScene(Scene newScene) {
+    #if DEBUG_SKIP_AREA_MAP
+        if (newScene == SCENE_AREA_MAP) {
+            newScene = SCENE_GAME;
+        }
+    #endif
+
     nextScene = newScene;
 
     // If we interrupted a scene-in fade, let it keep playing in the trailing slot
