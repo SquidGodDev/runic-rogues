@@ -3,33 +3,31 @@
 
 #include "globals/globals.h"
 #include "globals/helpers.h"
-#include "globals/localization.h"
-#include "game/gameScene.h"
 #include "game/UI/runeInventory.h"
-#include "game/UI/quitConfirmDialog.h"
-#include "game/player/player.h"
 #include "game/systems/runeManager.h"
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
 
 // Row layout
 #define RUNE_ROW_CENTER_X       100
-#define RUNE_ROW_CENTER_Y       22
+#define RUNE_ROW_CENTER_Y       40
 #define RUNE_ROW_STRIDE         32
 #define RUNE_ROW_ICON_SIZE      28
 #define RUNE_ROW_SELECTED_LIFT  5
-#define RUNE_ROW_CLIP_BOTTOM    38
+#define RUNE_ROW_CLIP_TOP       16
+#define RUNE_ROW_CLIP_BOTTOM    56
 
 // Description layout
 #define RUNE_DESC_X             4
-#define RUNE_DESC_Y             45
+#define RUNE_DESC_Y             60
 #define RUNE_DESC_WIDTH         185
 #define RUNE_DESC_HEIGHT        (SCREEN_HEIGHT - RUNE_DESC_Y - 2)
-#define RUNE_SCROLLBAR_X        192
-#define RUNE_SCROLLBAR_Y        (RUNE_DESC_Y + 4)
-#define RUNE_SCROLLBAR_TRACK_H  (RUNE_DESC_HEIGHT - 8)
+#define RUNE_SCROLLBAR_X        193
+#define RUNE_SCROLLBAR_Y        61
+#define RUNE_SCROLLBAR_TRACK_H  57
 
 #define RUNE_SCROLL_SENSITIVITY 0.2f
+#define RUNE_SCROLL_BUTTON_SPEED 120.0f
 
 typedef struct RunePageData {
     LCDBitmap *pageBitmapEN;
@@ -37,8 +35,6 @@ typedef struct RunePageData {
     LCDBitmap *pageBitmapJP;
     int pageHeightJP;
 } RunePageData;
-
-static PDMenuItem *menuItem;
 
 static RuneType ownedRunesList[RUNE_TYPE_COUNT];
 static int ownedRuneCount;
@@ -50,6 +46,7 @@ static bool runePageCached[RUNE_TYPE_COUNT];
 
 static int descScrollOffset;
 static int maxDescScrollOffset;
+static float scrollAccum;
 
 #define HOLD_DELAY      0.3f
 #define HOLD_REPEAT     0.2f
@@ -131,19 +128,10 @@ static RunePageData getRunePage(RuneType runeType) {
 }
 
 static void resetDescScrollOffset(void);
-static void onExitMenuItemSelect(void *userdata);
 
-static void closeRuneInventory(void) {
-    suppressHeldPlayerButtons();
-    setGameState(GAME_STATE_ACTIVE);
-    createRuneInventoryMenuItem();
-}
-
-static void drawRuneInventory(void) {
-    pd->graphics->fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, kColorBlack);
-
+static void drawRuneInventoryTab(RuneInventoryFocus focus) {
     if (ownedRuneCount > 0) {
-        pd->graphics->setClipRect(0, 0, SCREEN_WIDTH, RUNE_ROW_CLIP_BOTTOM);
+        pd->graphics->setClipRect(0, RUNE_ROW_CLIP_TOP, SCREEN_WIDTH, RUNE_ROW_CLIP_BOTTOM - RUNE_ROW_CLIP_TOP + 1);
         for (int i = ownedRuneCount - 1; i >= 0; i--) {
             float iconCenterX = RUNE_ROW_CENTER_X + (i - animCursorIndex) * RUNE_ROW_STRIDE;
             if (iconCenterX < -RUNE_ROW_ICON_SIZE || iconCenterX > SCREEN_WIDTH + RUNE_ROW_ICON_SIZE) {
@@ -157,14 +145,14 @@ static void drawRuneInventory(void) {
             int drawX = (int)iconCenterX - RUNE_ROW_ICON_SIZE / 2;
             int drawY = iconCenterY - RUNE_ROW_ICON_SIZE / 2;
 
-            if (i == cursorIndex) {
-                pd->graphics->drawRect(drawX - 1, drawY - 1, RUNE_ROW_ICON_SIZE + 2, RUNE_ROW_ICON_SIZE + 2, kColorWhite);
-            }
-
             int bitmapIndex = getRuneIconIndex(ownedRunesList[i]);
             pd->graphics->setClipRect(drawX, drawY, RUNE_ROW_ICON_SIZE, RUNE_ROW_ICON_SIZE);
             pd->graphics->drawBitmap(BITMAPS[bitmapIndex], drawX, drawY, kBitmapUnflipped);
-            pd->graphics->clearClipRect();
+            pd->graphics->setClipRect(0, RUNE_ROW_CLIP_TOP, SCREEN_WIDTH, RUNE_ROW_CLIP_BOTTOM - RUNE_ROW_CLIP_TOP + 1);
+
+            if (i == cursorIndex && focus == RUNE_INV_FOCUS_RUNES) {
+                pd->graphics->drawBitmap(BITMAPS[BITMAP_MENU_RUNE_SELECT_CURSOR], drawX - 1, drawY - 1, kBitmapUnflipped);
+            }
         }
         pd->graphics->clearClipRect();
     }
@@ -190,9 +178,15 @@ static void drawRuneInventory(void) {
         if (maxDescScrollOffset > 0) {
             float viewRatio = (float)RUNE_DESC_HEIGHT / pageHeight;
             int thumbH = (int)(RUNE_SCROLLBAR_TRACK_H * viewRatio);
-            int thumbY = RUNE_SCROLLBAR_Y + (int)(RUNE_SCROLLBAR_TRACK_H * ((float)descScrollOffset / pageHeight));
-            pd->graphics->drawRoundRect(RUNE_SCROLLBAR_X, RUNE_SCROLLBAR_Y, 5, RUNE_SCROLLBAR_TRACK_H, 1, 1, kColorWhite);
-            pd->graphics->drawLine(RUNE_SCROLLBAR_X + 2, thumbY + 2, RUNE_SCROLLBAR_X + 2, thumbY + thumbH, 1, kColorWhite);
+            int thumbY = RUNE_SCROLLBAR_Y + (int)(RUNE_SCROLLBAR_TRACK_H * ((float)descScrollOffset / pageHeight)) + 1;
+            pd->graphics->drawRoundRect(RUNE_SCROLLBAR_X, RUNE_SCROLLBAR_Y, 5, RUNE_SCROLLBAR_TRACK_H, 2, 1, kColorWhite);
+            if (focus == RUNE_INV_FOCUS_SCROLLBAR) {
+                pd->graphics->drawLine(RUNE_SCROLLBAR_X + 2, thumbY + 2, RUNE_SCROLLBAR_X + 2, thumbY + thumbH, 1, kColorWhite);
+            } else {
+                for (int dotY = thumbY + 2; dotY <= thumbY + thumbH; dotY += 2) {
+                    pd->graphics->fillRect(RUNE_SCROLLBAR_X + 2, dotY, 1, 1, kColorWhite);
+                }
+            }
         }
     }
 }
@@ -215,58 +209,70 @@ static void navigate(PDButtons dir) {
     }
 }
 
-void updateRuneInventory(float deltaTime) {
+static void applyScroll(float amount) {
+    scrollAccum += amount;
+    int step = (int)scrollAccum;
+    scrollAccum -= step;
+    descScrollOffset += step;
+    if (descScrollOffset < 0) {
+        descScrollOffset = 0;
+    } else if (descScrollOffset > maxDescScrollOffset) {
+        descScrollOffset = maxDescScrollOffset;
+    }
+}
+
+void updateRuneInventoryTab(float deltaTime, RuneInventoryFocus focus) {
     animCursorIndex = lerp(animCursorIndex, (float)cursorIndex, 0.2f);
 
-    drawRuneInventory();
+    drawRuneInventoryTab(focus);
+
+    if (ownedRuneCount == 0 || focus == RUNE_INV_FOCUS_NONE) {
+        return;
+    }
 
     PDButtons current, pushed;
     pd->system->getButtonState(&current, &pushed, NULL);
 
-    if (pushed & kButtonB) {
-        closeRuneInventory();
-        return;
-    }
+    if (focus == RUNE_INV_FOCUS_RUNES) {
+        PDButtons dirCurrent = current & (kButtonLeft | kButtonRight);
+        PDButtons dirPushed = pushed & (kButtonLeft | kButtonRight);
 
-    if (ownedRuneCount == 0) {
-        return;
-    }
-
-    PDButtons dirCurrent = current & (kButtonLeft | kButtonRight);
-    PDButtons dirPushed = pushed & (kButtonLeft | kButtonRight);
-
-    if (dirPushed) {
-        heldDir = dirPushed;
-        holdTimer = 0.0f;
-        navigate(dirPushed);
-    } else if (dirCurrent && dirCurrent == heldDir) {
-        float prevTimer = holdTimer;
-        holdTimer += deltaTime;
-        if (holdTimer >= HOLD_DELAY) {
-            float phase = holdTimer - HOLD_DELAY;
-            float prevPhase = prevTimer >= HOLD_DELAY ? prevTimer - HOLD_DELAY : 0.0f;
-            if ((int)(phase / HOLD_REPEAT) > (int)(prevPhase / HOLD_REPEAT)) {
-                navigate(heldDir);
+        if (dirPushed) {
+            heldDir = dirPushed;
+            holdTimer = 0.0f;
+            navigate(dirPushed);
+        } else if (dirCurrent && dirCurrent == heldDir) {
+            float prevTimer = holdTimer;
+            holdTimer += deltaTime;
+            if (holdTimer >= HOLD_DELAY) {
+                float phase = holdTimer - HOLD_DELAY;
+                float prevPhase = prevTimer >= HOLD_DELAY ? prevTimer - HOLD_DELAY : 0.0f;
+                if ((int)(phase / HOLD_REPEAT) > (int)(prevPhase / HOLD_REPEAT)) {
+                    navigate(heldDir);
+                }
             }
+        } else {
+            heldDir = 0;
+            holdTimer = 0.0f;
         }
-    } else {
-        heldDir = 0;
-        holdTimer = 0.0f;
+    } else if (focus == RUNE_INV_FOCUS_SCROLLBAR) {
+        if (current & kButtonUp) {
+            applyScroll(-RUNE_SCROLL_BUTTON_SPEED * deltaTime);
+        }
+        if (current & kButtonDown) {
+            applyScroll(RUNE_SCROLL_BUTTON_SPEED * deltaTime);
+        }
     }
 
     float crankChange = pd->system->getCrankChange() * RUNE_SCROLL_SENSITIVITY;
     if (crankChange != 0) {
-        descScrollOffset += (int)crankChange;
-        if (descScrollOffset < 0) {
-            descScrollOffset = 0;
-        } else if (descScrollOffset > maxDescScrollOffset) {
-            descScrollOffset = maxDescScrollOffset;
-        }
+        applyScroll(crankChange);
     }
 }
 
 static void resetDescScrollOffset(void) {
     descScrollOffset = 0;
+    scrollAccum = 0.0f;
     if (ownedRuneCount == 0) {
         maxDescScrollOffset = 0;
         return;
@@ -277,8 +283,16 @@ static void resetDescScrollOffset(void) {
     maxDescScrollOffset = overflow > 0 ? overflow : 0;
 }
 
+bool runeInventoryHasScrollbar(void) {
+    if (ownedRuneCount == 0) {
+        return false;
+    }
+    RunePageData page = getRunePage(ownedRunesList[cursorIndex]);
+    int pageHeight = SETTINGS.language == LANGUAGE_JP ? page.pageHeightJP : page.pageHeightEN;
+    return pageHeight > RUNE_DESC_HEIGHT;
+}
 
-void initRuneInventory(void) {
+void initRuneInventoryTab(void) {
     ownedRuneCount = 0;
     for (int i = RUNE_TYPE_NONE + 1; i < RUNE_TYPE_COUNT; i++) {
         if (runeIsOwned((RuneType)i)) {
@@ -292,39 +306,6 @@ void initRuneInventory(void) {
     heldDir = 0;
     holdTimer = 0.0f;
     resetDescScrollOffset();
-
-    if (menuItem != NULL) {
-        pd->system->removeMenuItem(menuItem);
-    }
-    menuItem = pd->system->addMenuItem(getLocString(STR_MENU_CLOSE), onExitMenuItemSelect, NULL);
-    createQuitRunMenuItem();
-
-    setGameState(GAME_STATE_RUNE_INVENTORY);
-}
-
-static void onExitMenuItemSelect(void *userdata) {
-    closeRuneInventory();
-}
-
-static void onMenuItemSelect(void *userdata) {
-    if (gameState == GAME_STATE_ACTIVE) {
-        initRuneInventory();
-    }
-}
-
-void createRuneInventoryMenuItem(void) {
-    if (menuItem != NULL) {
-        pd->system->removeMenuItem(menuItem);
-    }
-    menuItem = pd->system->addMenuItem(getLocString(STR_MENU_RUNES), onMenuItemSelect, NULL);
-    createQuitRunMenuItem();
-}
-
-void removeRuneInventoryMenuItem(void) {
-    if (menuItem != NULL) {
-        pd->system->removeMenuItem(menuItem);
-        menuItem = NULL;
-    }
 }
 
 void freeRuneInventoryCache(void) {

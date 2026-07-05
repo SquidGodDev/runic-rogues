@@ -156,7 +156,13 @@ const char *bitmapPathStrings[] = {
 	"images/areaMap/knightIcon",
 	"images/areaMap/mageIcon",
 	"images/areaMap/rogueIcon",
-	"images/areaMap/rangerIcon"
+	"images/areaMap/rangerIcon",
+	"images/UI/settings/inventoryIcon",
+	"images/UI/settings/gearIcon",
+	"images/UI/settings/inputIcon",
+	"images/UI/settings/audioIcon",
+	"images/UI/settings/exitIcon",
+	"images/UI/settings/runeSelectCursor"
 };
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];

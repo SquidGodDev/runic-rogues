@@ -313,9 +313,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_THUNDERCLOUD] = {
         .nameEN = "Thundercloud",
-        .nameJP = "",
-        .descriptionEN = "Strike a nearby enemy with lightning every {T}s for {1} damage, chaining to {2} enemies.",
-        .descriptionJP = "",
+        .nameJP = "サンダークラウド",
+        .descriptionEN = "Strike a nearby enemy with lightning every {T}s for {1} damage, chaining to {2} enemies. TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST ",
+        .descriptionJP = "近くの敵に雷を落とし、{T}秒ごとに{1}ダメージを与え、{2}体の敵に連鎖する。",
         .iconIndex = BITMAP_RUNE_THUNDERCLOUD,
         .primaryBaseValue   = 10, // damage
         .primaryPerLevel    = 0,
@@ -358,7 +358,7 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_QUARTZ_CLUSTER, 1);
     // setRuneLevel(RUNE_TYPE_ENCHANTED_AMULET, 1);
     // setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
-    // setRuneLevel(RUNE_TYPE_THUNDERCLOUD, 1);
+    setRuneLevel(RUNE_TYPE_THUNDERCLOUD, 1);
 }
 
 bool runeIsOwned(RuneType type) {

@@ -6,7 +6,7 @@
 #include "globals/sceneManager.h"
 #include "game/gameScene.h"
 #include "game/UI/quitConfirmDialog.h"
-#include "game/UI/runeInventory.h"
+#include "game/UI/gameMenu.h"
 #include "game/player/player.h"
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
@@ -30,7 +30,6 @@
 static LCDBitmap *gameScreenshot = NULL;
 static GameState previousGameState;
 static int selectedButtonIndex;
-static PDMenuItem *quitMenuItem = NULL;
 static bool initPending = false;
 
 static const char *getHeaderText(void) {
@@ -90,8 +89,11 @@ static void closeDialog(void) {
 }
 
 static void confirmQuit(void) {
-    removeRuneInventoryMenuItem();
-    removeQuitRunMenuItem();
+    removeGameMenuItem();
+    if (isTutorialActive()) {
+        removeSkipTutorialMenuItem();
+        setTutorialActive(false);
+    }
     setGameState(GAME_STATE_QUITTING);
     switchScene(SCENE_TITLE);
 }
@@ -195,26 +197,3 @@ void updateQuitConfirmDialog(float deltaTime) {
     }
 }
 
-static void onQuitRunMenuItemSelect(void *userdata) {
-    if (gameState == GAME_STATE_QUIT_CONFIRM || gameState == GAME_STATE_SHOP) {
-        return;
-    }
-    initQuitConfirmDialog();
-}
-
-void createQuitRunMenuItem(void) {
-    if (isTutorialActive()) {
-        return;
-    }
-    if (quitMenuItem != NULL) {
-        pd->system->removeMenuItem(quitMenuItem);
-    }
-    quitMenuItem = pd->system->addMenuItem(getLocString(STR_MENU_QUIT_RUN), onQuitRunMenuItemSelect, NULL);
-}
-
-void removeQuitRunMenuItem(void) {
-    if (quitMenuItem != NULL) {
-        pd->system->removeMenuItem(quitMenuItem);
-        quitMenuItem = NULL;
-    }
-}

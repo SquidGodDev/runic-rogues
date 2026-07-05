@@ -12,6 +12,7 @@
 #include "game/UI/UI.h"
 #include "game/UI/quitConfirmDialog.h"
 #include "game/UI/runeInventory.h"
+#include "game/UI/gameMenu.h"
 #include "game/player/player.h"
 #include "game/enemies/enemies.h"
 #include "game/entities/interactables.h"
@@ -78,7 +79,7 @@ void setTutorialActive(bool active) {
     tutorialActive = active;
 }
 
-static void removeSkipTutorialMenuItem(void) {
+void removeSkipTutorialMenuItem(void) {
     if (skipMenuItem != NULL) {
         pd->system->removeMenuItem(skipMenuItem);
         skipMenuItem = NULL;
@@ -150,7 +151,6 @@ static int dummiesAlive(void) {
 void initTutorialScene(void) {
     setCurrentArea(AREA_TUTORIAL);
     setTutorialActive(true);
-    removeQuitRunMenuItem();
     initGameScene();
 
     removeSkipTutorialMenuItem();
@@ -435,6 +435,7 @@ static void updateTutorialPhase(float deltaTime) {
 }
 
 void updateTutorialScene(float deltaTime) {
+    tryCompleteQuitDialogInit();
     runStatsTick(deltaTime);
     if (tPhase == TUTORIAL_DONE) {
         return;
@@ -452,11 +453,15 @@ void updateTutorialScene(float deltaTime) {
         drawTutorialDialog();
     } else if (gameState == GAME_STATE_SHOP) {
         updateShop(deltaTime);
-    } else if (gameState == GAME_STATE_RUNE_INVENTORY) {
-        updateRuneInventory(deltaTime);
+    } else if (gameState == GAME_STATE_MENU) {
+        updateGameMenu(deltaTime);
         if (tPhase == TUTORIAL_R5_WAITING) {
             openedRuneInv = true;
         }
+    } else if (gameState == GAME_STATE_QUIT_CONFIRM) {
+        updateQuitConfirmDialog(deltaTime);
+    } else if (gameState == GAME_STATE_QUITTING) {
+        drawQuitScreenshot();
     }
 
     if (SETTINGS.drawFPS) {

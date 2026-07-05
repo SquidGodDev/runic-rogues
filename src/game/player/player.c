@@ -18,8 +18,10 @@
 #include "game/systems/progressionManager.h"
 #include "game/systems/runeManager.h"
 #include "game/systems/runStats.h"
+#include "game/settings/settings.h"
 
 #define CRANK_SENSITIVITY 0.0075f
+#define CRANK_ABSOLUTE_SENSITIVITY (PI / 180.0f) // 1 crank revolution = 1 full turn
 // Spawn the projectile slightly to the right to match hand
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
@@ -292,7 +294,7 @@ static void updateSpecialSpellCharge(float deltaTime, bool bHeld) {
 
 void handleInput(float deltaTime)
 {
-	defaultStrafeSetting = !pd->system->isCrankDocked();
+	defaultStrafeSetting = !pd->system->isCrankDocked() && SETTINGS.dpadStrafe;
 
 	int cellSize = CELL_SIZE;
 	int mapWidth = MAP_WIDTH;
@@ -328,9 +330,16 @@ void handleInput(float deltaTime)
 		}
 	}
 
+	PDButtons basicSpellButton = SETTINGS.spellButtonsReversed ? kButtonB : kButtonA;
+	PDButtons specialSpellButton = SETTINGS.spellButtonsReversed ? kButtonA : kButtonB;
+	// The A button also interacts, so whichever spell sits on A yields to interactions
+	bool interactBlocked = playerState.interactableIndex != -1 || playerState.interactedOnPress;
+	bool basicSpellHeld = (current & basicSpellButton) && (basicSpellButton != kButtonA || !interactBlocked);
+	bool specialSpellHeld = (current & specialSpellButton) && (specialSpellButton != kButtonA || !interactBlocked);
+
 	if (weaponAnimation.isChargeSpell) {
-		updateBasicSpellCharge(deltaTime, current & kButtonA);
-	} else if (playerState.interactableIndex == -1 && (current & kButtonA) && !playerState.interactedOnPress) {
+		updateBasicSpellCharge(deltaTime, current & basicSpellButton);
+	} else if (basicSpellHeld) {
 		bool animationCancellable = weaponAnimation.curFrame == 0 || weaponAnimation.curFrame > weaponAnimation.activeFrame;
 		if(spellIsCastable(BASIC_SPELL_INDEX) && animationCancellable) {
 			startWeaponAnimation(BASIC_SPELL_INDEX);
@@ -343,7 +352,7 @@ void handleInput(float deltaTime)
 	}
 
 	PDButtons pressedDirection = pushed & (kButtonLeft | kButtonRight | kButtonUp | kButtonDown);
-	if (pressedDirection && !(current & kButtonB)) {
+	if (pressedDirection && !(current & specialSpellButton)) {
 		if (movementStats.dashDoubleTapTime > 0 && (movementStats.dashMovementDir & pressedDirection)) {
 			movementStats.dashDoubleTapTime = 0;
 			castUtilitySpell();
@@ -358,8 +367,8 @@ void handleInput(float deltaTime)
 	// }
 
 	if (spellIsCharged(getSpecialSpell())) {
-		updateSpecialSpellCharge(deltaTime, current & kButtonB);
-	} else if (current & kButtonB) {
+		updateSpecialSpellCharge(deltaTime, current & specialSpellButton);
+	} else if (specialSpellHeld) {
 		if (castSpecialSpell() && (getCurrentClassType() == CLASS_MAGE)) {
 			startWeaponAnimation(SPECIAL_SPELL_INDEX);
 		}
@@ -374,21 +383,28 @@ void handleInput(float deltaTime)
 	int strafeEnabled = (defaultStrafeSetting != bButtonPressed) || playerIsDashing;
 	float crankChange = inputDisabled ? 0.0f : pd->system->getCrankChange();
 
-	if ((current & kButtonLeft) && rotationEnabled) {
-		if (movementStats.turnSpeed > -movementStats.turnInitialSpeed) {
-			movementStats.turnSpeed = -movementStats.turnInitialSpeed;
+	PDButtons turnLeftButton = SETTINGS.invertDpad ? kButtonRight : kButtonLeft;
+	PDButtons turnRightButton = SETTINGS.invertDpad ? kButtonLeft : kButtonRight;
+	float dpadTurnMultiplier = getDpadTurnSpeedMultiplier();
+	float turnInitialSpeed = movementStats.turnInitialSpeed * dpadTurnMultiplier;
+	float turnAcceleration = movementStats.turnAcceleration * dpadTurnMultiplier;
+	float turnMaxSpeed = movementStats.turnMaxSpeed * dpadTurnMultiplier;
+
+	if ((current & turnLeftButton) && rotationEnabled) {
+		if (movementStats.turnSpeed > -turnInitialSpeed) {
+			movementStats.turnSpeed = -turnInitialSpeed;
 		}
-		movementStats.turnSpeed -= movementStats.turnAcceleration * deltaTime; 
-		if (movementStats.turnSpeed < -movementStats.turnMaxSpeed) {
-			movementStats.turnSpeed = -movementStats.turnMaxSpeed;
+		movementStats.turnSpeed -= turnAcceleration * deltaTime;
+		if (movementStats.turnSpeed < -turnMaxSpeed) {
+			movementStats.turnSpeed = -turnMaxSpeed;
 		}
-	} else if ((current & kButtonRight) && rotationEnabled) {
-		if (movementStats.turnSpeed < movementStats.turnInitialSpeed) {
-			movementStats.turnSpeed = movementStats.turnInitialSpeed;
+	} else if ((current & turnRightButton) && rotationEnabled) {
+		if (movementStats.turnSpeed < turnInitialSpeed) {
+			movementStats.turnSpeed = turnInitialSpeed;
 		}
-		movementStats.turnSpeed += movementStats.turnAcceleration * deltaTime; 
-		if (movementStats.turnSpeed > movementStats.turnMaxSpeed) {
-			movementStats.turnSpeed = movementStats.turnMaxSpeed;
+		movementStats.turnSpeed += turnAcceleration * deltaTime;
+		if (movementStats.turnSpeed > turnMaxSpeed) {
+			movementStats.turnSpeed = turnMaxSpeed;
 		}
 	} else {
 		if (movementStats.turnSpeed < 0.5f && movementStats.turnSpeed > -0.5f) {
@@ -400,7 +416,16 @@ void handleInput(float deltaTime)
 		}
 	}
 
-	float adjustedTurnSpeed = movementStats.turnSpeed * deltaTime + crankChange * CRANK_SENSITIVITY;
+	float crankRadians;
+	if (SETTINGS.absoluteCrank) {
+		crankRadians = crankChange * CRANK_ABSOLUTE_SENSITIVITY;
+	} else {
+		crankRadians = crankChange * CRANK_SENSITIVITY * getCrankTurnSpeedMultiplier();
+	}
+	if (SETTINGS.invertCrank) {
+		crankRadians = -crankRadians;
+	}
+	float adjustedTurnSpeed = movementStats.turnSpeed * deltaTime + crankRadians;
 	playerAngle += adjustedTurnSpeed;
 	if (playerAngle < 0) {
 		playerAngle += 2 * PI;

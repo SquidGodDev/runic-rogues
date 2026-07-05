@@ -8,8 +8,7 @@
 // If a JP value is NULL in the table, getLocString falls back to EN.
 typedef enum StringKey {
     // System menu items
-    STR_MENU_QUIT_RUN,
-    STR_MENU_RUNES,
+    STR_MENU_MENU,
     STR_MENU_CLOSE,
     STR_MENU_SKIP_TUTORIAL,
 
@@ -18,6 +17,26 @@ typedef enum StringKey {
     STR_QUIT_RUN_BODY,
     STR_YES,
     STR_NO,
+
+    // In-game menu settings tabs
+    STR_SETTING_LANGUAGE,
+    STR_SETTING_DRAW_FPS,
+    STR_SETTING_CRANK_TURN_SPEED,
+    STR_SETTING_ABSOLUTE_CRANK,
+    STR_SETTING_INVERT_CRANK,
+    STR_SETTING_DPAD_TURN_SPEED,
+    STR_SETTING_DPAD_STRAFE,
+    STR_SETTING_INVERT_DPAD,
+    STR_SETTING_SWAP_SPELL_BUTTONS,
+    STR_SETTING_MUSIC_VOLUME,
+    STR_SETTING_SFX_VOLUME,
+    STR_SETTING_RESET,
+    STR_RESET_CONFIRM_TITLE,
+    STR_RESET_CONFIRM_BODY,
+
+    // In-game menu exit tab
+    STR_EXIT_CLOSE_MENU,
+    STR_EXIT_QUIT_RUN,
 
     // Title scene
     STR_TITLE_BUTTON_START,

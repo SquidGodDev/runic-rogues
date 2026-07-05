@@ -5,5 +5,3 @@ void updateQuitConfirmDialog(float deltaTime);
 void drawQuitScreenshot(void);
 void freeQuitScreenshot(void);
 void tryCompleteQuitDialogInit(void);
-void createQuitRunMenuItem(void);
-void removeQuitRunMenuItem(void);

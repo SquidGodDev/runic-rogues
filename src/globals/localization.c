@@ -21,12 +21,8 @@ typedef struct LocEntry {
 
 static const LocEntry LOC_TABLE[STR_COUNT] = {
     // System menu items (Playdate system menu is ASCII-only, so JP is left as EN)
-    [STR_MENU_QUIT_RUN] = {
-        "Quit Run",
-        NULL,
-    },
-    [STR_MENU_RUNES] = {
-        "Runes",
+    [STR_MENU_MENU] = {
+        "Menu",
         NULL,
     },
     [STR_MENU_CLOSE] = {
@@ -54,6 +50,74 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
     [STR_NO] = {
         "No",
         "いいえ",
+    },
+
+    // In-game menu settings tabs
+    [STR_SETTING_LANGUAGE] = {
+        "Language",
+        "言語",
+    },
+    [STR_SETTING_DRAW_FPS] = {
+        "Draw FPS",
+        "FPS表示",
+    },
+    [STR_SETTING_CRANK_TURN_SPEED] = {
+        "Crank Turn Speed",
+        "クランク回転速度",
+    },
+    [STR_SETTING_ABSOLUTE_CRANK] = {
+        "Absolute Crank",
+        "クランク絶対角度",
+    },
+    [STR_SETTING_INVERT_CRANK] = {
+        "Invert Crank",
+        "クランク反転",
+    },
+    [STR_SETTING_DPAD_TURN_SPEED] = {
+        "D-Pad Turn Speed",
+        "十字キー回転速度",
+    },
+    [STR_SETTING_DPAD_STRAFE] = {
+        "D-Pad Strafe",
+        "十字キー平行移動",
+    },
+    [STR_SETTING_INVERT_DPAD] = {
+        "Invert D-Pad",
+        "十字キー反転",
+    },
+    [STR_SETTING_SWAP_SPELL_BUTTONS] = {
+        "Swap Spell Buttons",
+        "呪文ボタン入替",
+    },
+    [STR_SETTING_MUSIC_VOLUME] = {
+        "Music Volume",
+        "BGM音量",
+    },
+    [STR_SETTING_SFX_VOLUME] = {
+        "SFX Volume",
+        "SE音量",
+    },
+    [STR_SETTING_RESET] = {
+        "Reset to Default",
+        "初期設定に戻す",
+    },
+    [STR_RESET_CONFIRM_TITLE] = {
+        "Reset Settings?",
+        "設定をリセット？",
+    },
+    [STR_RESET_CONFIRM_BODY] = {
+        "Reset this tab's settings to their defaults?",
+        "このタブの設定を初期値に戻しますか？",
+    },
+
+    // In-game menu exit tab
+    [STR_EXIT_CLOSE_MENU] = {
+        "Close Menu",
+        "メニューを閉じる",
+    },
+    [STR_EXIT_QUIT_RUN] = {
+        "Quit Run",
+        "ランをやめる",
     },
 
     [STR_TITLE_BUTTON_START] = {

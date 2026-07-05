@@ -22,6 +22,7 @@
 #include "game/systems/runeManager.h"
 #include "game/systems/shopManager.h"
 #include "game/UI/runeInventory.h"
+#include "game/UI/gameMenu.h"
 #include "game/UI/quitConfirmDialog.h"
 #include "game/systems/timerManager.h"
 #include "game/systems/spawnManager.h"
@@ -49,8 +50,7 @@ void initRunStart(void) {
 	initSpells();
 	initRunes();
 	freeRuneInventoryCache();
-	createRuneInventoryMenuItem();
-	createQuitRunMenuItem();
+	createGameMenuItem();
 	initProgressionManager();
 	initTimers();
 	runStatsResetForNewRun();
@@ -124,8 +124,8 @@ void updateGameScene(float deltaTime)
 		}
 	} else if (gameState == GAME_STATE_SHOP) {
 		updateShop(deltaTime);
-	} else if (gameState == GAME_STATE_RUNE_INVENTORY) {
-		updateRuneInventory(deltaTime);
+	} else if (gameState == GAME_STATE_MENU) {
+		updateGameMenu(deltaTime);
 	} else if (gameState == GAME_STATE_BOSS_CINEMATIC) {
 		updateBossCinematic(deltaTime);
 		updateEnemies(deltaTime);
