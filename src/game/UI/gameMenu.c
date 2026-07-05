@@ -71,8 +71,8 @@ typedef enum MenuFocus {
 #define DIALOG_X ((SCREEN_WIDTH - DIALOG_WIDTH) / 2)
 #define DIALOG_Y ((SCREEN_HEIGHT - DIALOG_HEIGHT) / 2)
 
-#define HOLD_DELAY  0.3f
-#define HOLD_REPEAT 0.2f
+#define HOLD_DELAY  0.2f
+#define HOLD_REPEAT 0.1f
 
 typedef enum SettingControlType {
     CONTROL_LANGUAGE,
@@ -136,6 +136,9 @@ static float scrollTargetPx;  // where the list is scrolling toward
 
 static PDButtons adjHeldDir;
 static float adjHoldTimer;
+
+static PDButtons navHeldDir;
+static float navHoldTimer;
 
 static void createCloseMenuItem(void);
 
@@ -202,6 +205,34 @@ static void stepBarSetting(int *value, PDButtons dir) {
         *value = newValue;
         saveGame();
     }
+}
+
+// Returns the direction within dirMask that should move the selection this frame,
+// firing once on press and then repeating while held (HOLD_DELAY, HOLD_REPEAT).
+// Used for both the settings list (up/down) and the tab bar (left/right).
+static PDButtons navRepeat(PDButtons dirMask, PDButtons current, PDButtons pushed, float deltaTime) {
+    PDButtons dirPushed = pushed & dirMask;
+    PDButtons dirCurrent = current & dirMask;
+    if (dirPushed) {
+        navHeldDir = dirPushed;
+        navHoldTimer = 0.0f;
+        return dirPushed;
+    }
+    if (dirCurrent && dirCurrent == navHeldDir) {
+        float prevTimer = navHoldTimer;
+        navHoldTimer += deltaTime;
+        if (navHoldTimer >= HOLD_DELAY) {
+            float phase = navHoldTimer - HOLD_DELAY;
+            float prevPhase = prevTimer >= HOLD_DELAY ? prevTimer - HOLD_DELAY : 0.0f;
+            if ((int)(phase / HOLD_REPEAT) > (int)(prevPhase / HOLD_REPEAT)) {
+                return navHeldDir;
+            }
+        }
+        return 0;
+    }
+    navHeldDir = 0;
+    navHoldTimer = 0.0f;
+    return 0;
 }
 
 static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, PDButtons pushed, float deltaTime) {
@@ -490,11 +521,12 @@ void updateGameMenu(float deltaTime) {
             focus = FOCUS_CONTENT;
         }
     } else if (focus == FOCUS_TABS) {
-        if (pushed & kButtonLeft) {
+        PDButtons navDir = navRepeat(kButtonLeft | kButtonRight, current, pushed, deltaTime);
+        if (navDir & kButtonLeft) {
             selectedTab = (selectedTab + MENU_TAB_COUNT - 1) % MENU_TAB_COUNT;
             activeTab = selectedTab;
             resetContentState();
-        } else if (pushed & kButtonRight) {
+        } else if (navDir & kButtonRight) {
             selectedTab = (selectedTab + 1) % MENU_TAB_COUNT;
             activeTab = selectedTab;
             resetContentState();
@@ -542,16 +574,17 @@ void updateGameMenu(float deltaTime) {
         }
     } else {
         const SettingsTabDef *tab = &SETTINGS_TABS[activeTab];
+        PDButtons navDir = navRepeat(kButtonUp | kButtonDown, current, pushed, deltaTime);
         if (pushed & kButtonB) {
             enterTabSelect();
-        } else if (pushed & kButtonUp) {
-            if (listSelRow == 0) {
-                enterTabSelect();
-            } else {
+        } else if (navDir & kButtonUp) {
+            if (listSelRow > 0) {
                 listSelRow--;
                 ensureRowVisible();
+            } else if (pushed & kButtonUp) {
+                enterTabSelect();
             }
-        } else if (pushed & kButtonDown) {
+        } else if (navDir & kButtonDown) {
             if (listSelRow < tab->rowCount - 1) {
                 listSelRow++;
                 ensureRowVisible();

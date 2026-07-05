@@ -355,9 +355,9 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_NEEDLE_AND_THREAD, 1);
     // setRuneLevel(RUNE_TYPE_HAMMER_AND_NAILS, 1);
     // setRuneLevel(RUNE_TYPE_MAGNIFYING_GLASS, 1);
-    // setRuneLevel(RUNE_TYPE_QUARTZ_CLUSTER, 1);
-    // setRuneLevel(RUNE_TYPE_ENCHANTED_AMULET, 1);
-    // setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
+    setRuneLevel(RUNE_TYPE_QUARTZ_CLUSTER, 1);
+    setRuneLevel(RUNE_TYPE_ENCHANTED_AMULET, 1);
+    setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
     setRuneLevel(RUNE_TYPE_THUNDERCLOUD, 1);
 }
 
