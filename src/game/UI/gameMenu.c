@@ -52,7 +52,7 @@ typedef enum MenuFocus {
 #define ROW_WIDTH        192
 #define CONTROL_RIGHT_X  190
 #define BAR_WIDTH        44
-#define BAR_HEIGHT       9
+#define BAR_HEIGHT       8
 
 // Settings scrollbar — position indicator shown when a tab's list exceeds VISIBLE_ROWS.
 // Not selectable; the crank scrolls the list. When present, controls and the selection
@@ -343,16 +343,16 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
 
         if (row->type == CONTROL_CHECKBOX) {
             bool value = *(bool *)row->value;
-            int boxX = controlRightX - 9;
-            int boxY = rowY + (ROW_HEIGHT - 9) / 2;
-            pd->graphics->drawRect(boxX, boxY, 9, 9, kColorWhite);
+            int boxX = controlRightX - 8;
+            int boxY = rowY + (ROW_HEIGHT - 9) / 2;  // keep prior top; box shrinks to 8x8
+            pd->graphics->drawRect(boxX, boxY, 8, 8, kColorWhite);
             if (value) {
-                pd->graphics->fillRect(boxX + 2, boxY + 2, 5, 5, kColorWhite);
+                pd->graphics->fillRect(boxX + 2, boxY + 2, 4, 4, kColorWhite);
             }
         } else if (row->type == CONTROL_BAR) {
             int level = *(int *)row->value;
             int barX = controlRightX - BAR_WIDTH;
-            int barY = rowY + (ROW_HEIGHT - BAR_HEIGHT) / 2;
+            int barY = rowY + (ROW_HEIGHT - BAR_HEIGHT) / 2 - 1;
             pd->graphics->drawRect(barX, barY, BAR_WIDTH, BAR_HEIGHT, kColorWhite);
             if (level > 0) {
                 pd->graphics->fillRect(barX + 1, barY + 1, level * 7, BAR_HEIGHT - 2, kColorWhite);
@@ -371,7 +371,7 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
         }
 
         if (rowFocused) {
-            pd->graphics->drawRoundRect(ROW_X, rowY - 1, rowWidth, ROW_HEIGHT + 1, 3, 1, kColorWhite);
+            pd->graphics->drawRoundRect(ROW_X, rowY - 1, rowWidth, ROW_HEIGHT, 3, 1, kColorWhite);
         }
     }
 
