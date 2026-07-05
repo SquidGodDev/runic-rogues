@@ -103,7 +103,7 @@ static RunePageData getRunePage(RuneType runeType) {
 
     // JP bitmap
     {
-        int titleTracking = 0;
+        int titleTracking = -4;
         int tracking = 1;
         int leading = 2;
         int titleH = pd->graphics->getFontHeight(fontTitleJP);
@@ -228,8 +228,6 @@ static void applyScroll(float amount) {
 }
 
 void updateRuneInventoryTab(float deltaTime, RuneInventoryFocus focus) {
-    // The description page height differs per locale; if the language changed while the
-    // menu was open, recompute the scroll bounds before drawing with the new locale.
     if (SETTINGS.language != lastPageLanguage) {
         lastPageLanguage = SETTINGS.language;
         updateMaxDescScrollOffset();

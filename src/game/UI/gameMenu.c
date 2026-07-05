@@ -331,9 +331,9 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             textY += 1;
             pd->graphics->drawText(label, labelLen, kUTF8Encoding, btnX + 8, textY);
             if (rowFocused) {
-                pd->graphics->drawRoundRect(btnX + 1, rowY, btnW - 2, ROW_HEIGHT - 1, 3, 2, kColorWhite);
+                pd->graphics->drawRoundRect(btnX + 1, rowY, btnW - 2, ROW_HEIGHT, 3, 2, kColorWhite);
             } else {
-                pd->graphics->drawRoundRect(btnX + 1, rowY, btnW - 2, ROW_HEIGHT - 1, 3, 1, kColorWhite);
+                pd->graphics->drawRoundRect(btnX + 1, rowY, btnW - 2, ROW_HEIGHT, 3, 1, kColorWhite);
             }
             continue;
         }
@@ -362,10 +362,10 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             }
         } else if (row->type == CONTROL_LANGUAGE) {
             pd->graphics->pushContext(NULL);
-            pd->graphics->setFont(fontSubEN);
-            const char *value = SETTINGS.language == LANGUAGE_JP ? "JP" : "EN";
+            pd->graphics->setFont(font);
+            const char *value = SETTINGS.language == LANGUAGE_JP ? "日本語" : "English";
             int valueLen = strlen(value);
-            int valueW = pd->graphics->getTextWidth(fontSubEN, value, valueLen, kUTF8Encoding, tracking);
+            int valueW = pd->graphics->getTextWidth(font, value, valueLen, kUTF8Encoding, tracking);
             pd->graphics->drawText(value, valueLen, kUTF8Encoding, controlRightX - valueW, textY);
             pd->graphics->popContext();
         }
@@ -382,7 +382,7 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
         int thumbH = SETTINGS_SCROLLBAR_TRACK_H * VISIBLE_ROWS / tab->rowCount;
         int thumbY = SETTINGS_SCROLLBAR_Y + (int)(SETTINGS_SCROLLBAR_TRACK_H * scrollPx / contentH + 0.5f);
         pd->graphics->drawRoundRect(SETTINGS_SCROLLBAR_X, SETTINGS_SCROLLBAR_Y, SETTINGS_SCROLLBAR_W, SETTINGS_SCROLLBAR_TRACK_H, 2, 1, kColorWhite);
-        pd->graphics->fillRect(SETTINGS_SCROLLBAR_X + 2, thumbY + 3, 1, thumbH - 5, kColorWhite);
+        pd->graphics->fillRect(SETTINGS_SCROLLBAR_X + 2, thumbY + 3, 1, thumbH - 6, kColorWhite);
     }
 }
 
