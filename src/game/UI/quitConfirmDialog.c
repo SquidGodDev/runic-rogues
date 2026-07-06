@@ -159,11 +159,11 @@ static void drawDialog(void) {
     int buttonsStartX = DIALOG_X + (DIALOG_WIDTH - totalButtonsWidth) / 2;
     int buttonsY = DIALOG_Y + DIALOG_HEIGHT - subFontHeight - BUTTON_BOTTOM_PADDING;
 
-    int yesX = buttonsStartX;
-    int noX = buttonsStartX + yesWidth + BUTTON_GAP;
+    int noX = buttonsStartX;
+    int yesX = buttonsStartX + noWidth + BUTTON_GAP;
 
-    pd->graphics->drawText(yesText, yesLen, kUTF8Encoding, yesX, buttonsY);
     pd->graphics->drawText(noText, noLen, kUTF8Encoding, noX, buttonsY);
+    pd->graphics->drawText(yesText, yesLen, kUTF8Encoding, yesX, buttonsY);
 
     int selX = selectedButtonIndex == 0 ? yesX : noX;
     int selW = selectedButtonIndex == 0 ? yesWidth : noWidth;

@@ -52,7 +52,6 @@ typedef enum MenuFocus {
 #define ROW_WIDTH        192
 #define CONTROL_RIGHT_X  190
 #define BAR_WIDTH        44
-#define BAR_HEIGHT       8
 
 // Settings scrollbar — position indicator shown when a tab's list exceeds VISIBLE_ROWS.
 // Not selectable; the crank scrolls the list. When present, controls and the selection
@@ -235,13 +234,38 @@ static PDButtons navRepeat(PDButtons dirMask, PDButtons current, PDButtons pushe
     return 0;
 }
 
-static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, PDButtons pushed, float deltaTime) {
+static void toggleLanguage(void) {
+    SETTINGS.language = SETTINGS.language == LANGUAGE_EN ? LANGUAGE_JP : LANGUAGE_EN;
+    saveGame();
+}
+
+static void adjustBar(int *value, PDButtons current, PDButtons pushed, float deltaTime) {
     PDButtons dirPushed = pushed & (kButtonLeft | kButtonRight);
     PDButtons dirCurrent = current & (kButtonLeft | kButtonRight);
+    if (dirPushed) {
+        adjHeldDir = dirPushed;
+        adjHoldTimer = 0.0f;
+        stepBarSetting(value, dirPushed);
+    } else if (dirCurrent && dirCurrent == adjHeldDir) {
+        float prevTimer = adjHoldTimer;
+        adjHoldTimer += deltaTime;
+        if (adjHoldTimer >= HOLD_DELAY) {
+            float phase = adjHoldTimer - HOLD_DELAY;
+            float prevPhase = prevTimer >= HOLD_DELAY ? prevTimer - HOLD_DELAY : 0.0f;
+            if ((int)(phase / HOLD_REPEAT) > (int)(prevPhase / HOLD_REPEAT)) {
+                stepBarSetting(value, adjHeldDir);
+            }
+        }
+    } else {
+        adjHeldDir = 0;
+        adjHoldTimer = 0.0f;
+    }
+}
 
+static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, PDButtons pushed, float deltaTime) {
     switch (row->type) {
         case CONTROL_CHECKBOX: {
-            if (dirPushed || (pushed & kButtonA)) {
+            if (pushed & kButtonA) {
                 bool *value = (bool *)row->value;
                 *value = !*value;
                 saveGame();
@@ -249,31 +273,13 @@ static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, 
             break;
         }
         case CONTROL_LANGUAGE: {
-            if (dirPushed || (pushed & kButtonA)) {
-                SETTINGS.language = SETTINGS.language == LANGUAGE_EN ? LANGUAGE_JP : LANGUAGE_EN;
-                saveGame();
+            if ((pushed & (kButtonLeft | kButtonRight)) || (pushed & kButtonA)) {
+                toggleLanguage();
             }
             break;
         }
         case CONTROL_BAR: {
-            if (dirPushed) {
-                adjHeldDir = dirPushed;
-                adjHoldTimer = 0.0f;
-                stepBarSetting((int *)row->value, dirPushed);
-            } else if (dirCurrent && dirCurrent == adjHeldDir) {
-                float prevTimer = adjHoldTimer;
-                adjHoldTimer += deltaTime;
-                if (adjHoldTimer >= HOLD_DELAY) {
-                    float phase = adjHoldTimer - HOLD_DELAY;
-                    float prevPhase = prevTimer >= HOLD_DELAY ? prevTimer - HOLD_DELAY : 0.0f;
-                    if ((int)(phase / HOLD_REPEAT) > (int)(prevPhase / HOLD_REPEAT)) {
-                        stepBarSetting((int *)row->value, adjHeldDir);
-                    }
-                }
-            } else {
-                adjHeldDir = 0;
-                adjHoldTimer = 0.0f;
-            }
+            adjustBar((int *)row->value, current, pushed, deltaTime);
             break;
         }
         case CONTROL_RESET_BUTTON: {
@@ -383,22 +389,57 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
         } else if (row->type == CONTROL_BAR) {
             int level = *(int *)row->value;
             int barX = controlRightX - BAR_WIDTH;
-            int barY = rowY + (ROW_HEIGHT - BAR_HEIGHT) / 2 - 1;
-            pd->graphics->drawRect(barX, barY, BAR_WIDTH, BAR_HEIGHT, kColorWhite);
-            if (level > 0) {
-                pd->graphics->fillRect(barX + 1, barY + 1, level * 7, BAR_HEIGHT - 2, kColorWhite);
+            int centerY = rowY + ROW_HEIGHT / 2 - 1;
+            // Seven 2px-wide dots spaced by 5px gaps (7px stride); the center dot
+            // is drawn taller to mark the middle. The current level's dot is
+            // replaced by the selection indicator, so skip it here.
+            for (int i = 0; i <= SETTING_BAR_MAX_LEVEL; i++) {
+                if (i == level) {
+                    continue;
+                }
+                int dotH = (i == SETTING_BAR_DEFAULT_LEVEL) ? 4 : 2;
+                pd->graphics->fillRect(barX + i * 7, centerY - dotH / 2, 2, dotH, kColorWhite);
             }
-            for (int s = 1; s < SETTING_BAR_MAX_LEVEL; s++) {
-                pd->graphics->fillRect(barX + s * 7, barY + 1, 1, BAR_HEIGHT - 2, kColorBlack);
+            // Level indicator: 4x8 rect centered on the current dot. Filled while
+            // the row is focused (adjustable), outlined otherwise.
+            int selX = barX + level * 7 - 1;
+            int selY = centerY - 4;
+            if (rowFocused) {
+                pd->graphics->fillRect(selX, selY, 4, 8, kColorWhite);
+            } else {
+                pd->graphics->drawRect(selX, selY, 4, 8, kColorWhite);
             }
         } else if (row->type == CONTROL_LANGUAGE) {
-            pd->graphics->pushContext(NULL);
-            pd->graphics->setFont(font);
             const char *value = SETTINGS.language == LANGUAGE_JP ? "日本語" : "English";
             int valueLen = strlen(value);
             int valueW = pd->graphics->getTextWidth(font, value, valueLen, kUTF8Encoding, tracking);
-            pd->graphics->drawText(value, valueLen, kUTF8Encoding, controlRightX - valueW, textY);
+
+            // Reserve a fixed region sized to the wider label so the arrows stay
+            // put regardless of the current language, then center the value in it.
+            int enW = pd->graphics->getTextWidth(fontSubEN, "English", 7, kUTF8Encoding, -2);
+            int jpW = pd->graphics->getTextWidth(fontSubJP, "日本語", strlen("日本語"), kUTF8Encoding, 1);
+            int valueRegionW = (enW > jpW ? enW : jpW);
+
+            const int arrowW = 4;
+            const int arrowHalfH = 3;
+            const int arrowGap = 4;
+            int centerY = textY + fontH / 2;
+
+            int rightArrowRight = controlRightX;
+            int rightArrowLeft = rightArrowRight - arrowW;
+            int valueRegionRight = rightArrowLeft - arrowGap;
+            int valueRegionLeft = valueRegionRight - valueRegionW;
+            int leftArrowRight = valueRegionLeft - arrowGap - 1;
+            int leftArrowLeft = leftArrowRight - arrowW;
+            int valueX = valueRegionLeft + (valueRegionW - valueW) / 2;
+
+            pd->graphics->pushContext(NULL);
+            pd->graphics->setFont(font);
+            pd->graphics->drawText(value, valueLen, kUTF8Encoding, valueX, textY);
             pd->graphics->popContext();
+
+            pd->graphics->fillTriangle(leftArrowLeft, centerY, leftArrowRight, centerY - arrowHalfH, leftArrowRight, centerY + arrowHalfH, kColorWhite);
+            pd->graphics->fillTriangle(rightArrowRight, centerY, rightArrowLeft, centerY - arrowHalfH, rightArrowLeft, centerY + arrowHalfH, kColorWhite);
         }
 
         if (rowFocused) {
@@ -490,11 +531,11 @@ static void drawConfirmDialog(void) {
     int buttonsStartX = DIALOG_X + (DIALOG_WIDTH - totalButtonsWidth) / 2;
     int buttonsY = DIALOG_Y + DIALOG_HEIGHT - subFontHeight - 8;
 
-    int yesX = buttonsStartX;
-    int noX = buttonsStartX + yesWidth + 28;
+    int noX = buttonsStartX;
+    int yesX = buttonsStartX + noWidth + 28;
 
-    pd->graphics->drawText(yesText, yesLen, kUTF8Encoding, yesX, buttonsY);
     pd->graphics->drawText(noText, noLen, kUTF8Encoding, noX, buttonsY);
+    pd->graphics->drawText(yesText, yesLen, kUTF8Encoding, yesX, buttonsY);
 
     int selX = confirmSel == 0 ? yesX : noX;
     int selW = confirmSel == 0 ? yesWidth : noWidth;
@@ -531,7 +572,12 @@ void updateGameMenu(float deltaTime) {
             activeTab = selectedTab;
             resetContentState();
         }
-        if (pushed & (kButtonA | kButtonDown)) {
+        if (pushed & kButtonDown) {
+            enterContent();
+            // Seed the hold state so keeping Down held repeats into the list.
+            navHeldDir = kButtonDown;
+            navHoldTimer = 0.0f;
+        } else if (pushed & kButtonA) {
             enterContent();
         } else if (pushed & kButtonB) {
             closeGameMenu();
