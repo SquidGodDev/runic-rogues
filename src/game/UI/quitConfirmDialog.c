@@ -12,7 +12,7 @@
 #include "game/settings/settings.h"
 #include "game/tutorial/tutorialScene.h"
 
-#define DIALOG_WIDTH 160
+#define DIALOG_WIDTH 170
 #define DIALOG_HEIGHT 88
 #define DIALOG_X ((SCREEN_WIDTH - DIALOG_WIDTH) / 2)
 #define DIALOG_Y ((SCREEN_HEIGHT - DIALOG_HEIGHT) / 2)
@@ -21,7 +21,7 @@
 
 #define HEADER_TOP_PADDING 6
 #define BODY_TOP_PADDING 10
-#define BODY_SIDE_PADDING 12
+#define BODY_SIDE_PADDING 6
 #define BUTTON_BOTTOM_PADDING 8
 #define BUTTON_GAP 28
 #define BUTTON_PADDING_X 5
@@ -115,10 +115,12 @@ static void drawDialog(void) {
     pd->graphics->fillRect(DIALOG_X, DIALOG_Y, DIALOG_WIDTH, DIALOG_HEIGHT, kColorBlack);
     pd->graphics->drawRoundRect(DIALOG_X, DIALOG_Y, DIALOG_WIDTH, DIALOG_HEIGHT, DIALOG_CORNER_RADIUS, DIALOG_BORDER_WIDTH, kColorWhite);
 
-    LCDFont *titleFont = SETTINGS.language == LANGUAGE_JP ? fontTitleJP : fontTitleEN;
-    LCDFont *subFont = SETTINGS.language == LANGUAGE_JP ? fontSubJP : fontSubEN;
-    int titleTracking = SETTINGS.language == LANGUAGE_JP ? 0 : -1;
-    int subTracking = SETTINGS.language == LANGUAGE_JP ? 1 : -2;
+    bool isJapanese = SETTINGS.language == LANGUAGE_JP;
+
+    LCDFont *titleFont = isJapanese ? fontTitleJP : fontTitleEN;
+    LCDFont *subFont = isJapanese ? fontSubJP : fontSubEN;
+    int titleTracking = isJapanese ? 0 : -1;
+    int subTracking = isJapanese ? 1 : -2;
     int subLeading = SETTINGS.language == LANGUAGE_JP ? 2 : 0;
 
     pd->graphics->setDrawMode(kDrawModeCopy);
@@ -143,7 +145,7 @@ static void drawDialog(void) {
     pd->graphics->setTextLeading(subLeading);
     int bodyHeight = pd->graphics->getTextHeightForMaxWidth(subFont, body, bodyLen, bodyMaxWidth, kUTF8Encoding, kWrapWord, subTracking, subLeading);
     int bodyX = DIALOG_X + BODY_SIDE_PADDING;
-    int bodyY = headerY + titleHeight + BODY_TOP_PADDING;
+    int bodyY = headerY + titleHeight + (isJapanese ? BODY_TOP_PADDING / 2 : BODY_TOP_PADDING);
     pd->graphics->drawTextInRect(body, bodyLen, kUTF8Encoding, bodyX, bodyY, bodyMaxWidth, bodyHeight, kWrapWord, kAlignTextCenter);
 
     // Buttons

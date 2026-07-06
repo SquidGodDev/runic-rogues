@@ -584,7 +584,7 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
         int thumbH = SETTINGS_SCROLLBAR_TRACK_H * VISIBLE_ROWS / tab->rowCount;
         int thumbY = SETTINGS_SCROLLBAR_Y + (int)(SETTINGS_SCROLLBAR_TRACK_H * scrollPx / contentH + 0.5f);
         pd->graphics->drawRoundRect(SETTINGS_SCROLLBAR_X, SETTINGS_SCROLLBAR_Y, SETTINGS_SCROLLBAR_W, SETTINGS_SCROLLBAR_TRACK_H, 2, 1, kColorWhite);
-        pd->graphics->fillRect(SETTINGS_SCROLLBAR_X + 2, thumbY + 3, 1, thumbH - 6, kColorWhite);
+        pd->graphics->fillRect(SETTINGS_SCROLLBAR_X + 2, thumbY + 3, 1, thumbH - 5, kColorWhite);
     }
 }
 
@@ -606,7 +606,7 @@ static void drawExitTab(void) {
         int labelW = pd->graphics->getTextWidth(font, label, labelLen, kUTF8Encoding, tracking);
         int btnW = labelW + 24;
         int btnX = (SCREEN_WIDTH - btnW) / 2;
-        int textY = buttonY[i] + (buttonH - fontH) / 2;
+        int textY = buttonY[i] + (buttonH - fontH) / 2 + (SETTINGS.language == LANGUAGE_JP ? 0 : 1);
         pd->graphics->drawText(label, labelLen, kUTF8Encoding, btnX + 12, textY);
         if (focus != FOCUS_TABS && exitSelRow == i) {
             pd->graphics->drawRoundRect(btnX, buttonY[i] + 1, btnW - 2, buttonH - 2, 3, 2, kColorWhite);
@@ -621,11 +621,13 @@ static void drawConfirmDialog(void) {
     pd->graphics->fillRect(DIALOG_X, DIALOG_Y, DIALOG_WIDTH, DIALOG_HEIGHT, kColorBlack);
     pd->graphics->drawRoundRect(DIALOG_X, DIALOG_Y, DIALOG_WIDTH, DIALOG_HEIGHT, 3, 2, kColorWhite);
 
-    LCDFont *titleFont = SETTINGS.language == LANGUAGE_JP ? fontTitleJP : fontTitleEN;
-    LCDFont *subFont = SETTINGS.language == LANGUAGE_JP ? fontSubJP : fontSubEN;
-    int titleTracking = SETTINGS.language == LANGUAGE_JP ? 0 : -1;
-    int subTracking = SETTINGS.language == LANGUAGE_JP ? 1 : -2;
-    int subLeading = SETTINGS.language == LANGUAGE_JP ? 2 : 0;
+    bool isJapanese = SETTINGS.language == LANGUAGE_JP;
+
+    LCDFont *titleFont = isJapanese ? fontTitleJP : fontTitleEN;
+    LCDFont *subFont = isJapanese ? fontSubJP : fontSubEN;
+    int titleTracking = isJapanese ? -3 : -1;
+    int subTracking = isJapanese ? 1 : -2;
+    int subLeading = isJapanese ? 2 : 0;
 
     pd->graphics->setDrawMode(kDrawModeCopy);
 
@@ -641,13 +643,14 @@ static void drawConfirmDialog(void) {
 
     const char *body = getLocString(STR_RESET_CONFIRM_BODY);
     int bodyLen = strlen(body);
-    int bodyMaxWidth = DIALOG_WIDTH - 24;
+    int bodyPadding = 6;
+    int bodyMaxWidth = DIALOG_WIDTH - 2 * bodyPadding;
     pd->graphics->setFont(subFont);
     pd->graphics->setTextTracking(subTracking);
     pd->graphics->setTextLeading(subLeading);
     int bodyHeight = pd->graphics->getTextHeightForMaxWidth(subFont, body, bodyLen, bodyMaxWidth, kUTF8Encoding, kWrapWord, subTracking, subLeading);
-    int bodyY = headerY + titleHeight + 10;
-    pd->graphics->drawTextInRect(body, bodyLen, kUTF8Encoding, DIALOG_X + 12, bodyY, bodyMaxWidth, bodyHeight, kWrapWord, kAlignTextCenter);
+    int bodyY = headerY + titleHeight + (isJapanese ? 6 : 12);
+    pd->graphics->drawTextInRect(body, bodyLen, kUTF8Encoding, DIALOG_X + bodyPadding, bodyY, bodyMaxWidth, bodyHeight, kWrapWord, kAlignTextCenter);
 
     const char *yesText = getLocString(STR_YES);
     const char *noText = getLocString(STR_NO);
