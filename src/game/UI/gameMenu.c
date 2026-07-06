@@ -74,11 +74,12 @@ typedef enum MenuFocus {
 #define HOLD_DELAY  0.2f
 #define HOLD_REPEAT 0.1f
 
-// CONTROL_INT held-adjust acceleration: the repeat interval ramps from _START down
-// to _MIN over _ACCEL_TIME seconds of continuous holding.
-#define INT_ADJ_REPEAT_START 0.1f
-#define INT_ADJ_REPEAT_MIN   0.02f
-#define INT_ADJ_ACCEL_TIME   1.0f
+#define INT_ADJ_REPEAT_START  0.1f
+#define INT_ADJ_REPEAT_MIN    0.02f
+#define INT_ADJ_ACCEL_TIME    1.0f
+#define INT_HOLD_COARSE_DELAY 1.0f
+#define INT_HOLD_COARSE_REPEAT 0.05f
+#define INT_HOLD_STEP         10
 
 typedef enum SettingControlType {
     CONTROL_LANGUAGE,
@@ -146,8 +147,8 @@ static float scrollTargetPx;  // where the list is scrolling toward
 
 static PDButtons adjHeldDir;
 static float adjHoldTimer;
-static float adjHoldElapsed;   // time held past HOLD_DELAY, drives repeat acceleration
-static float adjRepeatTimer;   // counts down to the next accelerated repeat step
+static float adjHoldElapsed;   // time held past HOLD_DELAY, drives repeat acceleration and coarse-step switch
+static float adjRepeatTimer;   // counts down to the next held repeat step
 static float intCrankAccum;    // fractional crank degrees pending for the selected int
 
 static PDButtons navHeldDir;
@@ -301,18 +302,24 @@ static void adjustInt(int *value, int minValue, int maxValue, bool wrap, bool ac
             adjRepeatTimer -= deltaTime;
             if (adjRepeatTimer <= 0.0f) {
                 float interval = HOLD_REPEAT;
+                int magnitude = 1;
                 if (accelerate) {
-                    float t = adjHoldElapsed / INT_ADJ_ACCEL_TIME;
-                    if (t > 1.0f) {
-                        t = 1.0f;
+                    if (adjHoldElapsed >= INT_HOLD_COARSE_DELAY) {
+                        interval = INT_HOLD_COARSE_REPEAT;
+                        magnitude = INT_HOLD_STEP;
+                    } else {
+                        float t = adjHoldElapsed / INT_ADJ_ACCEL_TIME;
+                        if (t > 1.0f) {
+                            t = 1.0f;
+                        }
+                        interval = INT_ADJ_REPEAT_START + (INT_ADJ_REPEAT_MIN - INT_ADJ_REPEAT_START) * t;
                     }
-                    interval = INT_ADJ_REPEAT_START + (INT_ADJ_REPEAT_MIN - INT_ADJ_REPEAT_START) * t;
                 }
                 adjRepeatTimer += interval;
                 if (adjRepeatTimer < 0.0f) {
                     adjRepeatTimer = 0.0f;
                 }
-                int step = (adjHeldDir & kButtonLeft) ? -1 : 1;
+                int step = (adjHeldDir & kButtonLeft) ? -magnitude : magnitude;
                 if (stepIntSetting(value, step, minValue, maxValue, wrap)) {
                     markSettingsDirty();
                 }
