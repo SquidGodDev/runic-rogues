@@ -135,6 +135,8 @@ static const SettingsTabDef SETTINGS_TABS[] = {
 
 static PDMenuItem *menuItem;
 
+static GameState stateBeforeMenu;  // state to restore when the menu closes (active / shop / boss cinematic)
+
 static MenuTab activeTab;
 static MenuTab selectedTab;
 static MenuFocus focus;
@@ -179,7 +181,7 @@ static void closeGameMenu(void) {
     saveGame();
     settingsDirty = false;
     suppressHeldPlayerButtons();
-    setGameState(GAME_STATE_ACTIVE);
+    setGameState(stateBeforeMenu);
     createGameMenuItem();
 }
 
@@ -830,6 +832,7 @@ void updateGameMenu(float deltaTime) {
 }
 
 void initGameMenu(void) {
+    stateBeforeMenu = gameState;
     initRuneInventoryTab();
     activeTab = MENU_TAB_INVENTORY;
     resetContentState();
@@ -839,7 +842,7 @@ void initGameMenu(void) {
 }
 
 static void onOpenMenuItemSelect(void *userdata) {
-    if (gameState == GAME_STATE_ACTIVE) {
+    if (gameState == GAME_STATE_ACTIVE || gameState == GAME_STATE_SHOP || gameState == GAME_STATE_BOSS_CINEMATIC) {
         initGameMenu();
     }
 }
