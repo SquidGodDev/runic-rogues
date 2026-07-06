@@ -42,7 +42,7 @@ typedef struct ShopPageData {
 #define SHOP_ICON_RAISE_AMOUNT 4
 #define SHOP_ICON_LERP_SPEED 12.0f
 #define SHOP_CURSOR_LERP_SPEED 20.0f
-#define SHOP_SCROLL_SPEED 2
+#define SHOP_SCROLL_SPEED 3
 
 #define SHOP_TITLE_DESC_SPACING 6
 
