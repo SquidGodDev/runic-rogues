@@ -140,13 +140,13 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_BEAR_PAW] = {
         .nameEN = "Bear Paw",
         .nameJP = "",
-        .descriptionEN = "Basic spell hits knock enemies back further.",
+        .descriptionEN = "Basic spell knocks enemies back by ~{1} more cells away.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_BEAR_PAW,
-        .primaryBaseValue   = 0.15f,
-        .primaryPerLevel    = 0.15f,
-        .secondaryBaseValue = 0.35f,
-        .secondaryPerLevel  = 0.35f,
+        .primaryBaseValue   = 0.5f,
+        .primaryPerLevel    = 0.5f,
+        .secondaryBaseValue = 0.5f,
+        .secondaryPerLevel  = 0.5f,
         .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation   = MODIFY_OP_ADD,
@@ -157,11 +157,11 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_IRON_GAUNTLET] = {
         .nameEN = "Iron Gauntlet",
         .nameJP = "",
-        .descriptionEN = "Special spell hits knock enemies back further.",
+        .descriptionEN = "Special spell knocks enemies back by ~{1} more cells away.",
         .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_IRON_GAUNTLET,
-        .primaryBaseValue   = 0.15f,
-        .primaryPerLevel    = 0.15f,
+        .primaryBaseValue   = 0.5f,
+        .primaryPerLevel    = 0.5f,
         .secondaryBaseValue = 0.5f,
         .secondaryPerLevel  = 0.5f,
         .maxLevel = 3,
@@ -348,7 +348,7 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_HOURGLASS, 1);
     // setRuneLevel(RUNE_TYPE_SLINGSHOT, 1);
     // setRuneLevel(RUNE_TYPE_LONGBOW, 1);
-    setRuneLevel(RUNE_TYPE_BEAR_PAW, 3);
+    // setRuneLevel(RUNE_TYPE_BEAR_PAW, 1);
     // setRuneLevel(RUNE_TYPE_IRON_GAUNTLET, 1);
     // setRuneLevel(RUNE_TYPE_FROST_SHARD, 1);
     // setRuneLevel(RUNE_TYPE_ICE_LANCE, 1);
