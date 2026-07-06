@@ -19,13 +19,6 @@ TODO:
 - Check for memory leaks
 ## Features
 - Starter rune for each class
-- Settings menu
-  - Language
-  - Turn speed (d-pad, crank)
-  - Swap button controls
-  - Inverse turn
-  - Music Volume
-  - SFX Volume
 - Area 3
   - New boss
   - New enemies
@@ -58,7 +51,6 @@ TODO:
     - More damage full health
     - Spawn random buff areas/pickups around map
   - Rune rarity
-- Make ranger class
 - Level ups and unlocks
 - Ascension difficulty
   - Less health

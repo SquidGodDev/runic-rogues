@@ -31,6 +31,7 @@ void updateTitleScene(float deltaTime) {
     pd->graphics->drawBitmap(BITMAPS[BITMAP_TITLE_TEXT], (SCREEN_WIDTH - width) / 2, TITLE_TOP_Y, kBitmapUnflipped);
     
     pd->graphics->setFont(fontSubEN);
+    pd->graphics->setTextTracking(0);
     int subFontHeight = pd->graphics->getFontHeight(fontSubEN);
     
     int titleFontHeight = pd->graphics->getFontHeight(fontTitleEN);
