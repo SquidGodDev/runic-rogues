@@ -12,6 +12,7 @@ void resetControlSettings(void) {
     SETTINGS.dpadTurnSpeed = SETTING_BAR_DEFAULT_LEVEL;
     SETTINGS.dpadStrafe = true;
     SETTINGS.absoluteCrank = false;
+    SETTINGS.absoluteCrankOffset = 0;
     SETTINGS.invertCrank = false;
     SETTINGS.invertDpad = false;
     SETTINGS.spellButtonsReversed = false;

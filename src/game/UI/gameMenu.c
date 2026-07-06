@@ -63,6 +63,7 @@ typedef enum MenuFocus {
 #define SETTINGS_SCROLLBAR_TRACK_H  100
 #define SETTINGS_SCROLL_SENSITIVITY 0.4f   // pixels of scroll per crank degree
 #define SETTINGS_SCROLL_LERP        0.4f   // per-frame approach toward the scroll target
+#define SETTINGS_INT_CRANK_SENSITIVITY 1.0f  // int units per crank degree (a full turn ≈ 360)
 
 // Confirmation dialog layout
 #define DIALOG_WIDTH 170
@@ -73,17 +74,26 @@ typedef enum MenuFocus {
 #define HOLD_DELAY  0.2f
 #define HOLD_REPEAT 0.1f
 
+// CONTROL_INT held-adjust acceleration: the repeat interval ramps from _START down
+// to _MIN over _ACCEL_TIME seconds of continuous holding.
+#define INT_ADJ_REPEAT_START 0.1f
+#define INT_ADJ_REPEAT_MIN   0.02f
+#define INT_ADJ_ACCEL_TIME   1.0f
+
 typedef enum SettingControlType {
     CONTROL_LANGUAGE,
     CONTROL_CHECKBOX,
     CONTROL_BAR,
+    CONTROL_INT,
     CONTROL_RESET_BUTTON
 } SettingControlType;
 
 typedef struct SettingRowDef {
     StringKey nameKey;
     SettingControlType type;
-    void *value; // bool* for CONTROL_CHECKBOX, int* for CONTROL_BAR
+    void *value; // bool* for CONTROL_CHECKBOX, int* for CONTROL_BAR / CONTROL_INT
+    int minValue; // CONTROL_INT only
+    int maxValue; // CONTROL_INT only
 } SettingRowDef;
 
 typedef struct SettingsTabDef {
@@ -100,10 +110,11 @@ static const SettingRowDef GENERAL_ROWS[] = {
 
 static const SettingRowDef CONTROLS_ROWS[] = {
     { STR_SETTING_CRANK_TURN_SPEED, CONTROL_BAR, &SETTINGS.crankTurnSpeed },
+    { STR_SETTING_DPAD_STRAFE, CONTROL_CHECKBOX, &SETTINGS.dpadStrafe },
     { STR_SETTING_ABSOLUTE_CRANK, CONTROL_CHECKBOX, &SETTINGS.absoluteCrank },
+    { STR_SETTING_ABSOLUTE_CRANK_OFFSET, CONTROL_INT, &SETTINGS.absoluteCrankOffset, SETTING_CRANK_OFFSET_MIN, SETTING_CRANK_OFFSET_MAX },
     { STR_SETTING_INVERT_CRANK, CONTROL_CHECKBOX, &SETTINGS.invertCrank },
     { STR_SETTING_DPAD_TURN_SPEED, CONTROL_BAR, &SETTINGS.dpadTurnSpeed },
-    { STR_SETTING_DPAD_STRAFE, CONTROL_CHECKBOX, &SETTINGS.dpadStrafe },
     { STR_SETTING_INVERT_DPAD, CONTROL_CHECKBOX, &SETTINGS.invertDpad },
     { STR_SETTING_SWAP_SPELL_BUTTONS, CONTROL_CHECKBOX, &SETTINGS.spellButtonsReversed },
     { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },
@@ -117,7 +128,7 @@ static const SettingRowDef AUDIO_ROWS[] = {
 
 static const SettingsTabDef SETTINGS_TABS[] = {
     [MENU_TAB_GENERAL]  = { GENERAL_ROWS, 3, resetGeneralSettings },
-    [MENU_TAB_CONTROLS] = { CONTROLS_ROWS, 8, resetControlSettings },
+    [MENU_TAB_CONTROLS] = { CONTROLS_ROWS, 9, resetControlSettings },
     [MENU_TAB_AUDIO]    = { AUDIO_ROWS, 3, resetAudioSettings },
 };
 
@@ -135,11 +146,29 @@ static float scrollTargetPx;  // where the list is scrolling toward
 
 static PDButtons adjHeldDir;
 static float adjHoldTimer;
+static float adjHoldElapsed;   // time held past HOLD_DELAY, drives repeat acceleration
+static float adjRepeatTimer;   // counts down to the next accelerated repeat step
+static float intCrankAccum;    // fractional crank degrees pending for the selected int
 
 static PDButtons navHeldDir;
 static float navHoldTimer;
 
+static bool settingsDirty;     // a setting changed but hasn't been persisted yet
+
 static void createCloseMenuItem(void);
+
+static void markSettingsDirty(void) {
+    settingsDirty = true;
+}
+
+// Persist deferred setting changes. Continuous edits (crank / accelerated hold) mark
+// dirty and flush once the interaction goes idle, rather than saving every frame.
+static void flushSettingsSave(void) {
+    if (settingsDirty) {
+        saveGame();
+        settingsDirty = false;
+    }
+}
 
 static bool isSettingsTab(MenuTab tab) {
     return tab == MENU_TAB_GENERAL || tab == MENU_TAB_CONTROLS || tab == MENU_TAB_AUDIO;
@@ -147,12 +176,14 @@ static bool isSettingsTab(MenuTab tab) {
 
 static void closeGameMenu(void) {
     saveGame();
+    settingsDirty = false;
     suppressHeldPlayerButtons();
     setGameState(GAME_STATE_ACTIVE);
     createGameMenuItem();
 }
 
 static void enterTabSelect(void) {
+    flushSettingsSave();
     focus = FOCUS_TABS;
     selectedTab = activeTab;
 }
@@ -162,6 +193,9 @@ static void resetContentState(void) {
     exitSelRow = 0;
     adjHeldDir = 0;
     adjHoldTimer = 0.0f;
+    adjHoldElapsed = 0.0f;
+    adjRepeatTimer = 0.0f;
+    intCrankAccum = 0.0f;
     scrollPx = 0.0f;
     scrollTargetPx = 0.0f;
 }
@@ -188,22 +222,30 @@ static void ensureRowVisible(void) {
     }
 }
 
-static void stepBarSetting(int *value, PDButtons dir) {
-    int newValue = *value;
-    if (dir & kButtonLeft) {
-        newValue--;
-    } else if (dir & kButtonRight) {
-        newValue++;
-    }
-    if (newValue < 0) {
-        newValue = 0;
-    } else if (newValue > SETTING_BAR_MAX_LEVEL) {
-        newValue = SETTING_BAR_MAX_LEVEL;
+// Enter a settings tab's list with the selection on the last row, snapped into view.
+// Used when wrapping into the list from the tab bar with Up.
+static void enterContentAtBottom(void) {
+    enterContent();
+    listSelRow = SETTINGS_TABS[activeTab].rowCount - 1;
+    ensureRowVisible();
+    scrollPx = scrollTargetPx;
+}
+
+static bool stepIntSetting(int *value, int delta, int minValue, int maxValue, bool wrap) {
+    int newValue = *value + delta;
+    if (wrap) {
+        int range = maxValue - minValue + 1;
+        newValue = minValue + (((newValue - minValue) % range) + range) % range;
+    } else if (newValue < minValue) {
+        newValue = minValue;
+    } else if (newValue > maxValue) {
+        newValue = maxValue;
     }
     if (newValue != *value) {
         *value = newValue;
-        saveGame();
+        return true;
     }
+    return false;
 }
 
 // Returns the direction within dirMask that should move the selection this frame,
@@ -239,26 +281,64 @@ static void toggleLanguage(void) {
     saveGame();
 }
 
-static void adjustBar(int *value, PDButtons current, PDButtons pushed, float deltaTime) {
+static void adjustInt(int *value, int minValue, int maxValue, bool wrap, bool accelerate,
+                      PDButtons current, PDButtons pushed, float deltaTime) {
     PDButtons dirPushed = pushed & (kButtonLeft | kButtonRight);
     PDButtons dirCurrent = current & (kButtonLeft | kButtonRight);
     if (dirPushed) {
         adjHeldDir = dirPushed;
         adjHoldTimer = 0.0f;
-        stepBarSetting(value, dirPushed);
+        adjHoldElapsed = 0.0f;
+        adjRepeatTimer = 0.0f;
+        int step = (dirPushed & kButtonLeft) ? -1 : 1;
+        if (stepIntSetting(value, step, minValue, maxValue, wrap)) {
+            markSettingsDirty();
+        }
     } else if (dirCurrent && dirCurrent == adjHeldDir) {
-        float prevTimer = adjHoldTimer;
         adjHoldTimer += deltaTime;
         if (adjHoldTimer >= HOLD_DELAY) {
-            float phase = adjHoldTimer - HOLD_DELAY;
-            float prevPhase = prevTimer >= HOLD_DELAY ? prevTimer - HOLD_DELAY : 0.0f;
-            if ((int)(phase / HOLD_REPEAT) > (int)(prevPhase / HOLD_REPEAT)) {
-                stepBarSetting(value, adjHeldDir);
+            adjHoldElapsed += deltaTime;
+            adjRepeatTimer -= deltaTime;
+            if (adjRepeatTimer <= 0.0f) {
+                float interval = HOLD_REPEAT;
+                if (accelerate) {
+                    float t = adjHoldElapsed / INT_ADJ_ACCEL_TIME;
+                    if (t > 1.0f) {
+                        t = 1.0f;
+                    }
+                    interval = INT_ADJ_REPEAT_START + (INT_ADJ_REPEAT_MIN - INT_ADJ_REPEAT_START) * t;
+                }
+                adjRepeatTimer += interval;
+                if (adjRepeatTimer < 0.0f) {
+                    adjRepeatTimer = 0.0f;
+                }
+                int step = (adjHeldDir & kButtonLeft) ? -1 : 1;
+                if (stepIntSetting(value, step, minValue, maxValue, wrap)) {
+                    markSettingsDirty();
+                }
             }
         }
     } else {
         adjHeldDir = 0;
         adjHoldTimer = 0.0f;
+        adjHoldElapsed = 0.0f;
+        adjRepeatTimer = 0.0f;
+    }
+}
+
+// While a CONTROL_INT row is selected the crank drives the value (looping) instead of
+// scrolling the list.
+static void adjustIntByCrank(int *value, int minValue, int maxValue, float crankChange) {
+    if (crankChange == 0.0f) {
+        return;
+    }
+    intCrankAccum += crankChange * SETTINGS_INT_CRANK_SENSITIVITY;
+    int steps = (int)intCrankAccum;
+    if (steps != 0) {
+        intCrankAccum -= steps;
+        if (stepIntSetting(value, steps, minValue, maxValue, true)) {
+            markSettingsDirty();
+        }
     }
 }
 
@@ -279,7 +359,11 @@ static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, 
             break;
         }
         case CONTROL_BAR: {
-            adjustBar((int *)row->value, current, pushed, deltaTime);
+            adjustInt((int *)row->value, 0, SETTING_BAR_MAX_LEVEL, false, false, current, pushed, deltaTime);
+            break;
+        }
+        case CONTROL_INT: {
+            adjustInt((int *)row->value, row->minValue, row->maxValue, true, true, current, pushed, deltaTime);
             break;
         }
         case CONTROL_RESET_BUTTON: {
@@ -290,6 +374,19 @@ static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, 
             break;
         }
     }
+}
+
+// Left/right adjust arrows for language and int controls: outlined when the row is
+// not selected, filled when it is. The source bitmap points left; the right arrow is
+// the same bitmap flipped horizontally.
+#define SETTING_ARROW_W 5
+#define SETTING_ARROW_H 7
+
+static void drawSettingArrows(int leftArrowX, int rightArrowX, int centerY, bool selected) {
+    int bitmapIndex = selected ? BITMAP_SETTING_ARROW_FILLED : BITMAP_SETTING_ARROW_OUTLINE;
+    int y = centerY - SETTING_ARROW_H / 2;
+    pd->graphics->drawBitmap(BITMAPS[bitmapIndex], leftArrowX, y, kBitmapUnflipped);
+    pd->graphics->drawBitmap(BITMAPS[bitmapIndex], rightArrowX, y, kBitmapFlippedX);
 }
 
 static void drawTabBar(void) {
@@ -385,6 +482,15 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             pd->graphics->drawRect(boxX, boxY, 8, 8, kColorWhite);
             if (value) {
                 pd->graphics->fillRect(boxX + 2, boxY + 2, 4, 4, kColorWhite);
+            } else if (rowFocused) {
+                // Checkered 4x4 fill to signal the box is togglable while selected.
+                for (int py = 0; py < 4; py++) {
+                    for (int px = 0; px < 4; px++) {
+                        if ((px + py) % 2 == 0) {
+                            pd->graphics->fillRect(boxX + 2 + px, boxY + 2 + py, 1, 1, kColorWhite);
+                        }
+                    }
+                }
             }
         } else if (row->type == CONTROL_BAR) {
             int level = *(int *)row->value;
@@ -420,17 +526,13 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             int jpW = pd->graphics->getTextWidth(fontSubJP, "日本語", strlen("日本語"), kUTF8Encoding, 1);
             int valueRegionW = (enW > jpW ? enW : jpW);
 
-            const int arrowW = 4;
-            const int arrowHalfH = 3;
             const int arrowGap = 4;
             int centerY = textY + fontH / 2;
 
-            int rightArrowRight = controlRightX;
-            int rightArrowLeft = rightArrowRight - arrowW;
+            int rightArrowLeft = controlRightX - SETTING_ARROW_W;
             int valueRegionRight = rightArrowLeft - arrowGap;
             int valueRegionLeft = valueRegionRight - valueRegionW;
-            int leftArrowRight = valueRegionLeft - arrowGap - 1;
-            int leftArrowLeft = leftArrowRight - arrowW;
+            int leftArrowLeft = valueRegionLeft - arrowGap - SETTING_ARROW_W;
             int valueX = valueRegionLeft + (valueRegionW - valueW) / 2;
 
             pd->graphics->pushContext(NULL);
@@ -438,8 +540,36 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             pd->graphics->drawText(value, valueLen, kUTF8Encoding, valueX, textY);
             pd->graphics->popContext();
 
-            pd->graphics->fillTriangle(leftArrowLeft, centerY, leftArrowRight, centerY - arrowHalfH, leftArrowRight, centerY + arrowHalfH, kColorWhite);
-            pd->graphics->fillTriangle(rightArrowRight, centerY, rightArrowLeft, centerY - arrowHalfH, rightArrowLeft, centerY + arrowHalfH, kColorWhite);
+            drawSettingArrows(leftArrowLeft, rightArrowLeft, centerY, rowFocused);
+        } else if (row->type == CONTROL_INT) {
+            // Numbers always render in the EN sub font. Reserve a fixed region sized
+            // to three digits so the arrows hold position, then center the value
+            // (drawn without leading zeroes) within it.
+            char *valueStr = NULL;
+            pd->system->formatString(&valueStr, "%d", *(int *)row->value);
+            int valueLen = strlen(valueStr);
+            int valueRegionW = pd->graphics->getTextWidth(fontSubEN, "000", 3, kUTF8Encoding, -2);
+            int valueW = pd->graphics->getTextWidth(fontSubEN, valueStr, valueLen, kUTF8Encoding, -2);
+
+            const int arrowGap = 4;
+            int enFontH = pd->graphics->getFontHeight(fontSubEN);
+            int numTextY = rowY + (ROW_HEIGHT - enFontH) / 2;
+            int centerY = numTextY + enFontH / 2;
+
+            int rightArrowLeft = controlRightX - SETTING_ARROW_W;
+            int valueRegionRight = rightArrowLeft - arrowGap;
+            int valueRegionLeft = valueRegionRight - valueRegionW;
+            int leftArrowLeft = valueRegionLeft - arrowGap - SETTING_ARROW_W;
+            int valueX = valueRegionLeft + (valueRegionW - valueW) / 2;
+
+            pd->graphics->pushContext(NULL);
+            pd->graphics->setFont(fontSubEN);
+            pd->graphics->setTextTracking(-2);
+            pd->graphics->drawText(valueStr, valueLen, kUTF8Encoding, valueX, numTextY);
+            pd->graphics->popContext();
+            pd->system->realloc(valueStr, 0);
+
+            drawSettingArrows(leftArrowLeft, rightArrowLeft, centerY, rowFocused);
         }
 
         if (rowFocused) {
@@ -577,6 +707,12 @@ void updateGameMenu(float deltaTime) {
             // Seed the hold state so keeping Down held repeats into the list.
             navHeldDir = kButtonDown;
             navHoldTimer = 0.0f;
+        } else if ((pushed & kButtonUp) && isSettingsTab(activeTab)) {
+            // Wrap into the list from the bottom, seeding hold state so a held Up
+            // keeps repeating upward through the list.
+            enterContentAtBottom();
+            navHeldDir = kButtonUp;
+            navHoldTimer = 0.0f;
         } else if (pushed & kButtonA) {
             enterContent();
         } else if (pushed & kButtonB) {
@@ -626,6 +762,7 @@ void updateGameMenu(float deltaTime) {
         } else if (navDir & kButtonUp) {
             if (listSelRow > 0) {
                 listSelRow--;
+                intCrankAccum = 0.0f;
                 ensureRowVisible();
             } else if (pushed & kButtonUp) {
                 enterTabSelect();
@@ -633,16 +770,22 @@ void updateGameMenu(float deltaTime) {
         } else if (navDir & kButtonDown) {
             if (listSelRow < tab->rowCount - 1) {
                 listSelRow++;
+                intCrankAccum = 0.0f;
                 ensureRowVisible();
+            } else if (pushed & kButtonDown) {
+                enterTabSelect();
             }
         } else {
             handleSettingsRowInput(&tab->rows[listSelRow], current, pushed, deltaTime);
         }
 
-        float maxScrollPx = settingsMaxScrollPx(tab);
-        if (maxScrollPx > 0.0f) {
-            float crankChange = pd->system->getCrankChange();
-            if (crankChange != 0) {
+        float crankChange = pd->system->getCrankChange();
+        const SettingRowDef *selRow = &tab->rows[listSelRow];
+        if (selRow->type == CONTROL_INT) {
+            adjustIntByCrank((int *)selRow->value, selRow->minValue, selRow->maxValue, crankChange);
+        } else {
+            float maxScrollPx = settingsMaxScrollPx(tab);
+            if (maxScrollPx > 0.0f && crankChange != 0) {
                 scrollTargetPx += crankChange * SETTINGS_SCROLL_SENSITIVITY;
                 if (scrollTargetPx < 0.0f) {
                     scrollTargetPx = 0.0f;
@@ -650,6 +793,10 @@ void updateGameMenu(float deltaTime) {
                     scrollTargetPx = maxScrollPx;
                 }
             }
+        }
+
+        if (settingsDirty && adjHeldDir == 0 && crankChange == 0.0f) {
+            flushSettingsSave();
         }
     }
 

@@ -162,7 +162,9 @@ const char *bitmapPathStrings[] = {
 	"images/UI/settings/inputIcon",
 	"images/UI/settings/audioIcon",
 	"images/UI/settings/exitIcon",
-	"images/UI/settings/runeSelectCursor"
+	"images/UI/settings/runeSelectCursor",
+	"images/UI/settings/leftArrowOutline",
+	"images/UI/settings/leftArrowFilled"
 };
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];

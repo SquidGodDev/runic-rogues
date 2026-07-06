@@ -64,6 +64,14 @@ static void applyKeyValue(const char *key, const char *value) {
         SETTINGS.dpadStrafe = parseInt(value) != 0;
     } else if (strcmp(key, "absoluteCrank") == 0) {
         SETTINGS.absoluteCrank = parseInt(value) != 0;
+    } else if (strcmp(key, "absoluteCrankOffset") == 0) {
+        int offset = parseInt(value);
+        if (offset < SETTING_CRANK_OFFSET_MIN) {
+            offset = SETTING_CRANK_OFFSET_MIN;
+        } else if (offset > SETTING_CRANK_OFFSET_MAX) {
+            offset = SETTING_CRANK_OFFSET_MAX;
+        }
+        SETTINGS.absoluteCrankOffset = offset;
     } else if (strcmp(key, "invertCrank") == 0) {
         SETTINGS.invertCrank = parseInt(value) != 0;
     } else if (strcmp(key, "invertDpad") == 0) {
@@ -113,6 +121,7 @@ void saveGame(void) {
         "dpadTurnSpeed=%d\n"
         "dpadStrafe=%d\n"
         "absoluteCrank=%d\n"
+        "absoluteCrankOffset=%d\n"
         "invertCrank=%d\n"
         "invertDpad=%d\n"
         "musicVolume=%d\n"
@@ -127,6 +136,7 @@ void saveGame(void) {
         SETTINGS.dpadTurnSpeed,
         SETTINGS.dpadStrafe ? 1 : 0,
         SETTINGS.absoluteCrank ? 1 : 0,
+        SETTINGS.absoluteCrankOffset,
         SETTINGS.invertCrank ? 1 : 0,
         SETTINGS.invertDpad ? 1 : 0,
         SETTINGS.musicVolume,

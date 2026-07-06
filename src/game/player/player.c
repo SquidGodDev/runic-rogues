@@ -21,7 +21,6 @@
 #include "game/settings/settings.h"
 
 #define CRANK_SENSITIVITY 0.0075f
-#define CRANK_ABSOLUTE_SENSITIVITY (PI / 180.0f) // 1 crank revolution = 1 full turn
 // Spawn the projectile slightly to the right to match hand
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
@@ -417,13 +416,31 @@ void handleInput(float deltaTime)
 	}
 
 	float crankRadians;
-	if (SETTINGS.absoluteCrank) {
-		crankRadians = crankChange * CRANK_ABSOLUTE_SENSITIVITY;
+	// Absolute crank needs a real crank angle; when the crank is docked (d-pad mode)
+	// fall back to relative turning so docked play isn't stuck facing the last angle.
+	if (SETTINGS.absoluteCrank && !pd->system->isCrankDocked()) {
+		if (inputDisabled) {
+			crankRadians = 0.0f;
+		} else {
+			// The crank's absolute angle maps directly to facing: crank up (0°) plus
+			// the configured offset is the reference. Rotate by the shortest delta
+			// from the current facing to that target so movement stays continuous.
+			float crankDeg = pd->system->getCrankAngle() + SETTINGS.absoluteCrankOffset;
+			float targetAngle = degToRad(SETTINGS.invertCrank ? -crankDeg : crankDeg);
+			float delta = targetAngle - playerAngle;
+			while (delta > PI) {
+				delta -= 2 * PI;
+			}
+			while (delta < -PI) {
+				delta += 2 * PI;
+			}
+			crankRadians = delta;
+		}
 	} else {
 		crankRadians = crankChange * CRANK_SENSITIVITY * getCrankTurnSpeedMultiplier();
-	}
-	if (SETTINGS.invertCrank) {
-		crankRadians = -crankRadians;
+		if (SETTINGS.invertCrank) {
+			crankRadians = -crankRadians;
+		}
 	}
 	float adjustedTurnSpeed = movementStats.turnSpeed * deltaTime + crankRadians;
 	playerAngle += adjustedTurnSpeed;

@@ -69,6 +69,10 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
         "Absolute Crank",
         "クランク絶対角度",
     },
+    [STR_SETTING_ABSOLUTE_CRANK_OFFSET] = {
+        "Crank Offset",
+        "クランクオフセット",
+    },
     [STR_SETTING_INVERT_CRANK] = {
         "Invert Crank",
         "クランク反転",

@@ -55,9 +55,7 @@ static Language lastPageLanguage;  // locale the scroll bounds were last compute
 static PDButtons heldDir;
 static float holdTimer;
 
-// When entering the scrollbar via a held Down press, ignore scroll input until the
-// player releases Down and presses it again.
-static bool scrollInputSuppressed;
+static float scrollSuppressTimer;
 
 static const char *ROMAN_NUMERALS[] = { "", "I", "II", "III", "IV", "V" };
 
@@ -270,11 +268,14 @@ void updateRuneInventoryTab(float deltaTime, RuneInventoryFocus focus) {
             holdTimer = 0.0f;
         }
     } else if (focus == RUNE_INV_FOCUS_SCROLLBAR) {
-        if (scrollInputSuppressed) {
-            if (!(current & kButtonDown)) {
-                scrollInputSuppressed = false;
+        if (scrollSuppressTimer > 0.0f) {
+            if (current & kButtonDown) {
+                scrollSuppressTimer -= deltaTime;
+            } else {
+                scrollSuppressTimer = 0.0f;
             }
-        } else {
+        }
+        if (scrollSuppressTimer <= 0.0f) {
             if (current & kButtonUp) {
                 applyScroll(-RUNE_SCROLL_BUTTON_SPEED * deltaTime);
             }
@@ -322,7 +323,7 @@ bool runeInventoryAtScrollTop(void) {
 }
 
 void notifyEnterRuneScrollbar(void) {
-    scrollInputSuppressed = true;
+    scrollSuppressTimer = HOLD_DELAY;
 }
 
 void initRuneInventoryTab(void) {
@@ -338,7 +339,7 @@ void initRuneInventoryTab(void) {
     animCursorIndex = 0.0f;
     heldDir = 0;
     holdTimer = 0.0f;
-    scrollInputSuppressed = false;
+    scrollSuppressTimer = 0.0f;
     resetDescScrollOffset();
 }
 

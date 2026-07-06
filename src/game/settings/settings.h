@@ -13,6 +13,9 @@ typedef enum Language {
 #define SETTING_BAR_MAX_LEVEL 6
 #define SETTING_BAR_DEFAULT_LEVEL 3
 
+#define SETTING_CRANK_OFFSET_MIN 0
+#define SETTING_CRANK_OFFSET_MAX 359
+
 typedef struct Settings {
     Language language;
     bool drawMinimapWalls;
@@ -22,6 +25,7 @@ typedef struct Settings {
     int dpadTurnSpeed;
     bool dpadStrafe;
     bool absoluteCrank;
+    int absoluteCrankOffset; // degrees, 0-360; rotates the absolute-crank reference angle
     bool invertCrank;
     bool invertDpad;
     int musicVolume;
