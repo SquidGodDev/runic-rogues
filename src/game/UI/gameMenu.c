@@ -535,10 +535,7 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             int leftArrowLeft = valueRegionLeft - arrowGap - SETTING_ARROW_W;
             int valueX = valueRegionLeft + (valueRegionW - valueW) / 2;
 
-            pd->graphics->pushContext(NULL);
-            pd->graphics->setFont(font);
             pd->graphics->drawText(value, valueLen, kUTF8Encoding, valueX, textY);
-            pd->graphics->popContext();
 
             drawSettingArrows(leftArrowLeft, rightArrowLeft, centerY, rowFocused);
         } else if (row->type == CONTROL_INT) {
@@ -562,11 +559,12 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             int leftArrowLeft = valueRegionLeft - arrowGap - SETTING_ARROW_W;
             int valueX = valueRegionLeft + (valueRegionW - valueW) / 2;
 
-            pd->graphics->pushContext(NULL);
             pd->graphics->setFont(fontSubEN);
             pd->graphics->setTextTracking(-2);
             pd->graphics->drawText(valueStr, valueLen, kUTF8Encoding, valueX, numTextY);
-            pd->graphics->popContext();
+            pd->graphics->setFont(font);
+            pd->graphics->setTextTracking(tracking);
+
             pd->system->realloc(valueStr, 0);
 
             drawSettingArrows(leftArrowLeft, rightArrowLeft, centerY, rowFocused);

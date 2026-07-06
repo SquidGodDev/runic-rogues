@@ -1,8 +1,6 @@
 # TODO
 ## Settings Page
 TODO:
-- Fix JP localization confirmation dialogs
-- Center text in exit buttons
 - Try showing rune inventory with empty slots
 ## Tutorial
 - Give a ~30s backup prompt if the player is stuck
