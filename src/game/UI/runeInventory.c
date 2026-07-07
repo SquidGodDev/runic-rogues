@@ -328,7 +328,7 @@ void notifyEnterRuneScrollbar(void) {
 
 void initRuneInventoryTab(void) {
     ownedRuneCount = 0;
-    for (int i = RUNE_TYPE_NONE + 1; i < RUNE_TYPE_COUNT; i++) {
+    for (int i = RUNE_TYPE_COUNT - 1; i > RUNE_TYPE_NONE; i--) {
         if (runeIsOwned((RuneType)i)) {
             ownedRunesList[ownedRuneCount] = (RuneType)i;
             ownedRuneCount++;
