@@ -12,7 +12,7 @@ const ClassData classData[CLASS_COUNT] = {
         .baseSpeed = 12,
         .basicSpell = SPELL_FIREBALL,
         .specialSpell = SPELL_CHAIN_LIGHTNING,
-        .starterRune = RUNE_TYPE_NONE
+        .starterRune = RUNE_TYPE_MEDITATION
     },
     [CLASS_KNIGHT] = {
         .classType = CLASS_KNIGHT,
@@ -24,7 +24,7 @@ const ClassData classData[CLASS_COUNT] = {
         .baseSpeed = 10,
         .basicSpell = SPELL_SWORD,
         .specialSpell = SPELL_ROARING_SHOUT,
-        .starterRune = RUNE_TYPE_NONE
+        .starterRune = RUNE_TYPE_MEDITATION
     },
     [CLASS_ROGUE] = {
         .classType = CLASS_ROGUE,
@@ -36,7 +36,7 @@ const ClassData classData[CLASS_COUNT] = {
         .baseSpeed = 15,
         .basicSpell = SPELL_KNIFE,
         .specialSpell = SPELL_FAN_OF_KNIVES,
-        .starterRune = RUNE_TYPE_NONE
+        .starterRune = RUNE_TYPE_WINGED_BOOTS
     },
     [CLASS_RANGER] = {
         .classType = CLASS_RANGER,
@@ -48,7 +48,7 @@ const ClassData classData[CLASS_COUNT] = {
         .baseSpeed = 12,
         .basicSpell = SPELL_BOW_SHOT,
         .specialSpell = SPELL_NET_TRAP,
-        .starterRune = RUNE_TYPE_NONE
+        .starterRune = RUNE_TYPE_WINGED_BOOTS
     }
 };
 
