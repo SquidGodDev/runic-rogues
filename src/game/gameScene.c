@@ -49,6 +49,10 @@ void initRunStart(void) {
 	setTutorialActive(false);
 	initSpells();
 	initRunes();
+	RuneType starterRune = (RuneType)getCurrentClassData()->starterRune;
+	if (starterRune != RUNE_TYPE_NONE) {
+		addRune(starterRune);
+	}
 	freeRuneInventoryCache();
 	initProgressionManager();
 	initTimers();

@@ -13,6 +13,10 @@ static void thunderStoneCallback(float primaryValue, float secondaryValue) {
     startChainLightningOnNearestEnemy(playerX, playerY, CELL_SIZE * 5, (int)primaryValue, (int)secondaryValue);
 }
 
+static void meditationCallback(float primaryValue, float secondaryValue) {
+    healPlayer(primaryValue);
+}
+
 RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_VAMPIRISM] = {
         .nameEN = "Vampirism",
@@ -326,6 +330,19 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .triggerBaseValue = 5.0f,
         .triggerPerLevel  = 0.0f,
         .triggerCallback  = thunderStoneCallback
+    },
+    [RUNE_TYPE_MEDITATION] = {
+        .nameEN = "Meditation",
+        .nameJP = "メディテーション",
+        .descriptionEN = "Restore {1} health when a room is cleared.",
+        .descriptionJP = "部屋をクリアすると体力を回復する。",
+        .iconIndex = BITMAP_RUNE_MEDITATION,
+        .primaryBaseValue = 5,
+        .primaryPerLevel  = 5,
+        .maxLevel = 3,
+        .triggerType = RUNE_TRIGGER_ROOM_CLEAR,
+        .triggerBaseValue = 1.0f,
+        .triggerCallback  = meditationCallback
     }
 };
 

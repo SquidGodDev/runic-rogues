@@ -8,6 +8,7 @@
 #include "game/UI/UI.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/bossCinematic.h"
+#include "game/systems/runeManager.h"
 #include "globals/helpers.h"
 
 #define MAX_SPAWN_QUEUE 20
@@ -267,6 +268,7 @@ void setCurrentRoomIndex(int roomIndex) {
 }
 
 void roomCompleted(void) {
+    signalRuneTrigger(RUNE_TRIGGER_ROOM_CLEAR, 1.0f);
     showPopup(POPUP_ROOM_CLEARED, POPUP_POSITION_CENTER);
     nextRoomIndex++;
     spawnState = SPAWN_STATE_POPUP_WAIT;

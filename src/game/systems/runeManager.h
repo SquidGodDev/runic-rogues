@@ -28,6 +28,7 @@ typedef enum RuneType {
     RUNE_TYPE_ENCHANTED_AMULET,
     RUNE_TYPE_ARCANE_STAFF,
     RUNE_TYPE_THUNDERCLOUD,
+    RUNE_TYPE_MEDITATION,
     RUNE_TYPE_COUNT
 } RuneType;
 
@@ -39,6 +40,7 @@ typedef int RuneClassFilter;
 #define RUNE_CLASS_FILTER_KNIGHT  (1 << CLASS_KNIGHT)
 #define RUNE_CLASS_FILTER_ROGUE   (1 << CLASS_ROGUE)
 #define RUNE_CLASS_FILTER_RANGER  (1 << CLASS_RANGER)
+#define RUNE_CLASS_FILTER_NONE    (1 << CLASS_COUNT)
 
 typedef enum RuneSpellTarget {
     RUNE_SPELL_TARGET_NONE,
@@ -56,7 +58,8 @@ typedef enum RuneTriggerType {
     RUNE_TRIGGER_DAMAGED,
     RUNE_TRIGGER_DAMAGE_ENEMY,
     RUNE_TRIGGER_KILL_ENEMY,
-    RUNE_TRIGGER_EXPERIENCE
+    RUNE_TRIGGER_EXPERIENCE,
+    RUNE_TRIGGER_ROOM_CLEAR
 } RuneTriggerType;
 
 typedef struct RuneData {

@@ -150,6 +150,9 @@ void createShopOptions(void) {
             continue;
         }
         RuneClassFilter filter = getRuneClassFilter((RuneType)i);
+        if (filter == RUNE_CLASS_FILTER_NONE) {
+            continue;
+        }
         if (filter != 0 && !(filter & (1 << currentClass))) {
             continue;
         }

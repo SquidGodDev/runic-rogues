@@ -21,6 +21,7 @@ typedef struct ClassData {
     int baseSpeed;
     Spell basicSpell;
     Spell specialSpell;
+    int starterRune;
 } ClassData;
 
 extern const ClassData classData[CLASS_COUNT];
