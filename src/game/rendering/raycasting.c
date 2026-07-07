@@ -137,6 +137,8 @@ void renderScene(void)
 
 	int playerAngleIndex = angleToIndex(playerAngle);
 
+	int skyboxBaseX = (playerAngleIndex - rayCount / 2) & TRIG_TABLE_MASK;
+
 	for (int ray = 0; ray < rayCount; ray++) {
 		if (rayAngle < 0) {
 			rayAngle += 2 * PI;
@@ -251,7 +253,7 @@ void renderScene(void)
 
 		LineData curLineData;
 		curLineData.wallTexture = wallTexture;
-		curLineData.skyboxTextureX = (uint16_t)rayAngleIndex;
+		curLineData.skyboxTextureX = (uint16_t)((skyboxBaseX + ray) & TRIG_TABLE_MASK);
 		fixed_t rayDistance = fixedSqrt(maxDistSq);
 		int isShaded = 0;
 		if (verticalDistance < horizontalDistance) {

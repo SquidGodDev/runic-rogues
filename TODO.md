@@ -1,7 +1,4 @@
 # TODO
-## Settings Page
-TODO:
-- Try showing rune inventory with empty slots
 ## Tutorial
 - Give a ~30s backup prompt if the player is stuck
 - More indication when arrow target changes
@@ -14,8 +11,6 @@ TODO:
 - Projectile speed feels so-so (make base speed slower?)
 - Adjust rogue damage
 ## Bugs
-- Knockback not working properly
-- Make skybox always pixel aligned
 - Check for memory leaks
 ## Features
 - Starter rune for each class
