@@ -50,6 +50,12 @@ static void applyKeyValue(const char *key, const char *value) {
     }
     if (strcmp(key, "language") == 0) {
         SETTINGS.language = (Language)parseInt(value);
+    } else if (strcmp(key, "controlScheme") == 0) {
+        int scheme = parseInt(value);
+        if (scheme < 0 || scheme >= CONTROL_SCHEME_COUNT) {
+            scheme = CONTROL_SCHEME_CRANK;
+        }
+        SETTINGS.controlScheme = (ControlScheme)scheme;
     } else if (strcmp(key, "drawMinimapWalls") == 0) {
         SETTINGS.drawMinimapWalls = parseInt(value) != 0;
     } else if (strcmp(key, "spellButtonsReversed") == 0) {
@@ -72,6 +78,12 @@ static void applyKeyValue(const char *key, const char *value) {
             offset = SETTING_CRANK_OFFSET_MAX;
         }
         SETTINGS.absoluteCrankOffset = offset;
+    } else if (strcmp(key, "crankRatio") == 0) {
+        int ratio = parseInt(value);
+        if (ratio < 0 || ratio >= CRANK_RATIO_COUNT) {
+            ratio = CRANK_RATIO_1X;
+        }
+        SETTINGS.crankRatio = ratio;
     } else if (strcmp(key, "invertCrank") == 0) {
         SETTINGS.invertCrank = parseInt(value) != 0;
     } else if (strcmp(key, "invertDpad") == 0) {
@@ -114,6 +126,7 @@ void saveGame(void) {
     int len = pd->system->formatString(&body,
         "version=%d\n"
         "language=%d\n"
+        "controlScheme=%d\n"
         "drawMinimapWalls=%d\n"
         "spellButtonsReversed=%d\n"
         "drawFPS=%d\n"
@@ -122,6 +135,7 @@ void saveGame(void) {
         "dpadStrafe=%d\n"
         "absoluteCrank=%d\n"
         "absoluteCrankOffset=%d\n"
+        "crankRatio=%d\n"
         "invertCrank=%d\n"
         "invertDpad=%d\n"
         "musicVolume=%d\n"
@@ -129,6 +143,7 @@ void saveGame(void) {
         "tutorialCompleted=%d\n",
         SAVE_VERSION,
         (int)SETTINGS.language,
+        (int)SETTINGS.controlScheme,
         SETTINGS.drawMinimapWalls ? 1 : 0,
         SETTINGS.spellButtonsReversed ? 1 : 0,
         SETTINGS.drawFPS ? 1 : 0,
@@ -137,6 +152,7 @@ void saveGame(void) {
         SETTINGS.dpadStrafe ? 1 : 0,
         SETTINGS.absoluteCrank ? 1 : 0,
         SETTINGS.absoluteCrankOffset,
+        SETTINGS.crankRatio,
         SETTINGS.invertCrank ? 1 : 0,
         SETTINGS.invertDpad ? 1 : 0,
         SETTINGS.musicVolume,

@@ -8,6 +8,12 @@ typedef enum Language {
     LANGUAGE_COUNT
 } Language;
 
+typedef enum ControlScheme {
+    CONTROL_SCHEME_CRANK,
+    CONTROL_SCHEME_DPAD,
+    CONTROL_SCHEME_COUNT
+} ControlScheme;
+
 // Bar settings store a discrete level; the middle level is the default and
 // maps to the original hard-coded behavior.
 #define SETTING_BAR_MAX_LEVEL 6
@@ -16,8 +22,18 @@ typedef enum Language {
 #define SETTING_CRANK_OFFSET_MIN 0
 #define SETTING_CRANK_OFFSET_MAX 359
 
+// Absolute-crank gearing: how many crank revolutions map to a full 360° turn.
+// Index into the cycle; 1x is the default (one revolution = one turn).
+typedef enum CrankRatio {
+    CRANK_RATIO_1X,   // 1 revolution = 360°
+    CRANK_RATIO_HALF, // 2 revolutions = 360°
+    CRANK_RATIO_THIRD, // 3 revolutions = 360°
+    CRANK_RATIO_COUNT
+} CrankRatio;
+
 typedef struct Settings {
     Language language;
+    ControlScheme controlScheme;
     bool drawMinimapWalls;
     bool spellButtonsReversed;
     bool drawFPS;
@@ -26,6 +42,7 @@ typedef struct Settings {
     bool dpadStrafe;
     bool absoluteCrank;
     int absoluteCrankOffset; // degrees, 0-360; rotates the absolute-crank reference angle
+    int crankRatio;          // CrankRatio index; scales absolute-crank gearing
     bool invertCrank;
     bool invertDpad;
     int musicVolume;
@@ -42,6 +59,8 @@ void resetAudioSettings(void);
 // 0.5x at level 0, 1.0x at the default middle level, 1.5x at max
 float getCrankTurnSpeedMultiplier(void);
 float getDpadTurnSpeedMultiplier(void);
+// Absolute-crank gearing multiplier: 1.0 / 0.5 / 0.333 for 1x / 0.5x / 0.33x
+float getAbsoluteCrankRatio(void);
 // 0.0 at level 0, 1.0 at max
 float getMusicVolumeSetting(void);
 float getSfxVolumeSetting(void);

@@ -57,9 +57,38 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
         "Language",
         "言語",
     },
+    // Language names render as endonyms regardless of the active UI language.
+    [STR_LANG_ENGLISH] = {
+        "English",
+        "English",
+    },
+    [STR_LANG_JP] = {
+        "日本語",
+        "日本語",
+    },
     [STR_SETTING_DRAW_FPS] = {
         "Draw FPS",
         "FPS表示",
+    },
+    [STR_SETTING_CONTROL] = {
+        "Control",
+        "操作方法",
+    },
+    [STR_CONTROL_CRANK] = {
+        "Crank",
+        "クランク",
+    },
+    [STR_CONTROL_DPAD] = {
+        "D-Pad",
+        "十字キー",
+    },
+    [STR_SECTION_CRANK_CONTROLS] = {
+        "Crank Controls",
+        "クランク操作",
+    },
+    [STR_SECTION_DPAD_CONTROLS] = {
+        "D-Pad Controls",
+        "十字キー操作",
     },
     [STR_SETTING_CRANK_TURN_SPEED] = {
         "Crank Turn Speed",
@@ -73,6 +102,23 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
         "Crank Offset",
         "クランクオフセット",
     },
+    [STR_SETTING_CRANK_RATIO] = {
+        "Crank Ratio",
+        "クランク比率",
+    },
+    // Ratio labels are ASCII and always drawn in the EN sub font.
+    [STR_CRANK_RATIO_1X] = {
+        "1x",
+        "1x",
+    },
+    [STR_CRANK_RATIO_HALF] = {
+        "0.5x",
+        "0.5x",
+    },
+    [STR_CRANK_RATIO_THIRD] = {
+        "0.33x",
+        "0.33x",
+    },
     [STR_SETTING_INVERT_CRANK] = {
         "Invert Crank",
         "クランク反転",
@@ -82,8 +128,8 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
         "十字キー回転速度",
     },
     [STR_SETTING_DPAD_STRAFE] = {
-        "D-Pad Strafe",
-        "十字キー平行移動",
+        "Strafe",
+        "平行移動",
     },
     [STR_SETTING_INVERT_DPAD] = {
         "Invert D-Pad",

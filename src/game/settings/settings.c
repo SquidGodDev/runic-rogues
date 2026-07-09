@@ -8,11 +8,13 @@ void resetGeneralSettings(void) {
 }
 
 void resetControlSettings(void) {
+    SETTINGS.controlScheme = CONTROL_SCHEME_CRANK;
     SETTINGS.crankTurnSpeed = SETTING_BAR_DEFAULT_LEVEL;
     SETTINGS.dpadTurnSpeed = SETTING_BAR_DEFAULT_LEVEL;
     SETTINGS.dpadStrafe = true;
     SETTINGS.absoluteCrank = false;
     SETTINGS.absoluteCrankOffset = 0;
+    SETTINGS.crankRatio = CRANK_RATIO_1X;
     SETTINGS.invertCrank = false;
     SETTINGS.invertDpad = false;
     SETTINGS.spellButtonsReversed = false;
@@ -40,6 +42,17 @@ float getCrankTurnSpeedMultiplier(void) {
 
 float getDpadTurnSpeedMultiplier(void) {
     return 0.5f + barLevelToRatio(SETTINGS.dpadTurnSpeed);
+}
+
+float getAbsoluteCrankRatio(void) {
+    switch (SETTINGS.crankRatio) {
+        case CRANK_RATIO_HALF:
+            return 0.5f;
+        case CRANK_RATIO_THIRD:
+            return 1.0f / 3.0f;
+        default:
+            return 1.0f;
+    }
 }
 
 float getMusicVolumeSetting(void) {

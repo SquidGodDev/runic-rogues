@@ -82,7 +82,8 @@ typedef enum MenuFocus {
 #define INT_HOLD_STEP         10
 
 typedef enum SettingControlType {
-    CONTROL_LANGUAGE,
+    CONTROL_SECTION_HEADER, // unselectable divider titling a group of rows
+    CONTROL_CHOICE,         // cycles through localized options via left/right/A
     CONTROL_CHECKBOX,
     CONTROL_BAR,
     CONTROL_INT,
@@ -92,9 +93,14 @@ typedef enum SettingControlType {
 typedef struct SettingRowDef {
     StringKey nameKey;
     SettingControlType type;
-    void *value; // bool* for CONTROL_CHECKBOX, int* for CONTROL_BAR / CONTROL_INT
+    void *value; // bool* for CONTROL_CHECKBOX, int*/enum* for CONTROL_BAR / CONTROL_INT / CONTROL_CHOICE
     int minValue; // CONTROL_INT only
     int maxValue; // CONTROL_INT only
+    const StringKey *choiceLabels; // CONTROL_CHOICE: option labels, indexed by *value
+    int choiceCount;               // CONTROL_CHOICE
+    int indent;                    // name indent level (0 = flush, 1 = under a section, 2 = sub-option)
+    bool (*isDisabled)(void);      // NULL = always enabled; disabled rows stay selectable but locked
+    bool valueEnFont;              // CONTROL_CHOICE: render the value in the EN sub font regardless of language
 } SettingRowDef;
 
 typedef struct SettingsTabDef {
@@ -103,20 +109,44 @@ typedef struct SettingsTabDef {
     void (*resetFunc)(void);
 } SettingsTabDef;
 
+// Controls-tab sections are gated by the active control scheme: the section
+// matching the current scheme stays live, the other is disabled (locked + dithered).
+static bool crankControlsDisabled(void) {
+    return SETTINGS.controlScheme != CONTROL_SCHEME_CRANK;
+}
+
+static bool dpadControlsDisabled(void) {
+    return SETTINGS.controlScheme != CONTROL_SCHEME_DPAD;
+}
+
+// Absolute-crank sub-options are dead unless crank control is active AND absolute
+// crank is turned on.
+static bool absoluteCrankOptionsDisabled(void) {
+    return crankControlsDisabled() || !SETTINGS.absoluteCrank;
+}
+
+static const StringKey LANGUAGE_CHOICE_LABELS[LANGUAGE_COUNT] = { STR_LANG_ENGLISH, STR_LANG_JP };
+static const StringKey CONTROL_CHOICE_LABELS[CONTROL_SCHEME_COUNT] = { STR_CONTROL_CRANK, STR_CONTROL_DPAD };
+static const StringKey CRANK_RATIO_LABELS[CRANK_RATIO_COUNT] = { STR_CRANK_RATIO_1X, STR_CRANK_RATIO_HALF, STR_CRANK_RATIO_THIRD };
+
 static const SettingRowDef GENERAL_ROWS[] = {
-    { STR_SETTING_LANGUAGE, CONTROL_LANGUAGE, NULL },
+    { STR_SETTING_LANGUAGE, CONTROL_CHOICE, &SETTINGS.language, 0, 0, LANGUAGE_CHOICE_LABELS, LANGUAGE_COUNT },
     { STR_SETTING_DRAW_FPS, CONTROL_CHECKBOX, &SETTINGS.drawFPS },
     { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },
 };
 
 static const SettingRowDef CONTROLS_ROWS[] = {
-    { STR_SETTING_CRANK_TURN_SPEED, CONTROL_BAR, &SETTINGS.crankTurnSpeed },
-    { STR_SETTING_DPAD_STRAFE, CONTROL_CHECKBOX, &SETTINGS.dpadStrafe },
-    { STR_SETTING_ABSOLUTE_CRANK, CONTROL_CHECKBOX, &SETTINGS.absoluteCrank },
-    { STR_SETTING_ABSOLUTE_CRANK_OFFSET, CONTROL_INT, &SETTINGS.absoluteCrankOffset, SETTING_CRANK_OFFSET_MIN, SETTING_CRANK_OFFSET_MAX },
-    { STR_SETTING_INVERT_CRANK, CONTROL_CHECKBOX, &SETTINGS.invertCrank },
-    { STR_SETTING_DPAD_TURN_SPEED, CONTROL_BAR, &SETTINGS.dpadTurnSpeed },
-    { STR_SETTING_INVERT_DPAD, CONTROL_CHECKBOX, &SETTINGS.invertDpad },
+    { STR_SETTING_CONTROL, CONTROL_CHOICE, &SETTINGS.controlScheme, 0, 0, CONTROL_CHOICE_LABELS, CONTROL_SCHEME_COUNT },
+    { STR_SECTION_CRANK_CONTROLS, CONTROL_SECTION_HEADER, NULL },
+    { STR_SETTING_CRANK_TURN_SPEED, CONTROL_BAR, &SETTINGS.crankTurnSpeed, 0, 0, NULL, 0, 1, crankControlsDisabled },
+    { STR_SETTING_DPAD_STRAFE, CONTROL_CHECKBOX, &SETTINGS.dpadStrafe, 0, 0, NULL, 0, 1, crankControlsDisabled },
+    { STR_SETTING_ABSOLUTE_CRANK, CONTROL_CHECKBOX, &SETTINGS.absoluteCrank, 0, 0, NULL, 0, 1, crankControlsDisabled },
+    { STR_SETTING_ABSOLUTE_CRANK_OFFSET, CONTROL_INT, &SETTINGS.absoluteCrankOffset, SETTING_CRANK_OFFSET_MIN, SETTING_CRANK_OFFSET_MAX, NULL, 0, 2, absoluteCrankOptionsDisabled },
+    { STR_SETTING_CRANK_RATIO, CONTROL_CHOICE, &SETTINGS.crankRatio, 0, 0, CRANK_RATIO_LABELS, CRANK_RATIO_COUNT, 2, absoluteCrankOptionsDisabled, true },
+    { STR_SETTING_INVERT_CRANK, CONTROL_CHECKBOX, &SETTINGS.invertCrank, 0, 0, NULL, 0, 1, crankControlsDisabled },
+    { STR_SECTION_DPAD_CONTROLS, CONTROL_SECTION_HEADER, NULL },
+    { STR_SETTING_DPAD_TURN_SPEED, CONTROL_BAR, &SETTINGS.dpadTurnSpeed, 0, 0, NULL, 0, 1, dpadControlsDisabled },
+    { STR_SETTING_INVERT_DPAD, CONTROL_CHECKBOX, &SETTINGS.invertDpad, 0, 0, NULL, 0, 1, dpadControlsDisabled },
     { STR_SETTING_SWAP_SPELL_BUTTONS, CONTROL_CHECKBOX, &SETTINGS.spellButtonsReversed },
     { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },
 };
@@ -129,9 +159,27 @@ static const SettingRowDef AUDIO_ROWS[] = {
 
 static const SettingsTabDef SETTINGS_TABS[] = {
     [MENU_TAB_GENERAL]  = { GENERAL_ROWS, 3, resetGeneralSettings },
-    [MENU_TAB_CONTROLS] = { CONTROLS_ROWS, 9, resetControlSettings },
+    [MENU_TAB_CONTROLS] = { CONTROLS_ROWS, 13, resetControlSettings },
     [MENU_TAB_AUDIO]    = { AUDIO_ROWS, 3, resetAudioSettings },
 };
+
+static bool rowIsSelectable(const SettingRowDef *row) {
+    return row->type != CONTROL_SECTION_HEADER;
+}
+
+static bool rowIsDisabled(const SettingRowDef *row) {
+    return row->isDisabled != NULL && row->isDisabled();
+}
+
+// Nearest selectable row from `from` moving in `dir` (+1 down / -1 up); -1 if none.
+static int adjacentSelectableRow(const SettingsTabDef *tab, int from, int dir) {
+    for (int i = from + dir; i >= 0 && i < tab->rowCount; i += dir) {
+        if (rowIsSelectable(&tab->rows[i])) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 static PDMenuItem *menuItem;
 
@@ -279,8 +327,10 @@ static PDButtons navRepeat(PDButtons dirMask, PDButtons current, PDButtons pushe
     return 0;
 }
 
-static void toggleLanguage(void) {
-    SETTINGS.language = SETTINGS.language == LANGUAGE_EN ? LANGUAGE_JP : LANGUAGE_EN;
+static void cycleChoice(const SettingRowDef *row, int delta) {
+    int *value = (int *)row->value;
+    int count = row->choiceCount;
+    *value = ((*value + delta) % count + count) % count;
     saveGame();
 }
 
@@ -361,10 +411,13 @@ static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, 
             }
             break;
         }
-        case CONTROL_LANGUAGE: {
-            if ((pushed & (kButtonLeft | kButtonRight)) || (pushed & kButtonA)) {
-                toggleLanguage();
+        case CONTROL_CHOICE: {
+            if (pushed & (kButtonLeft | kButtonRight | kButtonA)) {
+                cycleChoice(row, (pushed & kButtonLeft) ? -1 : 1);
             }
+            break;
+        }
+        case CONTROL_SECTION_HEADER: {
             break;
         }
         case CONTROL_BAR: {
@@ -393,7 +446,7 @@ static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, 
 
 static void drawSettingArrows(int leftArrowX, int rightArrowX, int centerY, bool selected) {
     int bitmapIndex = selected ? BITMAP_SETTING_ARROW_FILLED : BITMAP_SETTING_ARROW_OUTLINE;
-    int y = centerY - SETTING_ARROW_H / 2;
+    int y = centerY - SETTING_ARROW_H / 2 - 1;
     pd->graphics->drawBitmap(BITMAPS[bitmapIndex], leftArrowX, y, kBitmapUnflipped);
     pd->graphics->drawBitmap(BITMAPS[bitmapIndex], rightArrowX, y, kBitmapFlippedX);
 }
@@ -460,9 +513,27 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             continue;
         }
         bool rowFocused = focus != FOCUS_TABS && rowIndex == listSelRow;
+        bool rowDisabled = rowIsDisabled(row);
+        // Locked rows render their control in the inactive (unfilled) state even
+        // when selected, so selection never lights them up.
+        bool controlActive = rowFocused && !rowDisabled;
         int textY = rowY + (ROW_HEIGHT - fontH) / 2;
         if (SETTINGS.language == LANGUAGE_JP) {
             textY -= 1;
+        }
+
+        if (row->type == CONTROL_SECTION_HEADER) {
+            const char *title = getLocString(row->nameKey);
+            int titleLen = strlen(title);
+            pd->graphics->drawText(title, titleLen, kUTF8Encoding, ROW_X + 2, textY);
+            int titleW = pd->graphics->getTextWidth(font, title, titleLen, kUTF8Encoding, tracking);
+            int lineY = rowY + ROW_HEIGHT / 2 - 1;
+            int lineStartX = ROW_X + 2 + titleW + 4;
+            int lineEndX = ROW_X + rowWidth - 2;
+            if (lineEndX > lineStartX) {
+                pd->graphics->fillRect(lineStartX, lineY, lineEndX - lineStartX, 1, kColorWhite);
+            }
+            continue;
         }
 
         if (row->type == CONTROL_RESET_BUTTON) {
@@ -482,7 +553,8 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
         }
 
         const char *name = getLocString(row->nameKey);
-        pd->graphics->drawText(name, strlen(name), kUTF8Encoding, 10, textY);
+        int nameX = 10 + row->indent * 6;
+        pd->graphics->drawText(name, strlen(name), kUTF8Encoding, nameX, textY);
 
         if (row->type == CONTROL_CHECKBOX) {
             bool value = *(bool *)row->value;
@@ -491,7 +563,7 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             pd->graphics->drawRect(boxX, boxY, 8, 8, kColorWhite);
             if (value) {
                 pd->graphics->fillRect(boxX + 2, boxY + 2, 4, 4, kColorWhite);
-            } else if (rowFocused) {
+            } else if (controlActive) {
                 // Checkered 4x4 fill to signal the box is togglable while selected.
                 for (int py = 0; py < 4; py++) {
                     for (int px = 0; px < 4; px++) {
@@ -519,24 +591,39 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             // the row is focused (adjustable), outlined otherwise.
             int selX = barX + level * 7 - 1;
             int selY = centerY - 4;
-            if (rowFocused) {
+            if (controlActive) {
                 pd->graphics->fillRect(selX, selY, 4, 8, kColorWhite);
             } else {
                 pd->graphics->drawRect(selX, selY, 4, 8, kColorWhite);
             }
-        } else if (row->type == CONTROL_LANGUAGE) {
-            const char *value = SETTINGS.language == LANGUAGE_JP ? "日本語" : "English";
+        } else if (row->type == CONTROL_CHOICE) {
+            // Some choices (e.g. the ASCII ratio labels) always render in the EN sub
+            // font; the rest follow the active UI font.
+            LCDFont *valueFont = row->valueEnFont ? fontSubEN : font;
+            int valueTracking = row->valueEnFont ? -2 : tracking;
+            int index = *(int *)row->value;
+            const char *value = getLocString(row->choiceLabels[index]);
             int valueLen = strlen(value);
-            int valueW = pd->graphics->getTextWidth(font, value, valueLen, kUTF8Encoding, tracking);
+            int valueW = pd->graphics->getTextWidth(valueFont, value, valueLen, kUTF8Encoding, valueTracking);
 
-            // Reserve a fixed region sized to the wider label so the arrows stay
-            // put regardless of the current language, then center the value in it.
-            int enW = pd->graphics->getTextWidth(fontSubEN, "English", 7, kUTF8Encoding, -2);
-            int jpW = pd->graphics->getTextWidth(fontSubJP, "日本語", strlen("日本語"), kUTF8Encoding, 1);
-            int valueRegionW = (enW > jpW ? enW : jpW);
+            // Reserve a region sized to the widest option so the arrows stay put
+            // as the value cycles, then center the current value within it.
+            int valueRegionW = 0;
+            for (int i = 0; i < row->choiceCount; i++) {
+                const char *opt = getLocString(row->choiceLabels[i]);
+                int optW = pd->graphics->getTextWidth(valueFont, opt, strlen(opt), kUTF8Encoding, valueTracking);
+                if (optW > valueRegionW) {
+                    valueRegionW = optW;
+                }
+            }
 
             const int arrowGap = 4;
-            int centerY = textY + fontH / 2;
+            int valueFontH = pd->graphics->getFontHeight(valueFont);
+            int valueTextY = rowY + (ROW_HEIGHT - valueFontH) / 2;
+            if (!row->valueEnFont && SETTINGS.language == LANGUAGE_JP) {
+                valueTextY -= 1;
+            }
+            int centerY = valueTextY + valueFontH / 2;
 
             int rightArrowLeft = controlRightX - SETTING_ARROW_W;
             int valueRegionRight = rightArrowLeft - arrowGap;
@@ -544,9 +631,13 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             int leftArrowLeft = valueRegionLeft - arrowGap - SETTING_ARROW_W;
             int valueX = valueRegionLeft + (valueRegionW - valueW) / 2;
 
-            pd->graphics->drawText(value, valueLen, kUTF8Encoding, valueX, textY);
+            pd->graphics->setFont(valueFont);
+            pd->graphics->setTextTracking(valueTracking);
+            pd->graphics->drawText(value, valueLen, kUTF8Encoding, valueX, valueTextY);
+            pd->graphics->setFont(font);
+            pd->graphics->setTextTracking(tracking);
 
-            drawSettingArrows(leftArrowLeft, rightArrowLeft, centerY, rowFocused);
+            drawSettingArrows(leftArrowLeft, rightArrowLeft, centerY, controlActive);
         } else if (row->type == CONTROL_INT) {
             // Numbers always render in the EN sub font. Reserve a fixed region sized
             // to three digits so the arrows hold position, then center the value
@@ -576,7 +667,22 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
 
             pd->system->realloc(valueStr, 0);
 
-            drawSettingArrows(leftArrowLeft, rightArrowLeft, centerY, rowFocused);
+            drawSettingArrows(leftArrowLeft, rightArrowLeft, centerY, controlActive);
+        }
+
+        // Half-tone the whole row to read as locked. Drawn before the selection
+        // outline so the cursor stays solid and legible over a disabled row.
+        // The checker mask is screen-aligned, so phase its vertical parity by the
+        // scroll offset — otherwise it shimmers against rows scrolling past it.
+        if (rowDisabled) {
+            uint8_t maskEven = (scrollOffset & 1) ? 0x55 : 0xAA;
+            uint8_t maskOdd = (scrollOffset & 1) ? 0xAA : 0x55;
+            LCDPattern disabledDither = {
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,        // color: black
+                maskEven, maskOdd, maskEven, maskOdd,                  // mask: checker,
+                maskEven, maskOdd, maskEven, maskOdd                   // scroll-phased
+            };
+            pd->graphics->fillRect(ROW_X, rowY - 1, rowWidth, ROW_HEIGHT, (LCDColor)disabledDither);
         }
 
         if (rowFocused) {
@@ -770,28 +876,30 @@ void updateGameMenu(float deltaTime) {
         if (pushed & kButtonB) {
             enterTabSelect();
         } else if (navDir & kButtonUp) {
-            if (listSelRow > 0) {
-                listSelRow--;
+            int prevRow = adjacentSelectableRow(tab, listSelRow, -1);
+            if (prevRow >= 0) {
+                listSelRow = prevRow;
                 intCrankAccum = 0.0f;
                 ensureRowVisible();
             } else if (pushed & kButtonUp) {
                 enterTabSelect();
             }
         } else if (navDir & kButtonDown) {
-            if (listSelRow < tab->rowCount - 1) {
-                listSelRow++;
+            int nextRow = adjacentSelectableRow(tab, listSelRow, 1);
+            if (nextRow >= 0) {
+                listSelRow = nextRow;
                 intCrankAccum = 0.0f;
                 ensureRowVisible();
             } else if (pushed & kButtonDown) {
                 enterTabSelect();
             }
-        } else {
+        } else if (!rowIsDisabled(&tab->rows[listSelRow])) {
             handleSettingsRowInput(&tab->rows[listSelRow], current, pushed, deltaTime);
         }
 
         float crankChange = pd->system->getCrankChange();
         const SettingRowDef *selRow = &tab->rows[listSelRow];
-        if (selRow->type == CONTROL_INT) {
+        if (selRow->type == CONTROL_INT && !rowIsDisabled(selRow)) {
             adjustIntByCrank((int *)selRow->value, selRow->minValue, selRow->maxValue, crankChange);
         } else {
             float maxScrollPx = settingsMaxScrollPx(tab);

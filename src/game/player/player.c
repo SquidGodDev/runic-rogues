@@ -115,6 +115,13 @@ static bool defaultStrafeSetting = false;
 static bool toggleMovementSetting = false;
 static bool movementToggled = false;
 
+// Continuous (unwrapped) crank angle in degrees, so absolute crank can gear down
+// below 1:1 — at 0.5x two revolutions map to a full 360° turn. Seeded to the real
+// crank angle so 1x stays identical to reading getCrankAngle() directly.
+static float absoluteCrankAccum = 0.0f;
+static float prevCrankAngle = 0.0f;
+static bool crankAccumInit = false;
+
 static bool inputDisabled = false;
 static PDButtons suppressedButtons = 0;
 
@@ -293,7 +300,8 @@ static void updateSpecialSpellCharge(float deltaTime, bool bHeld) {
 
 void handleInput(float deltaTime)
 {
-	defaultStrafeSetting = !pd->system->isCrankDocked() && SETTINGS.dpadStrafe;
+	bool crankControl = SETTINGS.controlScheme == CONTROL_SCHEME_CRANK;
+	defaultStrafeSetting = crankControl && SETTINGS.dpadStrafe;
 
 	int cellSize = CELL_SIZE;
 	int mapWidth = MAP_WIDTH;
@@ -380,7 +388,24 @@ void handleInput(float deltaTime)
 	}
 	int rotationEnabled = (defaultStrafeSetting == bButtonPressed) && !playerIsDashing;
 	int strafeEnabled = (defaultStrafeSetting != bButtonPressed) || playerIsDashing;
-	float crankChange = inputDisabled ? 0.0f : pd->system->getCrankChange();
+	float crankChange = (inputDisabled || !crankControl) ? 0.0f : pd->system->getCrankChange();
+
+	// Track the crank's unwrapped angle every frame so absolute crank can gear down.
+	float rawCrankAngle = pd->system->getCrankAngle();
+	if (!crankAccumInit) {
+		prevCrankAngle = rawCrankAngle;
+		absoluteCrankAccum = rawCrankAngle;
+		crankAccumInit = true;
+	}
+	float crankAngleDelta = rawCrankAngle - prevCrankAngle;
+	while (crankAngleDelta > 180.0f) {
+		crankAngleDelta -= 360.0f;
+	}
+	while (crankAngleDelta < -180.0f) {
+		crankAngleDelta += 360.0f;
+	}
+	absoluteCrankAccum += crankAngleDelta;
+	prevCrankAngle = rawCrankAngle;
 
 	PDButtons turnLeftButton = SETTINGS.invertDpad ? kButtonRight : kButtonLeft;
 	PDButtons turnRightButton = SETTINGS.invertDpad ? kButtonLeft : kButtonRight;
@@ -416,16 +441,17 @@ void handleInput(float deltaTime)
 	}
 
 	float crankRadians;
-	// Absolute crank needs a real crank angle; when the crank is docked (d-pad mode)
-	// fall back to relative turning so docked play isn't stuck facing the last angle.
-	if (SETTINGS.absoluteCrank && !pd->system->isCrankDocked()) {
+	// Absolute crank needs a real crank angle; in d-pad control mode fall back to
+	// relative turning so d-pad play isn't stuck facing the last crank angle.
+	if (SETTINGS.absoluteCrank && crankControl) {
 		if (inputDisabled) {
 			crankRadians = 0.0f;
 		} else {
-			// The crank's absolute angle maps directly to facing: crank up (0°) plus
-			// the configured offset is the reference. Rotate by the shortest delta
-			// from the current facing to that target so movement stays continuous.
-			float crankDeg = pd->system->getCrankAngle() + SETTINGS.absoluteCrankOffset;
+			// The crank's angle maps to facing, geared by the crank ratio: at 1x the
+			// accumulated angle equals the physical angle (crank up = reference), at
+			// 0.5x it takes two revolutions to sweep 360°. The offset rotates the
+			// reference. Rotate by the shortest delta to the target for continuity.
+			float crankDeg = absoluteCrankAccum * getAbsoluteCrankRatio() + SETTINGS.absoluteCrankOffset;
 			float targetAngle = degToRad(SETTINGS.invertCrank ? -crankDeg : crankDeg);
 			float delta = targetAngle - playerAngle;
 			while (delta > PI) {
