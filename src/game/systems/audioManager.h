@@ -8,6 +8,7 @@ typedef enum SFX {
     SFX_ENEMY_HIT,
     SFX_ENEMY_DEATH,
     SFX_PLAYER_HIT,
+    SFX_LIGHTNING,
     SFX_COUNT
 } SFX;
 

@@ -79,11 +79,6 @@ void explosionCast(Spell spell, SpellCastData *castData, float x, float y, float
     screenShake(SCREEN_SHAKE_MEDIUM);
 }
 
-void lightningArcCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
-    // Damage random enemies in area and spawn a lightning particle at their locations
-
-}
-
 void chainLightningLinkCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
     SpellData *data = &spellData[SPELL_CHAIN_LIGHTNING];
     startChainLightning(x, y, data->damage, (int)data->projectileData.primaryData);

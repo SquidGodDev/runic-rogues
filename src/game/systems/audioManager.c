@@ -28,14 +28,14 @@ typedef struct SFXData {
 
 SFXData sfxData[] = {
     [SFX_SHOOT] = {
-        .defaultNote = 40,
-        .volume = DEFAULT_VOLUME,
+        .defaultNote = 25,
+        .volume = 0.21f,
         .waveform = kWaveformNoise,
-        .attack = 0,
+        .attack = 0.09f,
         .decay = 0.39f,
         .sustain = 0,
-        .release = 0,
-        .curvature = 1.0f,
+        .release = 0.09f,
+        .curvature = 0.52f,
         .lfo = 0
     },
     [SFX_WALL_HIT] = {
@@ -61,14 +61,14 @@ SFXData sfxData[] = {
         .lfo = 0
     },
     [SFX_ENEMY_DEATH] = {
-        .defaultNote = 29,
-        .volume = DEFAULT_VOLUME,
+        .defaultNote = 14,
+        .volume = 0.26f,
         .waveform = kWaveformNoise,
-        .attack = 0.06f,
-        .decay = 0.39f,
+        .attack = 0.18f,
+        .decay = 0.43f,
         .sustain = 0,
-        .release = 0,
-        .curvature = 0.62f,
+        .release = 0.26f,
+        .curvature = 1.0f,
         .lfo = 0
     },
     [SFX_PLAYER_HIT] = {
@@ -82,10 +82,21 @@ SFXData sfxData[] = {
         .curvature = 1.0f,
         .lfoType = kLFOTypeSquare,
         .lfo = 1,
-        .depth = 0.63,
+        .depth = 0.63f,
         .center = 0.5f,
         .rate = 5.0f,
-        .phase = 0.0f
+        .phase = 0
+    },
+    [SFX_LIGHTNING] = {
+        .defaultNote = 29,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformNoise,
+        .attack = 0.02f,
+        .decay = 0.41f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 0.62f,
+        .lfo = 0
     }
 };
 

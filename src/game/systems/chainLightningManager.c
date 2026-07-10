@@ -7,6 +7,7 @@
 #include "game/systems/timerManager.h"
 #include "game/enemies/enemies.h"
 #include "game/rendering/particles.h"
+#include "game/systems/audioManager.h"
 
 #define CHAIN_LIGHTNING_MAX_CHAINS  10 // hard upper bound for static array size
 #define CHAIN_LIGHTNING_CHAIN_RANGE (CELL_SIZE * 5)
@@ -40,6 +41,7 @@ static void chainLinkTimerCallback(int repeatCount, void *data) {
     if (!enemies[targetIndex].active) {
         return;
     }
+    playSound(SFX_LIGHTNING);
     damageEnemy(targetIndex, chainStateDamage);
     spawnParticle(PARTICLE_TYPE_LIGHTNING_ATTACK, enemies[targetIndex].x, enemies[targetIndex].y, enemies[targetIndex].x, enemies[targetIndex].y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
 }
@@ -66,6 +68,7 @@ static void chainFromPosition(float searchX, float searchY, int chainCount, bool
 }
 
 void startChainLightning(float fromX, float fromY, int damage, int chainCount) {
+    playSound(SFX_LIGHTNING);
     spawnParticle(PARTICLE_TYPE_LIGHTNING_ATTACK, fromX, fromY, fromX, fromY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
     chainStateDamage = damage;
     bool hitEnemies[MAX_ENEMY_COUNT] = {false};
@@ -87,6 +90,7 @@ void startChainLightningOnNearestEnemy(float fromX, float fromY, float maxRange,
         return;
     }
 
+    playSound(SFX_LIGHTNING);
     chainStateDamage = damage;
     bool hitEnemies[MAX_ENEMY_COUNT] = {false};
     hitEnemies[targetIndex] = true;
