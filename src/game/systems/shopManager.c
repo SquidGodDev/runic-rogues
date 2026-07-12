@@ -5,6 +5,7 @@
 #include "globals/helpers.h"
 #include "game/gameScene.h"
 #include "game/systems/shopManager.h"
+#include "game/systems/audioManager.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/spawnManager.h"
 #include "game/systems/runeManager.h"
@@ -228,6 +229,7 @@ static void initShopCommon(void) {
         iconYOffsets[i] = 0;
     }
     resetShopDescOffset();
+    setMusicLowpassEnabled(true);
     setGameState(GAME_STATE_SHOP);
 }
 
@@ -476,6 +478,8 @@ void updateShop(float deltaTime) {
         if (selectedShopOptionIndex != SHOP_SKIP_OPTION_INDEX) {
             selectShopItem(shopItems[selectedShopOptionIndex]);
         }
+        // Start un-muffling now so the fade-out runs alongside the shop slide-out.
+        setMusicLowpassEnabled(false);
         shopState = SHOP_STATE_EXITING;
         shopTransitionTime = SHOP_TRANSITION_OUT_DURATION;
     }

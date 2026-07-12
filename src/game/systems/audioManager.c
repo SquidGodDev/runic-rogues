@@ -137,6 +137,23 @@ static const char *musicPathStrings[MUSIC_COUNT] = {
 };
 static FilePlayer *musicFiles[MUSIC_COUNT];
 
+#define MUSIC_LOWPASS_FREQUENCY 450.0f
+#define MUSIC_LOWPASS_RESONANCE 0.2f
+static SoundChannel *musicChannel = NULL;
+static TwoPoleFilter *musicLowpass = NULL;
+
+static void initMusicChannel(void) {
+    musicChannel = pd->sound->channel->newChannel();
+    pd->sound->addChannel(musicChannel);
+
+    musicLowpass = pd->sound->effect->twopolefilter->newFilter();
+    pd->sound->effect->twopolefilter->setType(musicLowpass, kFilterTypeLowPass);
+    pd->sound->effect->twopolefilter->setFrequency(musicLowpass, MUSIC_LOWPASS_FREQUENCY);
+    pd->sound->effect->twopolefilter->setResonance(musicLowpass, MUSIC_LOWPASS_RESONANCE);
+    pd->sound->effect->setMix((SoundEffect *)musicLowpass, 0.0f);
+    pd->sound->channel->addEffect(musicChannel, (SoundEffect *)musicLowpass);
+}
+
 int getAudioAssetCount(void) {
     return SFX_COUNT + SFX_FILE_COUNT + MUSIC_COUNT;
 }
@@ -155,8 +172,12 @@ void loadAudioAsset(int step) {
     step -= SFX_FILE_COUNT;
 
     if (step < MUSIC_COUNT) {
+        if (musicChannel == NULL) {
+            initMusicChannel();
+        }
         musicFiles[step] = pd->sound->fileplayer->newPlayer();
         pd->sound->fileplayer->loadIntoPlayer(musicFiles[step], musicPathStrings[step]);
+        pd->sound->channel->addSource(musicChannel, (SoundSource *)musicFiles[step]);
         return;
     }
 }
@@ -169,12 +190,57 @@ void playSound(SFX sfx) {
 }
 
 // === Music manager ===
-#define MUSIC_VOLUME 1.0f  // full volume of the active track
-#define MUSIC_FADE_TIME 1.5f  // seconds for a full crossfade / fade-out
+#define MUSIC_VOLUME 0.5f
+#define MUSIC_FADE_TIME 1.5f
+#define MUSIC_LOWPASS_FADE_TIME 0.35f
 
-static float musicFade[MUSIC_COUNT];        // current fade fraction, 0..1
-static float musicTargetFade[MUSIC_COUNT];  // desired fade fraction, 0..1
-static int currentSong = -1;                // active track, or -1 for none
+static float musicFade[MUSIC_COUNT];
+static float musicTargetFade[MUSIC_COUNT];
+static int currentSong = -1;
+
+static float filterMix;
+static float filterMixTarget;
+
+static bool musicPaused = false;
+static bool musicResumePending[MUSIC_COUNT];
+
+void setMusicLowpassEnabled(bool enabled) {
+    filterMixTarget = enabled ? 1.0f : 0.0f;
+}
+
+void resetMusicManager(void) {
+    setMusicPaused(false);
+    filterMix = 0.0f;
+    filterMixTarget = 0.0f;
+    if (musicLowpass != NULL) {
+        pd->sound->effect->setMix((SoundEffect *)musicLowpass, 0.0f);
+    }
+}
+
+void setMusicPaused(bool paused) {
+    if (paused == musicPaused) {
+        return;
+    }
+    musicPaused = paused;
+
+    if (paused) {
+        for (int i = 0; i < MUSIC_COUNT; i++) {
+            if (musicFiles[i] != NULL && pd->sound->fileplayer->isPlaying(musicFiles[i])) {
+                pd->sound->fileplayer->pause(musicFiles[i]);
+                musicResumePending[i] = true;
+            } else {
+                musicResumePending[i] = false;
+            }
+        }
+    } else {
+        for (int i = 0; i < MUSIC_COUNT; i++) {
+            if (musicFiles[i] != NULL && musicResumePending[i]) {
+                pd->sound->fileplayer->play(musicFiles[i], 0);
+                musicResumePending[i] = false;
+            }
+        }
+    }
+}
 
 void playSong(Music song) {
     if (song < 0 || song >= MUSIC_COUNT) return;
@@ -202,7 +268,32 @@ void stopSong(void) {
     }
 }
 
+static void updateMusicLowpass(float deltaTime) {
+    if (musicLowpass == NULL) {
+        return;
+    }
+    float step = (MUSIC_LOWPASS_FADE_TIME > 0.0f) ? (deltaTime / MUSIC_LOWPASS_FADE_TIME) : 1.0f;
+    if (filterMix < filterMixTarget) {
+        filterMix += step;
+        if (filterMix > filterMixTarget) {
+            filterMix = filterMixTarget;
+        }
+    } else if (filterMix > filterMixTarget) {
+        filterMix -= step;
+        if (filterMix < filterMixTarget) {
+            filterMix = filterMixTarget;
+        }
+    }
+    pd->sound->effect->setMix((SoundEffect *)musicLowpass, filterMix);
+}
+
 void updateMusicManager(float deltaTime) {
+    updateMusicLowpass(deltaTime);
+
+    if (musicPaused) {
+        return;
+    }
+
     float step = (MUSIC_FADE_TIME > 0.0f) ? (deltaTime / MUSIC_FADE_TIME) : 1.0f;
 
     for (int i = 0; i < MUSIC_COUNT; i++) {

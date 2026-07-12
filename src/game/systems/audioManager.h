@@ -29,3 +29,7 @@ void playSound(SFX sfx);
 void playSong(Music song);
 void stopSong(void);
 void updateMusicManager(float deltaTime);
+
+void setMusicLowpassEnabled(bool enabled);
+void setMusicPaused(bool paused);
+void resetMusicManager(void);

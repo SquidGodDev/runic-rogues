@@ -1,4 +1,9 @@
 # TODO
+## Audio
+- Make lowpass filter on shop popup for music
+- Pause music when in menu
+- Hook up volume controls
+- Stop music during boss animation
 ## Tutorial
 - Give a ~30s backup prompt if the player is stuck
 - More indication when arrow target changes

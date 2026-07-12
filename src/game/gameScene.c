@@ -57,6 +57,7 @@ void initRunStart(void) {
 	initProgressionManager();
 	initTimers();
 	runStatsResetForNewRun();
+	resetMusicManager();
 	playSong(MUSIC_RUNIC_ROGUES_1);
 }
 
@@ -119,6 +120,9 @@ void updateGameScene(float deltaTime)
 	tryCompleteQuitDialogInit();
 
 	runStatsTick(deltaTime);
+
+	setMusicPaused(gameState == GAME_STATE_MENU || gameState == GAME_STATE_BOSS_CINEMATIC);
+
 	if (gameState == GAME_STATE_ACTIVE) {
 		updateSpawnManager();
 		updateGameplaySubsystems(deltaTime);
