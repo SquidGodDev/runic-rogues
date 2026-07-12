@@ -131,8 +131,11 @@ void createSynth(SFX sfx) {
 // and MUSIC_COUNT in audioManager.h, then dispatch in loadAudioAsset below.
 // static const char *sfxFilePathStrings[SFX_FILE_COUNT] = { };
 // static AudioSample *sfxFiles[SFX_FILE_COUNT];
-// static const char *musicPathStrings[MUSIC_COUNT] = { };
-// static FilePlayer *musicFiles[MUSIC_COUNT];
+
+static const char *musicPathStrings[MUSIC_COUNT] = {
+    [MUSIC_RUNIC_ROGUES_1] = "audio/music/RunicRoguesTrack1",
+};
+static FilePlayer *musicFiles[MUSIC_COUNT];
 
 int getAudioAssetCount(void) {
     return SFX_COUNT + SFX_FILE_COUNT + MUSIC_COUNT;
@@ -152,8 +155,8 @@ void loadAudioAsset(int step) {
     step -= SFX_FILE_COUNT;
 
     if (step < MUSIC_COUNT) {
-        // musicFiles[step] = pd->sound->fileplayer->newPlayer();
-        // pd->sound->fileplayer->loadIntoPlayer(musicFiles[step], musicPathStrings[step]);
+        musicFiles[step] = pd->sound->fileplayer->newPlayer();
+        pd->sound->fileplayer->loadIntoPlayer(musicFiles[step], musicPathStrings[step]);
         return;
     }
 }
@@ -162,5 +165,64 @@ void playSound(SFX sfx) {
     if (sfx < 0 || sfx >= SFX_COUNT) return;
 
     SFXData data = sfxData[sfx];
-    pd->sound->synth->playMIDINote(synths[sfx], data.defaultNote, DEFAULT_VELOCITY, DEFAULT_PLAY_LEN, 0);
+    pd->sound->synth->playMIDINote(synths[sfx], data.defaultNote, 0.5f, DEFAULT_PLAY_LEN, 0);
+}
+
+// === Music manager ===
+#define MUSIC_VOLUME 1.0f  // full volume of the active track
+#define MUSIC_FADE_TIME 1.5f  // seconds for a full crossfade / fade-out
+
+static float musicFade[MUSIC_COUNT];        // current fade fraction, 0..1
+static float musicTargetFade[MUSIC_COUNT];  // desired fade fraction, 0..1
+static int currentSong = -1;                // active track, or -1 for none
+
+void playSong(Music song) {
+    if (song < 0 || song >= MUSIC_COUNT) return;
+    if (currentSong == (int)song) return;  // already the active track
+
+    currentSong = (int)song;
+    for (int i = 0; i < MUSIC_COUNT; i++) {
+        musicTargetFade[i] = 0.0f;
+    }
+    musicTargetFade[song] = 1.0f;
+
+    // A track fading back in keeps its current fade level; only start fresh
+    // (from silence) if it isn't already playing.
+    if (musicFiles[song] != NULL && !pd->sound->fileplayer->isPlaying(musicFiles[song])) {
+        musicFade[song] = 0.0f;
+        pd->sound->fileplayer->setVolume(musicFiles[song], 0.0f, 0.0f);
+        pd->sound->fileplayer->play(musicFiles[song], 0);  // 0 == loop endlessly
+    }
+}
+
+void stopSong(void) {
+    currentSong = -1;
+    for (int i = 0; i < MUSIC_COUNT; i++) {
+        musicTargetFade[i] = 0.0f;
+    }
+}
+
+void updateMusicManager(float deltaTime) {
+    float step = (MUSIC_FADE_TIME > 0.0f) ? (deltaTime / MUSIC_FADE_TIME) : 1.0f;
+
+    for (int i = 0; i < MUSIC_COUNT; i++) {
+        if (musicFiles[i] == NULL) continue;
+
+        float target = musicTargetFade[i];
+        if (musicFade[i] < target) {
+            musicFade[i] += step;
+            if (musicFade[i] > target) musicFade[i] = target;
+        } else if (musicFade[i] > target) {
+            musicFade[i] -= step;
+            if (musicFade[i] < target) musicFade[i] = target;
+        }
+
+        if (pd->sound->fileplayer->isPlaying(musicFiles[i])) {
+            float volume = musicFade[i] * MUSIC_VOLUME;
+            pd->sound->fileplayer->setVolume(musicFiles[i], volume, volume);
+            if (musicFade[i] <= 0.0f && target <= 0.0f) {
+                pd->sound->fileplayer->stop(musicFiles[i]);
+            }
+        }
+    }
 }

@@ -18,9 +18,14 @@ typedef enum SFXFile {
 } SFXFile;
 
 typedef enum Music {
+    MUSIC_RUNIC_ROGUES_1,
     MUSIC_COUNT
 } Music;
 
 int getAudioAssetCount(void);
 void loadAudioAsset(int step);
 void playSound(SFX sfx);
+
+void playSong(Music song);
+void stopSong(void);
+void updateMusicManager(float deltaTime);

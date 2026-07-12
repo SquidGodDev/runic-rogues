@@ -14,6 +14,7 @@
 #include "game/gameScene.h"
 #include "game/tutorial/tutorialScene.h"
 #include "game/UI/gameMenu.h"
+#include "game/systems/audioManager.h"
 
 // === Transition style selector ===
 // Swap this to switch between transition effects.
@@ -336,6 +337,9 @@ int updateSceneManager(void* userdata) {
     if (deltaTime > MAX_DELTA_TIME) {
         deltaTime = MAX_DELTA_TIME;
     }
+
+    updateMusicManager(deltaTime);
+
     switch (currentScene) {
         case SCENE_LOADING:
             updateLoadingScene(deltaTime);

@@ -57,6 +57,7 @@ void initRunStart(void) {
 	initProgressionManager();
 	initTimers();
 	runStatsResetForNewRun();
+	playSong(MUSIC_RUNIC_ROGUES_1);
 }
 
 // Run at the start of every floor

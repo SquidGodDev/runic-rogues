@@ -38,18 +38,19 @@ file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS
     "src/*.h"
 )
 
-file(GLOB_RECURSE IMAGES CONFIGURE_DEPENDS
+file(GLOB_RECURSE ASSETS CONFIGURE_DEPENDS
 	"Source/images/*"
 	"Source/fonts/*"
+	"Source/audio/*"
 )
 
 # Force a relink (which re-runs the pdc POST_BUILD step) whenever an asset
-# changes, so editing a PNG/font/etc is picked up without touching C source.
+# changes, so editing a PNG/font/audio/etc is picked up without touching C source.
 set(ASSETS_TRIGGER "${CMAKE_CURRENT_BINARY_DIR}/assets_trigger.c")
 add_custom_command(
 	OUTPUT ${ASSETS_TRIGGER}
 	COMMAND ${CMAKE_COMMAND} -E touch ${ASSETS_TRIGGER}
-	DEPENDS ${IMAGES}
+	DEPENDS ${ASSETS}
 	COMMENT "Asset change detected — re-running pdc"
 )
 
