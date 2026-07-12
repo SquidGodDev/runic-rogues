@@ -193,6 +193,7 @@ void playSound(SFX sfx) {
 #define MUSIC_VOLUME 0.5f
 #define MUSIC_FADE_TIME 1.5f
 #define MUSIC_LOWPASS_FADE_TIME 0.35f
+#define MUSIC_PAUSE_FADE_TIME 0.75f
 
 static float musicFade[MUSIC_COUNT];
 static float musicTargetFade[MUSIC_COUNT];
@@ -202,37 +203,62 @@ static float filterMix;
 static float filterMixTarget;
 
 static bool musicPaused = false;
+static bool musicPauseFade = false;   // whether the active pause ramps or snaps
+static bool musicRateFrozen = false;  // playback rate held at 0 to freeze position
+static float musicChannelGain = 1.0f;
+static float musicChannelGainTarget = 1.0f;
 
 void setMusicLowpassEnabled(bool enabled) {
     filterMixTarget = enabled ? 1.0f : 0.0f;
 }
 
 void resetMusicManager(void) {
-    setMusicPaused(false);
+    musicPaused = false;
+    musicPauseFade = false;
+    musicRateFrozen = false;
+    musicChannelGain = 1.0f;
+    musicChannelGainTarget = 1.0f;
     filterMix = 0.0f;
     filterMixTarget = 0.0f;
+    if (musicChannel != NULL) {
+        pd->sound->channel->setVolume(musicChannel, 1.0f);
+    }
+    for (int i = 0; i < MUSIC_COUNT; i++) {
+        if (musicFiles[i] != NULL) {
+            pd->sound->fileplayer->setRate(musicFiles[i], 1.0f);
+        }
+    }
     if (musicLowpass != NULL) {
         pd->sound->effect->setMix((SoundEffect *)musicLowpass, 0.0f);
     }
 }
 
-// Freezes the music by muting its channel and halting playback rate, rather than
-// pausing the file players: fileplayer->play() re-adds the source to the default
-// channel, which would bypass the lowpass effect living on musicChannel. This keeps
-// the source (and filter) routing intact while freezing the playback position.
-void setMusicPaused(bool paused) {
+// Pausing mutes the music channel and freezes playback rate rather than pausing the
+// file players: fileplayer->play() re-adds the source to the default channel, which
+// would bypass the lowpass effect on musicChannel. Muting keeps the routing intact.
+// The channel gain ramps toward its target in updateMusicChannelGain; snapping the
+// gain here makes the pause instant, otherwise it fades. Resume reuses the fade mode
+// the pause was requested with.
+static void requestMusicPause(bool paused, bool fade) {
     if (paused == musicPaused) {
         return;
     }
     musicPaused = paused;
-    if (musicChannel != NULL) {
-        pd->sound->channel->setVolume(musicChannel, paused ? 0.0f : 1.0f);
+    if (paused) {
+        musicPauseFade = fade;
     }
-    for (int i = 0; i < MUSIC_COUNT; i++) {
-        if (musicFiles[i] != NULL) {
-            pd->sound->fileplayer->setRate(musicFiles[i], paused ? 0.0f : 1.0f);
-        }
+    musicChannelGainTarget = paused ? 0.0f : 1.0f;
+    if (!musicPauseFade) {
+        musicChannelGain = musicChannelGainTarget;
     }
+}
+
+void setMusicPaused(bool paused) {
+    requestMusicPause(paused, false);
+}
+
+void setMusicPausedWithFade(bool paused) {
+    requestMusicPause(paused, true);
 }
 
 void playSong(Music song) {
@@ -280,10 +306,42 @@ static void updateMusicLowpass(float deltaTime) {
     pd->sound->effect->setMix((SoundEffect *)musicLowpass, filterMix);
 }
 
+static void updateMusicChannelGain(float deltaTime) {
+    if (musicChannel == NULL) {
+        return;
+    }
+    float step = (MUSIC_PAUSE_FADE_TIME > 0.0f) ? (deltaTime / MUSIC_PAUSE_FADE_TIME) : 1.0f;
+    if (musicChannelGain < musicChannelGainTarget) {
+        musicChannelGain += step;
+        if (musicChannelGain > musicChannelGainTarget) {
+            musicChannelGain = musicChannelGainTarget;
+        }
+    } else if (musicChannelGain > musicChannelGainTarget) {
+        musicChannelGain -= step;
+        if (musicChannelGain < musicChannelGainTarget) {
+            musicChannelGain = musicChannelGainTarget;
+        }
+    }
+    pd->sound->channel->setVolume(musicChannel, musicChannelGain);
+
+    // Freeze the playback position only once the fade-out has fully silenced it, and
+    // unfreeze the instant a resume begins so it advances as it fades back in.
+    bool shouldFreeze = musicPaused && musicChannelGain <= 0.0f;
+    if (shouldFreeze != musicRateFrozen) {
+        musicRateFrozen = shouldFreeze;
+        for (int i = 0; i < MUSIC_COUNT; i++) {
+            if (musicFiles[i] != NULL) {
+                pd->sound->fileplayer->setRate(musicFiles[i], shouldFreeze ? 0.0f : 1.0f);
+            }
+        }
+    }
+}
+
 void updateMusicManager(float deltaTime) {
     updateMusicLowpass(deltaTime);
+    updateMusicChannelGain(deltaTime);
 
-    if (musicPaused) {
+    if (musicPaused && musicChannelGain <= 0.0f) {
         return;
     }
 

@@ -32,4 +32,5 @@ void updateMusicManager(float deltaTime);
 
 void setMusicLowpassEnabled(bool enabled);
 void setMusicPaused(bool paused);
+void setMusicPausedWithFade(bool paused);
 void resetMusicManager(void);

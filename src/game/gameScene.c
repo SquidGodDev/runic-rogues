@@ -121,7 +121,13 @@ void updateGameScene(float deltaTime)
 
 	runStatsTick(deltaTime);
 
-	setMusicPaused(gameState == GAME_STATE_MENU || gameState == GAME_STATE_BOSS_CINEMATIC);
+	if (gameState == GAME_STATE_BOSS_CINEMATIC) {
+		setMusicPausedWithFade(true);
+	} else if (gameState == GAME_STATE_MENU) {
+		setMusicPaused(true);
+	} else {
+		setMusicPaused(false);
+	}
 
 	if (gameState == GAME_STATE_ACTIVE) {
 		updateSpawnManager();
