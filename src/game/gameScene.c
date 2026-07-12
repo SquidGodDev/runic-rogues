@@ -123,7 +123,7 @@ void updateGameScene(float deltaTime)
 
 	if (gameState == GAME_STATE_BOSS_CINEMATIC) {
 		setMusicPausedWithFade(true);
-	} else if (gameState == GAME_STATE_MENU) {
+	} else if (gameState == GAME_STATE_MENU || gameState == GAME_STATE_QUIT_CONFIRM) {
 		setMusicPaused(true);
 	} else {
 		setMusicPaused(false);
