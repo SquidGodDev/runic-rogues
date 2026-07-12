@@ -202,7 +202,6 @@ static float filterMix;
 static float filterMixTarget;
 
 static bool musicPaused = false;
-static bool musicResumePending[MUSIC_COUNT];
 
 void setMusicLowpassEnabled(bool enabled) {
     filterMixTarget = enabled ? 1.0f : 0.0f;
@@ -217,27 +216,21 @@ void resetMusicManager(void) {
     }
 }
 
+// Freezes the music by muting its channel and halting playback rate, rather than
+// pausing the file players: fileplayer->play() re-adds the source to the default
+// channel, which would bypass the lowpass effect living on musicChannel. This keeps
+// the source (and filter) routing intact while freezing the playback position.
 void setMusicPaused(bool paused) {
     if (paused == musicPaused) {
         return;
     }
     musicPaused = paused;
-
-    if (paused) {
-        for (int i = 0; i < MUSIC_COUNT; i++) {
-            if (musicFiles[i] != NULL && pd->sound->fileplayer->isPlaying(musicFiles[i])) {
-                pd->sound->fileplayer->pause(musicFiles[i]);
-                musicResumePending[i] = true;
-            } else {
-                musicResumePending[i] = false;
-            }
-        }
-    } else {
-        for (int i = 0; i < MUSIC_COUNT; i++) {
-            if (musicFiles[i] != NULL && musicResumePending[i]) {
-                pd->sound->fileplayer->play(musicFiles[i], 0);
-                musicResumePending[i] = false;
-            }
+    if (musicChannel != NULL) {
+        pd->sound->channel->setVolume(musicChannel, paused ? 0.0f : 1.0f);
+    }
+    for (int i = 0; i < MUSIC_COUNT; i++) {
+        if (musicFiles[i] != NULL) {
+            pd->sound->fileplayer->setRate(musicFiles[i], paused ? 0.0f : 1.0f);
         }
     }
 }
