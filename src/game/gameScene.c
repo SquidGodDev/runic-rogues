@@ -58,7 +58,6 @@ void initRunStart(void) {
 	initTimers();
 	runStatsResetForNewRun();
 	resetMusicManager();
-	playSong(MUSIC_RUNIC_ROGUES_1);
 }
 
 // Run at the start of every floor
@@ -92,6 +91,15 @@ void initGameScene(void)
 		addTimer(0.7f, 1, showAreaEnterPopupCallback, NULL);
 	}
 
+	if (getCurrentRoom() == 0) {
+		Music areaMusic = getCurrentAreaMusic();
+		if (areaMusic == MUSIC_NONE) {
+			stopSong();
+		} else {
+			playSong(areaMusic);
+		}
+	}
+
 	// Player
 	initPlayer();
 
@@ -122,7 +130,9 @@ void updateGameScene(float deltaTime)
 	runStatsTick(deltaTime);
 
 	if (gameState == GAME_STATE_BOSS_CINEMATIC) {
-		setMusicPausedWithFade(true);
+		if (!isBossDeathCinematicActive()) {
+			setMusicPausedWithFade(true);
+		}
 	} else if (gameState == GAME_STATE_MENU || gameState == GAME_STATE_QUIT_CONFIRM) {
 		setMusicPaused(true);
 	} else {

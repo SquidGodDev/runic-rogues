@@ -133,7 +133,9 @@ void createSynth(SFX sfx) {
 // static AudioSample *sfxFiles[SFX_FILE_COUNT];
 
 static const char *musicPathStrings[MUSIC_COUNT] = {
-    [MUSIC_RUNIC_ROGUES_1] = "audio/music/RunicRoguesTrack1",
+    [MUSIC_RUNIC_ROGUES_1] = "audio/music/TwilightCourt",
+    [MUSIC_RUNIC_ROGUES_2] = "audio/music/LostArchives",
+    [MUSIC_RUNIC_ROGUES_3] = "audio/music/EchoingCaverns",
 };
 static FilePlayer *musicFiles[MUSIC_COUNT];
 

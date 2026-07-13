@@ -3,6 +3,7 @@
 #include "pd_api.h"
 #include "globals/globals.h"
 #include "game/enemies/enemies.h"
+#include "game/systems/audioManager.h"
 
 #define MAX_ROOM_COUNT 1
 
@@ -23,6 +24,7 @@ typedef struct AreaData {
     uint8_t *gateTexture;
     uint8_t *skyboxTexture;
     bool useSkybox;
+    Music music;
 } AreaData;
 
 void initProgressionManager(void);
@@ -30,6 +32,7 @@ void resetProgressionManagerRoomState(void);
 float getExperiencePercentToNextLevel(void);
 void addExperience(float amount);
 AreaData getCurrentAreaData(void);
+Music getCurrentAreaMusic(void);
 Area getCurrentArea(void);
 void setCurrentArea(Area area);
 int getCurrentRoom(void);

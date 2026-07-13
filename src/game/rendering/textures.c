@@ -28,6 +28,7 @@ const char *texturePathStrings[] = {
 	"images/environment/echoingCaverns/echoingCavernsCeiling",
 	"images/environment/echoingCaverns/echoingCavernsFloor",
 	"images/environment/echoingCaverns/echoingCavernsGate",
+	"images/environment/echoingCaverns/echoingCavernsSkybox",
 	"images/environment/test/testWall",
 	"images/environment/test/testCeiling",
 	"images/environment/test/testFloor",

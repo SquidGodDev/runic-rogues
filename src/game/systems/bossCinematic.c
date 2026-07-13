@@ -14,6 +14,7 @@
 #include "game/systems/bossCinematic.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/spawnManager.h"
+#include "game/systems/audioManager.h"
 #include "game/systems/runStats.h"
 
 // === Tunable cinematic parameters ===
@@ -122,6 +123,8 @@ void startBossDeathCinematic(int bossIndex) {
 	bossY = boss->y;
 
 	orbitStartAngle = atan2f(savedY - bossY, savedX - bossX);
+
+	stopSong();
 
 	phase = BOSS_CINEMATIC_DEATH_ZOOM_IN;
 	phaseTimer = 0;

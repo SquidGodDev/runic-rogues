@@ -41,27 +41,32 @@ void initProgressionManager(void) {
         .floorTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_FLOOR],
         .gateTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_GATE],
         .skyboxTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_SKYBOX],
-        .useSkybox = true
+        .useSkybox = true,
+        .music = MUSIC_RUNIC_ROGUES_1
     };
     areaData[AREA_LOST_ARCHIVES] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_CEILING],
         .floorTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_FLOOR],
-        .gateTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_GATE]
+        .gateTexture = TEXTURES[TEXTURE_LOST_ARCHIVES_GATE],
+        .music = MUSIC_RUNIC_ROGUES_2
     };
     areaData[AREA_ECHOING_CAVERNS] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_CEILING],
         .floorTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_FLOOR],
         .gateTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_GATE],
-        .useSkybox = false
+        .skyboxTexture = TEXTURES[TEXTURE_ECHOING_CAVERNS_SKYBOX],
+        .useSkybox = true,
+        .music = MUSIC_RUNIC_ROGUES_3
     };
     areaData[AREA_TUTORIAL] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_TUTORIAL_WALL],
         .ceilingTexture = TEXTURES[TEXTURE_TUTORIAL_CEILING],
         .floorTexture = TEXTURES[TEXTURE_TUTORIAL_FLOOR],
         .gateTexture = TEXTURES[TEXTURE_TUTORIAL_WALL],
-        .useSkybox = false
+        .useSkybox = false,
+        .music = MUSIC_NONE
     };
     areaData[AREA_TEST] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_TEST_WALL],
@@ -69,7 +74,8 @@ void initProgressionManager(void) {
         .floorTexture = TEXTURES[TEXTURE_TEST_FLOOR],
         .gateTexture = TEXTURES[TEXTURE_TEST_WALL],
         .skyboxTexture = TEXTURES[TEXTURE_TEST_SKYBOX],
-        .useSkybox = true
+        .useSkybox = true,
+        .music = MUSIC_NONE
     };
 }
 
@@ -96,6 +102,10 @@ void addExperience(float amount) {
 
 AreaData getCurrentAreaData(void) {
     return areaData[currentArea];
+}
+
+Music getCurrentAreaMusic(void) {
+    return areaData[currentArea].music;
 }
 
 Area getCurrentArea(void) {
