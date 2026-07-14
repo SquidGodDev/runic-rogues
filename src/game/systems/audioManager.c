@@ -133,6 +133,7 @@ void createSynth(SFX sfx) {
 // static AudioSample *sfxFiles[SFX_FILE_COUNT];
 
 static const char *musicPathStrings[MUSIC_COUNT] = {
+    [MUSIC_TITLE] = "audio/music/Title",
     [MUSIC_RUNIC_ROGUES_1] = "audio/music/TwilightCourt",
     [MUSIC_RUNIC_ROGUES_2] = "audio/music/LostArchives",
     [MUSIC_RUNIC_ROGUES_3] = "audio/music/EchoingCaverns",
@@ -280,6 +281,10 @@ void playSong(Music song) {
         pd->sound->fileplayer->setVolume(musicFiles[song], 0.0f, 0.0f);
         pd->sound->fileplayer->play(musicFiles[song], 0);  // 0 == loop endlessly
     }
+}
+
+Music getCurrentSong(void) {
+    return (Music)currentSong;
 }
 
 void stopSong(void) {

@@ -9,6 +9,7 @@
 #include "game/gameScene.h"
 #include "game/player/classes/classData.h"
 #include "game/rendering/textures.h"
+#include "game/systems/audioManager.h"
 
 #define TITLE_TOP_Y 5
 #define TITLE_TO_BUTTONS_GAP 39
@@ -21,6 +22,7 @@ static int selectedIndex;
 
 void initTitleScene(void) {
     selectedIndex = 0;
+    playSong(MUSIC_TITLE);
 }
 
 void updateTitleScene(float deltaTime) {

@@ -19,6 +19,7 @@ typedef enum SFXFile {
 
 typedef enum Music {
     MUSIC_NONE = -1,
+    MUSIC_TITLE,
     MUSIC_RUNIC_ROGUES_1,
     MUSIC_RUNIC_ROGUES_2,
     MUSIC_RUNIC_ROGUES_3,
@@ -31,6 +32,7 @@ void playSound(SFX sfx);
 
 void playSong(Music song);
 void stopSong(void);
+Music getCurrentSong(void);
 void updateMusicManager(float deltaTime);
 
 void setMusicLowpassEnabled(bool enabled);

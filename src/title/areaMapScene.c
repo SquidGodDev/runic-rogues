@@ -8,6 +8,7 @@
 #include "title/areaMapScene.h"
 #include "game/rendering/textures.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/audioManager.h"
 #include "game/player/classes/classData.h"
 
 #define MAP_AREA_COUNT 3
@@ -184,6 +185,10 @@ static void drawLineOpacity(int x, int y, int width, float opacity) {
 }
 
 void initAreaMapScene(void) {
+    if (getCurrentSong() == MUSIC_TITLE) {
+        stopSong();
+    }
+
     buildStencils();
 
     classVisible = false;
