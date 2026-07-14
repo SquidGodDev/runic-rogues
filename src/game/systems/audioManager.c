@@ -139,7 +139,7 @@ static const char *musicPathStrings[MUSIC_COUNT] = {
 };
 static FilePlayer *musicFiles[MUSIC_COUNT];
 
-#define MUSIC_LOWPASS_FREQUENCY 450.0f
+#define MUSIC_LOWPASS_FREQUENCY 500.0f
 #define MUSIC_LOWPASS_RESONANCE 0.2f
 static SoundChannel *musicChannel = NULL;
 static TwoPoleFilter *musicLowpass = NULL;
@@ -192,7 +192,7 @@ void playSound(SFX sfx) {
 }
 
 // === Music manager ===
-#define MUSIC_VOLUME 0.5f
+#define MUSIC_VOLUME 0.4f
 #define MUSIC_FADE_TIME 1.5f
 #define MUSIC_LOWPASS_FADE_TIME 0.35f
 #define MUSIC_PAUSE_FADE_TIME 0.75f

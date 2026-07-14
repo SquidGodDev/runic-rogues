@@ -133,7 +133,9 @@ void updateGameScene(float deltaTime)
 		if (!isBossDeathCinematicActive()) {
 			setMusicPausedWithFade(true);
 		}
-	} else if (gameState == GAME_STATE_MENU || gameState == GAME_STATE_QUIT_CONFIRM) {
+	} else if (gameState == GAME_STATE_MENU) {
+		setMusicPausedWithFade(true);
+	} else if (gameState == GAME_STATE_QUIT_CONFIRM) {
 		setMusicPaused(true);
 	} else {
 		setMusicPaused(false);
