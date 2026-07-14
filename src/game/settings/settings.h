@@ -32,8 +32,12 @@ typedef enum CrankRatio {
 } CrankRatio;
 
 typedef struct Settings {
-    Language language;
-    ControlScheme controlScheme;
+    // Stored as int (not the enum type) so their width is stable under the ARM
+    // build's -fshort-enums: the settings menu reads these via *(int *)row->value,
+    // which would otherwise over-read a 1-byte enum field on device. The enum
+    // constants (LANGUAGE_*, CONTROL_SCHEME_*) are still used for the values.
+    int language;
+    int controlScheme;
     bool drawMinimapWalls;
     bool spellButtonsReversed;
     bool drawFPS;

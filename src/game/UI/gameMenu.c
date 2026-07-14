@@ -93,7 +93,12 @@ typedef enum SettingControlType {
 typedef struct SettingRowDef {
     StringKey nameKey;
     SettingControlType type;
-    void *value; // bool* for CONTROL_CHECKBOX, int*/enum* for CONTROL_BAR / CONTROL_INT / CONTROL_CHOICE
+    // bool* for CONTROL_CHECKBOX; int* for CONTROL_BAR / CONTROL_INT / CONTROL_CHOICE.
+    // MUST NOT point at an enum-typed field: this is read/written as *(int *)value, but
+    // the ARM build uses -fshort-enums, so an enum field is 1 byte on device and the
+    // 4-byte access over-reads/over-writes adjacent struct bytes (crashes the settings
+    // menu). Declare choice-backed settings as plain `int` (see Settings in settings.h).
+    void *value;
     int minValue; // CONTROL_INT only
     int maxValue; // CONTROL_INT only
     const StringKey *choiceLabels; // CONTROL_CHOICE: option labels, indexed by *value
