@@ -197,6 +197,28 @@ static int listSelRow;
 static int exitSelRow;
 static int confirmSel;
 
+static bool settingsMode;
+static bool menuActive;
+
+static MenuTab firstTab(void) {
+    return settingsMode ? MENU_TAB_GENERAL : MENU_TAB_INVENTORY;
+}
+
+static int visibleTabCount(void) {
+    return MENU_TAB_COUNT - firstTab();
+}
+
+static int tabDrawX(MenuTab tab) {
+    if (settingsMode && tab != MENU_TAB_EXIT) {
+        return TAB_X[tab] - (TAB_X[MENU_TAB_GENERAL] - TAB_X[MENU_TAB_INVENTORY]);
+    }
+    return TAB_X[tab];
+}
+
+static int exitRowCount(void) {
+    return settingsMode ? 1 : 2;
+}
+
 static float scrollPx;        // current animated list scroll offset in pixels
 static float scrollTargetPx;  // where the list is scrolling toward
 
@@ -233,6 +255,12 @@ static bool isSettingsTab(MenuTab tab) {
 static void closeGameMenu(void) {
     saveGame();
     settingsDirty = false;
+    menuActive = false;
+    if (settingsMode) {
+        // Opened from the title screen: the title scene polls gameMenuActive() and
+        // dismisses the overlay. No game state or system menu item to restore.
+        return;
+    }
     suppressHeldPlayerButtons();
     setGameState(stateBeforeMenu);
     createGameMenuItem();
@@ -459,8 +487,8 @@ static void drawSettingArrows(int leftArrowX, int rightArrowX, int centerY, bool
 static void drawTabBar(void) {
     pd->graphics->drawLine(0, TAB_BASELINE_Y, SCREEN_WIDTH - 1, TAB_BASELINE_Y, 1, kColorWhite);
 
-    for (int i = 0; i < MENU_TAB_COUNT; i++) {
-        int x = TAB_X[i];
+    for (int i = firstTab(); i < MENU_TAB_COUNT; i++) {
+        int x = tabDrawX((MenuTab)i);
         bool isActive = (MenuTab)i == activeTab;
         bool isOutlined = focus == FOCUS_TABS && (MenuTab)i == selectedTab;
 
@@ -714,11 +742,20 @@ static void drawExitTab(void) {
     pd->graphics->setDrawMode(kDrawModeCopy);
     int fontH = pd->graphics->getFontHeight(font);
 
-    const StringKey labels[2] = { STR_EXIT_CLOSE_MENU, STR_EXIT_QUIT_RUN };
-    const int buttonY[2] = { 38, 72 };
+    StringKey labels[2];
+    int buttonY[2];
+    if (settingsMode) {
+        labels[0] = STR_GAMEOVER_BUTTON_RETURN_TO_TITLE;
+        buttonY[0] = 54;
+    } else {
+        labels[0] = STR_EXIT_CLOSE_MENU;
+        labels[1] = STR_EXIT_QUIT_RUN;
+        buttonY[0] = 38;
+        buttonY[1] = 72;
+    }
     const int buttonH = 24;
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < exitRowCount(); i++) {
         const char *label = getLocString(labels[i]);
         int labelLen = strlen(label);
         int labelW = pd->graphics->getTextWidth(font, label, labelLen, kUTF8Encoding, tracking);
@@ -814,12 +851,14 @@ void updateGameMenu(float deltaTime) {
         }
     } else if (focus == FOCUS_TABS) {
         PDButtons navDir = navRepeat(kButtonLeft | kButtonRight, current, pushed, deltaTime);
+        int base = firstTab();
+        int count = visibleTabCount();
         if (navDir & kButtonLeft) {
-            selectedTab = (selectedTab + MENU_TAB_COUNT - 1) % MENU_TAB_COUNT;
+            selectedTab = base + ((selectedTab - base) + count - 1) % count;
             activeTab = selectedTab;
             resetContentState();
         } else if (navDir & kButtonRight) {
-            selectedTab = (selectedTab + 1) % MENU_TAB_COUNT;
+            selectedTab = base + ((selectedTab - base) + 1) % count;
             activeTab = selectedTab;
             resetContentState();
         }
@@ -865,7 +904,7 @@ void updateGameMenu(float deltaTime) {
                 exitSelRow--;
             }
         } else if (pushed & kButtonDown) {
-            if (exitSelRow < 1) {
+            if (exitSelRow < exitRowCount() - 1) {
                 exitSelRow++;
             }
         } else if (pushed & kButtonA) {
@@ -945,6 +984,8 @@ void updateGameMenu(float deltaTime) {
 }
 
 void initGameMenu(void) {
+    settingsMode = false;
+    menuActive = true;
     stateBeforeMenu = gameState;
     initRuneInventoryTab();
     activeTab = MENU_TAB_INVENTORY;
@@ -952,6 +993,18 @@ void initGameMenu(void) {
     enterTabSelect();
     createCloseMenuItem();
     setGameState(GAME_STATE_MENU);
+}
+
+void initSettingsMenu(void) {
+    settingsMode = true;
+    menuActive = true;
+    activeTab = MENU_TAB_GENERAL;
+    resetContentState();
+    enterTabSelect();
+}
+
+bool gameMenuActive(void) {
+    return menuActive;
 }
 
 static void onOpenMenuItemSelect(void *userdata) {

@@ -53,6 +53,7 @@ typedef enum StringKey {
     // Title scene
     STR_TITLE_BUTTON_START,
     STR_TITLE_BUTTON_TUTORIAL,
+    STR_TITLE_BUTTON_SETTINGS,
 
     // Class select scene
     STR_CLASS_SELECT_TITLE,

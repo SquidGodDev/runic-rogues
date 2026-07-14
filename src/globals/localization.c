@@ -178,6 +178,10 @@ static const LocEntry LOC_TABLE[STR_COUNT] = {
         "Tutorial",
         NULL,
     },
+    [STR_TITLE_BUTTON_SETTINGS] = {
+        "Settings",
+        NULL,
+    },
 
     // Class select scene (English-only)
     [STR_CLASS_SELECT_TITLE] = {
