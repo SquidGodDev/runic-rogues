@@ -66,7 +66,7 @@ void initProgressionManager(void) {
         .floorTexture = TEXTURES[TEXTURE_TUTORIAL_FLOOR],
         .gateTexture = TEXTURES[TEXTURE_TUTORIAL_WALL],
         .useSkybox = false,
-        .music = MUSIC_NONE
+        .music = MUSIC_TUTORIAL
     };
     areaData[AREA_TEST] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_TEST_WALL],

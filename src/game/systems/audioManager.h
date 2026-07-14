@@ -20,6 +20,7 @@ typedef enum SFXFile {
 typedef enum Music {
     MUSIC_NONE = -1,
     MUSIC_TITLE,
+    MUSIC_TUTORIAL,
     MUSIC_RUNIC_ROGUES_1,
     MUSIC_RUNIC_ROGUES_2,
     MUSIC_RUNIC_ROGUES_3,
