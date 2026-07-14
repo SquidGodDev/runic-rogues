@@ -185,7 +185,7 @@ void initNextScene(void) {
 
     if (currentScene == SCENE_GAME) {
         createGameMenuItem();
-    } else {
+    } else if (currentScene != SCENE_TUTORIAL) {
         removeGameMenuItem();
     }
 }

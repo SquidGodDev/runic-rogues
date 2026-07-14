@@ -153,6 +153,8 @@ void initTutorialScene(void) {
     setTutorialActive(true);
     initGameScene();
 
+    createGameMenuItem();
+
     removeSkipTutorialMenuItem();
     skipMenuItem = pd->system->addMenuItem(getLocString(STR_MENU_SKIP_TUTORIAL), onSkipTutorialSelect, NULL);
 
