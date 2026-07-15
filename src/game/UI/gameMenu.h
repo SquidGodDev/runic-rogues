@@ -8,3 +8,6 @@ bool gameMenuActive(void);
 void updateGameMenu(float deltaTime);
 void createGameMenuItem(void);
 void removeGameMenuItem(void);
+// Re-titles the live system menu item in the active language. Call after a
+// language change so the "Menu"/"Close" item updates without reopening it.
+void refreshGameMenuItemTitle(void);

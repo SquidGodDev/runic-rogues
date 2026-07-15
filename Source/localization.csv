@@ -4,7 +4,8 @@
 # Lines starting with # are comments. This file is bundled into the .pdx and
 # loaded at boot by src/globals/localization.c.
 
-# == System menu items (Playdate system menu is ASCII-only, so jp is left empty) ==
+# == System menu items ==
+# The system menu font lacks some Japanese glyphs, so jp is left empty (falls back to en).
 menu.menu,"Menu",""
 menu.close,"Close",""
 menu.skip_tutorial,"Skip Tutorial",""

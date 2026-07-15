@@ -86,6 +86,12 @@ void removeSkipTutorialMenuItem(void) {
     }
 }
 
+void refreshSkipTutorialMenuItemTitle(void) {
+    if (skipMenuItem != NULL) {
+        pd->system->setMenuItemTitle(skipMenuItem, getLocString(STR_MENU_SKIP_TUTORIAL));
+    }
+}
+
 static void onSkipTutorialSelect(void *userdata) {
     removeSkipTutorialMenuItem();
     setPlayerInputDisabled(false);

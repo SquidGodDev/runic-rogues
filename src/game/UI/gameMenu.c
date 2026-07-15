@@ -11,6 +11,7 @@
 #include "game/player/player.h"
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
+#include "game/tutorial/tutorialScene.h"
 
 // Tab bar layout
 #define TAB_BASELINE_Y   15
@@ -365,6 +366,10 @@ static void cycleChoice(const SettingRowDef *row, int delta) {
     int count = row->choiceCount;
     *value = ((*value + delta) % count + count) % count;
     saveGame();
+    if (row->value == &SETTINGS.language) {
+        refreshGameMenuItemTitle();
+        refreshSkipTutorialMenuItemTitle();
+    }
 }
 
 static void adjustInt(int *value, int minValue, int maxValue, bool wrap, bool accelerate,
@@ -1035,5 +1040,14 @@ void removeGameMenuItem(void) {
     if (menuItem != NULL) {
         pd->system->removeMenuItem(menuItem);
         menuItem = NULL;
+    }
+}
+
+// Re-titles the live system menu item in the active language. The single item is
+// "Close" while the in-game menu is open and "Menu" otherwise.
+void refreshGameMenuItemTitle(void) {
+    if (menuItem != NULL) {
+        StringKey key = menuActive ? STR_MENU_CLOSE : STR_MENU_MENU;
+        pd->system->setMenuItemTitle(menuItem, getLocString(key));
     }
 }
