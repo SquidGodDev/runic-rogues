@@ -1,9 +1,20 @@
+#define TARGET_EXTENSION 1
+#include "pd_api.h"
+
+#include "globals/globals.h"
 #include "game/settings/settings.h"
 
 Settings SETTINGS;
 
+static Language systemLanguage(void) {
+    if (pd->system->getLanguage() == kPDLanguageJapanese) {
+        return LANGUAGE_JP;
+    }
+    return LANGUAGE_EN;
+}
+
 void resetGeneralSettings(void) {
-    SETTINGS.language = LANGUAGE_EN;
+    SETTINGS.language = systemLanguage();
     SETTINGS.drawFPS = true;
 }
 
