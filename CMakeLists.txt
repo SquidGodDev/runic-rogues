@@ -42,6 +42,7 @@ file(GLOB_RECURSE ASSETS CONFIGURE_DEPENDS
 	"Source/images/*"
 	"Source/fonts/*"
 	"Source/audio/*"
+	"Source/data/*"
 )
 
 # Force a relink (which re-runs the pdc POST_BUILD step) whenever an asset

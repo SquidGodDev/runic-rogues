@@ -8,12 +8,12 @@
 #include "globals/localization.h"
 #include "game/settings/settings.h"
 
-// Unified localization loader. All strings live in Source/localization.csv,
+// Unified localization loader. All strings live in Source/data/localization.csv,
 // which is bundled into the .pdx. This module reads it once at boot, keeps the
 // file contents in a single buffer, and exposes the rows both by string key
 // (getLocText) and by StringKey enum (getLocString/getLocStringFor).
 
-#define LOC_CSV_PATH "localization.csv"
+#define LOC_CSV_PATH "data/localization.csv"
 
 typedef struct LocRow {
     const char *key;

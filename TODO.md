@@ -1,7 +1,4 @@
 # TODO
-## Audio
-- Hook up volume controls
-- Make tutorial song
 ## Tutorial
 - Give a ~30s backup prompt if the player is stuck
 - More indication when arrow target changes
@@ -76,7 +73,6 @@
   - Fonts
     - Metamorphous (title)
 ## Audio
-- Music
 - SFX
 ## Localization
 - JP Localization
