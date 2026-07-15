@@ -12,6 +12,7 @@
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
 #include "game/tutorial/tutorialScene.h"
+#include "game/systems/audioManager.h"
 
 // Tab bar layout
 #define TAB_BASELINE_Y   15
@@ -268,6 +269,7 @@ static void closeGameMenu(void) {
 }
 
 static void enterTabSelect(void) {
+    playSound(SFX_UI_NAVIGATE);
     flushSettingsSave();
     focus = FOCUS_TABS;
     selectedTab = activeTab;
@@ -286,6 +288,7 @@ static void resetContentState(void) {
 }
 
 static void enterContent(void) {
+    playSound(SFX_UI_NAVIGATE);
     focus = FOCUS_CONTENT;
     resetContentState();
 }
@@ -317,6 +320,16 @@ static void enterContentAtBottom(void) {
 }
 
 static bool stepIntSetting(int *value, int delta, int minValue, int maxValue, bool wrap) {
+    if (!wrap && ((*value == minValue && delta < 0) || (*value == maxValue && delta > 0))) {
+        playSound(SFX_UI_ERROR);
+        return false;
+    }
+
+    if (delta < 0) {
+        playSound(SFX_UI_ADJUST_DOWN);
+    } else if (delta > 0) {
+        playSound(SFX_UI_ADJUST_UP);
+    }
     int newValue = *value + delta;
     if (wrap) {
         int range = maxValue - minValue + 1;
@@ -444,6 +457,11 @@ static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, 
         case CONTROL_CHECKBOX: {
             if (pushed & kButtonA) {
                 bool *value = (bool *)row->value;
+                if (*value == false) {
+                    playSound(SFX_UI_CHECKBOX_CHECKED);
+                } else {
+                    playSound(SFX_UI_CHECKBOX_UNCHECKED);
+                }
                 *value = !*value;
                 saveGame();
             }
@@ -452,6 +470,7 @@ static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, 
         case CONTROL_CHOICE: {
             if (pushed & (kButtonLeft | kButtonRight | kButtonA)) {
                 cycleChoice(row, (pushed & kButtonLeft) ? -1 : 1);
+                playSound(SFX_UI_ADJUST_NEUTRAL);
             }
             break;
         }
@@ -844,15 +863,22 @@ void updateGameMenu(float deltaTime) {
     if (focus == FOCUS_CONFIRM) {
         if (pushed & (kButtonLeft | kButtonRight)) {
             confirmSel = 1 - confirmSel;
+            playSound(SFX_UI_NAVIGATE);
         }
         if (pushed & kButtonA) {
             if (confirmSel == 0 && isSettingsTab(activeTab)) {
                 SETTINGS_TABS[activeTab].resetFunc();
                 saveGame();
             }
+            if (confirmSel == 0) {
+                playSound(SFX_UI_CLICK_NO);
+            } else {
+                playSound(SFX_UI_CLICK);
+            }
             focus = FOCUS_CONTENT;
         } else if (pushed & kButtonB) {
             focus = FOCUS_CONTENT;
+            playSound(SFX_UI_CLICK_NO);
         }
     } else if (focus == FOCUS_TABS) {
         PDButtons navDir = navRepeat(kButtonLeft | kButtonRight, current, pushed, deltaTime);
@@ -862,10 +888,12 @@ void updateGameMenu(float deltaTime) {
             selectedTab = base + ((selectedTab - base) + count - 1) % count;
             activeTab = selectedTab;
             resetContentState();
+            playSound(SFX_UI_NAVIGATE_TAB);
         } else if (navDir & kButtonRight) {
             selectedTab = base + ((selectedTab - base) + 1) % count;
             activeTab = selectedTab;
             resetContentState();
+            playSound(SFX_UI_NAVIGATE_TAB);
         }
         if (pushed & kButtonDown) {
             enterContent();
@@ -881,6 +909,7 @@ void updateGameMenu(float deltaTime) {
         } else if (pushed & kButtonA) {
             enterContent();
         } else if (pushed & kButtonB) {
+            playSound(SFX_UI_CLICK_NO);
             closeGameMenu();
             return;
         }
@@ -891,12 +920,15 @@ void updateGameMenu(float deltaTime) {
             } else if ((pushed & (kButtonA | kButtonDown)) && runeInventoryHasScrollbar()) {
                 focus = FOCUS_SCROLLBAR;
                 notifyEnterRuneScrollbar();
+                playSound(SFX_UI_NAVIGATE);
             }
         } else if (focus == FOCUS_SCROLLBAR) {
             if (pushed & kButtonB) {
                 focus = FOCUS_CONTENT;
+                playSound(SFX_UI_NAVIGATE);
             } else if ((pushed & kButtonUp) && runeInventoryAtScrollTop()) {
                 focus = FOCUS_CONTENT;
+                playSound(SFX_UI_NAVIGATE);
             }
         }
     } else if (activeTab == MENU_TAB_EXIT) {
@@ -913,6 +945,7 @@ void updateGameMenu(float deltaTime) {
                 exitSelRow++;
             }
         } else if (pushed & kButtonA) {
+            playSound(SFX_UI_CLICK);
             if (exitSelRow == 0) {
                 closeGameMenu();
                 return;
@@ -924,6 +957,7 @@ void updateGameMenu(float deltaTime) {
         PDButtons navDir = navRepeat(kButtonUp | kButtonDown, current, pushed, deltaTime);
         if (pushed & kButtonB) {
             enterTabSelect();
+            playSound(SFX_UI_CLICK_NO);
         } else if (navDir & kButtonUp) {
             int prevRow = adjacentSelectableRow(tab, listSelRow, -1);
             if (prevRow >= 0) {
@@ -933,6 +967,7 @@ void updateGameMenu(float deltaTime) {
             } else if (pushed & kButtonUp) {
                 enterTabSelect();
             }
+            playSound(SFX_UI_NAVIGATE);
         } else if (navDir & kButtonDown) {
             int nextRow = adjacentSelectableRow(tab, listSelRow, 1);
             if (nextRow >= 0) {
@@ -942,6 +977,7 @@ void updateGameMenu(float deltaTime) {
             } else if (pushed & kButtonDown) {
                 enterTabSelect();
             }
+            playSound(SFX_UI_NAVIGATE);
         } else if (!rowIsDisabled(&tab->rows[listSelRow])) {
             handleSettingsRowInput(&tab->rows[listSelRow], current, pushed, deltaTime);
         }

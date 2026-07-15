@@ -326,10 +326,13 @@ void updateGameOverScene(float deltaTime) {
 
     if (phase == GO_PHASE_INTERACTIVE && !isSceneTransitioning() && !justSkipped) {
         if (pushed & kButtonUp) {
+            playSound(SFX_UI_NAVIGATE);
             selectedButton = (selectedButton - 1 + GO_BUTTON_COUNT) % GO_BUTTON_COUNT;
         } else if (pushed & kButtonDown) {
+            playSound(SFX_UI_NAVIGATE);
             selectedButton = (selectedButton + 1) % GO_BUTTON_COUNT;
         } else if (pushed & kButtonA) {
+            playSound(SFX_UI_CLICK);
             if (selectedButton == 0) {
                 switchScene(SCENE_CLASS_SELECT);
             } else {

@@ -100,6 +100,149 @@ SFXData sfxData[] = {
         .release = 0,
         .curvature = 0.62f,
         .lfo = 0
+    },
+    [SFX_UI_NAVIGATE_TAB] = {
+        .defaultNote = 55,
+        .volume = 1.0f,
+        .waveform = kWaveformTriangle,
+        .attack = 0,
+        .decay = 0.07f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_UI_NAVIGATE] = {
+        .defaultNote = 59,
+        .volume = 1.0f,
+        .waveform = kWaveformSine,
+        .attack = 0,
+        .decay = 0.07f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_UI_ADJUST_UP] = {
+        .defaultNote = 80,
+        .volume = 0.93f,
+        .waveform = kWaveformSine,
+        .attack = 0,
+        .decay = 0.05f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_UI_ADJUST_DOWN] = {
+        .defaultNote = 76,
+        .volume = 0.92f,
+        .waveform = kWaveformSine,
+        .attack = 0,
+        .decay = 0.05f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_UI_ADJUST_NEUTRAL] = {
+        .defaultNote = 78,
+        .volume = 0.91f,
+        .waveform = kWaveformSine,
+        .attack = 0,
+        .decay = 0.05f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_UI_RUNE_SLIDE] = {
+        .defaultNote = 24,
+        .volume = 0.08f,
+        .waveform = kWaveformNoise,
+        .attack = 0.1f,
+        .decay = 0.41f,
+        .sustain = 0,
+        .release = 0.22f,
+        .curvature = 0.9f,
+        .lfo = 0
+    },
+    [SFX_UI_ERROR] = {
+        .defaultNote = 42,
+        .volume = 0.88f,
+        .waveform = kWaveformTriangle,
+        .attack = 0,
+        .decay = 0.08f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_UI_CHECKBOX_CHECKED] = {
+        .defaultNote = 60,
+        .volume = 0.78f,
+        .waveform = kWaveformNoise,
+        .attack = 0,
+        .decay = 0.13f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_UI_CHECKBOX_UNCHECKED] = {
+        .defaultNote = 48,
+        .volume = 0.73f,
+        .waveform = kWaveformNoise,
+        .attack = 0,
+        .decay = 0.13f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_UI_CLICK] = {
+        .defaultNote = 64,
+        .volume = 0.84f,
+        .waveform = kWaveformSine,
+        .attack = 0,
+        .decay = 0.09f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_UI_CLICK_NO] = {
+        .defaultNote = 56,
+        .volume = 0.84f,
+        .waveform = kWaveformSine,
+        .attack = 0,
+        .decay = 0.09f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_TITLE_NAVIGATE] = {
+        .defaultNote = 20,
+        .volume = 0.78f,
+        .waveform = kWaveformNoise,
+        .attack = 0,
+        .decay = 0.07f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_TITLE_SELECT] = {
+        .defaultNote = 26,
+        .volume = 0.69f,
+        .waveform = kWaveformNoise,
+        .attack = 0,
+        .decay = 0.19f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
     }
 };
 

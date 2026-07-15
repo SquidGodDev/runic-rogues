@@ -7,6 +7,7 @@
 #include "game/systems/runeManager.h"
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
+#include "game/systems/audioManager.h"
 
 // Row layout
 #define RUNE_ROW_CENTER_X       100
@@ -196,7 +197,12 @@ static void drawRuneInventoryTab(RuneInventoryFocus focus) {
 }
 
 static void navigate(PDButtons dir) {
+    if (ownedRuneCount <= 1) {
+        return;
+    }
+
     if (dir & kButtonLeft) {
+        playSound(SFX_UI_RUNE_SLIDE);
         if (cursorIndex == 0) {
             cursorIndex = ownedRuneCount - 1;
         } else {
@@ -204,6 +210,7 @@ static void navigate(PDButtons dir) {
         }
         resetDescScrollOffset();
     } else if (dir & kButtonRight) {
+        playSound(SFX_UI_RUNE_SLIDE);
         if (cursorIndex == ownedRuneCount - 1) {
             cursorIndex = 0;
         } else {
