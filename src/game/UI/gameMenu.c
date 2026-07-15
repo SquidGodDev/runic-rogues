@@ -75,11 +75,11 @@ typedef enum MenuFocus {
 #define HOLD_DELAY  0.2f
 #define HOLD_REPEAT 0.1f
 
-#define INT_ADJ_REPEAT_START  0.1f
-#define INT_ADJ_REPEAT_MIN    0.02f
+#define INT_ADJ_REPEAT_START  0.2f
+#define INT_ADJ_REPEAT_MIN    0.05f
 #define INT_ADJ_ACCEL_TIME    1.0f
 #define INT_HOLD_COARSE_DELAY 1.0f
-#define INT_HOLD_COARSE_REPEAT 0.05f
+#define INT_HOLD_COARSE_REPEAT 0.1f
 #define INT_HOLD_STEP         10
 
 typedef enum SettingControlType {
