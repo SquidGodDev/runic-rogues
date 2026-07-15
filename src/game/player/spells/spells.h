@@ -166,6 +166,9 @@ void modifyRepeatCount(SpellData *spell, float value, ModifyOperation operation)
 void modifyRepeatActivationTime(SpellData *spell, float value, ModifyOperation operation);
 
 void initSpells(void);
+// Loads spell names/descriptions from localization.csv into baseSpellData. Call
+// once at boot after initLocalization().
+void initSpellLocalization(void);
 void resetSpellState(void);
 void recalculateRuneEffectsToSpells(void);
 Spell *getSpellDeck(void);

@@ -90,6 +90,9 @@ typedef struct RuneData {
 } RuneData;
 
 void initRunes(void);
+// Loads rune names/descriptions from localization.csv into RUNE_DATA. Call once
+// at boot after initLocalization().
+void initRuneLocalization(void);
 bool runeIsOwned(RuneType type);
 void addRune(RuneType type);
 void setRuneLevel(RuneType type, int level);

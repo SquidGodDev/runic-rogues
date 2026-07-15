@@ -4,7 +4,11 @@
 #include "globals/globals.h"
 #include "globals/sceneManager.h"
 #include "globals/saveSystem.h"
+#include "globals/localization.h"
 #include "game/settings/settings.h"
+#include "game/systems/runeManager.h"
+#include "game/player/spells/spells.h"
+#include "game/player/classes/classData.h"
 
 int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 {
@@ -17,6 +21,10 @@ int eventHandler(PlaydateAPI *playdate, PDSystemEvent event, uint32_t arg)
 		srand(pd->system->getSecondsSinceEpoch(NULL));
 
 		initSettings();
+		initLocalization();
+		initRuneLocalization();
+		initSpellLocalization();
+		initClassLocalization();
 		initSaveSystem();
 		initSceneManager();
 		pd->system->setUpdateCallback(updateSceneManager, NULL);

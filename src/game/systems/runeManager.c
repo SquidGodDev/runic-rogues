@@ -4,6 +4,7 @@
 #include "game/systems/runeManager.h"
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
+#include "globals/localization.h"
 #include "game/player/spells/spells.h"
 #include "game/player/classes/classData.h"
 #include "game/systems/chainLightningManager.h"
@@ -17,22 +18,17 @@ static void meditationCallback(float primaryValue, float secondaryValue) {
     healPlayer(primaryValue);
 }
 
+// Name and description strings are loaded from localization.csv into the
+// nameEN/nameJP/descriptionEN/descriptionJP fields by initRuneLocalization(),
+// keyed off RUNE_LOC_IDS below (rune.<id>.name and rune.<id>.desc).
 RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_VAMPIRISM] = {
-        .nameEN = "Vampirism",
-        .nameJP = "ヴァンパイリズム",
-        .descriptionEN = "Gain {1} health when an enemy is defeated.",
-        .descriptionJP = "敵を倒すと体力を回復する。",
         .iconIndex = BITMAP_RUNE_VAMPIRISM,
         .primaryBaseValue = 2,
         .primaryPerLevel = 2,
         .maxLevel = 3
     },
     [RUNE_TYPE_WINGED_BOOTS] = {
-        .nameEN = "Winged Boots",
-        .nameJP = "ウィングブーツ",
-        .descriptionEN = "Gain {2} extra dash charge(s) and lower dash cooldown.",
-        .descriptionJP = "ダッシュの回数を増やし、ダッシュのクールダウン時間を短縮する。",
         .iconIndex = BITMAP_RUNE_WINGED_BOOTS,
         .primaryBaseValue   = 0.33f,
         .primaryPerLevel    = 0.33f,
@@ -41,20 +37,12 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .maxLevel = 3
     },
     [RUNE_TYPE_HEALTHY] = {
-        .nameEN = "Healthy",
-        .nameJP = "ヘルシー",
-        .descriptionEN = "Increases maximum health by {1}.",
-        .descriptionJP = "最大体力が増加する。",
         .iconIndex = BITMAP_RUNE_HEALTHY,
         .primaryBaseValue = 15,
         .primaryPerLevel = 15,
         .maxLevel = 3
     },
     [RUNE_TYPE_SWIFT] = {
-        .nameEN = "Swift",
-        .nameJP = "スウィフト",
-        .descriptionEN = "Increases movement speed by {1}%.",
-        .descriptionJP = "移動速度が増加する。",
         .iconIndex = BITMAP_RUNE_SWIFT,
         .primaryBaseValue = 0.25f,
         .primaryPerLevel = 0.25f,
@@ -62,10 +50,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryModifyOperation = MODIFY_OP_MULTIPLY
     },
     [RUNE_TYPE_DAGGER] = {
-        .nameEN = "Dagger",
-        .nameJP = "",
-        .descriptionEN = "Basic spell deals {1} extra damage.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_DAGGER,
         .primaryBaseValue = 3,
         .primaryPerLevel = 3,
@@ -75,10 +59,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .applySpellModifierPrimary = modifySpellDamage
     },
     [RUNE_TYPE_BROADSWORD] = {
-        .nameEN = "Broadsword",
-        .nameJP = "",
-        .descriptionEN = "Special spell deals {1} extra damage.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_BROADSWORD,
         .primaryBaseValue = 3,
         .primaryPerLevel = 3,
@@ -88,10 +68,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .applySpellModifierPrimary = modifySpellDamage
     },
     [RUNE_TYPE_POCKET_WATCH] = {
-        .nameEN = "Pocket Watch",
-        .nameJP = "",
-        .descriptionEN = "Reduces basic spell cooldown by {1}%.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_POCKET_WATCH,
         .primaryBaseValue = -0.2f,
         .primaryPerLevel = -0.15f,
@@ -101,10 +77,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .applySpellModifierPrimary = modifySpellCooldown
     },
     [RUNE_TYPE_HOURGLASS] = {
-        .nameEN = "Hourglass",
-        .nameJP = "",
-        .descriptionEN = "Reduces special spell cooldown by {1}%.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HOURGLASS,
         .primaryBaseValue = -0.2f,
         .primaryPerLevel = -0.15f,
@@ -114,10 +86,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .applySpellModifierPrimary = modifySpellCooldown
     },
     [RUNE_TYPE_SLINGSHOT] = {
-        .nameEN = "Slingshot",
-        .nameJP = "",
-        .descriptionEN = "Increases basic spell projectile speed by {1}%.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_SLINGSHOT,
         .primaryBaseValue = 0.3f,
         .primaryPerLevel = 0.35f,
@@ -128,10 +96,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_LONGBOW] = {
-        .nameEN = "Longbow",
-        .nameJP = "",
-        .descriptionEN = "Increases special spell projectile speed by {1}%.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_LONGBOW,
         .primaryBaseValue = 0.3f,
         .primaryPerLevel = 0.35f,
@@ -142,10 +106,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_BEAR_PAW] = {
-        .nameEN = "Bear Paw",
-        .nameJP = "",
-        .descriptionEN = "Basic spell knocks enemies back by ~{1} cells away.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_BEAR_PAW,
         .primaryBaseValue   = 0.5f,
         .primaryPerLevel    = 0.5f,
@@ -160,10 +120,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_IRON_GAUNTLET] = {
-        .nameEN = "Iron Gauntlet",
-        .nameJP = "",
-        .descriptionEN = "Special spell knocks enemies back by ~{1} cells away.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_IRON_GAUNTLET,
         .primaryBaseValue   = 0.5f,
         .primaryPerLevel    = 0.5f,
@@ -178,10 +134,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_FROST_SHARD] = {
-        .nameEN = "Frost Shard",
-        .nameJP = "",
-        .descriptionEN = "Basic spell projectiles slow enemies on hit.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_FROST_SHARD,
         .primaryBaseValue   = 0.5f,
         .primaryPerLevel    = 0.5f,
@@ -196,10 +148,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_ICE_LANCE] = {
-        .nameEN = "Ice Lance",
-        .nameJP = "",
-        .descriptionEN = "Special spell projectiles slow enemies on hit.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_ICE_LANCE,
         .primaryBaseValue   = 0.5f,
         .primaryPerLevel    = 0.5f,
@@ -214,10 +162,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_NEEDLE_AND_THREAD] = {
-        .nameEN = "Needle and Thread",
-        .nameJP = "",
-        .descriptionEN = "Basic spell projectiles pierce through {1} additional enemies.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_NEEDLE_AND_THREAD,
         .primaryBaseValue = 1,
         .primaryPerLevel = 1,
@@ -228,10 +172,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_HAMMER_AND_NAILS] = {
-        .nameEN = "Hammer and Nails",
-        .nameJP = "",
-        .descriptionEN = "Special spell projectiles pierce through {1} additional enemies.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_HAMMER_AND_NAILS,
         .primaryBaseValue = 1,
         .primaryPerLevel = 1,
@@ -242,10 +182,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_MAGNIFYING_GLASS] = {
-        .nameEN = "Magnifying Glass",
-        .nameJP = "",
-        .descriptionEN = "Basic spell fires {1} additional projectiles in a spread, but deals half damage.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_MAGNIFYING_GLASS,
         .primaryBaseValue   = 2,
         .primaryPerLevel    = 2,
@@ -263,10 +199,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_QUARTZ_CLUSTER] = {
-        .nameEN = "Quartz Cluster",
-        .nameJP = "",
-        .descriptionEN = "Special spell fires {1} additional projectiles in a spread, but deals half damage.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_QUARTZ_CLUSTER,
         .primaryBaseValue   = 2,
         .primaryPerLevel    = 2,
@@ -284,10 +216,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_ENCHANTED_AMULET] = {
-        .nameEN = "Enchanted Amulet",
-        .nameJP = "",
-        .descriptionEN = "Basic spells fire {1} additional times.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_ENCHANTED_AMULET,
         .primaryBaseValue   = 1,
         .primaryPerLevel    = 1,
@@ -301,10 +229,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_ARCANE_STAFF] = {
-        .nameEN = "Arcane Staff",
-        .nameJP = "",
-        .descriptionEN = "Special spells fire {1} additional times.",
-        .descriptionJP = "",
         .iconIndex = BITMAP_RUNE_ARCANE_STAFF,
         .primaryBaseValue   = 1,
         .primaryPerLevel    = 1,
@@ -318,10 +242,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
     },
     [RUNE_TYPE_THUNDERCLOUD] = {
-        .nameEN = "Thundercloud",
-        .nameJP = "サンダークラウド",
-        .descriptionEN = "Strike a nearby enemy with lightning every {T}s for {1} damage, chaining to {2} enemies.",
-        .descriptionJP = "近くの敵に雷を落とし、{T}秒ごとに{1}ダメージを与え、{2}体の敵に連鎖する。",
         .iconIndex = BITMAP_RUNE_THUNDERCLOUD,
         .primaryBaseValue   = 10, // damage
         .primaryPerLevel    = 0,
@@ -334,10 +254,6 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .triggerCallback  = thunderStoneCallback
     },
     [RUNE_TYPE_MEDITATION] = {
-        .nameEN = "Meditation",
-        .nameJP = "メディテーション",
-        .descriptionEN = "Restore {1} health when a room is cleared.",
-        .descriptionJP = "部屋をクリアすると体力を回復する。",
         .iconIndex = BITMAP_RUNE_MEDITATION,
         .primaryBaseValue = 5,
         .primaryPerLevel  = 5,
@@ -347,6 +263,52 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .triggerCallback  = meditationCallback
     }
 };
+
+// String id for each rune, used to build the localization.csv keys
+// rune.<id>.name and rune.<id>.desc. Order matches the RuneType enum.
+static const char *RUNE_LOC_IDS[RUNE_TYPE_COUNT] = {
+    [RUNE_TYPE_VAMPIRISM] = "vampirism",
+    [RUNE_TYPE_WINGED_BOOTS] = "winged_boots",
+    [RUNE_TYPE_HEALTHY] = "healthy",
+    [RUNE_TYPE_SWIFT] = "swift",
+    [RUNE_TYPE_DAGGER] = "dagger",
+    [RUNE_TYPE_BROADSWORD] = "broadsword",
+    [RUNE_TYPE_POCKET_WATCH] = "pocket_watch",
+    [RUNE_TYPE_HOURGLASS] = "hourglass",
+    [RUNE_TYPE_SLINGSHOT] = "slingshot",
+    [RUNE_TYPE_LONGBOW] = "longbow",
+    [RUNE_TYPE_BEAR_PAW] = "bear_paw",
+    [RUNE_TYPE_IRON_GAUNTLET] = "iron_gauntlet",
+    [RUNE_TYPE_FROST_SHARD] = "frost_shard",
+    [RUNE_TYPE_ICE_LANCE] = "ice_lance",
+    [RUNE_TYPE_NEEDLE_AND_THREAD] = "needle_and_thread",
+    [RUNE_TYPE_HAMMER_AND_NAILS] = "hammer_and_nails",
+    [RUNE_TYPE_MAGNIFYING_GLASS] = "magnifying_glass",
+    [RUNE_TYPE_QUARTZ_CLUSTER] = "quartz_cluster",
+    [RUNE_TYPE_ENCHANTED_AMULET] = "enchanted_amulet",
+    [RUNE_TYPE_ARCANE_STAFF] = "arcane_staff",
+    [RUNE_TYPE_THUNDERCLOUD] = "thundercloud",
+    [RUNE_TYPE_MEDITATION] = "meditation",
+};
+
+void initRuneLocalization(void) {
+    for (int i = RUNE_TYPE_NONE + 1; i < RUNE_TYPE_COUNT; i++) {
+        const char *id = RUNE_LOC_IDS[i];
+        if (id == NULL) {
+            continue;
+        }
+        char *nameKey = NULL;
+        char *descKey = NULL;
+        pd->system->formatString(&nameKey, "rune.%s.name", id);
+        pd->system->formatString(&descKey, "rune.%s.desc", id);
+        RUNE_DATA[i].nameEN = (char *)getLocText(nameKey, LANGUAGE_EN);
+        RUNE_DATA[i].nameJP = (char *)getLocText(nameKey, LANGUAGE_JP);
+        RUNE_DATA[i].descriptionEN = (char *)getLocText(descKey, LANGUAGE_EN);
+        RUNE_DATA[i].descriptionJP = (char *)getLocText(descKey, LANGUAGE_JP);
+        pd->system->realloc(nameKey, 0);
+        pd->system->realloc(descKey, 0);
+    }
+}
 
 int runeLevels[RUNE_TYPE_COUNT];
 float runeTriggerCounters[RUNE_TYPE_COUNT];

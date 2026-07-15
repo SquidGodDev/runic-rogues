@@ -5,6 +5,8 @@
 #include "game/UI/UI.h"
 #include "game/systems/chainLightningManager.h"
 #include "game/entities/turret.h"
+#include "globals/globals.h"
+#include "globals/localization.h"
 
 // Spawn the projectile slightly to the right to match hand
 #define FIRE_ANGLE_OFFSET PI / 8
@@ -90,16 +92,9 @@ void turretCast(Spell spell, SpellCastData *castData, float x, float y, float an
 
 SpellData baseSpellData[SPELL_COUNT] = {
     [SPELL_NONE] = {
-        .name = "None",
-        .name_jp = "なし",
-        .description = "Empty.",
         .spellIconIndex = BITMAP_SPELL_EMPTY_ICON,
     },
     [SPELL_FIREBALL] = {
-        .name = "Fireball",
-        .name_jp = "ファイアボール",
-        .description = "Shoot a projectile that deals medium damage to one enemy.",
-        .description_jp = "敵に中程度のダメージを与える弾を発射する。",
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .cast = projectileCast,
         .cooldown = 0.5f,
@@ -121,10 +116,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         }
     },
     [SPELL_CHAIN_LIGHTNING] = {
-        .name = "Lightning",
-        .name_jp = "ライトニング",
-        .description = "Fire a bolt that chains to up to 3 nearby enemies.",
-        .description_jp = "",
         .spellIconIndex = BITMAP_SPELL_CHAIN_LIGHTNING_ICON,
         .cast = projectileCast,
         .cooldown = 4.0f,
@@ -151,14 +142,9 @@ SpellData baseSpellData[SPELL_COUNT] = {
     },
     [SPELL_CHAIN_LIGHTNING_LINK] = {
         // Internal: stepped by chainLightningManager, not directly cast by player
-        .name = "Chain Lightning Link",
         .cast = chainLightningLinkCast,
     },
     [SPELL_SWORD] = {
-        .name = "Sword",
-        .name_jp = "ソード",
-        .description = "Perform a melee attack that deals damage to nearby enemies",
-        .description_jp = "近くの敵にダメージを与える近接攻撃を行う",
         .spellIconIndex = BITMAP_SPELL_SWORD_ICON,
         .cast = swordCast,
         .cooldown = 0.5f,
@@ -177,10 +163,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         }
     },
     [SPELL_ROARING_SHOUT] = {
-        .name = "Roaring Shout",
-        .name_jp = "轟音",
-        .description = "Emit a powerful shout that damages and knocks back nearby enemies.",
-        .description_jp = "",
         .spellIconIndex = BITMAP_SPELL_ROARING_SHOUT_ICON,
         .cast = explosionCast,
         .cooldown = 8.0f,
@@ -192,10 +174,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         }
     },
     [SPELL_KNIFE] = {
-        .name = "Knife",
-        .name_jp = "ナイフ",
-        .description = "",
-        .description_jp = "",
         .spellIconIndex = BITMAP_SPELL_KNIFE_ICON,
         .cast = projectileCast,
         .cooldown = 0.3f,
@@ -217,10 +195,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         }
     },
     [SPELL_FAN_OF_KNIVES] = {
-        .name = "Fan of Knives",
-        .name_jp = "ナイフの扇",
-        .description = "",
-        .description_jp = "",
         .spellIconIndex = BITMAP_SPELL_FAN_OF_KNIVES_ICON,
         .cast = projectileCast,
         .cooldown = 4.0f,
@@ -240,10 +214,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         }
     },
     [SPELL_BOW_SHOT] = {
-        .name = "Bow Shot",
-        .name_jp = "ボウショット",
-        .description = "Hold to draw the bow. The longer the charge, the more damage, speed, and pierce the arrow gains.",
-        .description_jp = "長く引くほど威力・速度・貫通が増す矢を放つ。",
         .spellIconIndex = BITMAP_SPELL_BOW_SHOT_ICON,
         .cast = chargedProjectileCast,
         .cooldown = 0.5f,
@@ -280,10 +250,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         }
     },
     [SPELL_TURRET] = {
-        .name = "Turret",
-        .name_jp = "タレット",
-        .description = "Deploy a turret that fires a ring of arrows in all directions for a short time.",
-        .description_jp = "一定時間、全方向に矢を放つタレットを設置する。",
         .spellIconIndex = BITMAP_SPELL_BOW_SHOT_ICON,
         .cast = turretCast,
         .cooldown = 10.0f,
@@ -307,10 +273,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         }
     },
     [SPELL_NET_TRAP] = {
-        .name = "Net Trap",
-        .name_jp = "ネットトラップ",
-        .description = "Hold to charge, then fire a net that drags struck enemies toward you. Charging only speeds up the throw.",
-        .description_jp = "溜めて放つと敵を引き寄せる網を投げる。溜めるほど投げる速度が上がる。",
         .spellIconIndex = BITMAP_SPELL_NET_TRAP_ICON,
         .cast = chargedProjectileCast,
         .cooldown = 4.0f,
@@ -330,3 +292,39 @@ SpellData baseSpellData[SPELL_COUNT] = {
         }
     }
 };
+
+// String id for each spell, used to build the localization.csv keys
+// spell.<id>.name and spell.<id>.desc. Order matches the Spell enum.
+static const char *SPELL_LOC_IDS[SPELL_COUNT] = {
+    [SPELL_NONE] = "none",
+    [SPELL_FIREBALL] = "fireball",
+    [SPELL_CHAIN_LIGHTNING] = "chain_lightning",
+    [SPELL_CHAIN_LIGHTNING_LINK] = "chain_lightning_link",
+    [SPELL_LASER] = "laser",
+    [SPELL_SWORD] = "sword",
+    [SPELL_ROARING_SHOUT] = "roaring_shout",
+    [SPELL_KNIFE] = "knife",
+    [SPELL_FAN_OF_KNIVES] = "fan_of_knives",
+    [SPELL_BOW_SHOT] = "bow_shot",
+    [SPELL_TURRET] = "turret",
+    [SPELL_NET_TRAP] = "net_trap",
+};
+
+void initSpellLocalization(void) {
+    for (int i = 0; i < SPELL_COUNT; i++) {
+        const char *id = SPELL_LOC_IDS[i];
+        if (id == NULL) {
+            continue;
+        }
+        char *nameKey = NULL;
+        char *descKey = NULL;
+        pd->system->formatString(&nameKey, "spell.%s.name", id);
+        pd->system->formatString(&descKey, "spell.%s.desc", id);
+        baseSpellData[i].name = (char *)getLocText(nameKey, LANGUAGE_EN);
+        baseSpellData[i].name_jp = (char *)getLocText(nameKey, LANGUAGE_JP);
+        baseSpellData[i].description = (char *)getLocText(descKey, LANGUAGE_EN);
+        baseSpellData[i].description_jp = (char *)getLocText(descKey, LANGUAGE_JP);
+        pd->system->realloc(nameKey, 0);
+        pd->system->realloc(descKey, 0);
+    }
+}

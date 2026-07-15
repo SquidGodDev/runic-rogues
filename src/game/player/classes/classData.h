@@ -24,8 +24,11 @@ typedef struct ClassData {
     int starterRune;
 } ClassData;
 
-extern const ClassData classData[CLASS_COUNT];
+extern ClassData classData[CLASS_COUNT];
 
+// Loads class names/descriptions from localization.csv into classData. Call once
+// at boot after initLocalization().
+void initClassLocalization(void);
 ClassType getCurrentClassType(void);
 const ClassData* getCurrentClassData(void);
 void setCurrentClass(ClassType type);

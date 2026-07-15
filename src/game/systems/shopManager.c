@@ -10,6 +10,7 @@
 #include "game/systems/spawnManager.h"
 #include "game/systems/runeManager.h"
 #include "game/settings/settings.h"
+#include "globals/localization.h"
 #include "game/rendering/textures.h"
 #include "game/entities/interactables.h"
 #include "game/player/spells/spells.h"
@@ -70,7 +71,7 @@ static float cursorX;
 
 static const char *ROMAN_NUMERALS[] = { "", "I", "II", "III", "IV", "V" };
 
-ShopPageData createShopPage(char *name, char *desc, char* type, LCDBitmap *icon, Language language) {
+ShopPageData createShopPage(const char *name, const char *desc, const char *type, LCDBitmap *icon, Language language) {
     LCDFont *fontTitle = fontTitleEN;
     LCDFont *fontSub = fontSubEN;
     LCDBitmapDrawMode drawMode = kDrawModeCopy;
@@ -116,7 +117,7 @@ ShopPageData createShopPage(char *name, char *desc, char* type, LCDBitmap *icon,
 
 ShopPageData createRuneShopPage(RuneType runeType, Language language) {
     char *name = getRuneName(runeType, language);
-    char *type = language == LANGUAGE_JP ? "ルーン" : "Rune";
+    const char *type = getLocStringFor(STR_SHOP_TYPE_RUNE, language);
     int nextLevel = getRuneLevel(runeType) + 1;
     char *desc = getRuneDescription(runeType, language, nextLevel);
     if (getRuneMaxLevel(runeType) == 1) {
@@ -240,8 +241,8 @@ static void buildSkipPages(void) {
     if (skipDescBitmapJP != NULL) {
         pd->graphics->freeBitmap(skipDescBitmapJP);
     }
-    ShopPageData skipPageEN = createShopPage("Skip", "Skip rune selection for this level up.", "Skip", NULL, LANGUAGE_EN);
-    ShopPageData skipPageJP = createShopPage("スキップ", "ルーン選択をスキップします。", "Skip", NULL, LANGUAGE_JP);
+    ShopPageData skipPageEN = createShopPage(getLocStringFor(STR_SHOP_SKIP_NAME, LANGUAGE_EN), getLocStringFor(STR_SHOP_SKIP_DESC, LANGUAGE_EN), getLocStringFor(STR_SHOP_SKIP_NAME, LANGUAGE_EN), NULL, LANGUAGE_EN);
+    ShopPageData skipPageJP = createShopPage(getLocStringFor(STR_SHOP_SKIP_NAME, LANGUAGE_JP), getLocStringFor(STR_SHOP_SKIP_DESC, LANGUAGE_JP), getLocStringFor(STR_SHOP_SKIP_NAME, LANGUAGE_JP), NULL, LANGUAGE_JP);
     skipDescBitmapEN = skipPageEN.shopDescBitmap;
     skipDescHeightEN = skipPageEN.descHeight;
     skipDescBitmapJP = skipPageJP.shopDescBitmap;

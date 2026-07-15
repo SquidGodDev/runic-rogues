@@ -2,10 +2,17 @@
 
 #include "game/settings/settings.h"
 
-// Unified localization. All scattered UI strings live in the table in
-// localization.c, indexed by the StringKey enum below. To add or change a
-// string, edit localization.c (and add an enum entry here if it's new).
-// If a JP value is NULL in the table, getLocString falls back to EN.
+// Unified localization. Every user-facing string in the game lives in
+// Source/localization.csv (columns: key,en,jp), which is bundled into the .pdx
+// and loaded once at boot by initLocalization().
+//
+// UI strings are looked up through the StringKey enum below; each key maps to a
+// CSV row via the STR_KEYS table in localization.c. Data tables (runes, spells,
+// classes, shop) resolve their strings by string key through getLocText().
+//
+// To add or change a UI string: add a row to the CSV and, if the key is new,
+// add an enum entry here plus its key string to STR_KEYS in localization.c.
+// An empty jp value in the CSV falls back to the en value.
 typedef enum StringKey {
     // System menu items
     STR_MENU_MENU,
@@ -115,13 +122,28 @@ typedef enum StringKey {
     STR_TUTORIAL_R6_1,
     STR_TUTORIAL_NEXT_ROOM,
 
+    // Shop
+    STR_SHOP_TYPE_RUNE,
+    STR_SHOP_SKIP_NAME,
+    STR_SHOP_SKIP_DESC,
+
     STR_COUNT
 } StringKey;
 
+// Loads Source/localization.csv and builds the lookup tables. Call once at boot
+// (after initSettings) before any string is requested.
+void initLocalization(void);
+
 // Returns the string for the active language (SETTINGS.language), falling back
-// to English if the active-language entry is NULL.
+// to English if the active-language entry is empty.
 const char *getLocString(StringKey key);
 
 // Returns the string for a specific language. Use this when you need to render
 // both languages up front (e.g. caching bitmaps for instant language switching).
 const char *getLocStringFor(StringKey key, Language language);
+
+// Raw lookup by string key (e.g. "rune.vampirism.name"). Used by the data
+// tables (runes, spells, classes) to resolve their strings at init. Falls back
+// to English when the requested language's value is empty; returns "" if the
+// key is missing.
+const char *getLocText(const char *key, Language language);

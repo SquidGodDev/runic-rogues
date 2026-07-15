@@ -1,13 +1,14 @@
 #include "game/player/classes/classData.h"
 #include "game/systems/runeManager.h"
+#include "globals/globals.h"
+#include "globals/localization.h"
 
-const ClassData classData[CLASS_COUNT] = {
+// Name and description strings are loaded from localization.csv into the
+// name/nameJP/desc/descJP fields by initClassLocalization(), keyed off
+// CLASS_LOC_IDS below (class.<id>.name and class.<id>.desc).
+ClassData classData[CLASS_COUNT] = {
     [CLASS_MAGE] = {
         .classType = CLASS_MAGE,
-        .name = "Mage",
-        .desc = "",
-        .nameJP = "",
-        .descJP = "",
         .baseHealth = 100,
         .baseSpeed = 12,
         .basicSpell = SPELL_FIREBALL,
@@ -16,10 +17,6 @@ const ClassData classData[CLASS_COUNT] = {
     },
     [CLASS_KNIGHT] = {
         .classType = CLASS_KNIGHT,
-        .name = "Knight",
-        .desc = "",
-        .nameJP = "",
-        .descJP = "",
         .baseHealth = 150,
         .baseSpeed = 10,
         .basicSpell = SPELL_SWORD,
@@ -28,10 +25,6 @@ const ClassData classData[CLASS_COUNT] = {
     },
     [CLASS_ROGUE] = {
         .classType = CLASS_ROGUE,
-        .name = "Rogue",
-        .desc = "",
-        .nameJP = "",
-        .descJP = "",
         .baseHealth = 120,
         .baseSpeed = 15,
         .basicSpell = SPELL_KNIFE,
@@ -40,10 +33,6 @@ const ClassData classData[CLASS_COUNT] = {
     },
     [CLASS_RANGER] = {
         .classType = CLASS_RANGER,
-        .name = "Ranger",
-        .desc = "",
-        .nameJP = "",
-        .descJP = "",
         .baseHealth = 100,
         .baseSpeed = 12,
         .basicSpell = SPELL_BOW_SHOT,
@@ -51,6 +40,32 @@ const ClassData classData[CLASS_COUNT] = {
         .starterRune = RUNE_TYPE_WINGED_BOOTS
     }
 };
+
+static const char *CLASS_LOC_IDS[CLASS_COUNT] = {
+    [CLASS_MAGE] = "mage",
+    [CLASS_KNIGHT] = "knight",
+    [CLASS_ROGUE] = "rogue",
+    [CLASS_RANGER] = "ranger",
+};
+
+void initClassLocalization(void) {
+    for (int i = 0; i < CLASS_COUNT; i++) {
+        const char *id = CLASS_LOC_IDS[i];
+        if (id == NULL) {
+            continue;
+        }
+        char *nameKey = NULL;
+        char *descKey = NULL;
+        pd->system->formatString(&nameKey, "class.%s.name", id);
+        pd->system->formatString(&descKey, "class.%s.desc", id);
+        classData[i].name = getLocText(nameKey, LANGUAGE_EN);
+        classData[i].nameJP = getLocText(nameKey, LANGUAGE_JP);
+        classData[i].desc = getLocText(descKey, LANGUAGE_EN);
+        classData[i].descJP = getLocText(descKey, LANGUAGE_JP);
+        pd->system->realloc(nameKey, 0);
+        pd->system->realloc(descKey, 0);
+    }
+}
 
 ClassType currentClass = CLASS_KNIGHT;
 
