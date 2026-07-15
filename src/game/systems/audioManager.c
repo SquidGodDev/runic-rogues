@@ -180,7 +180,7 @@ SFXData sfxData[] = {
     },
     [SFX_UI_CHECKBOX_CHECKED] = {
         .defaultNote = 60,
-        .volume = 0.78f,
+        .volume = 0.27f,
         .waveform = kWaveformNoise,
         .attack = 0,
         .decay = 0.13f,
@@ -190,8 +190,8 @@ SFXData sfxData[] = {
         .lfo = 0
     },
     [SFX_UI_CHECKBOX_UNCHECKED] = {
-        .defaultNote = 48,
-        .volume = 0.73f,
+        .defaultNote = 43,
+        .volume = 0.27f,
         .waveform = kWaveformNoise,
         .attack = 0,
         .decay = 0.13f,
@@ -340,11 +340,7 @@ void playSound(SFX sfx) {
     if (data.pitchRandomization > 0) {
         note += randFloat(-data.pitchRandomization, data.pitchRandomization);
     }
-    float velocity = getSfxVolumeSetting();
-    if (velocity <= 0.0f) {
-        return;
-    }
-    pd->sound->synth->playMIDINote(synths[sfx], note, velocity, DEFAULT_PLAY_LEN, 0);
+    pd->sound->synth->playMIDINote(synths[sfx], note, getSfxVolumeSetting(), DEFAULT_PLAY_LEN, 0);
 }
 
 // === Music manager ===
