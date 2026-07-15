@@ -51,9 +51,9 @@ exit.close_menu,"Close Menu","メニューを閉じる"
 exit.quit_run,"Quit Run","ランをやめる"
 
 # == Title scene ==
-title.start,"Start",""
-title.tutorial,"Tutorial",""
-title.settings,"Settings",""
+title.start,"Start","スタート"
+title.tutorial,"Tutorial","チュートリアル"
+title.settings,"Settings","設定"
 
 # == Class select scene ==
 class_select.title,"Select Class",""
@@ -94,9 +94,9 @@ popup.elder_boss,"The Elder","エルダー"
 popup.wraith_boss,"The Wraith","レイス"
 popup.dragon_boss,"The Dragon","ドラゴン"
 
-# == Tutorial dialog pages (currently English-only; add jp to enable) ==
+# == Tutorial dialog pages ==
 tutorial.r1_1,"Use the d-pad to move and the crank to look around.",""
-tutorial.r1_2,"Dock the crank to use d-pad only controls instead.",""
+tutorial.r1_2,"Access the settings menu to change your controls.",""
 tutorial.r1_3,"Try moving to each arrow!",""
 tutorial.r2_1,"Press the A button to cast your basic spell.",""
 tutorial.r2_2,"Hold A to keep casting whenever it's off cooldown.",""

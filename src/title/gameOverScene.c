@@ -251,17 +251,14 @@ static void drawButtons(void) {
         int rectW = textWidth + GO_BUTTON_PADDING_X * 2;
         int rectX = (SCREEN_WIDTH - rectW) / 2;
 
-        pd->graphics->setDrawMode(kDrawModeInverted);
         pd->graphics->drawText(t, strlen(t), kUTF8Encoding, rectX + GO_BUTTON_PADDING_X, y + GO_BUTTON_PADDING_Y);
 
         if (i == selectedButton && phase == GO_PHASE_INTERACTIVE) {
-            pd->graphics->setDrawMode(kDrawModeCopy);
             pd->graphics->drawRect(rectX - 1, y - 1, rectW + 2, buttonHeight + 2, kColorWhite);
         }
 
         y += buttonHeight + GO_BUTTON_VERTICAL_GAP;
     }
-    pd->graphics->setDrawMode(kDrawModeCopy);
 }
 
 void updateGameOverScene(float deltaTime) {
