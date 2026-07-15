@@ -185,9 +185,7 @@ static void drawLineOpacity(int x, int y, int width, float opacity) {
 }
 
 void initAreaMapScene(void) {
-    if (getCurrentSong() == MUSIC_TITLE) {
-        stopSong();
-    }
+    stopSong();
 
     buildStencils();
 

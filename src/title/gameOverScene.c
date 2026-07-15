@@ -13,6 +13,7 @@
 #include "game/settings/settings.h"
 #include "game/systems/runStats.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/audioManager.h"
 
 #define GO_HEADER_Y                12
 #define GO_STATS_TOP_Y             36
@@ -175,6 +176,7 @@ static void skipToInteractive(void) {
 }
 
 void initGameOverScene(void) {
+    stopSong();
     removeGameMenuItem();
     freeRuneInventoryCache();
 
