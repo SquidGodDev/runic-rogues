@@ -453,6 +453,13 @@ static void adjustIntByCrank(int *value, int minValue, int maxValue, float crank
 }
 
 static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, PDButtons pushed, float deltaTime) {
+    if (rowIsDisabled(row)) {
+        if (pushed & (kButtonLeft | kButtonRight | kButtonA)) {
+            playSound(SFX_UI_ERROR);
+        }
+        return;
+    }
+
     switch (row->type) {
         case CONTROL_CHECKBOX: {
             if (pushed & kButtonA) {
@@ -978,7 +985,7 @@ void updateGameMenu(float deltaTime) {
                 enterTabSelect();
             }
             playSound(SFX_UI_NAVIGATE);
-        } else if (!rowIsDisabled(&tab->rows[listSelRow])) {
+        } else {
             handleSettingsRowInput(&tab->rows[listSelRow], current, pushed, deltaTime);
         }
 
