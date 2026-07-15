@@ -47,6 +47,9 @@ static float barLevelToRatio(int level) {
     return (float)level / SETTING_BAR_MAX_LEVEL;
 }
 
+#define MUSIC_VOLUME_MAX 0.8f
+#define SFX_VOLUME_MAX   1.0f
+
 float getCrankTurnSpeedMultiplier(void) {
     return 0.5f + barLevelToRatio(SETTINGS.crankTurnSpeed);
 }
@@ -67,9 +70,9 @@ float getAbsoluteCrankRatio(void) {
 }
 
 float getMusicVolumeSetting(void) {
-    return barLevelToRatio(SETTINGS.musicVolume);
+    return barLevelToRatio(SETTINGS.musicVolume) * MUSIC_VOLUME_MAX;
 }
 
 float getSfxVolumeSetting(void) {
-    return barLevelToRatio(SETTINGS.sfxVolume);
+    return barLevelToRatio(SETTINGS.sfxVolume) * SFX_VOLUME_MAX;
 }

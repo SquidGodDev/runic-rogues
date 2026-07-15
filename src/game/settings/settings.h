@@ -60,11 +60,8 @@ void resetGeneralSettings(void);
 void resetControlSettings(void);
 void resetAudioSettings(void);
 
-// 0.5x at level 0, 1.0x at the default middle level, 1.5x at max
 float getCrankTurnSpeedMultiplier(void);
 float getDpadTurnSpeedMultiplier(void);
-// Absolute-crank gearing multiplier: 1.0 / 0.5 / 0.333 for 1x / 0.5x / 0.33x
 float getAbsoluteCrankRatio(void);
-// 0.0 at level 0, 1.0 at max
 float getMusicVolumeSetting(void);
 float getSfxVolumeSetting(void);

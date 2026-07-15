@@ -3,6 +3,7 @@
 
 #include "globals/globals.h"
 #include "globals/helpers.h"
+#include "game/settings/settings.h"
 #include "game/systems/audioManager.h"
 
 #define DEFAULT_VELOCITY 1
@@ -190,11 +191,10 @@ void playSound(SFX sfx) {
     if (sfx < 0 || sfx >= SFX_COUNT) return;
 
     SFXData data = sfxData[sfx];
-    pd->sound->synth->playMIDINote(synths[sfx], data.defaultNote, 0.5f, DEFAULT_PLAY_LEN, 0);
+    pd->sound->synth->playMIDINote(synths[sfx], data.defaultNote, getSfxVolumeSetting(), DEFAULT_PLAY_LEN, 0);
 }
 
 // === Music manager ===
-#define MUSIC_VOLUME 0.4f
 #define MUSIC_FADE_TIME 1.5f
 #define MUSIC_LOWPASS_FADE_TIME 0.35f
 #define MUSIC_PAUSE_FADE_TIME 0.75f
@@ -368,7 +368,7 @@ void updateMusicManager(float deltaTime) {
         }
 
         if (pd->sound->fileplayer->isPlaying(musicFiles[i])) {
-            float volume = musicFade[i] * MUSIC_VOLUME;
+            float volume = musicFade[i] * getMusicVolumeSetting();
             pd->sound->fileplayer->setVolume(musicFiles[i], volume, volume);
             if (musicFade[i] <= 0.0f && target <= 0.0f) {
                 pd->sound->fileplayer->stop(musicFiles[i]);
