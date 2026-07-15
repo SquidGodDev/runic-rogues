@@ -12,6 +12,7 @@
 
 typedef struct SFXData {
     int defaultNote;
+    float pitchRandomization;  // semitones of +/- jitter around defaultNote; 0 == off
     float volume;
     SoundWaveform waveform;
     float attack;
@@ -30,6 +31,7 @@ typedef struct SFXData {
 SFXData sfxData[] = {
     [SFX_SHOOT] = {
         .defaultNote = 25,
+        .pitchRandomization = 4.3f,
         .volume = 0.21f,
         .waveform = kWaveformNoise,
         .attack = 0.09f,
@@ -191,7 +193,11 @@ void playSound(SFX sfx) {
     if (sfx < 0 || sfx >= SFX_COUNT) return;
 
     SFXData data = sfxData[sfx];
-    pd->sound->synth->playMIDINote(synths[sfx], data.defaultNote, getSfxVolumeSetting(), DEFAULT_PLAY_LEN, 0);
+    float note = (float)data.defaultNote;
+    if (data.pitchRandomization > 0) {
+        note += randFloat(-data.pitchRandomization, data.pitchRandomization);
+    }
+    pd->sound->synth->playMIDINote(synths[sfx], note, getSfxVolumeSetting(), DEFAULT_PLAY_LEN, 0);
 }
 
 // === Music manager ===

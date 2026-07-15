@@ -209,7 +209,7 @@ const DEFAULT_PLAY_LEN = 3.0;
 // ---- Built-in library (mirrors current audioManager.c) -------------------
 function defaults() {
   return {
-    name: "SFX_NEW", defaultNote: 40, volume: DEFAULT_VOLUME, waveform: "kWaveformSquare",
+    name: "SFX_NEW", defaultNote: 40, pitchRandomization: 0, volume: DEFAULT_VOLUME, waveform: "kWaveformSquare",
     attack: 0, decay: 0.3, sustain: 0, release: 0, curvature: 1.0,
     lfo: 0, lfoType: "kLFOTypeSquare", depth: 0.5, center: 0.5, rate: 5.0, phase: 0.0
   };
@@ -298,6 +298,7 @@ function midiToFreq(n) { return 440 * Math.pow(2, (n - 69) / 12); }
 const FIELDS = [
   { group:"Synth", items:[
     { key:"defaultNote", label:"MIDI note", type:"note" },
+    { key:"pitchRandomization", label:"Pitch random", type:"range", min:0, max:12, step:0.1, unit:" st" },
     { key:"volume",   label:"Volume",    type:"range", min:0, max:1, step:0.01 },
     { key:"waveform", label:"Waveform",  type:"enum",  options:WAVEFORMS },
   ]},
@@ -476,6 +477,9 @@ function genEntry(s) {
   const lines = [];
   lines.push(`    [${s.name}] = {`);
   lines.push(`        .defaultNote = ${s.defaultNote},`);
+  if (s.pitchRandomization > 0) {
+    lines.push(`        .pitchRandomization = ${fmtFloat(s.pitchRandomization)},`);
+  }
   lines.push(`        .volume = ${s.volume === DEFAULT_VOLUME ? "DEFAULT_VOLUME" : fmtFloat(s.volume)},`);
   lines.push(`        .waveform = ${s.waveform},`);
   lines.push(`        .attack = ${fmtFloat(s.attack)},`);
@@ -621,7 +625,10 @@ function poWave(c, name) {
 function playParams(s, noteOverride) {
   const c = audio();
   const t0 = c.currentTime + 0.01;
-  const note = noteOverride != null ? noteOverride : s.defaultNote;
+  let note = noteOverride != null ? noteOverride : s.defaultNote;
+  if (s.pitchRandomization > 0) {
+    note += rr(-s.pitchRandomization, s.pitchRandomization);
+  }
   const freq = midiToFreq(note);
 
   // source

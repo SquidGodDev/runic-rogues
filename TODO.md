@@ -60,6 +60,7 @@
   - Boss even more challenging
 ## Scenes
 - Improved title
+- Class Select Info Screen
 - Game Over scene
   - Stats
   - Class used
@@ -73,7 +74,24 @@
   - Fonts
     - Metamorphous (title)
 ## Audio
-- SFX
+- Boss shout
+- Sword swing
+- Knight shout
+- Knife throw
+- Fan of Knives
+- UI:
+  - Scene transition out
+  - Scene transition in
+  - Select
+  - Navigate Click
+  - Navigate Slide
+  - Small Click
+  - Checkbox Check
+  - Checkbox Unchecked
+- Area Map:
+  - Slide Area
+  - Slide Player
+  - Jump
 ## Localization
 - JP Localization
   - Tutorial
