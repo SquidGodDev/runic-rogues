@@ -340,7 +340,11 @@ void playSound(SFX sfx) {
     if (data.pitchRandomization > 0) {
         note += randFloat(-data.pitchRandomization, data.pitchRandomization);
     }
-    pd->sound->synth->playMIDINote(synths[sfx], note, getSfxVolumeSetting(), DEFAULT_PLAY_LEN, 0);
+    float velocity = getSfxVolumeSetting();
+    if (velocity <= 0.0f) {
+        return;
+    }
+    pd->sound->synth->playMIDINote(synths[sfx], note, velocity, DEFAULT_PLAY_LEN, 0);
 }
 
 // === Music manager ===
