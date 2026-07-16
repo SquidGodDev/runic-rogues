@@ -11,6 +11,7 @@
 #include "game/player/classes/classData.h"
 #include "game/rendering/textures.h"
 #include "game/player/spells/spellData.h"
+#include "game/systems/audioManager.h"
 
 #define TITLE_Y 5
 #define MODEL_CENTER_X 50
@@ -187,10 +188,20 @@ void updateClassSelectScene(float deltaTime) {
 
     if (!isSceneTransitioning()) {
         int newIndex = selectedIndex;
-        if ((pushed & kButtonLeft) && selectedIndex > 0) {
-            newIndex = selectedIndex - 1;
-        } else if ((pushed & kButtonRight) && selectedIndex < CLASS_COUNT - 1) {
-            newIndex = selectedIndex + 1;
+        if (pushed & kButtonLeft) {
+            if (selectedIndex > 0) {
+                playSound(SFX_UI_RUNE_SLIDE);
+                newIndex = selectedIndex - 1;
+            } else {
+                playSound(SFX_CLASS_ERROR);
+            }
+        } else if (pushed & kButtonRight) {
+            if (selectedIndex < CLASS_COUNT - 1) {
+                playSound(SFX_UI_RUNE_SLIDE);
+                newIndex = selectedIndex + 1;
+            } else {
+                playSound(SFX_CLASS_ERROR);
+            }
         }
         if (newIndex != selectedIndex) {
             slideStartValue = displaySelected;
@@ -202,11 +213,13 @@ void updateClassSelectScene(float deltaTime) {
             m->currentFrameTime = 0.0f;
         }
         if (pushed & kButtonA) {
+            playSound(SFX_CLASS_SELECT);
             setCurrentClass((ClassType)selectedIndex);
             initRunStart();
             switchScene(SCENE_AREA_MAP);
         }
         if (pushed & kButtonB) {
+            playSound(SFX_CLASS_BACK);
             switchScene(SCENE_TITLE);
         }
     }

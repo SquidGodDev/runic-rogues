@@ -93,13 +93,13 @@ void updateTitleScene(float deltaTime) {
     pd->system->getButtonState(NULL, &pushed, NULL);
 
     if (pushed & kButtonUp) {
-        playSound(SFX_UI_NAVIGATE);
+        playSound(SFX_UI_RUNE_SLIDE);
         selectedIndex = (selectedIndex - 1 + BUTTON_COUNT) % BUTTON_COUNT;
     } else if (pushed & kButtonDown) {
-        playSound(SFX_UI_NAVIGATE);
+        playSound(SFX_UI_RUNE_SLIDE);
         selectedIndex = (selectedIndex + 1) % BUTTON_COUNT;
     } else if (pushed & kButtonA) {
-        playSound(SFX_UI_CLICK);
+        playSound(SFX_CLASS_SELECT);
         if (selectedIndex == 0) {
             switchScene(SCENE_CLASS_SELECT);
         } else if (selectedIndex == 1) {

@@ -456,11 +456,17 @@ void updateShop(float deltaTime) {
         if (selectedShopOptionIndex > 0) {
             selectedShopOptionIndex--;
             resetShopDescOffset();
+            playSound(SFX_UI_RUNE_SLIDE);
+        } else {
+            playSound(SFX_UI_ERROR);
         }
     } else if (pushed & kButtonRight) {
         if (selectedShopOptionIndex < SHOP_SKIP_OPTION_INDEX) {
             selectedShopOptionIndex++;
             resetShopDescOffset();
+            playSound(SFX_UI_RUNE_SLIDE);
+        } else {
+            playSound(SFX_UI_ERROR);
         }
     }
 
@@ -476,6 +482,7 @@ void updateShop(float deltaTime) {
     }
 
     if (pushed & kButtonA) {
+        playSound(SFX_SHOP_SELECT);
         if (selectedShopOptionIndex != SHOP_SKIP_OPTION_INDEX) {
             selectShopItem(shopItems[selectedShopOptionIndex]);
         }

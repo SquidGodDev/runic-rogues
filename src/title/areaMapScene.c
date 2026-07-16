@@ -261,6 +261,7 @@ void initAreaMapScene(void) {
 static void advancePhase(void) {
     switch (phase) {
         case MAP_PHASE_INTRO_START_DELAY:
+            playSound(SFX_AREA_MAP_PLAYER_SLIDE);
             setPhase(MAP_PHASE_INTRO_REVEAL, INTRO_REVEAL_TIME);
             break;
         case MAP_PHASE_INTRO_REVEAL:

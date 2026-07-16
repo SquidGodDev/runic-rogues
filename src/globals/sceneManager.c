@@ -156,6 +156,7 @@ void switchScene(Scene newScene) {
 
 void initNextScene(void) {
     currentScene = nextScene;
+    playSound(SFX_SCENE_TRANSITION_IN);
     switch (currentScene) {
         case SCENE_LOADING:
             initLoadingScene();
@@ -301,6 +302,7 @@ static void advanceTransition(Transition* t, float deltaTime) {
 
     switch (t->state) {
         case TRANSITION_EXITING_1:
+            playSound(SFX_SCENE_TRANSITION_OUT);
             t->state = TRANSITION_EXITING_2;
             t->startRadius = MID_RADIUS;
             t->endRadius = MIN_RADIUS;

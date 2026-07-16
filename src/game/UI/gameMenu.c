@@ -494,7 +494,7 @@ static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, 
         }
         case CONTROL_RESET_BUTTON: {
             if (pushed & kButtonA) {
-                playSound(SFX_UI_CLICK);
+                playSound(SFX_UI_NAVIGATE);
                 confirmSel = 1;
                 focus = FOCUS_CONFIRM;
             }
@@ -762,7 +762,7 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
         int thumbH = SETTINGS_SCROLLBAR_TRACK_H * VISIBLE_ROWS / tab->rowCount;
         int thumbY = SETTINGS_SCROLLBAR_Y + (int)(SETTINGS_SCROLLBAR_TRACK_H * scrollPx / contentH + 0.5f);
         pd->graphics->drawRoundRect(SETTINGS_SCROLLBAR_X, SETTINGS_SCROLLBAR_Y, SETTINGS_SCROLLBAR_W, SETTINGS_SCROLLBAR_TRACK_H, 2, 1, kColorWhite);
-        pd->graphics->fillRect(SETTINGS_SCROLLBAR_X + 2, thumbY + 3, 1, thumbH - 5, kColorWhite);
+        pd->graphics->fillRect(SETTINGS_SCROLLBAR_X + 2, thumbY + 3, 1, thumbH - 6, kColorWhite);
     }
 }
 
@@ -879,9 +879,9 @@ void updateGameMenu(float deltaTime) {
                 saveGame();
             }
             if (confirmSel == 0) {
-                playSound(SFX_UI_CLICK_NO);
-            } else {
                 playSound(SFX_UI_CLICK);
+            } else {
+                playSound(SFX_UI_CLICK_NO);
             }
             focus = FOCUS_CONTENT;
         } else if (pushed & kButtonB) {
@@ -953,7 +953,7 @@ void updateGameMenu(float deltaTime) {
                 exitSelRow++;
             }
         } else if (pushed & kButtonA) {
-            playSound(SFX_UI_CLICK);
+            playSound(SFX_UI_NAVIGATE);
             if (exitSelRow == 0) {
                 closeGameMenu();
                 return;
@@ -965,7 +965,6 @@ void updateGameMenu(float deltaTime) {
         PDButtons navDir = navRepeat(kButtonUp | kButtonDown, current, pushed, deltaTime);
         if (pushed & kButtonB) {
             enterTabSelect();
-            playSound(SFX_UI_CLICK_NO);
         } else if (navDir & kButtonUp) {
             int prevRow = adjacentSelectableRow(tab, listSelRow, -1);
             if (prevRow >= 0) {
