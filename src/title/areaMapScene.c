@@ -109,6 +109,8 @@ static float classX;
 static float classYOffset;
 static float classOpacity;
 static float popOffset;
+static bool areaSlideSfxPlayed[MAP_AREA_COUNT];
+static bool playerSlideSfxPlayed;
 
 static LCDBitmap *buildPatternStencil(const uint8_t pattern[8]) {
     LCDBitmap *bmp = pd->graphics->newBitmap(32, 8, kColorWhite);
@@ -242,6 +244,10 @@ void initAreaMapScene(void) {
         classOpacity = 1.0f;
         classYOffset = 0.0f;
         classX = CLASS_SLIDE_START_X;
+        for (int i = 0; i < MAP_AREA_COUNT; i++) {
+            areaSlideSfxPlayed[i] = false;
+        }
+        playerSlideSfxPlayed = false;
         setPhase(MAP_PHASE_INTRO_START_DELAY, INTRO_START_DELAY_TIME);
     } else {
         for (int i = 0; i < MAP_AREA_COUNT; i++) {
@@ -261,7 +267,6 @@ void initAreaMapScene(void) {
 static void advancePhase(void) {
     switch (phase) {
         case MAP_PHASE_INTRO_START_DELAY:
-            playSound(SFX_AREA_MAP_PLAYER_SLIDE);
             setPhase(MAP_PHASE_INTRO_REVEAL, INTRO_REVEAL_TIME);
             break;
         case MAP_PHASE_INTRO_REVEAL:
@@ -278,6 +283,7 @@ static void advancePhase(void) {
             break;
         case MAP_PHASE_INTRO_PRE_POP_WAIT:
             areas[popIndex].solid = true;
+            playSound(SFX_AREA_MAP_SELECT);
             setPhase(MAP_PHASE_INTRO_POP, POP_TIME);
             break;
         case MAP_PHASE_INTRO_POP:
@@ -289,12 +295,14 @@ static void advancePhase(void) {
             switchScene(SCENE_GAME);
             break;
         case MAP_PHASE_ADVANCE_START_DELAY:
+            playSound(SFX_AREA_MAP_PLAYER_SLIDE_BETWEEN);
             setPhase(MAP_PHASE_ADVANCE_MOVE, ADVANCE_MOVE_TIME);
             break;
         case MAP_PHASE_ADVANCE_MOVE:
             classX = areaIconX[step];
             lineSolidWidth[step - 1] = LINE_WIDTH;
             areas[popIndex].solid = true;
+            playSound(SFX_AREA_MAP_SELECT);
             setPhase(MAP_PHASE_ADVANCE_POP, POP_TIME);
             break;
         case MAP_PHASE_ADVANCE_POP:
@@ -325,10 +333,18 @@ static void updateAnimation(float deltaTime) {
         case MAP_PHASE_INTRO_REVEAL: {
             float elapsed = progress * phaseDuration;
             for (int i = 0; i < MAP_AREA_COUNT; i++) {
+                if (!areaSlideSfxPlayed[i] && elapsed >= areaRevealStart[i]) {
+                    playSound(SFX_AREA_MAP_AREA_SLIDE);
+                    areaSlideSfxPlayed[i] = true;
+                }
                 areaReveal[i] = clampFloat((elapsed - areaRevealStart[i]) / REVEAL_DURATION, 0.0f, 1.0f);
             }
             for (int i = 0; i < MAP_LINE_COUNT; i++) {
                 lineReveal[i] = clampFloat((elapsed - lineRevealStart[i]) / REVEAL_DURATION, 0.0f, 1.0f);
+            }
+            if (!playerSlideSfxPlayed && elapsed >= CLASS_REVEAL_START) {
+                playSound(SFX_AREA_MAP_PLAYER_SLIDE);
+                playerSlideSfxPlayed = true;
             }
             float classProgress = clampFloat((elapsed - CLASS_REVEAL_START) / CLASS_SLIDE_DURATION, 0.0f, 1.0f);
             classX = lerp(CLASS_SLIDE_START_X, (float)areaIconX[0], easeOutCubic(classProgress));
