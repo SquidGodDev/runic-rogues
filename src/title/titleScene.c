@@ -38,12 +38,15 @@ void initTitleScene(void) {
 
 void updateTitleScene(float deltaTime) {
     if (settingsOpen) {
+        setMusicPausedWithFade(true);
         updateGameMenu(deltaTime);
         if (!gameMenuActive()) {
             settingsOpen = false;
         }
         return;
     }
+
+    setMusicPaused(false);
 
     pd->graphics->clear(kColorBlack);
 
