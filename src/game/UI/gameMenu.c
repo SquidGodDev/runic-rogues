@@ -494,6 +494,7 @@ static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, 
         }
         case CONTROL_RESET_BUTTON: {
             if (pushed & kButtonA) {
+                playSound(SFX_UI_CLICK);
                 confirmSel = 1;
                 focus = FOCUS_CONFIRM;
             }
