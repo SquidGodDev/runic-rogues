@@ -5,6 +5,7 @@
 #include "globals/helpers.h"
 #include "game/rendering/textures.h"
 #include "game/tutorial/tutorialDialog.h"
+#include "game/systems/audioManager.h"
 
 #define TD_BOX_MARGIN       8
 #define TD_BOX_PADDING_X    6
@@ -72,6 +73,16 @@ static int utf8ByteOffsetForChar(const char *s, int charCount) {
         i++;
     }
     return i;
+}
+
+static char charAtRevealIndex(int index) {
+    for (int i = 0; i < dLineCount; i++) {
+        if (index < dLineCharCounts[i]) {
+            return dLines[i][utf8ByteOffsetForChar(dLines[i], index)];
+        }
+        index -= dLineCharCounts[i];
+    }
+    return '\0';
 }
 
 static void wrapPage(const char *text) {
@@ -197,6 +208,9 @@ void updateTutorialDialog(float deltaTime) {
         dCharAccumulator += deltaTime;
         while (dCharAccumulator >= TD_CHAR_TIME && dRevealedChars < dPageTotalChars) {
             dCharAccumulator -= TD_CHAR_TIME;
+            if (charAtRevealIndex(dRevealedChars) != ' ') {
+                playSound(SFX_TUTORIAL_TYPEWRITER);
+            }
             dRevealedChars++;
         }
         if (dRevealedChars >= dPageTotalChars) {
@@ -211,6 +225,7 @@ void updateTutorialDialog(float deltaTime) {
             dRevealedChars = dPageTotalChars;
             dState = TD_AWAIT_ADVANCE;
         } else if (dState == TD_AWAIT_ADVANCE) {
+            playSound(SFX_TUTORIAL_CONFIRM);
             dPageIndex++;
             if (dPageIndex >= dPageCount) {
                 dState = TD_TRANSITION_OUT;

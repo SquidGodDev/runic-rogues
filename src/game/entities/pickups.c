@@ -7,6 +7,7 @@
 #include "game/map/map.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/runeManager.h"
+#include "game/systems/audioManager.h"
 
 #define PICKUP_DISTANCE 80.0f
 #define EXPIRATION_TIME 10.0f
@@ -84,6 +85,8 @@ void updatePickups(float deltaTime) {
             if (pickup->type == PICKUP_TYPE_XP_ORB) {
                 addExperience(1.0f);
                 signalRuneTrigger(RUNE_TRIGGER_EXPERIENCE, 1.0f);
+            } else if (pickup->type == PICKUP_TYPE_ARROW) {
+                playSound(SFX_TUTORIAL_ARROW_PICKUP);
             }
         }
 

@@ -348,15 +348,63 @@ SFXData sfxData[] = {
     },
     [SFX_TUTORIAL_TYPEWRITER] = {
         .defaultNote = 52,
-        .pitchRandomization = 0.4f,
+        .pitchRandomization = 1.2f,
         .volume = DEFAULT_VOLUME,
-        .waveform = kWaveformSquare,
+        .waveform = kWaveformTriangle,
         .attack = 0,
-        .decay = 0.05f,
+        .decay = 0.07f,
         .sustain = 0,
         .release = 0,
         .curvature = 1.0f,
         .lfo = 0
+    },
+    [SFX_TUTORIAL_ARROW_PICKUP] = {
+        .defaultNote = 68,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformTriangle,
+        .attack = 0,
+        .decay = 0.3f,
+        .sustain = 0,
+        .release = 0.06f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSawtoothUp,
+        .lfo = 1,
+        .depth = 0.52f,
+        .center = 0,
+        .rate = 14.6f,
+        .phase = 0
+    },
+    [SFX_TUTORIAL_PASS] = {
+        .defaultNote = 66,
+        .volume = 0.71f,
+        .waveform = kWaveformSine,
+        .attack = 0.08f,
+        .decay = 0.67f,
+        .sustain = 0,
+        .release = 0.1f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSquare,
+        .lfo = 1,
+        .depth = 0.77f,
+        .center = 0,
+        .rate = 8.2f,
+        .phase = 0
+    },
+    [SFX_TUTORIAL_CONFIRM] = {
+        .defaultNote = 80,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformSine,
+        .attack = 0,
+        .decay = 0.11f,
+        .sustain = 0,
+        .release = 0.09f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSawtoothUp,
+        .lfo = 1,
+        .depth = 0.55f,
+        .center = 0,
+        .rate = 10.9f,
+        .phase = 0
     }
 };
 
@@ -454,7 +502,11 @@ void playSound(SFX sfx) {
     if (data.pitchRandomization > 0) {
         note += randFloat(-data.pitchRandomization, data.pitchRandomization);
     }
-    pd->sound->synth->playMIDINote(synths[sfx], note, getSfxVolumeSetting(), DEFAULT_PLAY_LEN, 0);
+    float velocity = getSfxVolumeSetting();
+    if (velocity <= 0.0f) {
+        return;
+    }
+    pd->sound->synth->playMIDINote(synths[sfx], note, velocity, DEFAULT_PLAY_LEN, 0);
 }
 
 // === Music manager ===

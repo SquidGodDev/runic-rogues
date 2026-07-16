@@ -184,6 +184,14 @@ static void closeBehindIfEntered(int roomIndex, int gateIndex) {
     closeRoomGate(gateIndex);
 }
 
+static void progressToNextRoom(TutorialPhase nextTPhase, int currentRoomIndex) {
+    tPhase = nextTPhase;
+    openRoomGate(currentRoomIndex);
+    setArrowToRoom(currentRoomIndex + 1);
+    playSound(SFX_TUTORIAL_PASS);
+    openTutorialDialog(nextRoomPages);
+}
+
 static void updateTutorialPhase(float deltaTime) {
     updateTutorialDialog(deltaTime);
 
@@ -213,11 +221,8 @@ static void updateTutorialPhase(float deltaTime) {
                 r1ArrowPickupIndex = -1;
                 r1ArrowStep++;
                 if (r1ArrowStep >= 3) {
-                    tPhase = TUTORIAL_R1_TO_R2;
                     closeEntranceGate();
-                    openRoomGate(0);
-                    setArrowToRoom(1);
-                    openTutorialDialog(nextRoomPages);
+                    progressToNextRoom(TUTORIAL_R1_TO_R2, 0);
                 }
             }
             break;
@@ -249,16 +254,16 @@ static void updateTutorialPhase(float deltaTime) {
                 Point minP = getRoomInteriorMin(1);
                 Point maxP = getRoomInteriorMax(1);
                 if (r2DummyStage == 0) {
+                    playSound(SFX_TUTORIAL_ARROW_PICKUP);
                     spawnDummyAtCell((int)maxP.x - 2, (int)minP.y + 2);
                     r2DummyStage = 1;
                 } else if (r2DummyStage == 1) {
+                    playSound(SFX_TUTORIAL_ARROW_PICKUP);
                     spawnDummyAtCell((int)maxP.x - 2, (int)maxP.y - 2);
                     r2DummyStage = 2;
                 } else {
-                    openRoomGate(1);
-                    setArrowToRoom(2);
-                    openTutorialDialog(nextRoomPages);
-                    tPhase = TUTORIAL_R2_TO_R3;
+                    playSound(SFX_TUTORIAL_ARROW_PICKUP);
+                    progressToNextRoom(TUTORIAL_R2_TO_R3, 1);
                 }
             }
             break;
@@ -289,10 +294,7 @@ static void updateTutorialPhase(float deltaTime) {
         case TUTORIAL_R3_WAITING: {
             int alive = dummiesAlive();
             if (alive == 0) {
-                openRoomGate(2);
-                setArrowToRoom(3);
-                openTutorialDialog(nextRoomPages);
-                tPhase = TUTORIAL_R3_TO_R4;
+                progressToNextRoom(TUTORIAL_R3_TO_R4, 2);
             }
             break;
         }
@@ -330,10 +332,7 @@ static void updateTutorialPhase(float deltaTime) {
             int chasmX = (minP.x + maxP.x) / 2;
             int playerCellX = (int)playerX / CELL_SIZE;
             if (playerCellX > chasmX) {
-                openRoomGate(3);
-                setArrowToRoom(4);
-                openTutorialDialog(nextRoomPages);
-                tPhase = TUTORIAL_R4_TO_R5;
+                progressToNextRoom(TUTORIAL_R4_TO_R5, 3);
             }
             break;
         }
@@ -381,10 +380,7 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R5_WAITING: {
-            openRoomGate(4);
-            setArrowToRoom(5);
-            openTutorialDialog(nextRoomPages);
-            tPhase = TUTORIAL_R5_TO_R6;
+            progressToNextRoom(TUTORIAL_R5_TO_R6, 4);
             break;
         }
         case TUTORIAL_R5_TO_R6: {

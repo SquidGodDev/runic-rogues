@@ -3,6 +3,11 @@
 - Give a ~30s backup prompt if the player is stuck
 - More indication when arrow target changes
 - More tight tutorial
+- Disable buttons in rooms
+- Change dash room to use all 3 dashes (disable dash before this)
+- Show goal counter (e.g. enemy 1/3, arrow 2/3)
+- Change exit to spawn in room #5 and end tutorial there
+- Add "Welcome to the tutorial!"
 ## Balance
 - Custom Rat AI
 - Make rock golem use short warning
@@ -75,10 +80,12 @@
     - Metamorphous (title)
 ## Audio
 - Boss shout
-- Sword swing
-- Knight shout
-- Knife throw
-- Fan of Knives
+- Player:
+  - Sword swing
+  - Knight shout
+  - Knife throw
+  - Fan of Knives
+  - Dash
 - Area Map:
   - Slide Area
   - Slide Player
