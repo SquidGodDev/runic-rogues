@@ -345,6 +345,18 @@ SFXData sfxData[] = {
         .center = 0.5f,
         .rate = 0.1f,
         .phase = 0
+    },
+    [SFX_TUTORIAL_TYPEWRITER] = {
+        .defaultNote = 52,
+        .pitchRandomization = 0.4f,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformSquare,
+        .attack = 0,
+        .decay = 0.05f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
     }
 };
 
@@ -532,6 +544,11 @@ void playSong(Music song) {
         musicFade[song] = 0.0f;
         pd->sound->fileplayer->setVolume(musicFiles[song], 0.0f, 0.0f);
         pd->sound->fileplayer->play(musicFiles[song], 0);  // 0 == loop endlessly
+
+        // play() re-adds the source to the default channel, which would bypass the
+        // pause fade and lowpass living on musicChannel. Detach and re-route it back.
+        pd->sound->removeSource((SoundSource *)musicFiles[song]);
+        pd->sound->channel->addSource(musicChannel, (SoundSource *)musicFiles[song]);
     }
 }
 

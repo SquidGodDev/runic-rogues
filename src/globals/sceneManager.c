@@ -340,8 +340,6 @@ int updateSceneManager(void* userdata) {
         deltaTime = MAX_DELTA_TIME;
     }
 
-    updateMusicManager(deltaTime);
-
     switch (currentScene) {
         case SCENE_LOADING:
             updateLoadingScene(deltaTime);
@@ -368,6 +366,9 @@ int updateSceneManager(void* userdata) {
             updateTutorialScene(deltaTime);
             break;
     }
+
+    // After the scene update so this frame's pause/lowpass requests apply immediately
+    updateMusicManager(deltaTime);
 
     if (primary.state != TRANSITION_NONE || trailing.state != TRANSITION_NONE) {
         #if TRANSITION_STYLE == TRANSITION_STYLE_CIRCLE
