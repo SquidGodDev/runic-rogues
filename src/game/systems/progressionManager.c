@@ -3,6 +3,7 @@
 
 #include "game/systems/progressionManager.h"
 #include "game/systems/shopManager.h"
+#include "game/systems/audioManager.h"
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
 #include "game/entities/interactables.h"
@@ -127,6 +128,7 @@ RoomType getCurrentRoomType(void) {
 void setAreaCompleted(bool completed) {
     areaCompleted = completed;
     if (completed) {
+        playSound(SFX_CINEMATIC_VICTORY);
         showPopup(POPUP_AREA_CLEARED, POPUP_POSITION_CENTER);
         pendingExitSpawn = true;
     }

@@ -106,6 +106,7 @@ void startBossCinematic(int bossIndex) {
 
 	transitionToState(boss, ENEMY_STATE_IDLE);
 
+	playSound(SFX_CINEMATIC_SWEEP_IN);
 	phase = BOSS_CINEMATIC_ZOOM_IN;
 	phaseTimer = 0;
 	setGameState(GAME_STATE_BOSS_CINEMATIC);
@@ -125,6 +126,8 @@ void startBossDeathCinematic(int bossIndex) {
 	orbitStartAngle = atan2f(savedY - bossY, savedX - bossX);
 
 	stopSong();
+
+	playSound(SFX_CINEMATIC_DEFEATED);
 
 	phase = BOSS_CINEMATIC_DEATH_ZOOM_IN;
 	phaseTimer = 0;
@@ -159,23 +162,27 @@ void updateBossCinematic(float deltaTime) {
 			}
 			phase = BOSS_CINEMATIC_MIDDLE;
 			phaseTimer = 0;
-			if (bossEnemyIndex >= 0 && enemies[bossEnemyIndex].phase == 0) {
-				PopupType bossPopup;
-				switch (enemies[bossEnemyIndex].type) {
-					case ENEMY_TYPE_WRAITH_BOSS:
-						playSound(SFX_BOSS_SHOUT_WRAITH);
-						bossPopup = POPUP_WRAITH_BOSS;
-						break;
-					case ENEMY_TYPE_DRAGON_BOSS:
-						playSound(SFX_BOSS_SHOUT_DRAGON);
-						bossPopup = POPUP_DRAGON_BOSS;
-						break;
-					default:
-						playSound(SFX_BOSS_SHOUT_ELDER);
-						bossPopup = POPUP_ELDER_BOSS;
-						break;
+			if (bossEnemyIndex >= 0) {
+				if (enemies[bossEnemyIndex].phase == 0) {
+					PopupType bossPopup;
+					switch (enemies[bossEnemyIndex].type) {
+						case ENEMY_TYPE_WRAITH_BOSS:
+							playSound(SFX_BOSS_SHOUT_WRAITH);
+							bossPopup = POPUP_WRAITH_BOSS;
+							break;
+						case ENEMY_TYPE_DRAGON_BOSS:
+							playSound(SFX_BOSS_SHOUT_DRAGON);
+							bossPopup = POPUP_DRAGON_BOSS;
+							break;
+						default:
+							playSound(SFX_BOSS_SHOUT_ELDER);
+							bossPopup = POPUP_ELDER_BOSS;
+							break;
+					}
+					showPopup(bossPopup, POPUP_POSITION_TOP);
+				} else {
+					playSound(SFX_CINEMATIC_HEAL);
 				}
-				showPopup(bossPopup, POPUP_POSITION_TOP);
 			}
 		}
 	} else if (phase == BOSS_CINEMATIC_MIDDLE) {
@@ -192,6 +199,7 @@ void updateBossCinematic(float deltaTime) {
 		// }
 		setCameraGlobals(orbitEndX, orbitEndY, faceBossAngleAtStart);
 		if (phaseTimer >= BOSS_CINEMATIC_HOLD_TIME) {
+			playSound(SFX_CINEMATIC_SWEEP_OUT);
 			phase = BOSS_CINEMATIC_ZOOM_OUT;
 			phaseTimer = 0;
 		}

@@ -232,6 +232,7 @@ static void initShopCommon(void) {
     resetShopDescOffset();
     setMusicLowpassEnabled(true);
     setGameState(GAME_STATE_SHOP);
+    playSound(SFX_SHOP_SLIDE_IN);
 }
 
 static void buildSkipPages(void) {
@@ -483,6 +484,7 @@ void updateShop(float deltaTime) {
 
     if (pushed & kButtonA) {
         playSound(SFX_SHOP_SELECT);
+        playSound(SFX_SHOP_SLIDE_OUT);
         if (selectedShopOptionIndex != SHOP_SKIP_OPTION_INDEX) {
             selectShopItem(shopItems[selectedShopOptionIndex]);
         }

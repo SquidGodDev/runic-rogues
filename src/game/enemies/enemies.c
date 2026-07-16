@@ -189,7 +189,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_ELDER_BOSS] = (EnemyData){
 		.name = "Elder Boss",
-		.health = 700,
+		.health = 7,
 		.attackDetectionRange = 10,
 		.attackDistance = 10,
 		.attackDamage = 20,
