@@ -1,5 +1,6 @@
 #pragma once
 #include "pd_api.h"
+#include <stdbool.h>
 
 #define PI 3.141592f
 #define P2 PI / 2
@@ -16,13 +17,23 @@
 #define MAP_WIDTH 76
 #define MAP_HEIGHT 32
 
-// 1..4 = enemy rooms, 5 = boss room
-#define DEBUG_SKIP_TO_ROOM 0
-#define DEBUG_AREA_OVERRIDE 0
-#define DEBUG_INSTANT_ROOM_CLEAR 0
-#define DEBUG_INSTANT_KILL_BOSS 0
-#define DEBUG_START_IN_TEST_AREA 0
-#define DEBUG_SKIP_AREA_MAP 0
+// Runtime debug flags, adjustable in-game via the debug settings tab (unlocked
+// with the title-screen code). Stored in the save file. `enabled` is the master
+// toggle that reveals the debug tab and draws the DEBUG marker in every scene.
+typedef struct DebugFlags {
+    bool enabled;
+    int skipToRoom;    // 0 = off; 1..4 = enemy rooms, 5 = boss room
+    int areaOverride;  // 0 = off; 1 = Twilight Court, 2 = Lost Archives, 3 = Echoing Caverns
+    bool instantRoomClear;
+    bool instantKillBoss;
+    bool startInTestArea;
+    bool skipAreaMap;
+} DebugFlags;
+
+extern DebugFlags DEBUG;
+
+#define DEBUG_SKIP_TO_ROOM_MAX 5
+#define DEBUG_AREA_OVERRIDE_MAX 3
 
 #define FOG_LEVELS 16
 #define FOG_STEP 6

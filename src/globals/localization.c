@@ -70,6 +70,13 @@ static const char *STR_KEYS[STR_COUNT] = {
     [STR_RESET_CONFIRM_TITLE] = "reset.title",
     [STR_RESET_CONFIRM_BODY] = "reset.body",
 
+    [STR_SETTING_SKIP_TO_ROOM] = "setting.skip_to_room",
+    [STR_SETTING_AREA_OVERRIDE] = "setting.area_override",
+    [STR_SETTING_INSTANT_ROOM_CLEAR] = "setting.instant_room_clear",
+    [STR_SETTING_INSTANT_KILL_BOSS] = "setting.instant_kill_boss",
+    [STR_SETTING_START_IN_TEST_AREA] = "setting.start_in_test_area",
+    [STR_SETTING_SKIP_AREA_MAP] = "setting.skip_area_map",
+
     [STR_EXIT_CLOSE_MENU] = "exit.close_menu",
     [STR_EXIT_QUIT_RUN] = "exit.quit_run",
 

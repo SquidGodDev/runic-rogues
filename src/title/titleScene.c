@@ -4,6 +4,7 @@
 #include "globals/globals.h"
 #include "globals/localization.h"
 #include "globals/sceneManager.h"
+#include "globals/saveSystem.h"
 
 #include "title/titleScene.h"
 #include "game/gameScene.h"
@@ -26,6 +27,38 @@
 static int selectedIndex;
 static bool settingsOpen;
 
+// Secret "RUBDUBDUB" code (right-up-b-down-up-b-down-up-b) toggles debug mode.
+static const PDButtons DEBUG_CODE[] = {
+    kButtonRight, kButtonUp, kButtonB,
+    kButtonDown, kButtonUp, kButtonB,
+    kButtonDown, kButtonUp, kButtonB,
+};
+#define DEBUG_CODE_LENGTH ((int)(sizeof(DEBUG_CODE) / sizeof(DEBUG_CODE[0])))
+static int debugCodeProgress;
+
+// Advances the debug-code matcher by one button press. A press matching the next
+// expected button advances; any other press restarts (from 1 if it's the code's
+// first button, else 0). Completing the sequence toggles and persists debug mode.
+static void updateDebugCode(PDButtons pushed) {
+    PDButtons codeButtons = pushed & (kButtonUp | kButtonDown | kButtonLeft | kButtonRight | kButtonA | kButtonB);
+    if (codeButtons == 0) {
+        return;
+    }
+    if (codeButtons == DEBUG_CODE[debugCodeProgress]) {
+        debugCodeProgress++;
+        if (debugCodeProgress == DEBUG_CODE_LENGTH) {
+            debugCodeProgress = 0;
+            DEBUG.enabled = !DEBUG.enabled;
+            saveGame();
+            playSound(DEBUG.enabled ? SFX_UI_CHECKBOX_CHECKED : SFX_UI_CHECKBOX_UNCHECKED);
+        }
+    } else if (codeButtons == DEBUG_CODE[0]) {
+        debugCodeProgress = 1;
+    } else {
+        debugCodeProgress = 0;
+    }
+}
+
 static LCDFont *buttonFont(void) {
     return (SETTINGS.language == LANGUAGE_JP) ? fontSubJP : fontSubEN;
 }
@@ -33,6 +66,7 @@ static LCDFont *buttonFont(void) {
 void initTitleScene(void) {
     selectedIndex = 0;
     settingsOpen = false;
+    debugCodeProgress = 0;
     playSong(MUSIC_TITLE);
 }
 
@@ -91,6 +125,8 @@ void updateTitleScene(float deltaTime) {
 
     PDButtons pushed;
     pd->system->getButtonState(NULL, &pushed, NULL);
+
+    updateDebugCode(pushed);
 
     if (pushed & kButtonUp) {
         playSound(SFX_UI_RUNE_SLIDE);

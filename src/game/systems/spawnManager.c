@@ -218,9 +218,9 @@ static void spawnRoomEnemies(void) {
         spawnEnemy(spawnQueue[i], spawnPosition.x, spawnPosition.y, false /*isMinion*/);
     }
     spawnState = SPAWN_STATE_ACTIVE;
-    #if DEBUG_INSTANT_ROOM_CLEAR
+    if (DEBUG.instantRoomClear) {
         killAllEnemies();
-    #endif
+    }
 }
 
 static void spawnBoss(void) {
@@ -238,17 +238,17 @@ void initSpawnManager(void) {
     currentRoomIndex = 0;
     bossActive = false;
     arrowTargetRoom = -1;
-    #if DEBUG_SKIP_TO_ROOM > 0
+    if (DEBUG.skipToRoom > 0) {
         // Place state as if rooms 0..(N-1) were cleared and the shop was closed:
         // player in room (N-1), gate to room N open, arrow pointing to room N.
-        int targetRoom = DEBUG_SKIP_TO_ROOM;
+        int targetRoom = DEBUG.skipToRoom;
         currentRoomIndex = targetRoom - 1;
         nextRoomIndex = targetRoom;
         openRoomGate(targetRoom - 1);
         Point targetCenter = getRoomWorldCenter(targetRoom);
         setArrowPosition(targetCenter.x, targetCenter.y);
         arrowTargetRoom = targetRoom;
-    #endif
+    }
 }
 
 bool getBossActive(void) {

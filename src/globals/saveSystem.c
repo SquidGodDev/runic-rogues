@@ -94,6 +94,32 @@ static void applyKeyValue(const char *key, const char *value) {
         SETTINGS.sfxVolume = parseBarLevel(value);
     } else if (strcmp(key, "tutorialCompleted") == 0) {
         tutorialCompleted = parseInt(value) != 0;
+    } else if (strcmp(key, "debugEnabled") == 0) {
+        DEBUG.enabled = parseInt(value) != 0;
+    } else if (strcmp(key, "debugSkipToRoom") == 0) {
+        int room = parseInt(value);
+        if (room < 0) {
+            room = 0;
+        } else if (room > DEBUG_SKIP_TO_ROOM_MAX) {
+            room = DEBUG_SKIP_TO_ROOM_MAX;
+        }
+        DEBUG.skipToRoom = room;
+    } else if (strcmp(key, "debugAreaOverride") == 0) {
+        int area = parseInt(value);
+        if (area < 0) {
+            area = 0;
+        } else if (area > DEBUG_AREA_OVERRIDE_MAX) {
+            area = DEBUG_AREA_OVERRIDE_MAX;
+        }
+        DEBUG.areaOverride = area;
+    } else if (strcmp(key, "debugInstantRoomClear") == 0) {
+        DEBUG.instantRoomClear = parseInt(value) != 0;
+    } else if (strcmp(key, "debugInstantKillBoss") == 0) {
+        DEBUG.instantKillBoss = parseInt(value) != 0;
+    } else if (strcmp(key, "debugStartInTestArea") == 0) {
+        DEBUG.startInTestArea = parseInt(value) != 0;
+    } else if (strcmp(key, "debugSkipAreaMap") == 0) {
+        DEBUG.skipAreaMap = parseInt(value) != 0;
     }
 }
 
@@ -140,7 +166,14 @@ void saveGame(void) {
         "invertDpad=%d\n"
         "musicVolume=%d\n"
         "sfxVolume=%d\n"
-        "tutorialCompleted=%d\n",
+        "tutorialCompleted=%d\n"
+        "debugEnabled=%d\n"
+        "debugSkipToRoom=%d\n"
+        "debugAreaOverride=%d\n"
+        "debugInstantRoomClear=%d\n"
+        "debugInstantKillBoss=%d\n"
+        "debugStartInTestArea=%d\n"
+        "debugSkipAreaMap=%d\n",
         SAVE_VERSION,
         (int)SETTINGS.language,
         (int)SETTINGS.controlScheme,
@@ -157,7 +190,14 @@ void saveGame(void) {
         SETTINGS.invertDpad ? 1 : 0,
         SETTINGS.musicVolume,
         SETTINGS.sfxVolume,
-        tutorialCompleted ? 1 : 0
+        tutorialCompleted ? 1 : 0,
+        DEBUG.enabled ? 1 : 0,
+        DEBUG.skipToRoom,
+        DEBUG.areaOverride,
+        DEBUG.instantRoomClear ? 1 : 0,
+        DEBUG.instantKillBoss ? 1 : 0,
+        DEBUG.startInTestArea ? 1 : 0,
+        DEBUG.skipAreaMap ? 1 : 0
     );
 
     if (len > 0 && body != NULL) {

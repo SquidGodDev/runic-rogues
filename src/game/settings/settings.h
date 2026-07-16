@@ -59,6 +59,7 @@ void initSettings(void);
 void resetGeneralSettings(void);
 void resetControlSettings(void);
 void resetAudioSettings(void);
+void resetDebugSettings(void);
 
 float getCrankTurnSpeedMultiplier(void);
 float getDpadTurnSpeedMultiplier(void);

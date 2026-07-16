@@ -23,16 +23,24 @@ typedef enum MenuTab {
     MENU_TAB_GENERAL,
     MENU_TAB_CONTROLS,
     MENU_TAB_AUDIO,
+    MENU_TAB_DEBUG,   // only visible while DEBUG.enabled
     MENU_TAB_EXIT,
     MENU_TAB_COUNT
 } MenuTab;
 
-static const int TAB_X[MENU_TAB_COUNT] = { 4, 32, 60, 88, 173 };
+// Left-aligned tabs are packed left to right by their slot among the visible
+// tabs; the exit tab is pinned to the far right. Computed in tabDrawX() so the
+// conditional debug tab shifts the others without a hand-maintained x table.
+#define TAB_LEFT_X0  4
+#define TAB_STRIDE   28
+#define TAB_EXIT_X   173
+
 static const int TAB_ICONS[MENU_TAB_COUNT] = {
     BITMAP_MENU_INVENTORY_ICON,
     BITMAP_MENU_GEAR_ICON,
     BITMAP_MENU_INPUT_ICON,
     BITMAP_MENU_AUDIO_ICON,
+    BITMAP_MENU_DEBUG_ICON,
     BITMAP_MENU_EXIT_ICON,
 };
 
@@ -164,10 +172,21 @@ static const SettingRowDef AUDIO_ROWS[] = {
     { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },
 };
 
+static const SettingRowDef DEBUG_ROWS[] = {
+    { STR_SETTING_SKIP_TO_ROOM, CONTROL_INT, &DEBUG.skipToRoom, 0, DEBUG_SKIP_TO_ROOM_MAX },
+    { STR_SETTING_AREA_OVERRIDE, CONTROL_INT, &DEBUG.areaOverride, 0, DEBUG_AREA_OVERRIDE_MAX },
+    { STR_SETTING_INSTANT_ROOM_CLEAR, CONTROL_CHECKBOX, &DEBUG.instantRoomClear },
+    { STR_SETTING_INSTANT_KILL_BOSS, CONTROL_CHECKBOX, &DEBUG.instantKillBoss },
+    { STR_SETTING_START_IN_TEST_AREA, CONTROL_CHECKBOX, &DEBUG.startInTestArea },
+    { STR_SETTING_SKIP_AREA_MAP, CONTROL_CHECKBOX, &DEBUG.skipAreaMap },
+    { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },
+};
+
 static const SettingsTabDef SETTINGS_TABS[] = {
     [MENU_TAB_GENERAL]  = { GENERAL_ROWS, 3, resetGeneralSettings },
     [MENU_TAB_CONTROLS] = { CONTROLS_ROWS, 13, resetControlSettings },
     [MENU_TAB_AUDIO]    = { AUDIO_ROWS, 3, resetAudioSettings },
+    [MENU_TAB_DEBUG]    = { DEBUG_ROWS, 7, resetDebugSettings },
 };
 
 static bool rowIsSelectable(const SettingRowDef *row) {
@@ -206,15 +225,41 @@ static MenuTab firstTab(void) {
     return settingsMode ? MENU_TAB_GENERAL : MENU_TAB_INVENTORY;
 }
 
-static int visibleTabCount(void) {
-    return MENU_TAB_COUNT - firstTab();
+// The rune inventory tab is hidden in settings mode; the debug tab is hidden
+// unless debug mode is unlocked. Everything else is always shown.
+static bool tabVisible(MenuTab tab) {
+    if (tab < firstTab() || tab >= MENU_TAB_COUNT) {
+        return false;
+    }
+    if (tab == MENU_TAB_DEBUG) {
+        return DEBUG.enabled;
+    }
+    return true;
+}
+
+// Fills `out` with the currently-visible tabs in left-to-right order and returns
+// the count. `out` must hold at least MENU_TAB_COUNT entries.
+static int buildVisibleTabs(MenuTab *out) {
+    int count = 0;
+    for (MenuTab t = firstTab(); t < MENU_TAB_COUNT; t++) {
+        if (tabVisible(t)) {
+            out[count++] = t;
+        }
+    }
+    return count;
 }
 
 static int tabDrawX(MenuTab tab) {
-    if (settingsMode && tab != MENU_TAB_EXIT) {
-        return TAB_X[tab] - (TAB_X[MENU_TAB_GENERAL] - TAB_X[MENU_TAB_INVENTORY]);
+    if (tab == MENU_TAB_EXIT) {
+        return TAB_EXIT_X;
     }
-    return TAB_X[tab];
+    int slot = 0;
+    for (MenuTab t = firstTab(); t < tab; t++) {
+        if (tabVisible(t) && t != MENU_TAB_EXIT) {
+            slot++;
+        }
+    }
+    return TAB_LEFT_X0 + slot * TAB_STRIDE;
 }
 
 static int exitRowCount(void) {
@@ -251,7 +296,7 @@ static void flushSettingsSave(void) {
 }
 
 static bool isSettingsTab(MenuTab tab) {
-    return tab == MENU_TAB_GENERAL || tab == MENU_TAB_CONTROLS || tab == MENU_TAB_AUDIO;
+    return tab == MENU_TAB_GENERAL || tab == MENU_TAB_CONTROLS || tab == MENU_TAB_AUDIO || tab == MENU_TAB_DEBUG;
 }
 
 static void closeGameMenu(void) {
@@ -520,6 +565,9 @@ static void drawTabBar(void) {
     pd->graphics->drawLine(0, TAB_BASELINE_Y, SCREEN_WIDTH - 1, TAB_BASELINE_Y, 1, kColorWhite);
 
     for (int i = firstTab(); i < MENU_TAB_COUNT; i++) {
+        if (!tabVisible((MenuTab)i)) {
+            continue;
+        }
         int x = tabDrawX((MenuTab)i);
         bool isActive = (MenuTab)i == activeTab;
         bool isOutlined = focus == FOCUS_TABS && (MenuTab)i == selectedTab;
@@ -890,15 +938,19 @@ void updateGameMenu(float deltaTime) {
         }
     } else if (focus == FOCUS_TABS) {
         PDButtons navDir = navRepeat(kButtonLeft | kButtonRight, current, pushed, deltaTime);
-        int base = firstTab();
-        int count = visibleTabCount();
-        if (navDir & kButtonLeft) {
-            selectedTab = base + ((selectedTab - base) + count - 1) % count;
-            activeTab = selectedTab;
-            resetContentState();
-            playSound(SFX_UI_NAVIGATE_TAB);
-        } else if (navDir & kButtonRight) {
-            selectedTab = base + ((selectedTab - base) + 1) % count;
+        if (navDir & (kButtonLeft | kButtonRight)) {
+            MenuTab tabs[MENU_TAB_COUNT];
+            int count = buildVisibleTabs(tabs);
+            int idx = 0;
+            for (int i = 0; i < count; i++) {
+                if (tabs[i] == selectedTab) {
+                    idx = i;
+                    break;
+                }
+            }
+            int delta = (navDir & kButtonLeft) ? -1 : 1;
+            idx = (idx + delta + count) % count;
+            selectedTab = tabs[idx];
             activeTab = selectedTab;
             resetContentState();
             playSound(SFX_UI_NAVIGATE_TAB);

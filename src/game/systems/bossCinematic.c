@@ -163,12 +163,15 @@ void updateBossCinematic(float deltaTime) {
 				PopupType bossPopup;
 				switch (enemies[bossEnemyIndex].type) {
 					case ENEMY_TYPE_WRAITH_BOSS:
+						playSound(SFX_BOSS_SHOUT_WRAITH);
 						bossPopup = POPUP_WRAITH_BOSS;
 						break;
 					case ENEMY_TYPE_DRAGON_BOSS:
+						playSound(SFX_BOSS_SHOUT_DRAGON);
 						bossPopup = POPUP_DRAGON_BOSS;
 						break;
 					default:
+						playSound(SFX_BOSS_SHOUT_ELDER);
 						bossPopup = POPUP_ELDER_BOSS;
 						break;
 				}
@@ -207,9 +210,9 @@ void updateBossCinematic(float deltaTime) {
 			phase = BOSS_CINEMATIC_INACTIVE;
 			setBossActive(true);
 			setGameState(GAME_STATE_ACTIVE);
-			#if DEBUG_INSTANT_KILL_BOSS
+			if (DEBUG.instantKillBoss) {
 				damageEnemy(bossEnemyIndex, 9999);
-			#endif
+			}
 		}
 	} else if (phase == BOSS_CINEMATIC_DEATH_ZOOM_IN) {
 		float t = clampFloat(phaseTimer / BOSS_DEATH_ZOOM_IN_TIME, 0, 1);

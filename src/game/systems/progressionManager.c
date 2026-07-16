@@ -25,12 +25,12 @@ static bool pendingExitSpawn;
 
 void initProgressionManager(void) {
     currentArea = AREA_TWILIGHT_COURT;
-    #ifdef DEBUG_AREA_OVERRIDE
-        currentArea = (Area)DEBUG_AREA_OVERRIDE;
-    #endif
-    #if DEBUG_START_IN_TEST_AREA
+    if (DEBUG.areaOverride > 0) {
+        currentArea = (Area)(DEBUG.areaOverride - 1);
+    }
+    if (DEBUG.startInTestArea) {
         currentArea = AREA_TEST;
-    #endif
+    }
     currentRoom = 0;
     currentRoomType = ROOM_TYPE_ENEMY;
     experience = 0.0f;

@@ -416,6 +416,39 @@ SFXData sfxData[] = {
         .center = 0,
         .rate = 10.9f,
         .phase = 0
+    },
+    [SFX_BOSS_SHOUT_ELDER] = {
+        .defaultNote = 21,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformNoise,
+        .attack = 0.2f,
+        .decay = 0.93f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 0.85f,
+        .lfo = 0
+    },
+    [SFX_BOSS_SHOUT_WRAITH] = {
+        .defaultNote = 36,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformNoise,
+        .attack = 0.2f,
+        .decay = 0.93f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 0.85f,
+        .lfo = 0
+    },
+    [SFX_BOSS_SHOUT_DRAGON] = {
+        .defaultNote = 16,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformNoise,
+        .attack = 0.36f,
+        .decay = 0.93f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 0.85f,
+        .lfo = 0
     }
 };
 

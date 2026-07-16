@@ -53,6 +53,14 @@ typedef enum StringKey {
     STR_RESET_CONFIRM_TITLE,
     STR_RESET_CONFIRM_BODY,
 
+    // In-game menu debug tab (English-only dev feature)
+    STR_SETTING_SKIP_TO_ROOM,
+    STR_SETTING_AREA_OVERRIDE,
+    STR_SETTING_INSTANT_ROOM_CLEAR,
+    STR_SETTING_INSTANT_KILL_BOSS,
+    STR_SETTING_START_IN_TEST_AREA,
+    STR_SETTING_SKIP_AREA_MAP,
+
     // In-game menu exit tab
     STR_EXIT_CLOSE_MENU,
     STR_EXIT_QUIT_RUN,

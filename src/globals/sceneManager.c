@@ -15,6 +15,7 @@
 #include "game/tutorial/tutorialScene.h"
 #include "game/UI/gameMenu.h"
 #include "game/systems/audioManager.h"
+#include "game/rendering/textures.h"
 
 // === Transition style selector ===
 // Swap this to switch between transition effects.
@@ -134,11 +135,10 @@ void initSceneManager(void) {
 }
 
 void switchScene(Scene newScene) {
-    #if DEBUG_SKIP_AREA_MAP
-        if (newScene == SCENE_AREA_MAP) {
-            newScene = SCENE_GAME;
-        }
-    #endif
+    // The test area has no area-map entry, so starting there always skips it.
+    if ((DEBUG.skipAreaMap || DEBUG.startInTestArea) && newScene == SCENE_AREA_MAP) {
+        newScene = SCENE_GAME;
+    }
 
     nextScene = newScene;
 
@@ -329,6 +329,26 @@ static void advanceTransition(Transition* t, float deltaTime) {
     }
 }
 
+// Draws a "DEBUG" marker in the top-right corner of every scene while debug mode
+// is active. Always English; uses the double-outline font so it stays legible
+// over any background.
+static void drawDebugOverlay(void) {
+    // Hidden while the menu overlay is up: its tab bar already occupies the
+    // top-right corner (and shows the debug tab icon there).
+    if (!DEBUG.enabled || fontSubENDoubleOutline == NULL || gameMenuActive()) {
+        return;
+    }
+    const char *text = "DEBUG";
+    int len = 5;
+    int tracking = -2;
+    pd->graphics->setFont(fontSubENDoubleOutline);
+    pd->graphics->setTextTracking(tracking);
+    pd->graphics->setDrawMode(kDrawModeCopy);
+    int width = pd->graphics->getTextWidth(fontSubENDoubleOutline, text, len, kUTF8Encoding, tracking);
+    pd->graphics->drawText(text, len, kUTF8Encoding, SCREEN_WIDTH - width - 2, 2);
+    pd->graphics->setTextTracking(0);
+}
+
 // Cap wall-clock frame deltas (system menu, lag spikes) to 4 frames at 40 FPS
 // so timers, transitions, and lerps never see a multi-second jump
 #define MAX_DELTA_TIME 0.1f
@@ -369,6 +389,8 @@ int updateSceneManager(void* userdata) {
 
     // After the scene update so this frame's pause/lowpass requests apply immediately
     updateMusicManager(deltaTime);
+
+    drawDebugOverlay();
 
     if (primary.state != TRANSITION_NONE || trailing.state != TRANSITION_NONE) {
         #if TRANSITION_STYLE == TRANSITION_STYLE_CIRCLE

@@ -86,10 +86,6 @@
   - Knife throw
   - Fan of Knives
   - Dash
-- Area Map:
-  - Slide Area
-  - Slide Player
-  - Jump
 ## Localization
 - JP Localization
   - Tutorial

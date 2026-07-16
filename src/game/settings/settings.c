@@ -5,6 +5,7 @@
 #include "game/settings/settings.h"
 
 Settings SETTINGS;
+DebugFlags DEBUG;
 
 static Language systemLanguage(void) {
     if (pd->system->getLanguage() == kPDLanguageJapanese) {
@@ -36,11 +37,22 @@ void resetAudioSettings(void) {
     SETTINGS.sfxVolume = SETTING_BAR_DEFAULT_LEVEL;
 }
 
+void resetDebugSettings(void) {
+    DEBUG.skipToRoom = 0;
+    DEBUG.areaOverride = 0;
+    DEBUG.instantRoomClear = false;
+    DEBUG.instantKillBoss = false;
+    DEBUG.startInTestArea = false;
+    DEBUG.skipAreaMap = false;
+}
+
 void initSettings(void) {
     resetGeneralSettings();
     resetControlSettings();
     resetAudioSettings();
     SETTINGS.drawMinimapWalls = true; // Legacy: based off old minimap which is no longer used
+    DEBUG.enabled = false;
+    resetDebugSettings();
 }
 
 static float barLevelToRatio(int level) {

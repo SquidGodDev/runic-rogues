@@ -920,10 +920,10 @@ bool damageEnemy(int index, int damage) {
 			clearProjectiles();
 			clearParticles();
 			killAllNonBossEnemies();
-			#if !DEBUG_INSTANT_KILL_BOSS
+			if (!DEBUG.instantKillBoss) {
 				startBossCinematic(index);
 				return true;
-			#endif
+			}
 		}
 
 		signalRuneTrigger(RUNE_TRIGGER_KILL_ENEMY, 1.0f);
