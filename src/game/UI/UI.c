@@ -21,6 +21,7 @@
 #include "game/systems/progressionManager.h"
 #include "game/systems/spawnManager.h"
 #include "game/systems/bossCinematic.h"
+#include "game/tutorial/tutorialScene.h"
 
 #define drawPixel(frameBuffer, x, y) (frameBuffer[y * LCD_ROWSIZE + (x >> 3)] |= (1 << (7 - (x & 7))))
 
@@ -101,6 +102,10 @@ static bool exitActive;
 static int exitWorldX;
 static int exitWorldY;
 
+static bool showBasicSpellUI = true;
+static bool showSpecialSpellUI = true;
+static bool showDashUI = true;
+
 static PopupType popupType;
 static PopupPosition popupPosition;
 static int popupFrame;
@@ -126,6 +131,10 @@ void initUI(void) {
     pd->graphics->setBackgroundColor(kColorBlack);
 
     exitActive = false;
+
+    showBasicSpellUI = true;
+    showSpecialSpellUI = true;
+    showDashUI = true;
 
     for (int i = 0; i < MAX_DIRECTION_INDICATORS; i++) {
         directionIndicators[i].timer = 0;
@@ -548,6 +557,12 @@ void clearArrow(void) {
     exitActive = false;
 }
 
+void setSpellUIVisibility(bool basic, bool special, bool dash) {
+    showBasicSpellUI = basic;
+    showSpecialSpellUI = special;
+    showDashUI = dash;
+}
+
 void drawExitArrow(void) {
     if (!exitActive) {
         return;
@@ -576,10 +591,14 @@ void drawSpellUI(void) {
     int basicSlotX   = SETTINGS.spellButtonsReversed ? SPELL_SLOT_LEFT_X  : SPELL_SLOT_RIGHT_X;
     int specialSlotX = SETTINGS.spellButtonsReversed ? SPELL_SLOT_RIGHT_X : SPELL_SLOT_LEFT_X;
     int spellX[SPELL_EQUIP_MAX] = { basicSlotX, specialSlotX };
+    bool spellVisible[SPELL_EQUIP_MAX] = { showBasicSpellUI, showSpecialSpellUI };
 
     int cooldownInner = SPELL_ICON_SIZE - 2 * SPELL_COOLDOWN_INSET;
 
     for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
+        if (!spellVisible[i]) {
+            continue;
+        }
         LCDBitmap *icon = getSpellIcon(getDeckSpell(i));
         pd->graphics->drawBitmap(icon, spellX[i], SPELL_SLOT_Y, kBitmapUnflipped);
 
@@ -590,8 +609,21 @@ void drawSpellUI(void) {
         }
     }
 
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_SPELL_B_BUTTON_ICON], BUTTON_ICON_LEFT_X,  BUTTON_ICON_Y, kBitmapUnflipped);
-    pd->graphics->drawBitmap(BITMAPS[BITMAP_SPELL_A_BUTTON_ICON], BUTTON_ICON_RIGHT_X, BUTTON_ICON_Y, kBitmapUnflipped);
+    // The left slot is always cast with B and the right with A; reveal each button
+    // icon only when the spell occupying that slot is visible (respects the swap setting).
+    bool leftIsBasic = (basicSlotX == SPELL_SLOT_LEFT_X);
+    bool showLeftButton  = leftIsBasic ? showBasicSpellUI : showSpecialSpellUI;
+    bool showRightButton = leftIsBasic ? showSpecialSpellUI : showBasicSpellUI;
+    if (showLeftButton) {
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_SPELL_B_BUTTON_ICON], BUTTON_ICON_LEFT_X,  BUTTON_ICON_Y, kBitmapUnflipped);
+    }
+    if (showRightButton) {
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_SPELL_A_BUTTON_ICON], BUTTON_ICON_RIGHT_X, BUTTON_ICON_Y, kBitmapUnflipped);
+    }
+
+    if (!showDashUI) {
+        return;
+    }
 
     static const int UTILITY_BASE_X       = 3;
     static const int UTILITY_BASE_Y       = 108;
@@ -763,6 +795,24 @@ void drawPopup(float deltaTime) {
 }
 
 void drawRoomInfo(void) {
+    if (isTutorialActive()) {
+        StringKey objectiveKey;
+        int objectiveCurrent, objectiveTarget;
+        if (!getTutorialObjectiveText(&objectiveKey, &objectiveCurrent, &objectiveTarget)) {
+            return;
+        }
+        pd->graphics->pushContext(NULL);
+            bool isJP = SETTINGS.language == LANGUAGE_JP;
+            pd->graphics->setFont(isJP ? fontSubJPDoubleOutline : fontSubENDoubleOutline);
+            pd->graphics->setTextTracking(isJP ? -1 : -3);
+            char *objectiveString;
+            pd->system->formatString(&objectiveString, getLocString(objectiveKey), objectiveCurrent, objectiveTarget);
+            pd->graphics->drawText(objectiveString, strlen(objectiveString), kUTF8Encoding, 6, 16);
+            pd->system->realloc(objectiveString, 0);
+        pd->graphics->popContext();
+        return;
+    }
+
     int roomIndex = getCurrentRoomIndex();
     int totalRooms = getDungeonRoomCount();
     if (isAreaCompleted() || roomIndex >= totalRooms - 1) {

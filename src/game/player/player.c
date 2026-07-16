@@ -125,8 +125,24 @@ static bool crankAccumInit = false;
 static bool inputDisabled = false;
 static PDButtons suppressedButtons = 0;
 
+static bool basicSpellEnabled = true;
+static bool specialSpellEnabled = true;
+static bool dashEnabled = true;
+
 void setPlayerInputDisabled(bool disabled) {
 	inputDisabled = disabled;
+}
+
+void setPlayerBasicSpellEnabled(bool enabled) {
+	basicSpellEnabled = enabled;
+}
+
+void setPlayerSpecialSpellEnabled(bool enabled) {
+	specialSpellEnabled = enabled;
+}
+
+void setPlayerDashEnabled(bool enabled) {
+	dashEnabled = enabled;
 }
 
 void suppressHeldPlayerButtons(void) {
@@ -139,6 +155,9 @@ void initPlayer(void) {
 	const ClassData *classData = getCurrentClassData();
 	playerHealth = getPlayerMaxHealth();
 	playerDashCount = 0;
+	basicSpellEnabled = true;
+	specialSpellEnabled = true;
+	dashEnabled = true;
 	playerState = (PlayerState) {
 		.dead = 0,
 		.hitInvincibility = 0,
@@ -344,12 +363,14 @@ void handleInput(float deltaTime)
 	bool basicSpellHeld = (current & basicSpellButton) && (basicSpellButton != kButtonA || !interactBlocked);
 	bool specialSpellHeld = (current & specialSpellButton) && (specialSpellButton != kButtonA || !interactBlocked);
 
-	if (weaponAnimation.isChargeSpell) {
-		updateBasicSpellCharge(deltaTime, current & basicSpellButton);
-	} else if (basicSpellHeld) {
-		bool animationCancellable = weaponAnimation.curFrame == 0 || weaponAnimation.curFrame > weaponAnimation.activeFrame;
-		if(spellIsCastable(BASIC_SPELL_INDEX) && animationCancellable) {
-			startWeaponAnimation(BASIC_SPELL_INDEX);
+	if (basicSpellEnabled) {
+		if (weaponAnimation.isChargeSpell) {
+			updateBasicSpellCharge(deltaTime, current & basicSpellButton);
+		} else if (basicSpellHeld) {
+			bool animationCancellable = weaponAnimation.curFrame == 0 || weaponAnimation.curFrame > weaponAnimation.activeFrame;
+			if(spellIsCastable(BASIC_SPELL_INDEX) && animationCancellable) {
+				startWeaponAnimation(BASIC_SPELL_INDEX);
+			}
 		}
 	}
 
@@ -362,7 +383,9 @@ void handleInput(float deltaTime)
 	if (pressedDirection && !(current & specialSpellButton)) {
 		if (movementStats.dashDoubleTapTime > 0 && (movementStats.dashMovementDir & pressedDirection)) {
 			movementStats.dashDoubleTapTime = 0;
-			castUtilitySpell();
+			if (dashEnabled) {
+				castUtilitySpell();
+			}
 		} else {
 			movementStats.dashDoubleTapTime = DOUBLE_TAP_TIME;
 			movementStats.dashMovementDir = pushed & (kButtonLeft | kButtonRight | kButtonUp | kButtonDown);
@@ -373,11 +396,13 @@ void handleInput(float deltaTime)
 	// 	movementToggled ^= 1;
 	// }
 
-	if (spellIsCharged(getSpecialSpell())) {
-		updateSpecialSpellCharge(deltaTime, current & specialSpellButton);
-	} else if (specialSpellHeld) {
-		if (castSpecialSpell() && (getCurrentClassType() == CLASS_MAGE)) {
-			startWeaponAnimation(SPECIAL_SPELL_INDEX);
+	if (specialSpellEnabled) {
+		if (spellIsCharged(getSpecialSpell())) {
+			updateSpecialSpellCharge(deltaTime, current & specialSpellButton);
+		} else if (specialSpellHeld) {
+			if (castSpecialSpell() && (getCurrentClassType() == CLASS_MAGE)) {
+				startWeaponAnimation(SPECIAL_SPELL_INDEX);
+			}
 		}
 	}
 

@@ -22,3 +22,9 @@ void updatePlayer(float deltaTime);
 
 void setPlayerInputDisabled(bool disabled);
 void suppressHeldPlayerButtons(void);
+
+// Tutorial ability gating: selectively disable individual actions while leaving
+// movement intact. All default to enabled and reset to enabled in initPlayer().
+void setPlayerBasicSpellEnabled(bool enabled);
+void setPlayerSpecialSpellEnabled(bool enabled);
+void setPlayerDashEnabled(bool enabled);

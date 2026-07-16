@@ -130,6 +130,11 @@ typedef enum StringKey {
     STR_TUTORIAL_R6_1,
     STR_TUTORIAL_NEXT_ROOM,
 
+    // Tutorial objective HUD (printf format: current, target)
+    STR_TUTORIAL_OBJ_ARROW,
+    STR_TUTORIAL_OBJ_ENEMY,
+    STR_TUTORIAL_OBJ_DASH,
+
     // Shop
     STR_SHOP_TYPE_RUNE,
     STR_SHOP_SKIP_NAME,

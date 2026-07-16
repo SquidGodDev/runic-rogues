@@ -48,24 +48,23 @@ typedef enum {
     TUTORIAL_R5_SHOP_OPEN,
     TUTORIAL_R5_SHOP_WAIT,
     TUTORIAL_R5_DIALOG_POST_SHOP,
-    TUTORIAL_R5_WAITING,
-    TUTORIAL_R5_TO_R6,
-    TUTORIAL_R6_ENTER,
-    TUTORIAL_R6_DIALOG,
-    TUTORIAL_R6_WAITING,
-    TUTORIAL_R6_EXIT_SPAWNED,
+    TUTORIAL_R5_EXIT_SPAWNED,
     TUTORIAL_DONE
 } TutorialPhase;
 
 static TutorialPhase tPhase;
 
-static bool openedRuneInv;
-static bool closedRuneInv;
+// Seconds a task can go uncompleted (measured from the end of the last dialog)
+// before a reminder dialog reappears, then repeats.
+#define TUTORIAL_REMINDER_TIME 20.0f
+
 static bool entranceClosed;
 static int r1ArrowStep;
 static int r1ArrowPickupIndex;
-static int r2DummyStage;
+static int r2Killed;
+static int r4DashBaseline;
 static bool prevDialogActive;
+static float reminderTimer;
 
 static PDMenuItem *skipMenuItem;
 
@@ -129,14 +128,82 @@ static const StringKey r5PreShopPages[] = {
 };
 static const StringKey r5PostShopPages[] = {
     STR_TUTORIAL_R5_2,
-    STR_TUTORIAL_R5_4
-};
-static const StringKey r6Pages[] = {
+    STR_TUTORIAL_R5_4,
     STR_TUTORIAL_R6_1
 };
 static const StringKey nextRoomPages[] = {
     STR_TUTORIAL_NEXT_ROOM
 };
+
+// Reminder pages restate the controls and objective for each task that can stall.
+static const StringKey r1ReminderPages[] = {
+    STR_TUTORIAL_R1_1,
+    STR_TUTORIAL_R1_3
+};
+static const StringKey r2ReminderPages[] = {
+    STR_TUTORIAL_R2_1,
+    STR_TUTORIAL_R2_3
+};
+static const StringKey r3ReminderPages[] = {
+    STR_TUTORIAL_R3_1,
+    STR_TUTORIAL_R3_3
+};
+static const StringKey r4ReminderPages[] = {
+    STR_TUTORIAL_R4_1,
+    STR_TUTORIAL_R4_4
+};
+static const StringKey exitReminderPages[] = {
+    STR_TUTORIAL_R6_1
+};
+
+static const StringKey *getReminderPages(int *outCount) {
+    switch (tPhase) {
+        case TUTORIAL_R1_WAITING:
+            *outCount = (int)(sizeof(r1ReminderPages) / sizeof(r1ReminderPages[0]));
+            return r1ReminderPages;
+        case TUTORIAL_R2_WAITING:
+            *outCount = (int)(sizeof(r2ReminderPages) / sizeof(r2ReminderPages[0]));
+            return r2ReminderPages;
+        case TUTORIAL_R3_WAITING:
+            *outCount = (int)(sizeof(r3ReminderPages) / sizeof(r3ReminderPages[0]));
+            return r3ReminderPages;
+        case TUTORIAL_R4_WAITING:
+            *outCount = (int)(sizeof(r4ReminderPages) / sizeof(r4ReminderPages[0]));
+            return r4ReminderPages;
+        case TUTORIAL_R1_TO_R2:
+        case TUTORIAL_R2_TO_R3:
+        case TUTORIAL_R3_TO_R4:
+        case TUTORIAL_R4_TO_R5:
+            *outCount = (int)(sizeof(nextRoomPages) / sizeof(nextRoomPages[0]));
+            return nextRoomPages;
+        case TUTORIAL_R5_EXIT_SPAWNED:
+            *outCount = (int)(sizeof(exitReminderPages) / sizeof(exitReminderPages[0]));
+            return exitReminderPages;
+        default:
+            return NULL;
+    }
+}
+
+// Reopens the current task's reminder dialog once TUTORIAL_REMINDER_TIME of
+// dialog-free waiting elapses; the timer is held at zero while any dialog shows,
+// so the countdown always restarts from the end of the previous dialog.
+static void updateTutorialReminder(float deltaTime) {
+    if (isTutorialDialogActive()) {
+        reminderTimer = 0.0f;
+        return;
+    }
+    int pageCount = 0;
+    const StringKey *pages = getReminderPages(&pageCount);
+    if (pages == NULL) {
+        reminderTimer = 0.0f;
+        return;
+    }
+    reminderTimer += deltaTime;
+    if (reminderTimer >= TUTORIAL_REMINDER_TIME) {
+        reminderTimer = 0.0f;
+        openTutorialDialogPages(pages, pageCount);
+    }
+}
 
 static void setArrowToRoom(int roomIndex) {
     Point p = getRoomWorldCenter(roomIndex);
@@ -154,6 +221,15 @@ static int dummiesAlive(void) {
     return getActiveEnemyCount();
 }
 
+// Gate the combat abilities and reveal their HUD together so the tutorial can
+// unlock movement, basic spell, special spell, and dash one room at a time.
+static void setTutorialAbilities(bool basic, bool special, bool dash) {
+    setPlayerBasicSpellEnabled(basic);
+    setPlayerSpecialSpellEnabled(special);
+    setPlayerDashEnabled(dash);
+    setSpellUIVisibility(basic, special, dash);
+}
+
 void initTutorialScene(void) {
     setCurrentArea(AREA_TUTORIAL);
     setTutorialActive(true);
@@ -167,11 +243,15 @@ void initTutorialScene(void) {
     tPhase = TUTORIAL_R1_DIALOG;
     r1ArrowStep = 0;
     r1ArrowPickupIndex = -1;
-    r2DummyStage = 0;
-    openedRuneInv = false;
-    closedRuneInv = false;
+    r2Killed = 0;
+    r4DashBaseline = 0;
     entranceClosed = false;
     prevDialogActive = false;
+    reminderTimer = 0.0f;
+
+    // Room 1 is movement only: no basic spell, special spell, or dash, and their
+    // HUD stays hidden until each is unlocked in a later room.
+    setTutorialAbilities(false, false, false);
 
     openTutorialDialog(r1Pages);
 }
@@ -203,6 +283,10 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R1_WAITING: {
+            if (!entranceClosed && getPlayerCurrentRoom() == 0) {
+                closeEntranceGate();
+                entranceClosed = true;
+            }
             if (r1ArrowPickupIndex < 0) {
                 Point minP = getRoomInteriorMin(0);
                 Point maxP = getRoomInteriorMax(0);
@@ -221,7 +305,6 @@ static void updateTutorialPhase(float deltaTime) {
                 r1ArrowPickupIndex = -1;
                 r1ArrowStep++;
                 if (r1ArrowStep >= 3) {
-                    closeEntranceGate();
                     progressToNextRoom(TUTORIAL_R1_TO_R2, 0);
                 }
             }
@@ -236,6 +319,8 @@ static void updateTutorialPhase(float deltaTime) {
         case TUTORIAL_R2_ENTER: {
             closeBehindIfEntered(1, 0);
             setCurrentRoomIndex(1);
+            setTutorialAbilities(true, false, false);
+            r2Killed = 0;
             Point center = getRoomWorldCenter(1);
             spawnEnemy(ENEMY_TYPE_DUMMY, (int)center.x, (int)center.y, false);
             openTutorialDialog(r2Pages);
@@ -249,20 +334,16 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R2_WAITING: {
-            int alive = dummiesAlive();
-            if (alive == 0) {
+            if (dummiesAlive() == 0) {
+                r2Killed++;
                 Point minP = getRoomInteriorMin(1);
                 Point maxP = getRoomInteriorMax(1);
-                if (r2DummyStage == 0) {
-                    playSound(SFX_TUTORIAL_ARROW_PICKUP);
+                playSound(SFX_TUTORIAL_ARROW_PICKUP);
+                if (r2Killed == 1) {
                     spawnDummyAtCell((int)maxP.x - 2, (int)minP.y + 2);
-                    r2DummyStage = 1;
-                } else if (r2DummyStage == 1) {
-                    playSound(SFX_TUTORIAL_ARROW_PICKUP);
+                } else if (r2Killed == 2) {
                     spawnDummyAtCell((int)maxP.x - 2, (int)maxP.y - 2);
-                    r2DummyStage = 2;
                 } else {
-                    playSound(SFX_TUTORIAL_ARROW_PICKUP);
                     progressToNextRoom(TUTORIAL_R2_TO_R3, 1);
                 }
             }
@@ -277,6 +358,7 @@ static void updateTutorialPhase(float deltaTime) {
         case TUTORIAL_R3_ENTER: {
             closeRoomGate(1);
             setCurrentRoomIndex(2);
+            setTutorialAbilities(false, true, false);
             for (int i = 0; i < 3; i++) {
                 Point p = getRoomSpawnPosition(2, i);
                 spawnEnemy(ENEMY_TYPE_DUMMY, (int)p.x, (int)p.y, false);
@@ -307,15 +389,10 @@ static void updateTutorialPhase(float deltaTime) {
         case TUTORIAL_R4_ENTER: {
             closeRoomGate(2);
             setCurrentRoomIndex(3);
-            Point minP = getRoomInteriorMin(3);
-            Point maxP = getRoomInteriorMax(3);
-            int chasmX = (minP.x + maxP.x) / 2;
-            for (int y = minP.y; y <= maxP.y; y++) {
-                setMapCell(chasmX, y, MAP_CHASM);
-            }
-            int farX = (chasmX + maxP.x) / 2;
-            int farY = (minP.y + maxP.y) / 2;
-            setArrowPosition(farX * CELL_SIZE + CELL_SIZE / 2, farY * CELL_SIZE + CELL_SIZE / 2);
+            // From room 4 on, every input stays enabled.
+            setTutorialAbilities(true, true, true);
+            clearArrow();
+            r4DashBaseline = playerDashCount;
             openTutorialDialog(r4Pages);
             tPhase = TUTORIAL_R4_DIALOG;
             break;
@@ -327,11 +404,7 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R4_WAITING: {
-            Point minP = getRoomInteriorMin(3);
-            Point maxP = getRoomInteriorMax(3);
-            int chasmX = (minP.x + maxP.x) / 2;
-            int playerCellX = (int)playerX / CELL_SIZE;
-            if (playerCellX > chasmX) {
+            if (playerDashCount - r4DashBaseline >= 3) {
                 progressToNextRoom(TUTORIAL_R4_TO_R5, 3);
             }
             break;
@@ -363,10 +436,12 @@ static void updateTutorialPhase(float deltaTime) {
                 RUNE_TYPE_ENCHANTED_AMULET
             };
             initShopWithRunes(runes);
-            tPhase = TUTORIAL_R5_DIALOG_POST_SHOP;
+            tPhase = TUTORIAL_R5_SHOP_WAIT;
             break;
         }
         case TUTORIAL_R5_SHOP_WAIT: {
+            // The shop set gameState to SHOP; wait for it to close before playing
+            // the final dialog.
             if (gameState == GAME_STATE_ACTIVE) {
                 openTutorialDialog(r5PostShopPages);
                 tPhase = TUTORIAL_R5_DIALOG_POST_SHOP;
@@ -375,50 +450,18 @@ static void updateTutorialPhase(float deltaTime) {
         }
         case TUTORIAL_R5_DIALOG_POST_SHOP: {
             if (isTutorialDialogComplete()) {
-                tPhase = TUTORIAL_R5_WAITING;
-            }
-            break;
-        }
-        case TUTORIAL_R5_WAITING: {
-            progressToNextRoom(TUTORIAL_R5_TO_R6, 4);
-            break;
-        }
-        case TUTORIAL_R5_TO_R6: {
-            if (getPlayerCurrentRoom() == 5) {
-                tPhase = TUTORIAL_R6_ENTER;
-            }
-            break;
-        }
-        case TUTORIAL_R6_ENTER: {
-            closeRoomGate(4);
-            setCurrentRoomIndex(5);
-            Point center = getRoomCenter(5);
-            addInteractable(center.x, center.y, INTERACTABLE_TYPE_EXIT);
-            openTutorialDialog(r6Pages);
-            tPhase = TUTORIAL_R6_DIALOG;
-            break;
-        }
-        case TUTORIAL_R6_DIALOG: {
-            if (isTutorialDialogComplete()) {
-                tPhase = TUTORIAL_R6_EXIT_SPAWNED;
-            }
-            break;
-        }
-        case TUTORIAL_R6_WAITING: {
-            // This stage is skipped (removed final enemy encounter)
-            int alive = getActiveEnemyCount();
-            int killed = 3 - alive;
-            if (killed < 0) { killed = 0; }
-            if (alive == 0) {
-                Point center = getRoomCenter(5);
+                Point center = getRoomCenter(4);
                 addInteractable(center.x, center.y, INTERACTABLE_TYPE_EXIT);
-                Point worldCenter = getRoomWorldCenter(5);
+                Point worldCenter = getRoomWorldCenter(4);
                 setArrowPosition(worldCenter.x, worldCenter.y);
-                tPhase = TUTORIAL_R6_EXIT_SPAWNED;
+                tPhase = TUTORIAL_R5_EXIT_SPAWNED;
             }
             break;
         }
-        case TUTORIAL_R6_EXIT_SPAWNED: {
+        case TUTORIAL_R5_EXIT_SPAWNED: {
+            if (isTutorialDialogActive()) {
+                break;
+            }
             int idx = getInteractableIndexAtPosition(playerX, playerY);
             if (idx >= 0 && INTERACTABLES[idx].active && INTERACTABLES[idx].type == INTERACTABLE_TYPE_EXIT) {
                 PDButtons pushed;
@@ -453,15 +496,19 @@ void updateTutorialScene(float deltaTime) {
         prevDialogActive = dialogActive;
 
         updateTutorialPhase(deltaTime);
+        // Completing the tutorial swaps tutorialActive off and starts a scene
+        // transition; skip the rest of the frame so the normal room-counter HUD
+        // never flashes over the final frame.
+        if (tPhase == TUTORIAL_DONE) {
+            return;
+        }
+        updateTutorialReminder(deltaTime);
         updateGameplaySubsystems(deltaTime);
         drawTutorialDialog();
     } else if (gameState == GAME_STATE_SHOP) {
         updateShop(deltaTime);
     } else if (gameState == GAME_STATE_MENU) {
         updateGameMenu(deltaTime);
-        if (tPhase == TUTORIAL_R5_WAITING) {
-            openedRuneInv = true;
-        }
     } else if (gameState == GAME_STATE_QUIT_CONFIRM) {
         updateQuitConfirmDialog(deltaTime);
     } else if (gameState == GAME_STATE_QUITTING) {
@@ -473,4 +520,33 @@ void updateTutorialScene(float deltaTime) {
         pd->system->drawFPS(185, 108);
     }
     pd->lua->pushNil();
+}
+
+bool getTutorialObjectiveText(StringKey *outKey, int *outCurrent, int *outTarget) {
+    switch (tPhase) {
+        case TUTORIAL_R1_DIALOG:
+        case TUTORIAL_R1_WAITING:
+            *outKey = STR_TUTORIAL_OBJ_ARROW;
+            *outCurrent = r1ArrowStep;
+            *outTarget = 3;
+            return true;
+        case TUTORIAL_R2_DIALOG:
+        case TUTORIAL_R2_WAITING:
+            *outKey = STR_TUTORIAL_OBJ_ENEMY;
+            *outCurrent = r2Killed;
+            *outTarget = 3;
+            return true;
+        case TUTORIAL_R4_DIALOG:
+        case TUTORIAL_R4_WAITING: {
+            int dashes = playerDashCount - r4DashBaseline;
+            if (dashes < 0) { dashes = 0; }
+            if (dashes > 3) { dashes = 3; }
+            *outKey = STR_TUTORIAL_OBJ_DASH;
+            *outCurrent = dashes;
+            *outTarget = 3;
+            return true;
+        }
+        default:
+            return false;
+    }
 }

@@ -18,6 +18,9 @@ void addUIAnimation(int bitmapTableIndex, float frameTime, int drawX, int drawY)
 void removeUIAnimation(int index);
 void setArrowPosition(int worldX, int worldY);
 void clearArrow(void);
+// Tutorial-driven HUD reveal: toggles the basic/special spell slots and the dash
+// indicators independently. All default to visible and reset to visible in initUI().
+void setSpellUIVisibility(bool basic, bool special, bool dash);
 void addDamageIndicator(float sourceX, float sourceY);
 void flashHealthUI(void);
 void addAttackIntentIndicator(float sourceX, float sourceY, float duration);

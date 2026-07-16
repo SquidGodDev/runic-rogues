@@ -79,7 +79,6 @@
   - Fonts
     - Metamorphous (title)
 ## Audio
-- Boss shout
 - Player:
   - Sword swing
   - Knight shout
