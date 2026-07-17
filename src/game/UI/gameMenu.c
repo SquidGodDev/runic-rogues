@@ -966,6 +966,9 @@ void updateGameMenu(float deltaTime) {
             enterContentAtBottom();
             navHeldDir = kButtonUp;
             navHoldTimer = 0.0f;
+        } else if ((pushed & kButtonUp) && activeTab == MENU_TAB_EXIT) {
+            enterContent();
+            exitSelRow = exitRowCount() - 1;
         } else if (pushed & kButtonA) {
             enterContent();
         } else if (pushed & kButtonB) {
