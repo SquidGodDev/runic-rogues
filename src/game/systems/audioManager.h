@@ -78,6 +78,7 @@ typedef enum Music {
 int getAudioAssetCount(void);
 void loadAudioAsset(int step);
 void playSound(SFX sfx);
+void playSoundSpatial(SFX sfx, float sourceX, float sourceY);
 
 void playSong(Music song);
 void stopSong(void);

@@ -112,7 +112,7 @@ void updateProjectiles(float deltaTime) {
 		int entityMapIndex = entityMapY * MAP_WIDTH + entityMapX;
 		int entityMapCell = (entityMapIndex >= 0 && entityMapIndex < MAP_WIDTH * MAP_HEIGHT) ? map[entityMapIndex] : MAP_WALL;
 		if ((entityMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (entityMapCell == MAP_WALL || entityMapCell == MAP_GATE)) {
-			playSound(SFX_WALL_HIT);
+			playSoundSpatial(SFX_WALL_HIT, curProjectile->x, curProjectile->y);
 			curProjectile->active = 0;
 			int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
 			int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;

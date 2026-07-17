@@ -907,7 +907,7 @@ bool damageEnemy(int index, int damage) {
 	curEnemy.hitFlashTime = HIT_FLASH_TIME;
 	signalRuneTrigger(RUNE_TRIGGER_DAMAGE_ENEMY, 1.0f);
 	curEnemy.health -= damage;
-	playSound(SFX_ENEMY_HIT);
+	playSoundSpatial(SFX_ENEMY_HIT, curEnemy.x, curEnemy.y);
 
 	if (curEnemy.health <= 0) {
 		if (index == bossIndex && curEnemy.phase == 0) {
@@ -927,7 +927,7 @@ bool damageEnemy(int index, int damage) {
 		}
 
 		signalRuneTrigger(RUNE_TRIGGER_KILL_ENEMY, 1.0f);
-		playSound(SFX_ENEMY_DEATH);
+		playSoundSpatial(SFX_ENEMY_DEATH, curEnemy.x, curEnemy.y);
 		bool summonsMinions = enemyDeathEffect(index);
 
 		curEnemy.state = ENEMY_STATE_DEAD;

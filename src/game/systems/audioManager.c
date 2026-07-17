@@ -5,10 +5,25 @@
 #include "globals/helpers.h"
 #include "game/settings/settings.h"
 #include "game/systems/audioManager.h"
+#include "game/player/player.h"
 
 #define DEFAULT_VELOCITY 1
 #define DEFAULT_PLAY_LEN 3.0f
 #define DEFAULT_VOLUME 0.5f
+
+// Spatial playback (playSoundSpatial). Sources at or within FALLOFF_MIN units play at
+// full per-SFX volume; volume rolls off to silence at FALLOFF_MAX, beyond which the
+// sound is culled entirely. PAN_STRENGTH is how hard a fully off-centre source ducks
+// the opposite channel (0 == mono, 1 == fully silence the far side). Note the Playdate
+// speaker is mono, so panning is only audible on headphones / in the Simulator.
+#define SFX_FALLOFF_MIN 70.0f
+#define SFX_FALLOFF_MAX 350.0f
+#define SFX_PAN_STRENGTH 0.7f
+
+// Max pooled voices per SFX. Voices give polyphony so overlapping spatial plays of the
+// same SFX (e.g. several enemies hit at once) don't steal each other. Non-spatial SFX
+// leave `voices` unset and use a single voice
+#define MAX_SFX_VOICES 4
 
 typedef struct SFXData {
     int defaultNote;
@@ -26,6 +41,7 @@ typedef struct SFXData {
     float center;
     float rate;
     float phase;
+    int voices;  // polyphony for overlapping spatial plays; 0 == single voice
 } SFXData;
 
 SFXData sfxData[] = {
@@ -218,7 +234,8 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0,
         .curvature = 1.0f,
-        .lfo = 0
+        .lfo = 0,
+        .voices = 3
     },
     [SFX_ENEMY_HIT] = {
         .defaultNote = 29,
@@ -229,7 +246,8 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0,
         .curvature = 1.0f,
-        .lfo = 0
+        .lfo = 0,
+        .voices = 4
     },
     [SFX_ENEMY_DEATH] = {
         .defaultNote = 14,
@@ -240,7 +258,8 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0.26f,
         .curvature = 1.0f,
-        .lfo = 0
+        .lfo = 0,
+        .voices = 3
     },
     [SFX_PLAYER_HIT] = {
         .defaultNote = 36,
@@ -727,10 +746,11 @@ SFXData sfxData[] = {
     }
 };
 
-PDSynth *synths[SFX_COUNT];
+static PDSynth *synthVoices[SFX_COUNT][MAX_SFX_VOICES];
+static int synthVoiceCount[SFX_COUNT];
+static int nextVoice[SFX_COUNT];
 
-void createSynth(SFX sfx) {
-    SFXData data = sfxData[sfx];
+static PDSynth *buildSynth(SFXData data) {
     PDSynth *synth = pd->sound->synth->newSynth();
     pd->sound->synth->setWaveform(synth, data.waveform);
     pd->sound->synth->setVolume(synth, data.volume, data.volume);
@@ -751,7 +771,39 @@ void createSynth(SFX sfx) {
     pd->sound->envelope->setRelease(envelope, data.release);
     pd->sound->envelope->setCurvature(envelope, data.curvature);
 
-    synths[sfx] = synth;
+    return synth;
+}
+
+void createSynth(SFX sfx) {
+    SFXData data = sfxData[sfx];
+    int count = data.voices > 0 ? data.voices : 1;
+    if (count > MAX_SFX_VOICES) {
+        count = MAX_SFX_VOICES;
+    }
+    synthVoiceCount[sfx] = count;
+    for (int i = 0; i < count; i++) {
+        synthVoices[sfx][i] = buildSynth(data);
+    }
+}
+
+// Round-robins across an SFX's voice pool so overlapping plays land on different
+// synths instead of stealing each other. Single-voice SFX always return voice 0.
+static PDSynth *nextSynthVoice(SFX sfx) {
+    int count = synthVoiceCount[sfx];
+    if (count <= 1) {
+        return synthVoices[sfx][0];
+    }
+    int index = nextVoice[sfx];
+    nextVoice[sfx] = (index + 1) % count;
+    return synthVoices[sfx][index];
+}
+
+static float computeNote(SFXData data) {
+    float note = (float)data.defaultNote;
+    if (data.pitchRandomization > 0) {
+        note += randFloat(-data.pitchRandomization, data.pitchRandomization);
+    }
+    return note;
 }
 
 // Scaffolding for future audio file loading. Populate these alongside SFX_FILE_COUNT
@@ -816,16 +868,63 @@ void loadAudioAsset(int step) {
 void playSound(SFX sfx) {
     if (sfx < 0 || sfx >= SFX_COUNT) return;
 
-    SFXData data = sfxData[sfx];
-    float note = (float)data.defaultNote;
-    if (data.pitchRandomization > 0) {
-        note += randFloat(-data.pitchRandomization, data.pitchRandomization);
-    }
     float velocity = getSfxVolumeSetting();
     if (velocity <= 0.0f) {
         return;
     }
-    pd->sound->synth->playMIDINote(synths[sfx], note, velocity, DEFAULT_PLAY_LEN, 0);
+
+    SFXData data = sfxData[sfx];
+    PDSynth *voice = nextSynthVoice(sfx);
+    // Reset to centred per-SFX volume in case this voice was last used spatially.
+    pd->sound->synth->setVolume(voice, data.volume, data.volume);
+    pd->sound->synth->playMIDINote(voice, computeNote(data), velocity, DEFAULT_PLAY_LEN, 0);
+}
+
+// Plays an SFX positioned in the world: volume falls off with distance to the player and
+// the note is panned left/right based on which side of the camera the source sits. Sounds
+// beyond SFX_FALLOFF_MAX are culled (not played at all).
+void playSoundSpatial(SFX sfx, float sourceX, float sourceY) {
+    if (sfx < 0 || sfx >= SFX_COUNT) return;
+
+    float velocity = getSfxVolumeSetting();
+    if (velocity <= 0.0f) {
+        return;
+    }
+
+    float dx = sourceX - playerX;
+    float dy = sourceY - playerY;
+    float distSq = dx * dx + dy * dy;
+    if (distSq > SFX_FALLOFF_MAX * SFX_FALLOFF_MAX) {
+        return;
+    }
+    float dist = fastSqrt(distSq);
+
+    float attenuation = 1.0f;
+    if (dist > SFX_FALLOFF_MIN) {
+        attenuation = 1.0f - (dist - SFX_FALLOFF_MIN) / (SFX_FALLOFF_MAX - SFX_FALLOFF_MIN);
+        attenuation *= attenuation;  // steeper, more natural rolloff
+    }
+
+    // The camera plane points to screen-right, so projecting the source direction onto it
+    // gives a pan in [-1, 1] (negative == left, positive == right).
+    float pan = 0.0f;
+    if (dist > 0.01f) {
+        float planeLen = fastSqrt(planeX * planeX + planeY * planeY);
+        if (planeLen > 0.0f) {
+            pan = (dx * planeX + dy * planeY) / (planeLen * dist);
+            pan = clampFloat(pan, -1.0f, 1.0f);
+        }
+    }
+    float rightPan = pan > 0.0f ? pan : 0.0f;
+    float leftPan = pan < 0.0f ? -pan : 0.0f;
+    float leftGain = 1.0f - rightPan * SFX_PAN_STRENGTH;
+    float rightGain = 1.0f - leftPan * SFX_PAN_STRENGTH;
+
+    SFXData data = sfxData[sfx];
+    float channelVolume = data.volume * attenuation;
+    PDSynth *voice = nextSynthVoice(sfx);
+    pd->sound->synth->setVolume(voice, channelVolume * leftGain, channelVolume * rightGain);
+    pd->sound->synth->playMIDINote(voice, computeNote(data), velocity, DEFAULT_PLAY_LEN, 0);
 }
 
 // === Music manager ===
