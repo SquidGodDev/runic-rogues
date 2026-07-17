@@ -2,11 +2,6 @@
 ## Tutorial
 - Give a ~30s backup prompt if the player is stuck
 - More indication when arrow target changes
-- More tight tutorial
-- Disable buttons in rooms
-- Change dash room to use all 3 dashes (disable dash before this)
-- Show goal counter (e.g. enemy 1/3, arrow 2/3)
-- Change exit to spawn in room #5 and end tutorial there
 - Add "Welcome to the tutorial!"
 ## Balance
 - Custom Rat AI

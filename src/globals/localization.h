@@ -113,6 +113,7 @@ typedef enum StringKey {
     STR_TUTORIAL_R1_1,
     STR_TUTORIAL_R1_2,
     STR_TUTORIAL_R1_3,
+    STR_TUTORIAL_R1_4,
     STR_TUTORIAL_R2_1,
     STR_TUTORIAL_R2_2,
     STR_TUTORIAL_R2_3,
@@ -125,9 +126,8 @@ typedef enum StringKey {
     STR_TUTORIAL_R4_4,
     STR_TUTORIAL_R5_1,
     STR_TUTORIAL_R5_2,
-    STR_TUTORIAL_R5_3,
-    STR_TUTORIAL_R5_4,
     STR_TUTORIAL_R6_1,
+    STR_TUTORIAL_R6_2,
     STR_TUTORIAL_NEXT_ROOM,
 
     // Tutorial objective HUD (printf format: current, target)

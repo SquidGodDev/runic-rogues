@@ -103,7 +103,8 @@ static void onSkipTutorialSelect(void *userdata) {
 static const StringKey r1Pages[] = {
     STR_TUTORIAL_R1_1,
     STR_TUTORIAL_R1_2,
-    STR_TUTORIAL_R1_3
+    STR_TUTORIAL_R1_3,
+    STR_TUTORIAL_R1_4
 };
 static const StringKey r2Pages[] = {
     STR_TUTORIAL_R2_1,
@@ -123,13 +124,11 @@ static const StringKey r4Pages[] = {
 };
 static const StringKey r5PreShopPages[] = {
     STR_TUTORIAL_R5_1,
-    STR_TUTORIAL_R5_2,
-    STR_TUTORIAL_R5_3
+    STR_TUTORIAL_R5_2
 };
 static const StringKey r5PostShopPages[] = {
-    STR_TUTORIAL_R5_2,
-    STR_TUTORIAL_R5_4,
-    STR_TUTORIAL_R6_1
+    STR_TUTORIAL_R6_1,
+    STR_TUTORIAL_R6_2
 };
 static const StringKey nextRoomPages[] = {
     STR_TUTORIAL_NEXT_ROOM
