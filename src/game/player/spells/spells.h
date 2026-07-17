@@ -3,6 +3,7 @@
 
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
+#include "game/systems/audioManager.h"
 
 #define SPELL_EQUIP_MAX 2
 #define SPELL_DECK_MAX 2
@@ -53,6 +54,8 @@ typedef struct ChargeData {
     float timePerLevel;      // seconds held before advancing to the next level
     bool jiggleAtMax;        // continuous weapon jiggle once fully charged
     ChargeLevelData levels[CHARGE_LEVEL_MAX];
+    SFX sfx;
+    SFX secondarySfx;
 } ChargeData;
 
 typedef struct RepeatData {
@@ -122,6 +125,8 @@ typedef struct SpellData {
     char* description_jp;
     int spellIconIndex;
     void (*cast)(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast);
+    SFX sfx;          // sound played when the spell is cast
+    SFX secondarySfx; // optional second sound, e.g. the bow draw; SFX_NONE for none
     float cooldown;
     int damage;
     float knockbackTime;

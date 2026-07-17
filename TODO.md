@@ -14,14 +14,8 @@
 - Check for memory leaks
 ## Features
 - Starter rune for each class
-- Area 3
-  - New boss
-  - New enemies
 - Improve enemy AI (new attack patterns)
   - Turret
-  - Rush follow for a bit, then slow down
-  - Bomb laying
-  - Bomb throwing
 - Buff system + HUD UI
 - Trigger Rune HUD UI
 - Runes

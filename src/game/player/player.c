@@ -251,6 +251,8 @@ static void updateBasicSpellCharge(float deltaTime, bool aHeld) {
 			weaponAnimation.chargeLevel = 1;
 			weaponAnimation.chargeTimer = 0.0f;
 			weaponAnimation.curFrame = 1;
+			playSound(spellData[getBasicSpell()].chargeData.sfx);
+			playSound(spellData[getBasicSpell()].chargeData.secondarySfx);
 		}
 		return;
 	}
@@ -295,6 +297,8 @@ static void updateSpecialSpellCharge(float deltaTime, bool bHeld) {
 		if (holding && spellIsCastable(SPECIAL_SPELL_INDEX)) {
 			specialChargeLevel = 1;
 			specialChargeTimer = 0.0f;
+			playSound(spellData[getBasicSpell()].chargeData.sfx);
+			playSound(spellData[getBasicSpell()].chargeData.secondarySfx);
 		}
 		return;
 	}
@@ -679,6 +683,8 @@ int getPlayerInteractableIndex(void) {
 }
 
 void playerDash(void) {
+	playSound(SFX_DASH);
+	playSound(SFX_DASH_BG);
 	playerDashCount++;
 	movementStats.dashAngle = playerAngle;
 	movementStats.curDashTime = movementStats.dashTime;

@@ -218,7 +218,8 @@ bool castSpell(int index) {
     }
     spellCastData[index].chargeLevel = pendingChargeLevel;
 
-    playSound(SFX_SHOOT);
+    playSound(data->sfx);
+    playSound(data->secondarySfx);
     int attackId = runStatsBeginAttack();
     if (data->repeatData.repeatCount > 0) {
         spellCastData[index].attackId = attackId;

@@ -93,10 +93,14 @@ void turretCast(Spell spell, SpellCastData *castData, float x, float y, float an
 SpellData baseSpellData[SPELL_COUNT] = {
     [SPELL_NONE] = {
         .spellIconIndex = BITMAP_SPELL_EMPTY_ICON,
+        .sfx = SFX_NONE,
+        .secondarySfx = SFX_NONE,
     },
     [SPELL_FIREBALL] = {
         .spellIconIndex = BITMAP_SPELL_FIREBALL_ICON,
         .cast = projectileCast,
+        .sfx = SFX_FIREBALL,
+        .secondarySfx = SFX_NONE,
         .cooldown = 0.5f,
         .damage = 10,
         .projectileData = (SpellProjectileData) {
@@ -118,6 +122,8 @@ SpellData baseSpellData[SPELL_COUNT] = {
     [SPELL_CHAIN_LIGHTNING] = {
         .spellIconIndex = BITMAP_SPELL_CHAIN_LIGHTNING_ICON,
         .cast = projectileCast,
+        .sfx = SFX_LIGHTNING,
+        .secondarySfx = SFX_NONE,
         .cooldown = 4.0f,
         .damage = 15,
         .projectileData = (SpellProjectileData) {
@@ -143,10 +149,14 @@ SpellData baseSpellData[SPELL_COUNT] = {
     [SPELL_CHAIN_LIGHTNING_LINK] = {
         // Internal: stepped by chainLightningManager, not directly cast by player
         .cast = chainLightningLinkCast,
+        .sfx = SFX_NONE,
+        .secondarySfx = SFX_NONE,
     },
     [SPELL_SWORD] = {
         .spellIconIndex = BITMAP_SPELL_SWORD_ICON,
         .cast = swordCast,
+        .sfx = SFX_SWORD,
+        .secondarySfx = SFX_NONE,
         .cooldown = 0.5f,
         .damage = 15,
         .knockbackTime = 0.3f,
@@ -165,6 +175,8 @@ SpellData baseSpellData[SPELL_COUNT] = {
     [SPELL_ROARING_SHOUT] = {
         .spellIconIndex = BITMAP_SPELL_ROARING_SHOUT_ICON,
         .cast = explosionCast,
+        .sfx = SFX_SHOUT,
+        .secondarySfx = SFX_NONE,
         .cooldown = 8.0f,
         .damage = 15,
         .knockbackTime = 0.6f,
@@ -176,6 +188,8 @@ SpellData baseSpellData[SPELL_COUNT] = {
     [SPELL_KNIFE] = {
         .spellIconIndex = BITMAP_SPELL_KNIFE_ICON,
         .cast = projectileCast,
+        .sfx = SFX_KNIFE,
+        .secondarySfx = SFX_NONE,
         .cooldown = 0.3f,
         .damage = 5,
         .projectileData = (SpellProjectileData) {
@@ -197,6 +211,8 @@ SpellData baseSpellData[SPELL_COUNT] = {
     [SPELL_FAN_OF_KNIVES] = {
         .spellIconIndex = BITMAP_SPELL_FAN_OF_KNIVES_ICON,
         .cast = projectileCast,
+        .sfx = SFX_FAN_OF_KNIVES,
+        .secondarySfx = SFX_NONE,
         .cooldown = 4.0f,
         .damage = 5,
         .repeatData = (RepeatData){
@@ -216,6 +232,8 @@ SpellData baseSpellData[SPELL_COUNT] = {
     [SPELL_BOW_SHOT] = {
         .spellIconIndex = BITMAP_SPELL_BOW_SHOT_ICON,
         .cast = chargedProjectileCast,
+        .sfx = SFX_BOW_SHOOT, // arrow release
+        .secondarySfx = SFX_NONE,
         .cooldown = 0.5f,
         .damage = 10,
         // Base stats represent charge level 1; higher levels add the bonuses below.
@@ -246,12 +264,16 @@ SpellData baseSpellData[SPELL_COUNT] = {
                 { .damageBonus = 8,  .speedBonus = 30.0f, .pierceBonus = 1, .playerSpeedModifier = -0.60f },
                 // Level 3 (max)
                 { .damageBonus = 18, .speedBonus = 80.0f, .pierceBonus = 2, .playerSpeedModifier = -0.70f }
-            }
+            },
+            .sfx = SFX_BOW_DRAW,
+            .secondarySfx = SFX_BOW_DRAW_BG
         }
     },
     [SPELL_TURRET] = {
         .spellIconIndex = BITMAP_SPELL_BOW_SHOT_ICON,
         .cast = turretCast,
+        .sfx = SFX_FIREBALL,
+        .secondarySfx = SFX_NONE,
         .cooldown = 10.0f,
         .damage = 10, // matches Fireball
         // Fireball projectile stats, rendered with the arrow texture
@@ -275,6 +297,8 @@ SpellData baseSpellData[SPELL_COUNT] = {
     [SPELL_NET_TRAP] = {
         .spellIconIndex = BITMAP_SPELL_NET_TRAP_ICON,
         .cast = chargedProjectileCast,
+        .sfx = SFX_NET,
+        .secondarySfx = SFX_NET_BG,
         .cooldown = 4.0f,
         .damage = 10,
         // Base stats represent charge level 1; higher levels add the speed bonuses below.
