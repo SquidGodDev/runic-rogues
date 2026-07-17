@@ -39,6 +39,10 @@
 #define EXIT_ARROW_Y 30
 #define EXIT_ARROW_ROTATION_COUNT 64
 #define EXIT_ARROW_ROTATION_DEGREE_STEP (2 * PI / EXIT_ARROW_ROTATION_COUNT)
+#define EXIT_ARROW_BOUNCE_HOPS 2
+#define EXIT_ARROW_BOUNCE_HOP_FRAMES 6
+#define EXIT_ARROW_BOUNCE_FRAMES (EXIT_ARROW_BOUNCE_HOPS * EXIT_ARROW_BOUNCE_HOP_FRAMES)
+#define EXIT_ARROW_BOUNCE_HEIGHT 3
 
 #define MINIMAP_X 172
 #define MINIMAP_Y 28
@@ -101,6 +105,7 @@ static float healthFlashTimer;
 static bool exitActive;
 static int exitWorldX;
 static int exitWorldY;
+static int exitBounceFrame = -1;
 
 static bool showBasicSpellUI = true;
 static bool showSpecialSpellUI = true;
@@ -551,6 +556,7 @@ void setArrowPosition(int worldX, int worldY) {
     exitActive = true;
     exitWorldX = worldX;
     exitWorldY = worldY;
+    exitBounceFrame = 0;
 }
 
 void clearArrow(void) {
@@ -574,7 +580,17 @@ void drawExitArrow(void) {
         rotationTableIndex += EXIT_ARROW_ROTATION_COUNT;
     }
 
-    drawCenteredBitmap(pd->graphics->getTableBitmap(BITMAP_TABLES[BITMAP_TABLE_EXIT_ARROW], rotationTableIndex), EXIT_ARROW_X, EXIT_ARROW_Y);
+    int bounceOffset = 0;
+    if (exitBounceFrame >= 0) {
+        float hopFraction = (float)(exitBounceFrame % EXIT_ARROW_BOUNCE_HOP_FRAMES) / EXIT_ARROW_BOUNCE_HOP_FRAMES;
+        bounceOffset = -(int)(sinf(hopFraction * PI) * EXIT_ARROW_BOUNCE_HEIGHT + 0.5f);
+        exitBounceFrame++;
+        if (exitBounceFrame >= EXIT_ARROW_BOUNCE_FRAMES) {
+            exitBounceFrame = -1;
+        }
+    }
+
+    drawCenteredBitmap(pd->graphics->getTableBitmap(BITMAP_TABLES[BITMAP_TABLE_EXIT_ARROW], rotationTableIndex), EXIT_ARROW_X, EXIT_ARROW_Y + bounceOffset);
 }
 
 void drawSpellUI(void) {
