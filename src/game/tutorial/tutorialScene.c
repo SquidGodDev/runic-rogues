@@ -63,6 +63,7 @@ static int r1ArrowStep;
 static int r1ArrowPickupIndex;
 static int r2Killed;
 static int r4DashBaseline;
+static int r4DashSfxPlayed;
 static bool prevDialogActive;
 static float reminderTimer;
 
@@ -392,6 +393,7 @@ static void updateTutorialPhase(float deltaTime) {
             setTutorialAbilities(true, true, true);
             clearArrow();
             r4DashBaseline = playerDashCount;
+            r4DashSfxPlayed = 0;
             openTutorialDialog(r4Pages);
             tPhase = TUTORIAL_R4_DIALOG;
             break;
@@ -403,7 +405,12 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R4_WAITING: {
-            if (playerDashCount - r4DashBaseline >= 3) {
+            int dashes = playerDashCount - r4DashBaseline;
+            while (r4DashSfxPlayed < dashes && r4DashSfxPlayed < 3) {
+                playSound(SFX_TUTORIAL_ARROW_PICKUP);
+                r4DashSfxPlayed++;
+            }
+            if (dashes >= 3) {
                 progressToNextRoom(TUTORIAL_R4_TO_R5, 3);
             }
             break;
