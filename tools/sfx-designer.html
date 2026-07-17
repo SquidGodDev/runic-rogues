@@ -188,6 +188,23 @@
   </div>
 </dialog>
 
+<dialog id="conflictDlg">
+  <div class="dh">⚠ File changed on disk since you opened it</div>
+  <div class="db">
+    <p style="margin:0 0 10px"><b id="conflictName" class="noteName"></b> has been modified outside the SFX Designer. Writing back now could discard those external changes.</p>
+    <ul style="margin:0;padding-left:18px;color:var(--dim);font-size:13px;line-height:1.7">
+      <li><b style="color:var(--ink)">Overwrite</b> — replace the file with the designer's copy. External edits are lost.</li>
+      <li><b style="color:var(--ink)">Merge</b> — keep the current file on disk and only swap in the regenerated <span class="noteName">enum SFX</span> and <span class="noteName">sfxData[]</span> blocks. External edits outside those two blocks are kept.</li>
+      <li><b style="color:var(--ink)">Cancel</b> — write nothing.</li>
+    </ul>
+  </div>
+  <div class="df">
+    <button id="conflictCancel">Cancel</button>
+    <button class="danger" id="conflictOverwrite">Overwrite</button>
+    <button class="primary" id="conflictMerge">Merge</button>
+  </div>
+</dialog>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -842,22 +859,46 @@ async function reconnectFile() {
     toast("Reconnected " + lastOpenedHandle.name);
   } catch (e) { toast("Reconnect failed: " + e.message); }
 }
+// Replace the enum SFX + sfxData[] blocks inside `text` with freshly generated
+// versions; returns the new text and which blocks were substituted.
+function applyBlocks(text) {
+  const enumRe = /typedef\s+enum\s+SFX\s*\{[\s\S]*?\}\s*SFX\s*;/;
+  const dataRe = /SFXData\s+sfxData\s*\[\s*\]\s*=\s*\{[\s\S]*?\n\}\s*;/;
+  const blocks = [];
+  if (enumRe.test(text)) { text = text.replace(enumRe, genEnum()); blocks.push("enum SFX"); }
+  if (dataRe.test(text)) { text = text.replace(dataRe, genData()); blocks.push("sfxData[]"); }
+  return { text, blocks };
+}
+
+// Regenerate the managed blocks against `baseText` and flush to disk. `baseText`
+// is the designer's cached copy for a plain write/overwrite, or the current
+// on-disk text for a merge.
+async function doWrite(baseText) {
+  const { text, blocks } = applyBlocks(baseText);
+  if (!blocks.length) { toast("Couldn't find enum SFX or sfxData[] to replace"); return; }
+  const w = await fileHandle.createWritable();
+  await w.write(text); await w.close();
+  lastFileText = text;
+  // the freshly-written file is now the baseline for per-sound resets
+  if (blocks.includes("sfxData[]")) { setFileBaseline(library); renderResetBtn(); }
+  toast(`Wrote ${blocks.join(" + ")} to ${fileHandle.name}`);
+}
+
+let conflictDiskText = "";
 async function writeFile() {
   if (!fileHandle) return;
   try {
-    let text = lastFileText || await (await fileHandle.getFile()).text();
-    const enumRe = /typedef\s+enum\s+SFX\s*\{[\s\S]*?\}\s*SFX\s*;/;
-    const dataRe = /SFXData\s+sfxData\s*\[\s*\]\s*=\s*\{[\s\S]*?\n\}\s*;/;
-    const blocks = [];
-    if (enumRe.test(text)) { text = text.replace(enumRe, genEnum()); blocks.push("enum SFX"); }
-    if (dataRe.test(text)) { text = text.replace(dataRe, genData()); blocks.push("sfxData[]"); }
-    if (!blocks.length) { toast("Couldn't find enum SFX or sfxData[] to replace"); return; }
-    const w = await fileHandle.createWritable();
-    await w.write(text); await w.close();
-    lastFileText = text;
-    // the freshly-written file is now the baseline for per-sound resets
-    if (blocks.includes("sfxData[]")) { setFileBaseline(library); renderResetBtn(); }
-    toast(`Wrote ${blocks.join(" + ")} to ${fileHandle.name}`);
+    // Detect edits made to the file outside the designer since we last read or
+    // wrote it: if the on-disk text no longer matches our cached copy, a blind
+    // write-back would clobber them, so ask first.
+    const diskText = await (await fileHandle.getFile()).text();
+    if (lastFileText && diskText !== lastFileText) {
+      conflictDiskText = diskText;
+      document.getElementById("conflictName").textContent = fileHandle.name;
+      document.getElementById("conflictDlg").showModal();
+      return;
+    }
+    await doWrite(diskText);
   } catch (e) { toast("Write failed: " + e.message); }
 }
 
@@ -1031,6 +1072,18 @@ document.getElementById("importGo").addEventListener("click", () => {
 });
 document.getElementById("btnLoadFile").addEventListener("click", openFile);
 document.getElementById("btnWriteFileTop").addEventListener("click", writeFile);
+document.getElementById("conflictCancel").addEventListener("click", () => {
+  document.getElementById("conflictDlg").close();
+  toast("Write cancelled — file left as-is");
+});
+document.getElementById("conflictOverwrite").addEventListener("click", async () => {
+  document.getElementById("conflictDlg").close();
+  try { await doWrite(lastFileText); } catch (e) { toast("Write failed: " + e.message); }
+});
+document.getElementById("conflictMerge").addEventListener("click", async () => {
+  document.getElementById("conflictDlg").close();
+  try { await doWrite(conflictDiskText); } catch (e) { toast("Write failed: " + e.message); }
+});
 document.getElementById("btnReconnect").addEventListener("click", reconnectFile);
 
 document.querySelectorAll("[data-copy]").forEach(b => {
