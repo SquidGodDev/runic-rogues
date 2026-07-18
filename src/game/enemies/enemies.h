@@ -113,6 +113,7 @@ struct EnemyData {
 	SpellProjectileData projectileData;
 	EnemyUpdateFn update;
 	bool knockbackResistant;
+	bool knockbackImmune;
 };
 
 extern EnemyData enemyData[ENEMY_TYPE_COUNT];

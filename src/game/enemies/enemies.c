@@ -206,7 +206,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameEnd = 41,
 		.frameTime = 0.15f,
 		.update = elderBossUpdate,
-		.knockbackResistant = true
+		.knockbackImmune = true
 	},
 	[ENEMY_TYPE_RAT] = (EnemyData){
 		.name = "Rat",
@@ -334,7 +334,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameEnd = 20,
 		.frameTime = 0.15f,
 		.update = wraithBossUpdate,
-		.knockbackResistant = true
+		.knockbackImmune = true
 	},
 	[ENEMY_TYPE_WRAITH] = (EnemyData){
 		.name = "Wraith",
@@ -473,7 +473,7 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameEnd = 47,
 		.frameTime = 0.1f,
 		.update = dragonBossUpdate,
-		.knockbackResistant = true
+		.knockbackImmune = true
 	}
 };
 
@@ -839,10 +839,19 @@ void knockbackEnemy(int index, int knockbackSourceX, int knockbackSourceY, float
 		return;
 	}
 
-	if (!enemyData[curEnemy.type].knockbackResistant && knockbackTime > 0 && knockbackAmount != 0) {
+	if (enemyData[curEnemy.type].knockbackImmune) {
+		return;
+	}
+
+	float appliedKnockback = knockbackAmount;
+	if (enemyData[curEnemy.type].knockbackResistant) {
+		appliedKnockback *= 0.5f;
+	}
+
+	if (knockbackTime > 0 && appliedKnockback != 0) {
 		enemies[index].knockbackTime = knockbackTime;
 		enemies[index].knockbackTimeRemaining = knockbackTime;
-		enemies[index].knockbackAmount = knockbackAmount;
+		enemies[index].knockbackAmount = appliedKnockback;
 		enemies[index].knockbackSourceX = knockbackSourceX;
 		enemies[index].knockbackSourceY = knockbackSourceY;
 		enemies[index].knockbackAwayFromPlayer = awayFromPlayer;
@@ -851,7 +860,7 @@ void knockbackEnemy(int index, int knockbackSourceX, int knockbackSourceY, float
 
 void cancelEnemyAttack(int index) {
 	Enemy *curEnemy = &enemies[index];
-	if (!curEnemy->active || enemyData[curEnemy->type].knockbackResistant) {
+	if (!curEnemy->active || enemyData[curEnemy->type].knockbackImmune) {
 		return;
 	}
 
