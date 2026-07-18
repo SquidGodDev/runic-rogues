@@ -9,6 +9,8 @@
 #include "game/systems/shopManager.h"
 #include "game/systems/bossCinematic.h"
 #include "game/systems/runeManager.h"
+#include "game/systems/runStats.h"
+#include "globals/sceneManager.h"
 #include "globals/helpers.h"
 
 #define MAX_SPAWN_QUEUE 20
@@ -288,6 +290,14 @@ void onShopCompleted(void) {
 
 void onBossDefeated(void) {
     bossActive = false;
+
+    if (getCurrentArea() == AREA_ECHOING_CAVERNS) {
+        // Final boss: skip the clear popup, shop, and exit portal — go straight to the victory screen
+        runStatsCaptureFinal(true);
+        switchScene(SCENE_GAME_OVER);
+        return;
+    }
+
     setAreaCompleted(true);
     spawnState = SPAWN_STATE_BOSS_POPUP_WAIT;
 }

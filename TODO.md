@@ -1,8 +1,6 @@
 # TODO
-## Tutorial
-- Give a ~30s backup prompt if the player is stuck
-- More indication when arrow target changes
-- Add "Welcome to the tutorial!"
+## Playthrough Notes
+- Need rare
 ## Balance
 - Custom Rat AI
 - Make rock golem use short warning
