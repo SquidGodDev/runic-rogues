@@ -25,63 +25,10 @@
 #define GO_BUTTON_PADDING_X        4
 #define GO_BUTTON_PADDING_Y        2
 
-#define GO_DEFEAT_CHAR_TIME        0.10f
-#define GO_VICTORY_CHAR_TIME       0.05f
-#define GO_HEADER_PAUSE            0.50f
-#define GO_STAT_REVEAL_INTERVAL    0.18f
-#define GO_STATS_PAUSE             0.40f
-#define GO_BUTTONS_FADE_TIME       0.30f
-
 #define GO_STAT_COUNT              6
 #define GO_BUTTON_COUNT            2
 
-typedef enum {
-    GO_PHASE_HEADER,
-    GO_PHASE_PAUSE_AFTER_HEADER,
-    GO_PHASE_STATS,
-    GO_PHASE_PAUSE_AFTER_STATS,
-    GO_PHASE_BUTTONS,
-    GO_PHASE_INTERACTIVE
-} GameOverPhase;
-
-static GameOverPhase phase;
-static float charAccumulator;
-static float pauseTimer;
-static float buttonsRevealTimer;
-static int   revealedHeaderChars;
-static int   revealedStatLines;
-static int   selectedButton;
-
-static int utf8NumChars(const char *s) {
-    int count = 0;
-    while (*s) {
-        unsigned char c = (unsigned char)*s;
-        if ((c & 0xC0) != 0x80) {
-            count++;
-        }
-        s++;
-    }
-    return count;
-}
-
-static int utf8ByteOffsetForChar(const char *s, int charCount) {
-    if (charCount <= 0) {
-        return 0;
-    }
-    int ci = 0;
-    int i = 0;
-    while (s[i]) {
-        unsigned char c = (unsigned char)s[i];
-        if ((c & 0xC0) != 0x80) {
-            if (ci == charCount) {
-                return i;
-            }
-            ci++;
-        }
-        i++;
-    }
-    return i;
-}
+static int selectedButton;
 
 static const char *headerText(void) {
     return getLocString(runStatsGetVictory() ? STR_GAMEOVER_VICTORY : STR_GAMEOVER_DEFEATED);
@@ -175,33 +122,17 @@ static const char *buttonText(int index) {
     return getLocString(index == 0 ? STR_GAMEOVER_BUTTON_TRY_AGAIN : STR_GAMEOVER_BUTTON_RETURN_TO_TITLE);
 }
 
-static void skipToInteractive(void) {
-    revealedHeaderChars = utf8NumChars(headerText());
-    revealedStatLines = GO_STAT_COUNT;
-    buttonsRevealTimer = GO_BUTTONS_FADE_TIME;
-    phase = GO_PHASE_INTERACTIVE;
-}
-
 void initGameOverScene(void) {
     stopSong();
     removeGameMenuItem();
     freeRuneInventoryCache();
 
-    phase = GO_PHASE_HEADER;
-    charAccumulator = 0.0f;
-    pauseTimer = 0.0f;
-    buttonsRevealTimer = 0.0f;
-    revealedHeaderChars = 0;
-    revealedStatLines = 0;
     selectedButton = 0;
 }
 
 static void drawHeader(void) {
     const char *text = headerText();
-    int byteLen = utf8ByteOffsetForChar(text, revealedHeaderChars);
-    if (byteLen <= 0) {
-        return;
-    }
+    int byteLen = strlen(text);
     LCDFont *font = headerFont();
     pd->graphics->setFont(font);
     int width = pd->graphics->getTextWidth(font, text, byteLen, kUTF8Encoding, 0);
@@ -224,11 +155,8 @@ static void drawStatLine(int index, int y) {
     }
 }
 
-// Final run time, centered on screen. Revealed once the header finishes typing.
+// Final run time, centered on screen.
 static void drawFinalTime(void) {
-    if (phase == GO_PHASE_HEADER) {
-        return;
-    }
     char *timeStr = makePreciseTimeString();
     if (timeStr == NULL) {
         return;
@@ -241,7 +169,6 @@ static void drawFinalTime(void) {
     }
     LCDFont *font = bodyFont();
     pd->graphics->setFont(font);
-    pd->graphics->setDrawMode(kDrawModeInverted);
     int len = strlen(label);
     int width = pd->graphics->getTextWidth(font, label, len, kUTF8Encoding, 0);
     int fontH = pd->graphics->getFontHeight(font);
@@ -258,29 +185,19 @@ static void drawStats(void) {
         // For now, skip for later refactor
         return;
     }
-    for (int i = 0; i < revealedStatLines; i++) {
+    for (int i = 0; i < GO_STAT_COUNT; i++) {
         int y = GO_STATS_TOP_Y + i * GO_STATS_LINE_HEIGHT;
         drawStatLine(i, y);
     }
 }
 
 static void drawButtons(void) {
-    if (buttonsRevealTimer <= 0.0f) {
-        return;
-    }
-
     LCDFont *font = bodyFont();
     pd->graphics->setFont(font);
     int fontHeight = pd->graphics->getFontHeight(font);
     int buttonHeight = fontHeight + GO_BUTTON_PADDING_Y * 2;
 
-    int slideOffset = 0;
-    if (buttonsRevealTimer < GO_BUTTONS_FADE_TIME) {
-        float t = buttonsRevealTimer / GO_BUTTONS_FADE_TIME;
-        slideOffset = (int)((1.0f - t) * 6.0f);
-    }
-
-    int y = GO_BUTTONS_Y + slideOffset;
+    int y = GO_BUTTONS_Y;
     for (int i = 0; i < GO_BUTTON_COUNT; i++) {
         const char *t = buttonText(i);
         int textWidth = pd->graphics->getTextWidth(font, t, strlen(t), kUTF8Encoding, 0);
@@ -289,7 +206,7 @@ static void drawButtons(void) {
 
         pd->graphics->drawText(t, strlen(t), kUTF8Encoding, rectX + GO_BUTTON_PADDING_X, y + GO_BUTTON_PADDING_Y);
 
-        if (i == selectedButton && phase == GO_PHASE_INTERACTIVE) {
+        if (i == selectedButton) {
             pd->graphics->drawRect(rectX - 1, y - 1, rectW + 2, buttonHeight + 2, kColorWhite);
         }
 
@@ -298,69 +215,12 @@ static void drawButtons(void) {
 }
 
 void updateGameOverScene(float deltaTime) {
+    (void)deltaTime;
+
     PDButtons pushed;
     pd->system->getButtonState(NULL, &pushed, NULL);
 
-    bool justSkipped = false;
-    if (phase != GO_PHASE_INTERACTIVE && pushed != 0) {
-        skipToInteractive();
-        justSkipped = true;
-    } else {
-        switch (phase) {
-            case GO_PHASE_HEADER: {
-                int totalChars = utf8NumChars(headerText());
-                float charTime = runStatsGetVictory() ? GO_VICTORY_CHAR_TIME : GO_DEFEAT_CHAR_TIME;
-                charAccumulator += deltaTime;
-                while (charAccumulator >= charTime && revealedHeaderChars < totalChars) {
-                    charAccumulator -= charTime;
-                    revealedHeaderChars++;
-                }
-                if (revealedHeaderChars >= totalChars) {
-                    revealedHeaderChars = totalChars;
-                    phase = GO_PHASE_PAUSE_AFTER_HEADER;
-                    pauseTimer = GO_HEADER_PAUSE;
-                }
-                break;
-            }
-            case GO_PHASE_PAUSE_AFTER_HEADER:
-                pauseTimer -= deltaTime;
-                if (pauseTimer <= 0.0f) {
-                    phase = GO_PHASE_BUTTONS;
-                    buttonsRevealTimer = 0.0f;
-                }
-                break;
-            case GO_PHASE_STATS:
-                charAccumulator += deltaTime;
-                while (charAccumulator >= GO_STAT_REVEAL_INTERVAL && revealedStatLines < GO_STAT_COUNT) {
-                    charAccumulator -= GO_STAT_REVEAL_INTERVAL;
-                    revealedStatLines++;
-                }
-                if (revealedStatLines >= GO_STAT_COUNT) {
-                    revealedStatLines = GO_STAT_COUNT;
-                    phase = GO_PHASE_PAUSE_AFTER_STATS;
-                    pauseTimer = GO_STATS_PAUSE;
-                }
-                break;
-            case GO_PHASE_PAUSE_AFTER_STATS:
-                pauseTimer -= deltaTime;
-                if (pauseTimer <= 0.0f) {
-                    phase = GO_PHASE_BUTTONS;
-                    buttonsRevealTimer = 0.0f;
-                }
-                break;
-            case GO_PHASE_BUTTONS:
-                buttonsRevealTimer += deltaTime;
-                if (buttonsRevealTimer >= GO_BUTTONS_FADE_TIME) {
-                    buttonsRevealTimer = GO_BUTTONS_FADE_TIME;
-                    phase = GO_PHASE_INTERACTIVE;
-                }
-                break;
-            case GO_PHASE_INTERACTIVE:
-                break;
-        }
-    }
-
-    if (phase == GO_PHASE_INTERACTIVE && !isSceneTransitioning() && !justSkipped) {
+    if (!isSceneTransitioning()) {
         if (pushed & kButtonUp) {
             playSound(SFX_UI_NAVIGATE);
             selectedButton = (selectedButton - 1 + GO_BUTTON_COUNT) % GO_BUTTON_COUNT;
@@ -373,15 +233,15 @@ void updateGameOverScene(float deltaTime) {
                 switchScene(SCENE_CLASS_SELECT);
             } else {
                 switchScene(SCENE_TITLE);
-            }   
+            }
         }
     }
 
     pd->graphics->fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, kColorBlack);
     pd->graphics->setDrawMode(kDrawModeInverted);
     drawHeader();
+    pd->graphics->setDrawMode(kDrawModeCopy);
     drawFinalTime();
     drawStats();
-    pd->graphics->setDrawMode(kDrawModeCopy);
     drawButtons();
 }
