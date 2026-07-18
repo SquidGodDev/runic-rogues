@@ -135,6 +135,23 @@ float runStatsGetTime(void) {
     return runTime;
 }
 
+char *runStatsMakeTimeString(void) {
+    char *out = NULL;
+    int totalSeconds = (int)runTime;
+    if (totalSeconds < 0) {
+        totalSeconds = 0;
+    }
+    int hours = totalSeconds / 3600;
+    int minutes = (totalSeconds % 3600) / 60;
+    int seconds = totalSeconds % 60;
+    if (hours > 0) {
+        pd->system->formatString(&out, "%d:%02d:%02d", hours, minutes, seconds);
+    } else {
+        pd->system->formatString(&out, "%d:%02d", minutes, seconds);
+    }
+    return out;
+}
+
 int runStatsGetDamageDealt(void) {
     return damageDealt;
 }

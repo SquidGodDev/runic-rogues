@@ -127,7 +127,11 @@ void updateGameScene(float deltaTime)
 {
 	tryCompleteQuitDialogInit();
 
-	runStatsTick(deltaTime);
+	// Run timer counts gameplay, shop, and cutscene time but pauses while the
+	// settings/inventory menu overlay is open.
+	if (gameState != GAME_STATE_MENU) {
+		runStatsTick(deltaTime);
+	}
 
 	if (gameState == GAME_STATE_BOSS_CINEMATIC) {
 		if (!isBossDeathCinematicActive()) {

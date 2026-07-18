@@ -17,6 +17,7 @@ static Language systemLanguage(void) {
 void resetGeneralSettings(void) {
     SETTINGS.language = systemLanguage();
     SETTINGS.drawFPS = true;
+    SETTINGS.showTimer = false;
 }
 
 void resetControlSettings(void) {

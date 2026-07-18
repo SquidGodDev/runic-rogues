@@ -23,6 +23,9 @@ void runStatsCaptureFinal(bool victory);
 
 bool  runStatsGetVictory(void);
 float runStatsGetTime(void);
+// Formats the run time as "M:SS" (or "H:MM:SS" past an hour) into a freshly
+// allocated string; the caller frees it via pd->system->realloc(str, 0).
+char *runStatsMakeTimeString(void);
 int   runStatsGetDamageDealt(void);
 int   runStatsGetDamageTaken(void);
 int   runStatsGetAccuracyPercent(void);

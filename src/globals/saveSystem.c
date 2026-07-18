@@ -62,6 +62,8 @@ static void applyKeyValue(const char *key, const char *value) {
         SETTINGS.spellButtonsReversed = parseInt(value) != 0;
     } else if (strcmp(key, "drawFPS") == 0) {
         SETTINGS.drawFPS = parseInt(value) != 0;
+    } else if (strcmp(key, "showTimer") == 0) {
+        SETTINGS.showTimer = parseInt(value) != 0;
     } else if (strcmp(key, "crankTurnSpeed") == 0) {
         SETTINGS.crankTurnSpeed = parseBarLevel(value);
     } else if (strcmp(key, "dpadTurnSpeed") == 0) {
@@ -156,6 +158,7 @@ void saveGame(void) {
         "drawMinimapWalls=%d\n"
         "spellButtonsReversed=%d\n"
         "drawFPS=%d\n"
+        "showTimer=%d\n"
         "crankTurnSpeed=%d\n"
         "dpadTurnSpeed=%d\n"
         "dpadStrafe=%d\n"
@@ -180,6 +183,7 @@ void saveGame(void) {
         SETTINGS.drawMinimapWalls ? 1 : 0,
         SETTINGS.spellButtonsReversed ? 1 : 0,
         SETTINGS.drawFPS ? 1 : 0,
+        SETTINGS.showTimer ? 1 : 0,
         SETTINGS.crankTurnSpeed,
         SETTINGS.dpadTurnSpeed,
         SETTINGS.dpadStrafe ? 1 : 0,

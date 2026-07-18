@@ -15,6 +15,8 @@
 #include "game/tutorial/tutorialScene.h"
 #include "game/UI/gameMenu.h"
 #include "game/systems/audioManager.h"
+#include "game/systems/runStats.h"
+#include "game/settings/settings.h"
 #include "game/rendering/textures.h"
 
 // === Transition style selector ===
@@ -329,10 +331,39 @@ static void advanceTransition(Transition* t, float deltaTime) {
     }
 }
 
+// Draws the run timer in the top-right corner during gameplay while the
+// show-timer setting is on. Returns the vertical space it consumed so the debug
+// marker can shift down beneath it (0 when the timer isn't drawn). Uses the
+// double-outline font so it stays legible over any background.
+static int drawRunTimerOverlay(void) {
+    // Only during a run, and hidden while the menu overlay covers the screen.
+    if (!SETTINGS.showTimer || fontSubENDoubleOutline == NULL || gameMenuActive()) {
+        return 0;
+    }
+    if (currentScene != SCENE_GAME && currentScene != SCENE_TUTORIAL) {
+        return 0;
+    }
+    char *text = runStatsMakeTimeString();
+    if (text == NULL) {
+        return 0;
+    }
+    int len = strlen(text);
+    int tracking = -2;
+    pd->graphics->setFont(fontSubENDoubleOutline);
+    pd->graphics->setTextTracking(tracking);
+    pd->graphics->setDrawMode(kDrawModeCopy);
+    int width = pd->graphics->getTextWidth(fontSubENDoubleOutline, text, len, kUTF8Encoding, tracking);
+    pd->graphics->drawText(text, len, kUTF8Encoding, SCREEN_WIDTH - width - 2, 2);
+    pd->graphics->setTextTracking(0);
+    int height = pd->graphics->getFontHeight(fontSubENDoubleOutline);
+    pd->system->realloc(text, 0);
+    return height + 1;
+}
+
 // Draws a "DEBUG" marker in the top-right corner of every scene while debug mode
 // is active. Always English; uses the double-outline font so it stays legible
-// over any background.
-static void drawDebugOverlay(void) {
+// over any background. Shifted down by yOffset so it clears the run timer.
+static void drawDebugOverlay(int yOffset) {
     // Hidden while the menu overlay is up: its tab bar already occupies the
     // top-right corner (and shows the debug tab icon there).
     if (!DEBUG.enabled || fontSubENDoubleOutline == NULL || gameMenuActive()) {
@@ -345,7 +376,7 @@ static void drawDebugOverlay(void) {
     pd->graphics->setTextTracking(tracking);
     pd->graphics->setDrawMode(kDrawModeCopy);
     int width = pd->graphics->getTextWidth(fontSubENDoubleOutline, text, len, kUTF8Encoding, tracking);
-    pd->graphics->drawText(text, len, kUTF8Encoding, SCREEN_WIDTH - width - 2, 2);
+    pd->graphics->drawText(text, len, kUTF8Encoding, SCREEN_WIDTH - width - 2, 2 + yOffset);
     pd->graphics->setTextTracking(0);
 }
 
@@ -390,7 +421,8 @@ int updateSceneManager(void* userdata) {
     // After the scene update so this frame's pause/lowpass requests apply immediately
     updateMusicManager(deltaTime);
 
-    drawDebugOverlay();
+    int timerHeight = drawRunTimerOverlay();
+    drawDebugOverlay(timerHeight);
 
     if (primary.state != TRANSITION_NONE || trailing.state != TRANSITION_NONE) {
         #if TRANSITION_STYLE == TRANSITION_STYLE_CIRCLE

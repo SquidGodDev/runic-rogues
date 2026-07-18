@@ -47,6 +47,7 @@ static const char *STR_KEYS[STR_COUNT] = {
     [STR_LANG_ENGLISH] = "lang.english",
     [STR_LANG_JP] = "lang.jp",
     [STR_SETTING_DRAW_FPS] = "setting.draw_fps",
+    [STR_SETTING_SHOW_TIMER] = "setting.show_timer",
     [STR_SETTING_CONTROL] = "setting.control",
     [STR_CONTROL_CRANK] = "control.crank",
     [STR_CONTROL_DPAD] = "control.dpad",

@@ -41,6 +41,7 @@ typedef struct Settings {
     bool drawMinimapWalls;
     bool spellButtonsReversed;
     bool drawFPS;
+    bool showTimer;
     int crankTurnSpeed;
     int dpadTurnSpeed;
     bool dpadStrafe;

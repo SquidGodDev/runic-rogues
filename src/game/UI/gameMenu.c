@@ -147,6 +147,7 @@ static const StringKey CRANK_RATIO_LABELS[CRANK_RATIO_COUNT] = { STR_CRANK_RATIO
 static const SettingRowDef GENERAL_ROWS[] = {
     { STR_SETTING_LANGUAGE, CONTROL_CHOICE, &SETTINGS.language, 0, 0, LANGUAGE_CHOICE_LABELS, LANGUAGE_COUNT },
     { STR_SETTING_DRAW_FPS, CONTROL_CHECKBOX, &SETTINGS.drawFPS },
+    { STR_SETTING_SHOW_TIMER, CONTROL_CHECKBOX, &SETTINGS.showTimer },
     { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },
 };
 
@@ -183,7 +184,7 @@ static const SettingRowDef DEBUG_ROWS[] = {
 };
 
 static const SettingsTabDef SETTINGS_TABS[] = {
-    [MENU_TAB_GENERAL]  = { GENERAL_ROWS, 3, resetGeneralSettings },
+    [MENU_TAB_GENERAL]  = { GENERAL_ROWS, 4, resetGeneralSettings },
     [MENU_TAB_CONTROLS] = { CONTROLS_ROWS, 13, resetControlSettings },
     [MENU_TAB_AUDIO]    = { AUDIO_ROWS, 3, resetAudioSettings },
     [MENU_TAB_DEBUG]    = { DEBUG_ROWS, 7, resetDebugSettings },

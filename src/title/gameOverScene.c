@@ -118,18 +118,25 @@ static const char *areaName(Area area) {
 }
 
 static char *makeTimeString(void) {
-    char *out = NULL;
-    int totalSeconds = (int)runStatsGetTime();
-    if (totalSeconds < 0) {
-        totalSeconds = 0;
+    return runStatsMakeTimeString();
+}
+
+// Like makeTimeString but with hundredths of a second: "M:SS.cc" (or "H:MM:SS.cc").
+static char *makePreciseTimeString(void) {
+    float t = runStatsGetTime();
+    if (t < 0.0f) {
+        t = 0.0f;
     }
-    int hours = totalSeconds / 3600;
-    int minutes = (totalSeconds % 3600) / 60;
-    int seconds = totalSeconds % 60;
+    int totalCentis = (int)(t * 100.0f + 0.5f);
+    int hours = totalCentis / 360000;
+    int minutes = (totalCentis % 360000) / 6000;
+    int seconds = (totalCentis % 6000) / 100;
+    int centis = totalCentis % 100;
+    char *out = NULL;
     if (hours > 0) {
-        pd->system->formatString(&out, "%d:%02d:%02d", hours, minutes, seconds);
+        pd->system->formatString(&out, "%d:%02d:%02d.%02d", hours, minutes, seconds, centis);
     } else {
-        pd->system->formatString(&out, "%d:%02d", minutes, seconds);
+        pd->system->formatString(&out, "%d:%02d.%02d", minutes, seconds, centis);
     }
     return out;
 }
@@ -215,6 +222,35 @@ static void drawStatLine(int index, int y) {
         pd->graphics->drawText(value, strlen(value), kUTF8Encoding, GO_STATS_VALUE_RIGHT_X - valueWidth, y);
         pd->system->realloc(value, 0);
     }
+}
+
+// Final run time, centered on screen. Revealed once the header finishes typing.
+static void drawFinalTime(void) {
+    if (phase == GO_PHASE_HEADER) {
+        return;
+    }
+    char *timeStr = makePreciseTimeString();
+    if (timeStr == NULL) {
+        return;
+    }
+    char *label = NULL;
+    pd->system->formatString(&label, "Time: %s", timeStr);
+    pd->system->realloc(timeStr, 0);
+    if (label == NULL) {
+        return;
+    }
+    LCDFont *font = bodyFont();
+    pd->graphics->setFont(font);
+    pd->graphics->setDrawMode(kDrawModeInverted);
+    int len = strlen(label);
+    int width = pd->graphics->getTextWidth(font, label, len, kUTF8Encoding, 0);
+    int fontH = pd->graphics->getFontHeight(font);
+    int x = (SCREEN_WIDTH - width) / 2;
+    // Center within the empty band between the header block and the buttons.
+    int bandTop = GO_HEADER_Y + pd->graphics->getFontHeight(headerFont());
+    int y = bandTop + (GO_BUTTONS_Y - bandTop - fontH) / 2;
+    pd->graphics->drawText(label, len, kUTF8Encoding, x, y);
+    pd->system->realloc(label, 0);
 }
 
 static void drawStats(void) {
@@ -344,6 +380,7 @@ void updateGameOverScene(float deltaTime) {
     pd->graphics->fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, kColorBlack);
     pd->graphics->setDrawMode(kDrawModeInverted);
     drawHeader();
+    drawFinalTime();
     drawStats();
     pd->graphics->setDrawMode(kDrawModeCopy);
     drawButtons();
