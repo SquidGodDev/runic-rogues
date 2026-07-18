@@ -12,6 +12,12 @@ int getPlayerMaxHealth(void) {
     if (runeIsOwned(RUNE_TYPE_HEALTHY)) {
         maxHealth += getRuneValue(RUNE_TYPE_HEALTHY);
     }
+    if (runeIsOwned(RUNE_TYPE_DAGGER)) {
+        maxHealth -= getRuneSecondaryValue(RUNE_TYPE_DAGGER);
+    }
+    if (runeIsOwned(RUNE_TYPE_BROADSWORD)) {
+        maxHealth -= getRuneSecondaryValue(RUNE_TYPE_BROADSWORD);
+    }
     return maxHealth;
 }
 

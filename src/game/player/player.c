@@ -700,6 +700,12 @@ void healPlayer(float amount) {
 	}
 }
 
+void clampPlayerHealth(void) {
+	if (playerHealth > getPlayerMaxHealth()) {
+		playerHealth = getPlayerMaxHealth();
+	}
+}
+
 void damagePlayer(float amount) {
     if (playerState.hitInvincibility > 0 || playerState.dead) {
         if (!playerState.dead) {

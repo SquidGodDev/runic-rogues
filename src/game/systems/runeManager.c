@@ -82,9 +82,10 @@ static void flywheelCallback(float primaryValue, float secondaryValue) {
 RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_VAMPIRISM] = {
         .iconIndex = BITMAP_RUNE_VAMPIRISM,
-        .primaryBaseValue = 2,
-        .primaryPerLevel = 2,
-        .maxLevel = 3
+        .primaryBaseValue = 0.1f,
+        .primaryPerLevel = 0.1f,
+        .maxLevel = 3,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY
     },
     [RUNE_TYPE_WINGED_BOOTS] = {
         .iconIndex = BITMAP_RUNE_WINGED_BOOTS,
@@ -111,6 +112,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .iconIndex = BITMAP_RUNE_DAGGER,
         .primaryBaseValue = 3,
         .primaryPerLevel = 3,
+        .secondaryBaseValue = 10,
+        .secondaryPerLevel = 10,
         .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation = MODIFY_OP_ADD,
@@ -120,6 +123,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .iconIndex = BITMAP_RUNE_BROADSWORD,
         .primaryBaseValue = 3,
         .primaryPerLevel = 3,
+        .secondaryBaseValue = 10,
+        .secondaryPerLevel = 10,
         .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation = MODIFY_OP_ADD,
@@ -496,16 +501,16 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_ENCHANTED_AMULET, 1);
     // setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
     // setRuneLevel(RUNE_TYPE_THUNDERCLOUD, 1);
-    setRuneLevel(RUNE_TYPE_THORNS, 1);
-    setRuneLevel(RUNE_TYPE_BRASS_KNUCKLES, 1);
-    setRuneLevel(RUNE_TYPE_BLUNDERBUSS, 1);
-    setRuneLevel(RUNE_TYPE_RICOCHET, 1);
-    setRuneLevel(RUNE_TYPE_BOMBER, 1);
-    setRuneLevel(RUNE_TYPE_DRAGONS_BREATH, 1);
-    setRuneLevel(RUNE_TYPE_ARMORED_SKIN, 1);
-    setRuneLevel(RUNE_TYPE_VIKING, 1);
-    setRuneLevel(RUNE_TYPE_SECOND_WIND, 1);
-    setRuneLevel(RUNE_TYPE_FLYWHEEL, 1);
+    // setRuneLevel(RUNE_TYPE_THORNS, 1);
+    // setRuneLevel(RUNE_TYPE_BRASS_KNUCKLES, 1);
+    // setRuneLevel(RUNE_TYPE_BLUNDERBUSS, 1);
+    // setRuneLevel(RUNE_TYPE_RICOCHET, 1);
+    // setRuneLevel(RUNE_TYPE_BOMBER, 1);
+    // setRuneLevel(RUNE_TYPE_DRAGONS_BREATH, 1);
+    // setRuneLevel(RUNE_TYPE_ARMORED_SKIN, 1);
+    // setRuneLevel(RUNE_TYPE_VIKING, 1);
+    // setRuneLevel(RUNE_TYPE_SECOND_WIND, 1);
+    // setRuneLevel(RUNE_TYPE_FLYWHEEL, 1);
 }
 
 bool runeIsOwned(RuneType type) {
@@ -520,6 +525,7 @@ void addRune(RuneType type) {
     runeLevels[type]++;
 
     recalculateRuneEffectsToSpells();
+    clampPlayerHealth();
 }
 
 void setRuneLevel(RuneType type, int level) {
@@ -532,6 +538,7 @@ void setRuneLevel(RuneType type, int level) {
     runeLevels[type] = level;
 
     recalculateRuneEffectsToSpells();
+    clampPlayerHealth();
 }
 
 int getRuneLevel(RuneType type) {

@@ -908,6 +908,10 @@ bool damageEnemy(int index, int damage) {
 	runStatsRecordDamageDealt(damage);
 	runStatsCreditSyncHit();
 
+	if (runeIsOwned(RUNE_TYPE_VAMPIRISM) && randFloat(0, 1) < getRuneValue(RUNE_TYPE_VAMPIRISM)) {
+		healPlayer(1);
+	}
+
 	EnemyData curEnemyData = enemyData[curEnemy.type];
 	curEnemy.hitFlashTime = HIT_FLASH_TIME;
 	signalRuneTrigger(RUNE_TRIGGER_DAMAGE_ENEMY, 1.0f);
@@ -953,10 +957,6 @@ bool damageEnemy(int index, int damage) {
 
 		if (index != bossIndex && !curEnemy.isMinion) {
 			enemiesDefeated++;
-		}
-
-		if (runeIsOwned(RUNE_TYPE_VAMPIRISM)) {
-			healPlayer(getRuneValue(RUNE_TYPE_VAMPIRISM));
 		}
 	}
 
