@@ -161,6 +161,20 @@ void castUtilitySpell(void) {
     }
 }
 
+void grantUtilitySpellCharge(void) {
+    if (utilitySpellCount < getPlayerUtilitySpellCount()) {
+        utilitySpellCount++;
+        utilitySpellCharge = 0.0f;
+    }
+}
+
+void reduceSpecialSpellCooldown(float amount) {
+    spellCooldowns[SPECIAL_SPELL_INDEX] -= amount;
+    if (spellCooldowns[SPECIAL_SPELL_INDEX] < 0.0f) {
+        spellCooldowns[SPECIAL_SPELL_INDEX] = 0.0f;
+    }
+}
+
 void castSpellDirect(Spell spell, float x, float y, float angle) {
     SpellData *data = &spellData[spell];
     data->cast(spell, NULL, x, y, angle, true /* initialCast */);
@@ -452,6 +466,22 @@ void modifyProjectileSpreadAngle(SpellData *spell, float value, ModifyOperation 
     }
 }
 
+void modifyProjectileBounceCount(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->projectileData.bounceCount += (int)value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->projectileData.bounceCount = (int)(spell->projectileData.bounceCount * value);
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.bounceCount == 0) {
+                spell->projectileData.bounceCount = (int)value;
+            }
+            break;
+    }
+}
+
 void modifyProjectileActiveTime(SpellData *spell, float value, ModifyOperation operation) {
     switch (operation) {
         case MODIFY_OP_ADD:
@@ -466,6 +496,11 @@ void modifyProjectileActiveTime(SpellData *spell, float value, ModifyOperation o
             }
             break;
     }
+}
+
+void setProjectileActiveTime(SpellData *spell, float value, ModifyOperation operation) {
+    (void)operation;
+    spell->projectileData.activeTime = value;
 }
 
 void setProjectileOnHitSpell(SpellData *spell, float value, ModifyOperation operation) {

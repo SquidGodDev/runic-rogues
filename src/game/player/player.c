@@ -12,6 +12,7 @@
 #include "game/UI/UI.h"
 #include "game/entities/projectiles.h"
 #include "game/entities/interactables.h"
+#include "game/enemies/enemies.h"
 #include "game/rendering/textures.h"
 #include "game/map/map.h"
 #include "game/systems/audioManager.h"
@@ -712,6 +713,16 @@ void damagePlayer(float amount) {
     flashHealthUI();
     playerState.hitInvincibility = HIT_INVINCIBILITY_TIME;
     signalRuneTrigger(RUNE_TRIGGER_DAMAGED, 1.0f);
+
+    if (runeIsOwned(RUNE_TYPE_THORNS)) {
+        damageEnemiesInArea(playerX, playerY, CELL_SIZE * 2, (int)getRuneValue(RUNE_TYPE_THORNS));
+    }
+    if (runeIsOwned(RUNE_TYPE_ARMORED_SKIN)) {
+        float armorRadius = CELL_SIZE * 2.5f;
+        knockbackEnemiesInArea(playerX, playerY, (int)armorRadius, playerX, playerY, 0.35f, 4.0f, true /*awayFromPlayer*/);
+        damageEnemiesInArea(playerX, playerY, (int)armorRadius, (int)getRuneValue(RUNE_TYPE_ARMORED_SKIN));
+    }
+
     runStatsRecordDamageTaken((int)amount);
     playerHealth -= amount;
     if (playerHealth <= 0) {

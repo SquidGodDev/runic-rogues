@@ -75,6 +75,7 @@ typedef struct SpellProjectileData {
     float knockbackRadius; // knockback area radius in cells; 0 = only the hit enemy
     int spreadCount;
     float spreadAngle;
+    int bounceCount; // times the projectile ricochets off walls before dying
     float activeTime;
     float primaryData;
     float secondaryData;
@@ -155,7 +156,10 @@ void modifySlowTime(SpellData *spell, float value, ModifyOperation operation);
 void modifySlowAmount(SpellData *spell, float value, ModifyOperation operation);
 void modifyProjectileSpreadCount(SpellData *spell, float value, ModifyOperation operation);
 void modifyProjectileSpreadAngle(SpellData *spell, float value, ModifyOperation operation);
+void modifyProjectileBounceCount(SpellData *spell, float value, ModifyOperation operation);
 void modifyProjectileActiveTime(SpellData *spell, float value, ModifyOperation operation);
+// Overrides the projectile lifetime with an absolute value, shortening range regardless of the base activeTime.
+void setProjectileActiveTime(SpellData *spell, float value, ModifyOperation operation);
 void setProjectileOnHitSpell(SpellData *spell, float value, ModifyOperation operation);
 void setProjectileHitParticle(SpellData *spell, float value, ModifyOperation operation);
 void setProjectileTimeoutParticle(SpellData *spell, float value, ModifyOperation operation);
@@ -195,6 +199,10 @@ int getMaxUtilitySpells(void);
 int getUtilitySpellCount(void);
 float getUtilitySpellCharge(void);
 void castUtilitySpell(void);
+// Grants one dash charge, capped at the current maximum (Second Wind rune).
+void grantUtilitySpellCharge(void);
+// Reduces the special spell's remaining cooldown, clamped at zero (Flywheel rune).
+void reduceSpecialSpellCooldown(float amount);
 void castSpellDirect(Spell spell, float x, float y, float angle);
 bool spellIsCastable(int index);
 bool castSpell(int index);

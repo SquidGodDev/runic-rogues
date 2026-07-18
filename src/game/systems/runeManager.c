@@ -2,13 +2,23 @@
 #include "pd_api.h"
 
 #include "game/systems/runeManager.h"
+#include "globals/helpers.h"
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
 #include "globals/localization.h"
 #include "game/player/spells/spells.h"
 #include "game/player/classes/classData.h"
 #include "game/systems/chainLightningManager.h"
+#include "game/systems/timerManager.h"
 #include "game/player/player.h"
+#include "game/entities/projectiles.h"
+#include "game/rendering/particles.h"
+
+#define DRAGONS_BREATH_SPEED 120.0f
+#define DRAGONS_BREATH_DAMAGE 8
+#define DRAGONS_BREATH_PROJECTILE_COUNT 8
+#define DRAGONS_BREATH_CONE_ANGLE (30.0f * PI / 180.0f)
+#define DRAGONS_BREATH_INTERVAL 0.1f
 
 static void thunderStoneCallback(float primaryValue, float secondaryValue) {
     startChainLightningOnNearestEnemy(playerX, playerY, CELL_SIZE * 5, (int)primaryValue, (int)secondaryValue);
@@ -16,6 +26,54 @@ static void thunderStoneCallback(float primaryValue, float secondaryValue) {
 
 static void meditationCallback(float primaryValue, float secondaryValue) {
     healPlayer(primaryValue);
+}
+
+static void bomberCallback(float primaryValue, float secondaryValue) {
+    (void)primaryValue;
+    (void)secondaryValue;
+    spawnParticle(PARTICLE_TYPE_BOMB, playerX, playerY, playerX, playerY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+}
+
+static void fireDragonsBreath(void) {
+    SpellProjectileData data = {
+        .speed = DRAGONS_BREATH_SPEED,
+        .textureIndex = TEXTURE_FIREBALL,
+        .frameCount = 4,
+        .frameTime = 0.09f
+    };
+    // Random angle within a cone in front of the player
+    float angle = playerAngle + randFloat(-0.5f, 0.5f) * DRAGONS_BREATH_CONE_ANGLE;
+    float dx = cosf(angle);
+    float dy = sinf(angle);
+    float startX = playerX + dx * (CELL_SIZE / 2);
+    float startY = playerY + dy * (CELL_SIZE / 2);
+    firePlayerProjectile(startX, startY, dx, dy, DRAGONS_BREATH_DAMAGE, data);
+    playSound(SFX_FIREBALL);
+}
+
+static void dragonsBreathTimerCallback(int repeatCount, void *userData) {
+    (void)repeatCount;
+    (void)userData;
+    fireDragonsBreath();
+}
+
+static void dragonsBreathCallback(float primaryValue, float secondaryValue) {
+    (void)primaryValue;
+    (void)secondaryValue;
+    // Spray the fireballs one at a time, staggered over DRAGONS_BREATH_INTERVAL
+    fireDragonsBreath();
+    addTimer(DRAGONS_BREATH_INTERVAL, DRAGONS_BREATH_PROJECTILE_COUNT - 1, dragonsBreathTimerCallback, NULL);
+}
+
+static void secondWindCallback(float primaryValue, float secondaryValue) {
+    (void)primaryValue;
+    (void)secondaryValue;
+    grantUtilitySpellCharge();
+}
+
+static void flywheelCallback(float primaryValue, float secondaryValue) {
+    (void)secondaryValue;
+    reduceSpecialSpellCooldown(primaryValue);
 }
 
 // Name and description strings are loaded from localization.csv into the
@@ -261,6 +319,94 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .triggerType = RUNE_TRIGGER_ROOM_CLEAR,
         .triggerBaseValue = 1.0f,
         .triggerCallback  = meditationCallback
+    },
+    [RUNE_TYPE_THORNS] = {
+        // Reflect handled directly in damagePlayer()
+        .iconIndex = BITMAP_RUNE_THORNS,
+        .primaryBaseValue = 12,
+        .primaryPerLevel  = 0,
+        .maxLevel = 1
+    },
+    [RUNE_TYPE_BRASS_KNUCKLES] = {
+        .iconIndex = BITMAP_RUNE_BRASS_KNUCKLES,
+        .primaryBaseValue   = 0.6f, // absolute projectile lifetime (seconds)
+        .primaryPerLevel    = -0.1f,
+        .secondaryBaseValue = 1.5f, // damage multiplier
+        .secondaryPerLevel  = 0.5f,
+        .maxLevel = 3,
+        .spellTarget = RUNE_SPELL_TARGET_BASIC,
+        .primaryModifyOperation   = MODIFY_OP_ADD,
+        .secondaryModifyOperation = MODIFY_OP_MULTIPLY,
+        .applySpellModifierPrimary   = setProjectileActiveTime,
+        .applySpellModifierSecondary = modifySpellDamage,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
+    },
+    [RUNE_TYPE_BLUNDERBUSS] = {
+        .iconIndex = BITMAP_RUNE_BLUNDERBUSS,
+        .primaryBaseValue   = 0.6f, // absolute projectile lifetime (seconds)
+        .primaryPerLevel    = -0.1f,
+        .secondaryBaseValue = 2.0f, // damage multiplier
+        .secondaryPerLevel  = 0.5f,
+        .maxLevel = 3,
+        .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
+        .primaryModifyOperation   = MODIFY_OP_ADD,
+        .secondaryModifyOperation = MODIFY_OP_MULTIPLY,
+        .applySpellModifierPrimary   = setProjectileActiveTime,
+        .applySpellModifierSecondary = modifySpellDamage,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
+    },
+    [RUNE_TYPE_RICOCHET] = {
+        .iconIndex = BITMAP_RUNE_RICOCHET,
+        .primaryBaseValue = 1,
+        .primaryPerLevel  = 1,
+        .maxLevel = 3,
+        .spellTarget = RUNE_SPELL_TARGET_BASIC,
+        .primaryModifyOperation = MODIFY_OP_ADD,
+        .applySpellModifierPrimary = modifyProjectileBounceCount,
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
+    },
+    [RUNE_TYPE_BOMBER] = {
+        .iconIndex = BITMAP_RUNE_BOMBER,
+        .maxLevel = 1,
+        .triggerType = RUNE_TRIGGER_DASH,
+        .triggerBaseValue = 1.0f,
+        .triggerCallback  = bomberCallback
+    },
+    [RUNE_TYPE_DRAGONS_BREATH] = {
+        .iconIndex = BITMAP_RUNE_DRAGONS_BREATH,
+        .maxLevel = 1,
+        .triggerType = RUNE_TRIGGER_DASH,
+        .triggerBaseValue = 1.0f,
+        .triggerCallback  = dragonsBreathCallback
+    },
+    [RUNE_TYPE_ARMORED_SKIN] = {
+        // Knockback + damage handled directly in damagePlayer()
+        .iconIndex = BITMAP_RUNE_ARMORED_SKIN,
+        .primaryBaseValue = 10,
+        .primaryPerLevel  = 0,
+        .maxLevel = 1
+    },
+    [RUNE_TYPE_VIKING] = {
+        // Damage multiplier handled directly in damageEnemy()
+        .iconIndex = BITMAP_RUNE_VIKING,
+        .primaryBaseValue = 2,
+        .primaryPerLevel  = 0,
+        .maxLevel = 1
+    },
+    [RUNE_TYPE_SECOND_WIND] = {
+        .iconIndex = BITMAP_RUNE_SECOND_WIND,
+        .maxLevel = 1,
+        .triggerType = RUNE_TRIGGER_KILL_ENEMY,
+        .triggerBaseValue = 1.0f,
+        .triggerCallback  = secondWindCallback
+    },
+    [RUNE_TYPE_FLYWHEEL] = {
+        .iconIndex = BITMAP_RUNE_FLYWHEEL,
+        .primaryBaseValue = 1.0f, // cooldown reduction in seconds per dash
+        .maxLevel = 1,
+        .triggerType = RUNE_TRIGGER_DASH,
+        .triggerBaseValue = 1.0f,
+        .triggerCallback  = flywheelCallback
     }
 };
 
@@ -289,6 +435,16 @@ static const char *RUNE_LOC_IDS[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_ARCANE_STAFF] = "arcane_staff",
     [RUNE_TYPE_THUNDERCLOUD] = "thundercloud",
     [RUNE_TYPE_MEDITATION] = "meditation",
+    [RUNE_TYPE_THORNS] = "thorns",
+    [RUNE_TYPE_BRASS_KNUCKLES] = "brass_knuckles",
+    [RUNE_TYPE_BLUNDERBUSS] = "blunderbuss",
+    [RUNE_TYPE_RICOCHET] = "ricochet",
+    [RUNE_TYPE_BOMBER] = "bomber",
+    [RUNE_TYPE_DRAGONS_BREATH] = "dragons_breath",
+    [RUNE_TYPE_ARMORED_SKIN] = "armored_skin",
+    [RUNE_TYPE_VIKING] = "viking",
+    [RUNE_TYPE_SECOND_WIND] = "second_wind",
+    [RUNE_TYPE_FLYWHEEL] = "flywheel",
 };
 
 void initRuneLocalization(void) {
@@ -340,6 +496,16 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_ENCHANTED_AMULET, 1);
     // setRuneLevel(RUNE_TYPE_ARCANE_STAFF, 1);
     // setRuneLevel(RUNE_TYPE_THUNDERCLOUD, 1);
+    setRuneLevel(RUNE_TYPE_THORNS, 1);
+    setRuneLevel(RUNE_TYPE_BRASS_KNUCKLES, 1);
+    setRuneLevel(RUNE_TYPE_BLUNDERBUSS, 1);
+    setRuneLevel(RUNE_TYPE_RICOCHET, 1);
+    setRuneLevel(RUNE_TYPE_BOMBER, 1);
+    setRuneLevel(RUNE_TYPE_DRAGONS_BREATH, 1);
+    setRuneLevel(RUNE_TYPE_ARMORED_SKIN, 1);
+    setRuneLevel(RUNE_TYPE_VIKING, 1);
+    setRuneLevel(RUNE_TYPE_SECOND_WIND, 1);
+    setRuneLevel(RUNE_TYPE_FLYWHEEL, 1);
 }
 
 bool runeIsOwned(RuneType type) {

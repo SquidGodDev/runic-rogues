@@ -7,6 +7,7 @@
 #include "game/enemies/enemies.h"
 #include "game/enemies/enemyAI.h"
 #include "game/player/player.h"
+#include "game/player/playerStats.h"
 #include "game/entities/entities.h"
 #include "game/entities/projectiles.h"
 #include "game/entities/pickups.h"
@@ -898,6 +899,10 @@ bool damageEnemy(int index, int damage) {
 	Enemy curEnemy = enemies[index];
 	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.invincibilityTime > 0) {
 		return false;
+	}
+
+	if (runeIsOwned(RUNE_TYPE_VIKING) && playerHealth < getPlayerMaxHealth() * 0.5f) {
+		damage = (int)(damage * getRuneValue(RUNE_TYPE_VIKING));
 	}
 
 	runStatsRecordDamageDealt(damage);

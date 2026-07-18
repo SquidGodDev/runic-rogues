@@ -64,6 +64,7 @@ void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX
 				.currentFrameTime = 0.0f,
 				.isEnemy = isEnemy,
 				.pierceCount = spellProjectileData.pierceCount,
+				.bounceCount = spellProjectileData.bounceCount,
 				.onHitSpell = spellProjectileData.onHitSpell,
 				.hitEnemies = hitEnemies,
 				.activeTime = spellProjectileData.activeTime,
@@ -82,6 +83,17 @@ void firePlayerProjectile(float x, float y, float deltaX, float deltaY, int dama
 void fireEnemyProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, int damage, SpellProjectileData spellProjectileData) {
 	int textureIndex = spellProjectileData.textureIndex != 0 ? spellProjectileData.textureIndex : TEXTURE_ENEMY_PROJECTILE;
 	fireProjectile(x, y, sourceX, sourceY, deltaX, deltaY, speed, damage, textureIndex, 1 /*isEnemy*/, spellProjectileData);
+}
+
+static bool projectileHitsWall(float x, float y) {
+	int mapX = (int)((x + MAP_CHECK_OFFSET_X) / CELL_SIZE);
+	int mapY = (int)((y + MAP_CHECK_OFFSET_Y) / CELL_SIZE);
+	int idx = mapY * MAP_WIDTH + mapX;
+	if (idx < 0 || idx >= MAP_WIDTH * MAP_HEIGHT) {
+		return true;
+	}
+	int cell = map[idx];
+	return (cell == MAP_WALL || cell == MAP_GATE);
 }
 
 void updateProjectiles(float deltaTime) {
@@ -112,13 +124,38 @@ void updateProjectiles(float deltaTime) {
 		int entityMapIndex = entityMapY * MAP_WIDTH + entityMapX;
 		int entityMapCell = (entityMapIndex >= 0 && entityMapIndex < MAP_WIDTH * MAP_HEIGHT) ? map[entityMapIndex] : MAP_WALL;
 		if ((entityMapIndex >= MAP_WIDTH * MAP_HEIGHT) || (entityMapCell == MAP_WALL || entityMapCell == MAP_GATE)) {
-			playSoundSpatial(SFX_WALL_HIT, curProjectile->x, curProjectile->y);
-			curProjectile->active = 0;
-			int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
-			int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
-			ParticleType hitParticle = curProjectile->spellProjectileData.hitParticle;
-			if (hitParticle != PARTICLE_TYPE_BLANK) {
-				spawnParticle(hitParticle, particleX, particleY, curProjectile->sourceX, curProjectile->sourceY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
+			if (!curProjectile->isEnemy && curProjectile->bounceCount > 0) {
+				curProjectile->bounceCount--;
+				playSoundSpatial(SFX_WALL_HIT, curProjectile->x, curProjectile->y);
+				// Step back to before the collision and reflect against whichever wall face was crossed
+				float prevX = curProjectile->x - deltaX * curProjectile->speed * deltaTime;
+				float prevY = curProjectile->y - deltaY * curProjectile->speed * deltaTime;
+				bool blockedX = projectileHitsWall(curProjectile->x, prevY);
+				bool blockedY = projectileHitsWall(prevX, curProjectile->y);
+				if (!blockedX && !blockedY) {
+					// Hit a corner head-on; reverse both axes
+					blockedX = true;
+					blockedY = true;
+				}
+				if (blockedX) {
+					deltaX = -deltaX;
+				}
+				if (blockedY) {
+					deltaY = -deltaY;
+				}
+				curProjectile->deltaX = deltaX;
+				curProjectile->deltaY = deltaY;
+				curProjectile->x = prevX;
+				curProjectile->y = prevY;
+			} else {
+				playSoundSpatial(SFX_WALL_HIT, curProjectile->x, curProjectile->y);
+				curProjectile->active = 0;
+				int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
+				int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
+				ParticleType hitParticle = curProjectile->spellProjectileData.hitParticle;
+				if (hitParticle != PARTICLE_TYPE_BLANK) {
+					spawnParticle(hitParticle, particleX, particleY, curProjectile->sourceX, curProjectile->sourceY, PARTICLE_TYPE_NONE, curProjectile->isEnemy);
+				}
 			}
 		} else {
 			bool collided = false;
