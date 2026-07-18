@@ -246,6 +246,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_MAGNIFYING_GLASS] = {
         .iconIndex = BITMAP_RUNE_MAGNIFYING_GLASS,
+        .rarity = RUNE_RARITY_RARE,
         .primaryBaseValue   = 2,
         .primaryPerLevel    = 2,
         .secondaryBaseValue = 15 * (PI / 180),
@@ -263,6 +264,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_QUARTZ_CLUSTER] = {
         .iconIndex = BITMAP_RUNE_QUARTZ_CLUSTER,
+        .rarity = RUNE_RARITY_RARE,
         .primaryBaseValue   = 2,
         .primaryPerLevel    = 2,
         .secondaryBaseValue = 15 * (PI / 180),
@@ -280,6 +282,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_ENCHANTED_AMULET] = {
         .iconIndex = BITMAP_RUNE_ENCHANTED_AMULET,
+        .rarity = RUNE_RARITY_RARE,
         .primaryBaseValue   = 1,
         .primaryPerLevel    = 1,
         .secondaryBaseValue = 0.15f,
@@ -293,6 +296,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_ARCANE_STAFF] = {
         .iconIndex = BITMAP_RUNE_ARCANE_STAFF,
+        .rarity = RUNE_RARITY_RARE,
         .primaryBaseValue   = 1,
         .primaryPerLevel    = 1,
         .secondaryBaseValue = 0.15f,
@@ -362,6 +366,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_RICOCHET] = {
         .iconIndex = BITMAP_RUNE_RICOCHET,
+        .rarity = RUNE_RARITY_RARE,
         .primaryBaseValue = 1,
         .primaryPerLevel  = 1,
         .maxLevel = 3,
@@ -379,6 +384,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_DRAGONS_BREATH] = {
         .iconIndex = BITMAP_RUNE_DRAGONS_BREATH,
+        .rarity = RUNE_RARITY_RARE,
         .maxLevel = 1,
         .triggerType = RUNE_TRIGGER_DASH,
         .triggerBaseValue = 1.0f,
@@ -644,6 +650,10 @@ int getRuneIconIndex(RuneType type) {
 
 RuneClassFilter getRuneClassFilter(RuneType type) {
     return RUNE_DATA[type].classFilter;
+}
+
+RuneRarity getRuneRarity(RuneType type) {
+    return RUNE_DATA[type].rarity;
 }
 
 float getRuneValue(RuneType type) {

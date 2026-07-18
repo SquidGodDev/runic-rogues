@@ -52,6 +52,11 @@ typedef int RuneClassFilter;
 #define RUNE_CLASS_FILTER_RANGER  (1 << CLASS_RANGER)
 #define RUNE_CLASS_FILTER_NONE    (1 << CLASS_COUNT)
 
+typedef enum RuneRarity {
+    RUNE_RARITY_COMMON,
+    RUNE_RARITY_RARE
+} RuneRarity;
+
 typedef enum RuneSpellTarget {
     RUNE_SPELL_TARGET_NONE,
     RUNE_SPELL_TARGET_BASIC,
@@ -85,6 +90,7 @@ typedef struct RuneData {
     float tertiaryBaseValue;
     float tertiaryPerLevel;
     int maxLevel;
+    RuneRarity rarity;
     RuneSpellTarget spellTarget;
     ModifyOperation primaryModifyOperation;
     ModifyOperation secondaryModifyOperation;
@@ -113,6 +119,7 @@ char *getRuneName(RuneType type, Language language);
 char *getRuneDescription(RuneType type, Language language, int runeLevel);
 int getRuneIconIndex(RuneType type);
 RuneClassFilter getRuneClassFilter(RuneType type);
+RuneRarity getRuneRarity(RuneType type);
 float getRuneValue(RuneType type);
 float getRuneSecondaryValue(RuneType type);
 void applyRuneEffectsToSpells(void);

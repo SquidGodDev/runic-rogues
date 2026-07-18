@@ -32,6 +32,10 @@ typedef struct ShopPageData {
 #define SHOP_OPTION_COUNT 3
 #define SHOP_SKIP_OPTION_INDEX SHOP_OPTION_COUNT
 
+// Flat chance, per shop slot, that the slot rolls from the rare rune pool
+// instead of the common pool. Constant for the whole run (no pity/scaling).
+#define SHOP_RARE_RUNE_CHANCE 0.10f
+
 #define SHOP_PAGE_X 2
 #define SHOP_PAGE_Y 50
 #define SHOP_DESC_X SHOP_PAGE_X + 5
@@ -144,8 +148,10 @@ static void freeShopItemBitmaps(void) {
 }
 
 void createShopOptions(void) {
-    Stack optionsStack;
-    stackInit(&optionsStack);
+    Stack commonStack;
+    Stack rareStack;
+    stackInit(&commonStack);
+    stackInit(&rareStack);
     ClassType currentClass = getCurrentClassType();
     for (int i = RUNE_TYPE_NONE + 1; i < RUNE_TYPE_COUNT; i++) {
         if (runeIsMaxLevel((RuneType)i)) {
@@ -158,16 +164,26 @@ void createShopOptions(void) {
         if (filter != 0 && !(filter & (1 << currentClass))) {
             continue;
         }
-        stackPush(&optionsStack, i);
+        if (getRuneRarity((RuneType)i) == RUNE_RARITY_RARE) {
+            stackPush(&rareStack, i);
+        } else {
+            stackPush(&commonStack, i);
+        }
     }
-    stackShuffle(&optionsStack);
-    
+    stackShuffle(&commonStack);
+    stackShuffle(&rareStack);
+
     for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
         ShopPageData shopPageDataEN;
         ShopPageData shopPageDataJP;
         RuneType shopRune = RUNE_TYPE_VAMPIRISM; // Default rune if no options available
-        if (!stackIsEmpty(&optionsStack)) {
-            shopRune = (RuneType)stackPop(&optionsStack);
+        bool rollRare = randFloat(0.0f, 1.0f) < SHOP_RARE_RUNE_CHANCE;
+        Stack *primaryStack = rollRare ? &rareStack : &commonStack;
+        Stack *fallbackStack = rollRare ? &commonStack : &rareStack;
+        if (!stackIsEmpty(primaryStack)) {
+            shopRune = (RuneType)stackPop(primaryStack);
+        } else if (!stackIsEmpty(fallbackStack)) {
+            shopRune = (RuneType)stackPop(fallbackStack);
         }
         // Debug for testing rune in shop
         // if (i == 0) {
