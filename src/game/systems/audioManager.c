@@ -958,6 +958,58 @@ SFXData sfxData[] = {
         .center = 0.5f,
         .rate = 5.0f,
         .phase = 0
+    },
+    [SFX_SERPENT_SLITHER] = {
+        .defaultNote = 54,
+        .pitchRandomization = 1.5f,
+        .volume = 0.11f,
+        .waveform = kWaveformNoise,
+        .attack = 0.1f,
+        .decay = 0.3f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0,
+        .voices = 4
+    },
+    [SFX_SERPENT_PREP] = {
+        .defaultNote = 41,
+        .volume = 0.18f,
+        .waveform = kWaveformSquare,
+        .attack = 0.13f,
+        .decay = 0.3f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.5f,
+        .center = 0.5f,
+        .rate = 5.0f,
+        .phase = 0
+    },
+    [SFX_SERPENT_ATTACK] = {
+        .defaultNote = 22,
+        .volume = 0.29f,
+        .waveform = kWaveformNoise,
+        .attack = 0.04f,
+        .decay = 0.23f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
+    },
+    [SFX_SERPENT_TAIL] = {
+        .defaultNote = 40,
+        .pitchRandomization = 1.2f,
+        .volume = 0.3f,
+        .waveform = kWaveformNoise,
+        .attack = 0.09f,
+        .decay = 0.3f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
     }
 };
 

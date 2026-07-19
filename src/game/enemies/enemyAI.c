@@ -1293,17 +1293,17 @@ void serpentUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool att
 
 		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			playEnemyPrepSFX(curEnemy, curEnemyData);
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 		}
 
 		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
-		playEnemyAttackSFX(curEnemy, curEnemyData);
-
 		// Spawn tail attack particles at intervals during attack animation
 		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			if (!curEnemy->attackedPlayer) {
+				playEnemyAttackSFX(curEnemy, curEnemyData);
 				curEnemy->attackedPlayer = true;
 				curEnemy->targetX = playerX;
 				curEnemy->targetY = playerY;
@@ -1325,7 +1325,10 @@ void serpentUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool att
 				float distance = (curEnemy->stateCount + 1) * CELL_SIZE / 2;
 				float offsetX = dx * distance;
 				float offsetY = dy * distance;
-				spawnParticle(PARTICLE_TYPE_SERPENT_TAIL, curEnemy->x + offsetX, curEnemy->y + offsetY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+				float tailX = curEnemy->x + offsetX;
+				float tailY = curEnemy->y + offsetY;
+				playSoundSpatial(SFX_SERPENT_TAIL, tailX, tailY);
+				spawnParticle(PARTICLE_TYPE_SERPENT_TAIL, tailX, tailY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
 
 				// (Use when increasing enemy difficulty) Fire off two additional tail particles spread out at angles from the main tail
 				// float cosSpread = cosf(SERPENT_TAIL_SPREAD_ANGLE_RAD);
