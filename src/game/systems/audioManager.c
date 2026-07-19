@@ -1060,6 +1060,52 @@ SFXData sfxData[] = {
         .center = 0.5f,
         .rate = 7.2f,
         .phase = 0
+    },
+    [SFX_IMP_WALK] = {
+        .defaultNote = 42,
+        .pitchRandomization = 1.0f,
+        .volume = 0.39f,
+        .waveform = kWaveformNoise,
+        .attack = 0,
+        .decay = 0.15f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.5f,
+        .center = 0.5f,
+        .rate = 7.2f,
+        .phase = 0
+    },
+    [SFX_IMP_PREP] = {
+        .defaultNote = 42,
+        .pitchRandomization = 1.0f,
+        .volume = 0.39f,
+        .waveform = kWaveformPOPhase,
+        .attack = 0.07f,
+        .decay = 0.24f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.5f,
+        .center = 0.5f,
+        .rate = 7.2f,
+        .phase = 0
+    },
+    [SFX_IMP_ATTACK] = {
+        .defaultNote = 52,
+        .pitchRandomization = 0.8f,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformNoise,
+        .attack = 0.07f,
+        .decay = 0.21f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
     }
 };
 

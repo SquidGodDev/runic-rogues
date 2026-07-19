@@ -263,6 +263,11 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_IMP] = (EnemyData){
 		.name = "Imp",
+		.idleSFX = SFX_IMP_WALK,
+		.idleSFXFrame1 = 1,
+		.idleSFXFrame2 = 4,
+		.prepSFX = SFX_IMP_PREP,
+		.attackSFX = SFX_IMP_ATTACK,
 		.health = 70,
 		.attackDetectionRange = 45,
 		.attackDamage = 10,
@@ -391,6 +396,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BABY_DRAGON] = (EnemyData){
 		.name = "Baby Dragon",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 100,
 		.attackDetectionRange = 25,
 		.attackDamage = 12,

@@ -77,6 +77,9 @@ typedef enum SFX {
     SFX_RAT_JUMP,
     SFX_RAT_PREP,
     SFX_RAT_ATTACK,
+    SFX_IMP_WALK,
+    SFX_IMP_PREP,
+    SFX_IMP_ATTACK,
     SFX_COUNT
 } SFX;
 

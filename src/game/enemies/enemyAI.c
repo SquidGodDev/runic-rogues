@@ -745,8 +745,10 @@ void slamEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 
 void projectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
 		// Start shooting projectile if player is in range
 		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
+			playEnemyPrepSFX(curEnemy, curEnemyData);
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
@@ -776,6 +778,9 @@ void projectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, 
 			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
 			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage, curEnemyData->projectileData);
+			if (curEnemyData->attackSFX != SFX_NONE) {
+				playSoundSpatial(curEnemyData->attackSFX, curEnemy->x, curEnemy->y);
+			}
 		}
 
 		// Transition back to idle state after attack animation ends
@@ -790,6 +795,7 @@ void projectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, 
 // attack detection range it stops to fire a single projectile (like projectileEnemyUpdate).
 void proximityProjectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
 		// Start shooting projectile if player is in range
 		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
@@ -813,6 +819,9 @@ void proximityProjectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, in
 			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
 			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage, curEnemyData->projectileData);
+			if (curEnemyData->attackSFX != SFX_NONE) {
+				playSoundSpatial(curEnemyData->attackSFX, curEnemy->x, curEnemy->y);
+			}
 		}
 
 		// Transition back to idle state after attack animation ends
@@ -1327,7 +1336,9 @@ void serpentUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool att
 				float offsetY = dy * distance;
 				float tailX = curEnemy->x + offsetX;
 				float tailY = curEnemy->y + offsetY;
-				playSoundSpatial(SFX_SERPENT_TAIL, tailX, tailY);
+				if (curEnemyData->attackSFX != SFX_NONE) {
+					playSoundSpatial(SFX_SERPENT_TAIL, tailX, tailY);
+				}
 				spawnParticle(PARTICLE_TYPE_SERPENT_TAIL, tailX, tailY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
 
 				// (Use when increasing enemy difficulty) Fire off two additional tail particles spread out at angles from the main tail
