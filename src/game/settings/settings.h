@@ -14,6 +14,15 @@ typedef enum ControlScheme {
     CONTROL_SCHEME_COUNT
 } ControlScheme;
 
+// Selectable display refresh rate. Index into the cycle; FPS_SETTING_40 is the
+// default and maps to the original hard-coded 40 FPS behavior.
+typedef enum FpsSetting {
+    FPS_SETTING_30,
+    FPS_SETTING_40,
+    FPS_SETTING_50,
+    FPS_SETTING_COUNT
+} FpsSetting;
+
 // Bar settings store a discrete level; the middle level is the default and
 // maps to the original hard-coded behavior.
 #define SETTING_BAR_MAX_LEVEL 6
@@ -42,6 +51,7 @@ typedef struct Settings {
     bool spellButtonsReversed;
     bool drawFPS;
     bool showTimer;
+    int targetFps; // FpsSetting index; selects the display refresh rate
     int crankTurnSpeed;
     int dpadTurnSpeed;
     bool dpadStrafe;
@@ -61,6 +71,9 @@ void resetGeneralSettings(void);
 void resetControlSettings(void);
 void resetAudioSettings(void);
 void resetDebugSettings(void);
+
+int getTargetFps(void);
+void applyTargetFps(void);
 
 float getCrankTurnSpeedMultiplier(void);
 float getDpadTurnSpeedMultiplier(void);

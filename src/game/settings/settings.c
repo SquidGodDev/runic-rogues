@@ -18,6 +18,7 @@ void resetGeneralSettings(void) {
     SETTINGS.language = systemLanguage();
     SETTINGS.drawFPS = true;
     SETTINGS.showTimer = false;
+    SETTINGS.targetFps = FPS_SETTING_40;
 }
 
 void resetControlSettings(void) {
@@ -54,6 +55,21 @@ void initSettings(void) {
     SETTINGS.drawMinimapWalls = true; // Legacy: based off old minimap which is no longer used
     DEBUG.enabled = false;
     resetDebugSettings();
+}
+
+int getTargetFps(void) {
+    switch (SETTINGS.targetFps) {
+        case FPS_SETTING_30:
+            return 30;
+        case FPS_SETTING_50:
+            return 50;
+        default:
+            return DEFAULT_TARGET_FPS;
+    }
+}
+
+void applyTargetFps(void) {
+    pd->display->setRefreshRate((float)getTargetFps());
 }
 
 static float barLevelToRatio(int level) {

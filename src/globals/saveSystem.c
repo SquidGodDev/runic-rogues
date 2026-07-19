@@ -64,6 +64,12 @@ static void applyKeyValue(const char *key, const char *value) {
         SETTINGS.drawFPS = parseInt(value) != 0;
     } else if (strcmp(key, "showTimer") == 0) {
         SETTINGS.showTimer = parseInt(value) != 0;
+    } else if (strcmp(key, "targetFps") == 0) {
+        int fps = parseInt(value);
+        if (fps < 0 || fps >= FPS_SETTING_COUNT) {
+            fps = FPS_SETTING_40;
+        }
+        SETTINGS.targetFps = fps;
     } else if (strcmp(key, "crankTurnSpeed") == 0) {
         SETTINGS.crankTurnSpeed = parseBarLevel(value);
     } else if (strcmp(key, "dpadTurnSpeed") == 0) {
@@ -159,6 +165,7 @@ void saveGame(void) {
         "spellButtonsReversed=%d\n"
         "drawFPS=%d\n"
         "showTimer=%d\n"
+        "targetFps=%d\n"
         "crankTurnSpeed=%d\n"
         "dpadTurnSpeed=%d\n"
         "dpadStrafe=%d\n"
@@ -184,6 +191,7 @@ void saveGame(void) {
         SETTINGS.spellButtonsReversed ? 1 : 0,
         SETTINGS.drawFPS ? 1 : 0,
         SETTINGS.showTimer ? 1 : 0,
+        SETTINGS.targetFps,
         SETTINGS.crankTurnSpeed,
         SETTINGS.dpadTurnSpeed,
         SETTINGS.dpadStrafe ? 1 : 0,

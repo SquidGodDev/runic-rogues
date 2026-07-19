@@ -475,6 +475,14 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	}
 };
 
+// Per-frame movement scale so enemy travel is frame-rate independent. Enemy
+// move speeds and knockback are authored as per-frame steps at DEFAULT_TARGET_FPS;
+// scaling by deltaTime * DEFAULT_TARGET_FPS keeps their real-time speed constant
+// across the selectable refresh rates (and equals 1.0 at the default 40 FPS).
+// Set at the top of updateEnemies each frame; defaults to 1.0 for any move issued
+// before the first enemy update.
+static float enemyFrameScale = 1.0f;
+
 void moveEnemy(Enemy *enemy, int enemyIndex, float targetX, float targetY, float moveSpeed) {
 	float dx = (targetX - enemy->x);
 	float dy = (targetY - enemy->y);
@@ -532,8 +540,8 @@ void moveEnemy(Enemy *enemy, int enemyIndex, float targetX, float targetY, float
 	}
 
 	// Apply movement
-	enemy->x += dx;
-	enemy->y += dy;
+	enemy->x += dx * enemyFrameScale;
+	enemy->y += dy * enemyFrameScale;
 }
 
 int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
@@ -746,13 +754,14 @@ void applyEnemyKnockback(Enemy *enemy) {
 				dy = -dy * WALL_AVOID_FORCE;
 			}
 
-			enemy->x += dx;
-			enemy->y += dy;
+			enemy->x += dx * enemyFrameScale;
+			enemy->y += dy * enemyFrameScale;
 		}
 	}
 }
 
 void updateEnemies(float deltaTime) {
+	enemyFrameScale = deltaTime * DEFAULT_TARGET_FPS;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy *curEnemy = &enemies[i];
 		if (!curEnemy->active) {

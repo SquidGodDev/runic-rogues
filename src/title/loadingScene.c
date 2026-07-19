@@ -10,13 +10,13 @@
 #include "game/systems/audioManager.h"
 #include "game/gameScene.h"
 #include "game/player/classes/classData.h"
+#include "game/settings/settings.h"
 
 #define BAR_WIDTH 120
 #define BAR_HEIGHT 8
 #define BAR_X ((SCREEN_WIDTH - BAR_WIDTH) / 2)
 #define BAR_Y ((SCREEN_HEIGHT - BAR_HEIGHT) / 2)
 #define LABEL_Y (BAR_Y + BAR_HEIGHT + 4)
-#define FRAME_BUDGET_MS (1000 / TARGET_FPS)
 
 static int textureCount;
 static int audioCount;
@@ -35,6 +35,7 @@ void initLoadingScene(void) {
 
 void updateLoadingScene(float deltaTime) {
     unsigned int frameStartMs = pd->system->getCurrentTimeMilliseconds();
+    unsigned int frameBudgetMs = 1000 / getTargetFps();
     while (stepsDone < totalSteps) {
         if (stepsDone < textureCount) {
             loadTextureAsset(stepsDone);
@@ -42,7 +43,7 @@ void updateLoadingScene(float deltaTime) {
             loadAudioAsset(stepsDone - textureCount);
         }
         stepsDone++;
-        if (pd->system->getCurrentTimeMilliseconds() - frameStartMs >= FRAME_BUDGET_MS) {
+        if (pd->system->getCurrentTimeMilliseconds() - frameStartMs >= frameBudgetMs) {
             break;
         }
     }

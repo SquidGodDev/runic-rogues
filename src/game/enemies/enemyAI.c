@@ -2019,7 +2019,7 @@ static void beginCharge(Enemy *curEnemy, float chargeSpeed) {
     float dist = sqrtf(dx * dx + dy * dy);
     curEnemy->attackedPlayer = false;
     // Trapezoidal (accel+coast+decel) total time estimate: 1.5 × (dist / speed_per_frame / fps)
-    float totalDuration = dist / (chargeSpeed * (float)TARGET_FPS) * 1.5f;
+    float totalDuration = dist / (chargeSpeed * (float)DEFAULT_TARGET_FPS) * 1.5f;
     curEnemy->stateTimer = totalDuration;      // countdown: 0 signals charge end
     curEnemy->abilityCooldown = -totalDuration; // negative so auto-decrement is skipped; used as reference in ATTACK_1
 }

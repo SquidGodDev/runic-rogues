@@ -29,7 +29,9 @@
 #define RIGHT_ARROW_X 187
 #define ARROW_Y 51
 
-#define CLASS_3D_MODEL_FRAME_TIME 1.0f / TARGET_FPS
+// Pre-rendered model animation plays at its authored rate, independent of the
+// selectable display refresh rate.
+#define CLASS_3D_MODEL_FRAME_TIME 1.0f / DEFAULT_TARGET_FPS
 #define SLIDE_DURATION 0.35f
 
 typedef struct ClassBitmapTableData {
