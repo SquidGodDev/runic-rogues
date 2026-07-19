@@ -60,7 +60,7 @@ static float barLevelToRatio(int level) {
     return (float)level / SETTING_BAR_MAX_LEVEL;
 }
 
-#define MUSIC_VOLUME_MAX 0.8f
+#define MUSIC_VOLUME_MAX 0.4f
 #define SFX_VOLUME_MAX   1.0f
 
 float getCrankTurnSpeedMultiplier(void) {
