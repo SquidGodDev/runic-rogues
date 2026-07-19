@@ -1158,95 +1158,67 @@ void rockGolemUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 	}
 }
 
-// Returns the index of the nearest active, alive enemy to (x, y), excluding excludeIndex,
-// or -1 if no candidate exists.
-static int findNearestAllyEnemy(float x, float y, int excludeIndex) {
-	int nearestIndex = -1;
-	float nearestDistSq = 0.0f;
-	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-		if (!enemies[i].active || i == excludeIndex || enemies[i].state == ENEMY_STATE_DEAD) {
-			continue;
-		}
-		float d = distanceSquared(x, y, enemies[i].x, enemies[i].y);
-		if (nearestIndex == -1 || d < nearestDistSq) {
-			nearestDistSq = d;
-			nearestIndex = i;
-		}
-	}
-	return nearestIndex;
+// === Banshee constants ===
+#define BANSHEE_VOLLEY_SHOT_COUNT 5
+#define BANSHEE_VOLLEY_SHOT_SPACING 0.1f                 // Seconds between shots in the spray
+#define BANSHEE_VOLLEY_CONE_ANGLE (15.0f * PI / 180.0f)  // Full cone the shots scatter within, radians
+#define BANSHEE_VOLLEY_PROJECTILE_SPEED 40.0f
+
+static void bossSpawnWarningLine(Enemy *curEnemy, float angle);
+
+// Fires one projectile aimed at the locked target (curEnemy->targetX/Y), scattered within the cone.
+static void bansheeFireVolleyShot(Enemy *curEnemy, EnemyData *curEnemyData) {
+	float angle = atan2f(curEnemy->targetY - curEnemy->y, curEnemy->targetX - curEnemy->x) + randFloat(-0.5f, 0.5f) * BANSHEE_VOLLEY_CONE_ANGLE;
+	float deltaX = cosf(angle);
+	float deltaY = sinf(angle);
+	float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+	float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+	fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, BANSHEE_VOLLEY_PROJECTILE_SPEED, curEnemyData->attackDamage, curEnemyData->projectileData);
 }
 
-// Returns the index of the active, alive enemy within radius of (x, y) with the lowest current
-// health, excluding excludeIndex, or -1 if no candidate exists.
-static int findLowestHealthAllyInRadius(float x, float y, float radius, int excludeIndex) {
-	int targetIndex = -1;
-	int lowestHealth = 0;
-	float radiusSq = radius * radius;
-	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-		if (!enemies[i].active || i == excludeIndex || enemies[i].state == ENEMY_STATE_DEAD) {
-			continue;
-		}
-		if (distanceSquared(x, y, enemies[i].x, enemies[i].y) > radiusSq) {
-			continue;
-		}
-		if (targetIndex == -1 || enemies[i].health < lowestHealth) {
-			lowestHealth = enemies[i].health;
-			targetIndex = i;
-		}
-	}
-	return targetIndex;
-}
-
-// Walks to the nearest ally; on arrival it heals the lowest-health ally within abilityDataPrimary
-// radius by abilityDataTertiary HP (or itself if none in range). abilityDataSecondary is the arrival
-// radius used to decide when to start the heal animation.
+// Floats to random room positions; on arrival it locks onto the player and sprays BANSHEE_VOLLEY_SHOT_COUNT
+// projectiles within a cone, one every BANSHEE_VOLLEY_SHOT_SPACING seconds, then wanders to a new position and
+// repeats. abilityDataPrimary is the minimum distance between random positions, abilityDataSecondary is the
+// arrival radius. stateCount doubles as the queued-target flag while idle and the shot counter while attacking.
 void bansheeUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
-		int nearestIndex = findNearestAllyEnemy(curEnemy->x, curEnemy->y, index);
-		if (nearestIndex == -1) {
-			return;
+		// No position queued yet (fresh spawn or just finished a spray) — pick the next random position
+		if (curEnemy->stateCount == 0) {
+			pickRandomRoomTarget(curEnemy, curEnemyData->abilityDataPrimary);
+			curEnemy->stateCount = 1;
 		}
 
 		float arrivalRadius = curEnemyData->abilityDataSecondary;
-		float dx = enemies[nearestIndex].x - curEnemy->x;
-		float dy = enemies[nearestIndex].y - curEnemy->y;
+		float dx = curEnemy->targetX - curEnemy->x;
+		float dy = curEnemy->targetY - curEnemy->y;
 		if (dx * dx + dy * dy > arrivalRadius * arrivalRadius) {
-			moveEnemy(curEnemy, index, enemies[nearestIndex].x, enemies[nearestIndex].y, curEnemyData->moveSpeed);
+			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
 			return;
 		}
 
+		// Arrived: lock aim onto the player, telegraph the cone, and start the spray
+		curEnemy->stateCount = 0;
+		curEnemy->abilityCooldown = 0;
+		curEnemy->targetX = playerX;
+		curEnemy->targetY = playerY;
+		float aimAngle = atan2f(playerY - curEnemy->y, playerX - curEnemy->x);
+		float halfCone = BANSHEE_VOLLEY_CONE_ANGLE * 0.5f;
+		bossSpawnWarningLine(curEnemy, aimAngle);
+		bossSpawnWarningLine(curEnemy, aimAngle - halfCone);
+		bossSpawnWarningLine(curEnemy, aimAngle + halfCone);
 		transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+		addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
-		// Heal the lowest-health ally in range once the attack animation reaches the active frame
-		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
-			curEnemy->attackedPlayer = true;
-			float healRadius = curEnemyData->abilityDataPrimary;
-			int healAmount = (int)curEnemyData->abilityDataTertiary;
-			int targetIndex = findLowestHealthAllyInRadius(curEnemy->x, curEnemy->y, healRadius, index);
-			if (targetIndex == -1) {
-				targetIndex = index;
-			}
-
-			int maxHealth = enemyData[enemies[targetIndex].type].health;
-			enemies[targetIndex].health += healAmount;
-			if (enemies[targetIndex].health > maxHealth) {
-				enemies[targetIndex].health = maxHealth;
-			}
-			spawnParticle(PARTICLE_TYPE_HEAL, curEnemy->x, curEnemy->y, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
-			spawnParticle(PARTICLE_TYPE_HEAL, enemies[targetIndex].x, enemies[targetIndex].y, enemies[targetIndex].x, enemies[targetIndex].y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+		// Once the animation reaches the active frame, fire one shot per spacing interval
+		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame && curEnemy->stateCount < BANSHEE_VOLLEY_SHOT_COUNT && curEnemy->abilityCooldown <= 0) {
+			bansheeFireVolleyShot(curEnemy, curEnemyData);
+			curEnemy->stateCount++;
+			curEnemy->abilityCooldown = BANSHEE_VOLLEY_SHOT_SPACING;
 		}
 
-		if (attackAnimationReset) {
-			curEnemy->attackedPlayer = false;
-			curEnemy->stateTimer = curEnemyData->postAttackTime;
-			curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
-			pickRandomRoomTarget(curEnemy, curEnemyData->abilityDataPrimary);
-			transitionToState(curEnemy, ENEMY_STATE_POST_ATTACK);
-		}
-	} else if (curEnemy->state == ENEMY_STATE_POST_ATTACK) {
-		// Wander to a random room position; return to idle when the timer expires
-		moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
-		if (curEnemy->stateTimer <= 0) {
+		// After every shot has fired, wander to a new position on the next animation loop
+		if (curEnemy->stateCount >= BANSHEE_VOLLEY_SHOT_COUNT && attackAnimationReset) {
+			curEnemy->stateCount = 0;
 			transitionToState(curEnemy, ENEMY_STATE_IDLE);
 		}
 	}

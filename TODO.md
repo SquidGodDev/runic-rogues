@@ -1,22 +1,16 @@
 # TODO
 ## Playthrough Notes
-- Need rare
-## Balance
+- Black hole spell
+- Increase enemy health in echoing caverns
+- Make bomber enemy throw bombs
+- Put enemies in attack lockout when spawned
 - Custom Rat AI
-- Make rock golem use short warning
-- Bigger mage projectile
 - Slow effect doesn't feel impactful
 - Projectile speed feels so-so (make base speed slower?)
 - Adjust rogue damage
-## Bugs
-- Check for memory leaks
-## Features
-- Starter rune for each class
-- Improve enemy AI (new attack patterns)
-  - Turret
-- Buff system + HUD UI
-- Trigger Rune HUD UI
-- Runes
+
+# Notes
+## Runes
   - Start rune for each class
   - Trigger runes
     - On basic cast
@@ -25,7 +19,6 @@
     - On damaged
     - On damage enemy
     - On kill enemy
-    - On xp pickup
     - On dodge with dash (check invincibility in player damage function)
   - Rune ideas
     - Black hole (every X specials)
@@ -37,9 +30,7 @@
     - More damage low health
     - More damage full health
     - Spawn random buff areas/pickups around map
-  - Rune rarity
-- Level ups and unlocks
-- Ascension difficulty
+## Ascension difficulty
   - Less health
   - Heal less after each area
   - No healing
@@ -50,14 +41,7 @@
   - Enemies more health
   - Boss more challenging attack patterns
   - Boss even more challenging
-## Scenes
-- Improved title
-- Class Select Info Screen
-- Game Over scene
-  - Stats
-  - Class used
-  - Show runes
-- Credits
+## Credits
   - https://kaylousberg.itch.io/kaykit-adventurers
   - https://piiixl.itch.io/1-bit-patterns-and-tiles
   - https://community.arduboy.com/t/catacombs-of-the-damned/6565
@@ -65,16 +49,3 @@
   - https://lodev.org/cgtutor/raycasting.html
   - Fonts
     - Metamorphous (title)
-## Audio
-- Player:
-  - Sword swing
-  - Knight shout
-  - Knife throw
-  - Fan of Knives
-  - Dash
-## Localization
-- JP Localization
-  - Tutorial
-## Juice
-- Dash indicator lines
-- Enemy knockback
