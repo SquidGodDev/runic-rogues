@@ -60,6 +60,7 @@ typedef struct Enemy {
 	float hitFlashTime;
 	float animationTime;
 	int animationFrame;
+	bool animationFrameAdvanced; // Set the tick the animation frame advances, for frame-triggered SFX
 	bool active;
 	bool invisible; // Skips rendering while set (e.g. wraith boss teleport)
 	int state;
@@ -110,6 +111,11 @@ struct EnemyData {
 	int deathFrameStart;
 	int deathFrameEnd;
 	float frameTime;
+	SFX idleSFX;       // Looping idle sound; plays on idleSFXFrame1/idleSFXFrame2 (frame 0 ignored)
+	int idleSFXFrame1;
+	int idleSFXFrame2;
+	SFX prepSFX;       // Plays when the enemy enters its prep windup
+	SFX attackSFX;     // Plays on the attack's active frame
 	SpellProjectileData projectileData;
 	EnemyUpdateFn update;
 	bool knockbackResistant;

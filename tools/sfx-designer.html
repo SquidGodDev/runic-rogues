@@ -227,16 +227,17 @@ function defaults() {
   return {
     name: "SFX_NEW", defaultNote: 40, pitchRandomization: 0, volume: DEFAULT_VOLUME, waveform: "kWaveformSquare",
     attack: 0, decay: 0.3, sustain: 0, release: 0, curvature: 1.0,
-    lfo: 0, lfoType: "kLFOTypeSquare", depth: 0.5, center: 0.5, rate: 5.0, phase: 0.0
+    lfo: 0, lfoType: "kLFOTypeSquare", depth: 0.5, center: 0.5, rate: 5.0, phase: 0.0,
+    voices: 0
   };
 }
 function builtins() {
   const m = (o) => Object.assign(defaults(), o);
   return [
     m({ name:"SFX_SHOOT",       defaultNote:40, waveform:"kWaveformNoise", decay:0.39, curvature:1.0 }),
-    m({ name:"SFX_WALL_HIT",    defaultNote:31, waveform:"kWaveformNoise", decay:0.12, curvature:1.0 }),
-    m({ name:"SFX_ENEMY_HIT",   defaultNote:29, waveform:"kWaveformNoise", decay:0.22, curvature:1.0 }),
-    m({ name:"SFX_ENEMY_DEATH", defaultNote:29, waveform:"kWaveformNoise", attack:0.06, decay:0.39, curvature:0.62 }),
+    m({ name:"SFX_WALL_HIT",    defaultNote:31, waveform:"kWaveformNoise", decay:0.12, curvature:1.0, voices:3 }),
+    m({ name:"SFX_ENEMY_HIT",   defaultNote:29, waveform:"kWaveformNoise", decay:0.22, curvature:1.0, voices:4 }),
+    m({ name:"SFX_ENEMY_DEATH", defaultNote:29, waveform:"kWaveformNoise", attack:0.06, decay:0.39, curvature:0.62, voices:3 }),
     m({ name:"SFX_PLAYER_HIT",  defaultNote:36, waveform:"kWaveformNoise", decay:0.5, curvature:1.0,
         lfo:1, lfoType:"kLFOTypeSquare", depth:0.63, center:0.5, rate:5.0, phase:0.0 }),
   ];
@@ -331,6 +332,9 @@ const FIELDS = [
     { key:"depth",   label:"Depth",  type:"range", min:0, max:2,  step:0.01 },
     { key:"center",  label:"Center", type:"range", min:-1, max:1, step:0.01 },
     { key:"phase",   label:"Phase",  type:"range", min:0, max:1,  step:0.01 },
+  ]},
+  { group:"Spatial playback", items:[
+    { key:"voices", label:"Voices", type:"range", min:0, max:4, step:1, int:true },
   ]},
 ];
 
@@ -474,7 +478,7 @@ function renderField(s, f) {
     rng.type = "range"; rng.min = f.min; rng.max = f.max; rng.step = f.step; rng.value = s[f.key];
     const val = document.createElement("span");
     val.className = "val";
-    const setV = () => val.textContent = (+s[f.key]).toFixed(2) + (f.unit || "");
+    const setV = () => val.textContent = (f.int ? String(Math.round(+s[f.key])) : (+s[f.key]).toFixed(2)) + (f.unit || "");
     setV();
     rng.addEventListener("input", () => { beginChange("range:" + f.key); s[f.key] = +rng.value; setV(); save(); renderCode(); renderResetBtn(); maybeAuto(); });
     row.appendChild(rng); row.appendChild(val);
@@ -490,31 +494,35 @@ function fmtFloat(v) {
   return str + "f";
 }
 function genEntry(s) {
-  const lines = [];
-  lines.push(`    [${s.name}] = {`);
-  lines.push(`        .defaultNote = ${s.defaultNote},`);
+  // Fields carry trailing commas; the comma on the final field is stripped at the end
+  // so the last initializer stays comma-free regardless of which fields are emitted.
+  const fields = [];
+  fields.push(`        .defaultNote = ${s.defaultNote},`);
   if (s.pitchRandomization > 0) {
-    lines.push(`        .pitchRandomization = ${fmtFloat(s.pitchRandomization)},`);
+    fields.push(`        .pitchRandomization = ${fmtFloat(s.pitchRandomization)},`);
   }
-  lines.push(`        .volume = ${s.volume === DEFAULT_VOLUME ? "DEFAULT_VOLUME" : fmtFloat(s.volume)},`);
-  lines.push(`        .waveform = ${s.waveform},`);
-  lines.push(`        .attack = ${fmtFloat(s.attack)},`);
-  lines.push(`        .decay = ${fmtFloat(s.decay)},`);
-  lines.push(`        .sustain = ${fmtFloat(s.sustain)},`);
-  lines.push(`        .release = ${fmtFloat(s.release)},`);
-  lines.push(`        .curvature = ${fmtFloat(s.curvature)},`);
+  fields.push(`        .volume = ${s.volume === DEFAULT_VOLUME ? "DEFAULT_VOLUME" : fmtFloat(s.volume)},`);
+  fields.push(`        .waveform = ${s.waveform},`);
+  fields.push(`        .attack = ${fmtFloat(s.attack)},`);
+  fields.push(`        .decay = ${fmtFloat(s.decay)},`);
+  fields.push(`        .sustain = ${fmtFloat(s.sustain)},`);
+  fields.push(`        .release = ${fmtFloat(s.release)},`);
+  fields.push(`        .curvature = ${fmtFloat(s.curvature)},`);
   if (s.lfo) {
-    lines.push(`        .lfoType = ${s.lfoType},`);
-    lines.push(`        .lfo = 1,`);
-    lines.push(`        .depth = ${fmtFloat(s.depth)},`);
-    lines.push(`        .center = ${fmtFloat(s.center)},`);
-    lines.push(`        .rate = ${fmtFloat(s.rate)},`);
-    lines.push(`        .phase = ${fmtFloat(s.phase)}`);
+    fields.push(`        .lfoType = ${s.lfoType},`);
+    fields.push(`        .lfo = 1,`);
+    fields.push(`        .depth = ${fmtFloat(s.depth)},`);
+    fields.push(`        .center = ${fmtFloat(s.center)},`);
+    fields.push(`        .rate = ${fmtFloat(s.rate)},`);
+    fields.push(`        .phase = ${fmtFloat(s.phase)},`);
   } else {
-    lines.push(`        .lfo = 0`);
+    fields.push(`        .lfo = 0,`);
   }
-  lines.push(`    }`);
-  return lines.join("\n");
+  if (s.voices > 0) {
+    fields.push(`        .voices = ${Math.round(s.voices)},`);
+  }
+  fields[fields.length - 1] = fields[fields.length - 1].replace(/,$/, "");
+  return `    [${s.name}] = {\n` + fields.join("\n") + `\n    }`;
 }
 function genData() {
   return "SFXData sfxData[] = {\n" + library.map(genEntry).join(",\n") + "\n};";
@@ -555,7 +563,7 @@ function parseC(text) {
       if (raw === "DEFAULT_VOLUME") { s.volume = DEFAULT_VOLUME; continue; }
       if (key === "waveform" || key === "lfoType") { s[key] = raw; continue; }
       const num = parseFloat(raw);
-      if (!isNaN(num)) s[key] = (key === "defaultNote" || key === "lfo") ? Math.round(num) : num;
+      if (!isNaN(num)) s[key] = (key === "defaultNote" || key === "lfo" || key === "voices") ? Math.round(num) : num;
     }
     out.push(s);
   }

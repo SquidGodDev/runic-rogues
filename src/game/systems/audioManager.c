@@ -16,9 +16,9 @@
 // sound is culled entirely. PAN_STRENGTH is how hard a fully off-centre source ducks
 // the opposite channel (0 == mono, 1 == fully silence the far side). Note the Playdate
 // speaker is mono, so panning is only audible on headphones / in the Simulator.
-#define SFX_FALLOFF_MIN 70.0f
-#define SFX_FALLOFF_MAX 350.0f
-#define SFX_PAN_STRENGTH 0.7f
+#define SFX_FALLOFF_MIN 1.0f * CELL_SIZE
+#define SFX_FALLOFF_MAX 6.0f * CELL_SIZE
+#define SFX_PAN_STRENGTH 0.8f
 
 // Max pooled voices per SFX. Voices give polyphony so overlapping spatial plays of the
 // same SFX (e.g. several enemies hit at once) don't steal each other. Non-spatial SFX
@@ -250,7 +250,8 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0,
         .curvature = 1.0f,
-        .lfo = 0
+        .lfo = 0,
+        .voices = 3
     },
     [SFX_ENEMY_HIT] = {
         .defaultNote = 29,
@@ -261,7 +262,8 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0,
         .curvature = 1.0f,
-        .lfo = 0
+        .lfo = 0,
+        .voices = 4
     },
     [SFX_ENEMY_DEATH] = {
         .defaultNote = 14,
@@ -272,7 +274,8 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0.26f,
         .curvature = 1.0f,
-        .lfo = 0
+        .lfo = 0,
+        .voices = 3
     },
     [SFX_PLAYER_HIT] = {
         .defaultNote = 36,
@@ -756,6 +759,55 @@ SFXData sfxData[] = {
         .center = 0,
         .rate = 10.5f,
         .phase = 0
+    },
+    [SFX_SLIME_WALK] = {
+        .defaultNote = 60,
+        .pitchRandomization = 1.3f,
+        .volume = 0.11f,
+        .waveform = kWaveformSquare,
+        .attack = 0,
+        .decay = 0.24f,
+        .sustain = 0,
+        .release = 0.08f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSawtoothUp,
+        .lfo = 1,
+        .depth = 0.44f,
+        .center = 0,
+        .rate = 6.4f,
+        .phase = 0
+    },
+    [SFX_SLIME_PREP] = {
+        .defaultNote = 38,
+        .volume = 0.19f,
+        .waveform = kWaveformSquare,
+        .attack = 0.07f,
+        .decay = 0.22f,
+        .sustain = 0,
+        .release = 0.1f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.64f,
+        .center = 0,
+        .rate = 11.3f,
+        .phase = 0
+    },
+    [SFX_SLIME_ATTACK] = {
+        .defaultNote = 38,
+        .volume = 0.25f,
+        .waveform = kWaveformNoise,
+        .attack = 0.05f,
+        .decay = 0.22f,
+        .sustain = 0,
+        .release = 0.1f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.64f,
+        .center = 0,
+        .rate = 11.3f,
+        .phase = 0
     }
 };
 
@@ -918,13 +970,13 @@ void playSoundSpatial(SFX sfx, float sourceX, float sourceY) {
         attenuation *= attenuation;  // steeper, more natural rolloff
     }
 
-    // The camera plane points to screen-right, so projecting the source direction onto it
-    // gives a pan in [-1, 1] (negative == left, positive == right).
+    // The camera plane points to screen-left, so projecting the source direction onto it
+    // and negating gives a pan in [-1, 1] (negative == left, positive == right).
     float pan = 0.0f;
     if (dist > 0.01f) {
         float planeLen = fastSqrt(planeX * planeX + planeY * planeY);
         if (planeLen > 0.0f) {
-            pan = (dx * planeX + dy * planeY) / (planeLen * dist);
+            pan = -(dx * planeX + dy * planeY) / (planeLen * dist);
             pan = clampFloat(pan, -1.0f, 1.0f);
         }
     }

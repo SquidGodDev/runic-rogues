@@ -38,6 +38,9 @@ static int enemiesDefeated;
 EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_TEST] = (EnemyData){
 		.name = "Test",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 4,
 		.attackDetectionRange = 10,
 		.attackDistance = 10,
@@ -68,6 +71,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 40,
 		.attackDetectionRange = 55,
 		.attackDistance = 10,
@@ -91,6 +97,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_SLIME] = (EnemyData){
 		.name = "Slime",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 80,
 		.attackDetectionRange = 10,
 		.attackDistance = 15,
@@ -107,6 +116,10 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BABY_SLIME] = (EnemyData){
 		.name = "Baby Slime",
+		.idleSFXFrame1 = 3,
+		.idleSFX = SFX_SLIME_WALK,
+		.prepSFX = SFX_SLIME_PREP,
+		.attackSFX = SFX_SLIME_ATTACK,
 		.health = 50,
 		.attackDetectionRange = 35,
 		.attackDistance = 20,
@@ -131,6 +144,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_SKELETON] = (EnemyData){
 		.name = "Skeleton",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 100,
 		.attackDetectionRange = 25,
 		.attackDistance = 15,
@@ -155,6 +171,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_SERPENT] = (EnemyData){
 		.name = "Serpent",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 80,
 		.attackDetectionRange = 35,
 		.attackDamage = 10,
@@ -210,6 +229,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_RAT] = (EnemyData){
 		.name = "Rat",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 60,
 		.attackDetectionRange = 35,
 		.attackDistance = 20,
@@ -253,6 +275,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_FLYING_TOME] = (EnemyData){
 		.name = "Flying Tome",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 80,
 		.attackDetectionRange = 65,
 		.attackDistance = 10,
@@ -275,6 +300,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_LIVING_ARMOR] = (EnemyData){
 		.name = "Living Armor",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 120,
 		.attackDetectionRange = 22,
 		.attackDistance = 20,
@@ -300,6 +328,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_MUMMY] = (EnemyData){
 		.name = "Mummy",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 80,
 		.attackDetectionRange = 60,
 		.attackDamage = 12,
@@ -371,6 +402,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BOMBER] = (EnemyData){
 		.name = "Bomber",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 130,
 		.attackDamage = 20,
 		.attackCooldown = 0,
@@ -389,6 +423,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_AIR_ELEMENTAL] = (EnemyData){
 		.name = "Air Elemental",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 100,
 		.attackDetectionRange = 25,
 		.attackDamage = 10,
@@ -414,6 +451,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_ROCK_GOLEM] = (EnemyData){
 		.name = "Rock Golem",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 200,
 		.attackDetectionRange = 20,
 		.attackDistance = 15,
@@ -436,6 +476,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BANSHEE] = (EnemyData){
 		.name = "Banshee",
+		.idleSFX = SFX_NONE,
+		.prepSFX = SFX_NONE,
+		.attackSFX = SFX_NONE,
 		.health = 200,
 		.attackDetectionRange = 150,
 		.attackDamage = 10,
@@ -701,8 +744,10 @@ void updateEnemyTimers(Enemy *curEnemy, float deltaTime) {
 
 bool updateEnemyAnimation(Enemy *curEnemy, EnemyData *curEnemyData, float deltaTime) {
 	bool attackAnimationReset = false;
+	curEnemy->animationFrameAdvanced = false;
 	curEnemy->animationTime -= deltaTime;
 	if (curEnemy->animationTime <= 0) {
+		curEnemy->animationFrameAdvanced = true;
 		curEnemy->animationTime = curEnemyData->frameTime;
 		curEnemy->animationFrame += 1;
 		if (curEnemy->state == ENEMY_STATE_IDLE) {

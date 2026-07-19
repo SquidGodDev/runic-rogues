@@ -9,10 +9,39 @@
 #include "game/rendering/particles.h"
 #include "game/systems/spawnManager.h"
 #include "game/systems/bossCinematic.h"
+#include "game/systems/audioManager.h"
 #include "game/UI/UI.h"
 
 #define BOSS_DIFFICULTY_COUNT 2
 #define BOSS_PHASE_COUNT      2
+
+// Plays the enemy's looping idle sound the tick the idle animation advances onto one of its
+// two configured idle frames. Frame 0 is treated as unset and ignored.
+static void playEnemyIdleSFX(Enemy *curEnemy, EnemyData *curEnemyData) {
+	if (curEnemyData->idleSFX == SFX_NONE || !curEnemy->animationFrameAdvanced) {
+		return;
+	}
+	int frame = curEnemy->animationFrame;
+	if ((curEnemyData->idleSFXFrame1 != 0 && frame == curEnemyData->idleSFXFrame1) ||
+		(curEnemyData->idleSFXFrame2 != 0 && frame == curEnemyData->idleSFXFrame2)) {
+		playSoundSpatial(curEnemyData->idleSFX, curEnemy->x, curEnemy->y);
+	}
+}
+
+// Plays the enemy's prep windup sound. Called when the enemy enters its prep state.
+static void playEnemyPrepSFX(Enemy *curEnemy, EnemyData *curEnemyData) {
+	if (curEnemyData->prepSFX != SFX_NONE) {
+		playSoundSpatial(curEnemyData->prepSFX, curEnemy->x, curEnemy->y);
+	}
+}
+
+// Plays the enemy's attack sound the tick the attack animation advances onto its active frame.
+static void playEnemyAttackSFX(Enemy *curEnemy, EnemyData *curEnemyData) {
+	if (curEnemyData->attackSFX != SFX_NONE && curEnemy->animationFrameAdvanced &&
+		curEnemy->animationFrame == curEnemyData->attackActiveFrame) {
+		playSoundSpatial(curEnemyData->attackSFX, curEnemy->x, curEnemy->y);
+	}
+}
 
 void dummyUpdate(Enemy *enemy, EnemyData *data, int index, bool attackAnimationReset) {
 	(void)enemy;
@@ -457,11 +486,16 @@ typedef enum DragonAttackCycle {
 #define DRAGON_RING_SLOTS 32  // Ring positions before the two gaps are removed
 
 void proximityEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	playEnemyIdleSFX(curEnemy, curEnemyData);
+
 	// Constantly attack nearby player
 	if (playerInAttackDistance(index)) {
 		if (curEnemy->attackCooldown <= 0) {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
 			damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
+			if (curEnemyData->attackSFX != SFX_NONE) {
+				playSoundSpatial(curEnemyData->attackSFX, curEnemy->x, curEnemy->y);
+			}
 		}
 	} else {
 		curEnemy->attackCooldown = curEnemyData->attackCooldown;
@@ -485,12 +519,15 @@ void selfDestructEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index
 
 void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
+
 		// Begin prep phase if player is in range and cooldown is ready
 		if (playerInAttackDetectionRange(index)) {
 			if (curEnemy->attackCooldown <= 0) {
 				curEnemy->attackCooldown = curEnemyData->attackCooldown;
 				curEnemy->stateTimer = curEnemyData->prepTime;
 				transitionToState(curEnemy, ENEMY_STATE_PREP);
+				playEnemyPrepSFX(curEnemy, curEnemyData);
 				addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemyData->prepTime);
 			}
 		} else {
@@ -510,6 +547,8 @@ void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
 		}
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		playEnemyAttackSFX(curEnemy, curEnemyData);
+
 		// Brief lunge toward locked target while the lunge timer is active
 		if (curEnemy->abilityCooldown > 0) {
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
@@ -879,6 +918,8 @@ void rushEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 
 void mummyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
+
 		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
@@ -886,6 +927,8 @@ void mummyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attac
 
 		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		playEnemyAttackSFX(curEnemy, curEnemyData);
+
 		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			if (!curEnemy->attackedPlayer) {
 				curEnemy->attackedPlayer = true;
@@ -974,6 +1017,8 @@ static void bomberStartCycle(Enemy *curEnemy, EnemyData *curEnemyData) {
 
 void bomberUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
+
 		// On spawn the bomber is wandering with no positions queued yet — start a fresh cycle
 		if (curEnemy->attackCycle == BOMBER_PHASE_WANDER && curEnemy->stateCount == 0) {
 			bomberStartCycle(curEnemy, curEnemyData);
@@ -1006,6 +1051,8 @@ void bomberUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool atta
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 		}
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		playEnemyAttackSFX(curEnemy, curEnemyData);
+
 		// Plant a bomb half a cell towards the player once the attack animation reaches the active frame
 		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			curEnemy->attackedPlayer = true;
@@ -1058,6 +1105,8 @@ static void airElementalSpawnWarnings(Enemy *curEnemy) {
 // abilityDataSecondary is the arrival radius, and projectileData.speed is the projectile speed.
 void airElementalUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
+
 		// On spawn no position is queued yet — pick the first random position
 		if (curEnemy->stateCount == 0) {
 			pickRandomRoomTarget(curEnemy, curEnemyData->abilityDataPrimary);
@@ -1076,6 +1125,8 @@ void airElementalUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, boo
 		addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 		airElementalSpawnWarnings(curEnemy);
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		playEnemyAttackSFX(curEnemy, curEnemyData);
+
 		// Fire a projectile in all four cardinal directions once the attack animation reaches the active frame
 		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			curEnemy->attackedPlayer = true;
@@ -1130,6 +1181,8 @@ static void rockGolemSummonRubble(Enemy *curEnemy, EnemyData *curEnemyData) {
 // within attackDistance and summoning a line of rubble towards the player on the active attack frame.
 void rockGolemUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
+
 		bool forceAttack = curEnemy->stateTimer <= 0;
 		if (forceAttack || (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index))) {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
@@ -1140,6 +1193,8 @@ void rockGolemUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 
 		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		playEnemyAttackSFX(curEnemy, curEnemyData);
+
 		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			curEnemy->attackedPlayer = true;
 
@@ -1182,6 +1237,8 @@ static void bansheeFireVolleyShot(Enemy *curEnemy, EnemyData *curEnemyData) {
 // arrival radius. stateCount doubles as the queued-target flag while idle and the shot counter while attacking.
 void bansheeUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
+
 		// No position queued yet (fresh spawn or just finished a spray) — pick the next random position
 		if (curEnemy->stateCount == 0) {
 			pickRandomRoomTarget(curEnemy, curEnemyData->abilityDataPrimary);
@@ -1209,6 +1266,8 @@ void bansheeUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool att
 		transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
 		addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		playEnemyAttackSFX(curEnemy, curEnemyData);
+
 		// Once the animation reaches the active frame, fire one shot per spacing interval
 		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame && curEnemy->stateCount < BANSHEE_VOLLEY_SHOT_COUNT && curEnemy->abilityCooldown <= 0) {
 			bansheeFireVolleyShot(curEnemy, curEnemyData);
@@ -1230,6 +1289,8 @@ void bansheeUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool att
 
 void serpentUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
+
 		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
@@ -1238,6 +1299,8 @@ void serpentUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool att
 
 		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		playEnemyAttackSFX(curEnemy, curEnemyData);
+
 		// Spawn tail attack particles at intervals during attack animation
 		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			if (!curEnemy->attackedPlayer) {
@@ -2052,12 +2115,15 @@ static void chargeSpawnWarningLine(Enemy *curEnemy) {
 #define CHARGE_WANDER_ARRIVAL_RADIUS (CELL_SIZE * 0.5f)
 
 static void chargeEnemyIdle(Enemy *curEnemy, EnemyData *curEnemyData, int index) {
+    playEnemyIdleSFX(curEnemy, curEnemyData);
+
     if (playerInAttackDetectionRange(index)) {
         if (curEnemy->attackCooldown <= 0) {
             curEnemy->attackCooldown = curEnemyData->attackCooldown;
             curEnemy->stateCount = (randInt(0, 1) == 0) ? 1 : -1;
             curEnemy->stateTimer = curEnemyData->prepTime;
             transitionToState(curEnemy, ENEMY_STATE_PREP);
+            playEnemyPrepSFX(curEnemy, curEnemyData);
             lockChargeTarget(curEnemy, curEnemyData->abilityDataSecondary);
             addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemy->stateTimer);
             chargeSpawnWarningLine(curEnemy);
@@ -2104,6 +2170,9 @@ void circlingChargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int ind
         if (curEnemy->stateTimer <= 0) {
             beginCharge(curEnemy, curEnemyData->abilityDataPrimary);
             transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+            if (curEnemyData->attackSFX != SFX_NONE) {
+                playSoundSpatial(curEnemyData->attackSFX, curEnemy->x, curEnemy->y);
+            }
         }
     } else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
         chargeEnemyAttack(curEnemy, curEnemyData, index);
@@ -2122,6 +2191,9 @@ void chargeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool
         if (curEnemy->stateTimer <= 0) {
             beginCharge(curEnemy, curEnemyData->abilityDataPrimary);
             transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+            if (curEnemyData->attackSFX != SFX_NONE) {
+                playSoundSpatial(curEnemyData->attackSFX, curEnemy->x, curEnemy->y);
+            }
         }
     } else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
         chargeEnemyAttack(curEnemy, curEnemyData, index);
