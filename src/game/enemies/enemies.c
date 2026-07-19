@@ -235,9 +235,10 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_RAT] = (EnemyData){
 		.name = "Rat",
-		.idleSFX = SFX_NONE,
-		.prepSFX = SFX_NONE,
-		.attackSFX = SFX_NONE,
+		.idleSFX = SFX_RAT_JUMP,
+		.idleSFXFrame1 = 5,
+		.prepSFX = SFX_RAT_PREP,
+		.attackSFX = SFX_RAT_ATTACK,
 		.health = 60,
 		.attackDetectionRange = 35,
 		.attackDistance = 20,

@@ -1010,6 +1010,56 @@ SFXData sfxData[] = {
         .release = 0,
         .curvature = 1.0f,
         .lfo = 0
+    },
+    [SFX_RAT_JUMP] = {
+        .defaultNote = 60,
+        .pitchRandomization = 1.3f,
+        .volume = 0.11f,
+        .waveform = kWaveformSquare,
+        .attack = 0.04f,
+        .decay = 0.22f,
+        .sustain = 0,
+        .release = 0.08f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSawtoothUp,
+        .lfo = 1,
+        .depth = 0.44f,
+        .center = 0,
+        .rate = 6.4f,
+        .phase = 0
+    },
+    [SFX_RAT_PREP] = {
+        .defaultNote = 55,
+        .volume = 0.39f,
+        .waveform = kWaveformSawtooth,
+        .attack = 0,
+        .decay = 0.23f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.5f,
+        .center = 0.5f,
+        .rate = 7.2f,
+        .phase = 0
+    },
+    [SFX_RAT_ATTACK] = {
+        .defaultNote = 51,
+        .pitchRandomization = 1.0f,
+        .volume = 0.39f,
+        .waveform = kWaveformNoise,
+        .attack = 0,
+        .decay = 0.23f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.5f,
+        .center = 0.5f,
+        .rate = 7.2f,
+        .phase = 0
     }
 };
 
