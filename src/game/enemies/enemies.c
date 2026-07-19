@@ -287,9 +287,10 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_FLYING_TOME] = (EnemyData){
 		.name = "Flying Tome",
-		.idleSFX = SFX_NONE,
-		.prepSFX = SFX_NONE,
-		.attackSFX = SFX_NONE,
+		.idleSFX = SFX_FLYING_TOME_FLAP,
+		.idleSFXFrame1 = 4,
+		.prepSFX = SFX_FLYING_TOME_PREP,
+		.attackSFX = SFX_FLYING_TOME_ATTACK,
 		.health = 80,
 		.attackDetectionRange = 65,
 		.attackDistance = 10,

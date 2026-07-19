@@ -17,7 +17,7 @@
 // the opposite channel (0 == mono, 1 == fully silence the far side). Note the Playdate
 // speaker is mono, so panning is only audible on headphones / in the Simulator.
 #define SFX_FALLOFF_MIN 1.0f * CELL_SIZE
-#define SFX_FALLOFF_MAX 6.0f * CELL_SIZE
+#define SFX_FALLOFF_MAX 8.0f * CELL_SIZE
 #define SFX_PAN_STRENGTH 0.8f
 
 // Max pooled voices per SFX. Voices give polyphony so overlapping spatial plays of the
@@ -1106,6 +1106,60 @@ SFXData sfxData[] = {
         .release = 0,
         .curvature = 1.0f,
         .lfo = 0
+    },
+    [SFX_FLYING_TOME_FLAP] = {
+        .defaultNote = 38,
+        .pitchRandomization = 1.2f,
+        .volume = 0.15f,
+        .waveform = kWaveformNoise,
+        .attack = 0.1f,
+        .decay = 0.32f,
+        .sustain = 0,
+        .release = 0.09f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.34f,
+        .center = 0.5f,
+        .rate = 2.8f,
+        .phase = 0,
+        .voices = 4
+    },
+    [SFX_FLYING_TOME_PREP] = {
+        .defaultNote = 41,
+        .pitchRandomization = 0.8f,
+        .volume = 0.14f,
+        .waveform = kWaveformSquare,
+        .attack = 0.1f,
+        .decay = 0.32f,
+        .sustain = 0,
+        .release = 0.09f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSquare,
+        .lfo = 1,
+        .depth = 0.34f,
+        .center = 0.5f,
+        .rate = 8.3f,
+        .phase = 0,
+        .voices = 4
+    },
+    [SFX_FLYING_TOME_ATTACK] = {
+        .defaultNote = 45,
+        .pitchRandomization = 0.8f,
+        .volume = 0.3f,
+        .waveform = kWaveformSquare,
+        .attack = 0,
+        .decay = 0.29f,
+        .sustain = 0,
+        .release = 0.09f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSquare,
+        .lfo = 1,
+        .depth = 0.34f,
+        .center = 0.5f,
+        .rate = 11.6f,
+        .phase = 0,
+        .voices = 4
     }
 };
 
