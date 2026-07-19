@@ -89,6 +89,7 @@ static void closeDialog(void) {
 }
 
 static void confirmQuit(void) {
+    resetGameMenu();
     removeGameMenuItem();
     if (isTutorialActive()) {
         removeSkipTutorialMenuItem();

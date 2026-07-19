@@ -1111,6 +1111,11 @@ bool gameMenuActive(void) {
     return menuActive;
 }
 
+void resetGameMenu(void) {
+    menuActive = false;
+    settingsDirty = false;
+}
+
 static void onOpenMenuItemSelect(void *userdata) {
     if (gameState == GAME_STATE_ACTIVE || gameState == GAME_STATE_SHOP || gameState == GAME_STATE_BOSS_CINEMATIC) {
         initGameMenu();
