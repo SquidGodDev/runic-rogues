@@ -142,8 +142,8 @@
   <button class="small" id="btnUndo" title="Undo (Ctrl+Z)" disabled>↶</button>
   <button class="small" id="btnRedo" title="Redo (Ctrl+Shift+Z)" disabled>↷</button>
   <button class="small" id="btnImport">Import from C…</button>
-  <button class="small" id="btnLoadFile" title="Chrome only: read audioManager.c directly">Open .c…</button>
-  <button class="small primary" id="btnWriteFileTop" title="Write back into opened file" style="display:none">⤓ Write back</button>
+  <button class="small" id="btnLoadFile" title="Chrome only: open audioManager.c and/or audioManager.h — select both to write enum + sfxData">Open .c/.h…</button>
+  <button class="small primary" id="btnWriteFileTop" title="Write enum SFX + sfxData[] back into the opened file(s)" style="display:none">⤓ Write back</button>
   <button class="small" id="btnReset" title="Reset library to the 5 built-in sounds">Reset</button>
 </header>
 
@@ -259,8 +259,9 @@ function builtins() {
 const STORE_KEY = "pd_sfx_designer_v1";
 let library = load();
 let selected = 0;
-let fileHandle = null;
-let lastFileText = "";
+// Connected source files: [{ handle, text }]. Typically the .c holding sfxData[]
+// and the .h holding enum SFX; each block is written to whichever file contains it.
+let files = [];
 let fileBaseline = null; // { name -> sound } snapshot of the opened .c/.h file, for per-sound reset
 
 function load() {
@@ -568,7 +569,7 @@ function genData() {
   return "SFXData sfxData[] = {\n" + library.map(genEntry).join(",\n") + "\n};";
 }
 function genEnum() {
-  return "typedef enum SFX {\n" + library.map(s => `    ${s.name},`).join("\n") + "\n    SFX_COUNT\n} SFX;";
+  return "typedef enum SFX {\n    SFX_NONE = -1,\n" + library.map(s => `    ${s.name},`).join("\n") + "\n    SFX_COUNT\n} SFX;";
 }
 function highlight(code) {
   return code
@@ -585,8 +586,11 @@ function renderCode() {
 // ---- Import / parse existing C -------------------------------------------
 function parseC(text) {
   const out = [];
-  // grab the sfxData[] { ... } block, then each [SFX_X] = { ... } entry
-  const blockMatch = text.match(/sfxData\s*\[\s*\]\s*=\s*\{([\s\S]*)\n\s*\}\s*;/);
+  // grab the sfxData[] { ... } block, then each [SFX_X] = { ... } entry.
+  // Non-greedy so it stops at sfxData's own closing `};` rather than the last
+  // `};` in the file (which would sweep in unrelated `[SFX_*] = {` matches like
+  // the commented sfxFilePathStrings[SFX_FILE_COUNT] scaffolding).
+  const blockMatch = text.match(/sfxData\s*\[\s*\]\s*=\s*\{([\s\S]*?)\n\s*\}\s*;/);
   const scope = blockMatch ? blockMatch[1] : text;
   const entryRe = /\[\s*(SFX_\w+)\s*\]\s*=\s*\{([\s\S]*?)\}/g;
   let m;
@@ -808,9 +812,10 @@ function maybeAuto() {
 const canFS = "showOpenFilePicker" in window;
 document.getElementById("btnLoadFile").style.display = canFS ? "" : "none";
 
-// Persist the last-opened file handle so the picker reopens in its folder even
-// after a page reload (startIn accepts a FileSystemFileHandle). Handles aren't
-// JSON-serialisable, so they live in IndexedDB, not localStorage.
+// Persist the connected file handles so the picker reopens in their folder and
+// the session reconnects after a page reload (startIn accepts a
+// FileSystemFileHandle). Handles aren't JSON-serialisable, so they live in
+// IndexedDB, not localStorage. Stored as an array of handles.
 let lastOpenedHandle = null;
 function idbLastFile(mode, value) {
   return new Promise((resolve) => {
@@ -822,16 +827,34 @@ function idbLastFile(mode, value) {
     req.onsuccess = () => {
       try {
         const store = req.result.transaction("kv", mode).objectStore("kv");
-        const op = mode === "readwrite" ? store.put(value, "lastFile") : store.get("lastFile");
+        const op = mode === "readwrite" ? store.put(value, "lastFiles") : store.get("lastFiles");
         op.onsuccess = () => resolve(op.result || null);
         op.onerror = () => resolve(null);
       } catch (e) { resolve(null); }
     };
   });
 }
+function persistHandles() { idbLastFile("readwrite", files.map(f => f.handle)); }
 function setFileBaseline(sounds) {
   fileBaseline = {};
   sounds.forEach(s => { fileBaseline[s.name] = JSON.parse(JSON.stringify(s)); });
+}
+
+// Reflect the connected-file set in the header: filename status + write-back
+// button visibility.
+function renderFileStatus() {
+  document.getElementById("fsStatus").textContent =
+    files.length ? "● " + files.map(f => f.handle.name).join(" + ") : "";
+  document.getElementById("btnWriteFileTop").style.display = files.length ? "" : "none";
+}
+
+// Add or replace a connected file (dedup by identity so re-opening the same file
+// refreshes rather than duplicates it).
+async function upsertFile(h, text) {
+  for (let i = 0; i < files.length; i++) {
+    if (await files[i].handle.isSameEntry(h)) { files[i] = { handle: h, text }; return; }
+  }
+  files.push({ handle: h, text });
 }
 
 // Wire an opened handle into the session: remember it, refresh the file baseline
@@ -840,10 +863,9 @@ function setFileBaseline(sounds) {
 // an explicit Open); false keeps the current in-memory/localStorage sounds and
 // only restores the connection (used when auto-reconnecting after a reload, so
 // unsaved edits aren't clobbered).
-function connectFile(h, text, loadLibrary) {
-  fileHandle = h;
+async function connectFile(h, text, loadLibrary) {
   lastOpenedHandle = h;
-  lastFileText = text;
+  await upsertFile(h, text);
   const parsed = parseC(text);
   if (loadLibrary && parsed.length) {
     beginChange(null);
@@ -851,8 +873,7 @@ function connectFile(h, text, loadLibrary) {
     save();
   }
   if (parsed.length) setFileBaseline(parsed);
-  document.getElementById("fsStatus").textContent = "● " + h.name;
-  document.getElementById("btnWriteFileTop").style.display = "";
+  renderFileStatus();
   document.getElementById("btnReconnect").style.display = "none";
   renderAll();
   return parsed;
@@ -865,46 +886,66 @@ async function openFile() {
       // points it at the last file we opened (this session, or restored from
       // IndexedDB after a reload) so the explorer lands where you left off.
       id: "sfx-audiomanager",
-      startIn: fileHandle || lastOpenedHandle || "documents",
-      types: [{ description: "C source", accept: { "text/plain": [".c", ".h"] } }]
+      startIn: lastOpenedHandle || "documents",
+      types: [{ description: "C source", accept: { "text/plain": [".c", ".h"] } }],
+      multiple: true
     };
-    const [h] = await window.showOpenFilePicker(opts);
-    idbLastFile("readwrite", h);
-    const text = await (await h.getFile()).text();
-    const parsed = connectFile(h, text, /*loadLibrary=*/true);
-    toast(parsed.length ? `Loaded ${parsed.length} sounds from ${h.name}`
-                        : `Opened ${h.name} (no sfxData[] found — write-back enabled for enum)`);
+    const handles = await window.showOpenFilePicker(opts);
+    let totalSounds = 0;
+    for (const h of handles) {
+      const text = await (await h.getFile()).text();
+      const parsed = await connectFile(h, text, /*loadLibrary=*/true);
+      totalSounds += parsed.length;
+    }
+    persistHandles();
+    const names = handles.map(h => h.name).join(" + ");
+    toast(totalSounds ? `Loaded ${totalSounds} sounds from ${names}`
+                      : `Opened ${names} (no sfxData[] found — write-back enabled for enum)`);
   } catch (e) { /* cancelled */ }
 }
 
-// On reload, reconnect the last-opened file. If the browser still holds read
-// permission we do it silently; otherwise the File System Access API requires a
-// user gesture, so we surface a one-click "Reconnect" button in the header.
+// On reload, reconnect the last-opened files. Those the browser still grants
+// read permission to reconnect silently; any that need a fresh user gesture are
+// surfaced behind a one-click "Reconnect" button in the header.
+let pendingReconnect = [];
 async function restoreLastHandle() {
   try {
-    lastOpenedHandle = await idbLastFile("readonly");
-    if (!lastOpenedHandle) return;
-    const btn = document.getElementById("btnReconnect");
-    if ((await lastOpenedHandle.queryPermission({ mode: "readwrite" })) === "granted") {
-      const text = await (await lastOpenedHandle.getFile()).text();
-      connectFile(lastOpenedHandle, text, /*loadLibrary=*/false);
-    } else {
-      btn.textContent = "↻ Reconnect " + lastOpenedHandle.name;
-      btn.title = "Re-open the last file (" + lastOpenedHandle.name + ") for write-back";
+    const handles = await idbLastFile("readonly");
+    if (!handles || !handles.length) return;
+    pendingReconnect = [];
+    for (const h of handles) {
+      lastOpenedHandle = h;
+      if ((await h.queryPermission({ mode: "readwrite" })) === "granted") {
+        const text = await (await h.getFile()).text();
+        await connectFile(h, text, /*loadLibrary=*/false);
+      } else {
+        pendingReconnect.push(h);
+      }
+    }
+    if (pendingReconnect.length) {
+      const btn = document.getElementById("btnReconnect");
+      const names = pendingReconnect.map(h => h.name).join(" + ");
+      btn.textContent = "↻ Reconnect " + names;
+      btn.title = "Re-open the last file(s) (" + names + ") for write-back";
       btn.style.display = "";
     }
   } catch (e) { /* handle gone / no access */ }
 }
 
 async function reconnectFile() {
-  if (!lastOpenedHandle) return;
+  if (!pendingReconnect.length) return;
   try {
-    let perm = await lastOpenedHandle.queryPermission({ mode: "readwrite" });
-    if (perm !== "granted") perm = await lastOpenedHandle.requestPermission({ mode: "readwrite" });
-    if (perm !== "granted") { toast("Permission denied"); return; }
-    const text = await (await lastOpenedHandle.getFile()).text();
-    connectFile(lastOpenedHandle, text, /*loadLibrary=*/false);
-    toast("Reconnected " + lastOpenedHandle.name);
+    for (const h of pendingReconnect) {
+      let perm = await h.queryPermission({ mode: "readwrite" });
+      if (perm !== "granted") perm = await h.requestPermission({ mode: "readwrite" });
+      if (perm !== "granted") { toast("Permission denied for " + h.name); return; }
+      const text = await (await h.getFile()).text();
+      await connectFile(h, text, /*loadLibrary=*/false);
+    }
+    const names = pendingReconnect.map(h => h.name).join(" + ");
+    pendingReconnect = [];
+    document.getElementById("btnReconnect").style.display = "none";
+    toast("Reconnected " + names);
   } catch (e) { toast("Reconnect failed: " + e.message); }
 }
 // Replace the enum SFX + sfxData[] blocks inside `text` with freshly generated
@@ -918,35 +959,46 @@ function applyBlocks(text) {
   return { text, blocks };
 }
 
-// Regenerate the managed blocks against `baseText` and flush to disk. `baseText`
-// is the designer's cached copy for a plain write/overwrite, or the current
-// on-disk text for a merge.
-async function doWrite(baseText) {
-  const { text, blocks } = applyBlocks(baseText);
-  if (!blocks.length) { toast("Couldn't find enum SFX or sfxData[] to replace"); return; }
-  const w = await fileHandle.createWritable();
-  await w.write(text); await w.close();
-  lastFileText = text;
+// Regenerate the managed blocks in each connected file and flush to disk.
+// useDiskAsBase=true re-reads the current on-disk text per file first (a merge
+// that preserves external edits outside the managed blocks); false uses the
+// designer's cached copy (a plain overwrite).
+async function doWrite(useDiskAsBase) {
+  const written = [];
+  let wroteData = false;
+  for (const f of files) {
+    const base = useDiskAsBase ? await (await f.handle.getFile()).text() : f.text;
+    const { text, blocks } = applyBlocks(base);
+    if (!blocks.length) continue;
+    const w = await f.handle.createWritable();
+    await w.write(text); await w.close();
+    f.text = text;
+    written.push(f.handle.name + " (" + blocks.join(" + ") + ")");
+    if (blocks.includes("sfxData[]")) { wroteData = true; }
+  }
+  if (!written.length) { toast("Couldn't find enum SFX or sfxData[] in the connected file(s)"); return; }
   // the freshly-written file is now the baseline for per-sound resets
-  if (blocks.includes("sfxData[]")) { setFileBaseline(library); renderResetBtn(); }
-  toast(`Wrote ${blocks.join(" + ")} to ${fileHandle.name}`);
+  if (wroteData) { setFileBaseline(library); renderResetBtn(); }
+  toast(`Wrote ${written.join(", ")}`);
 }
 
-let conflictDiskText = "";
 async function writeFile() {
-  if (!fileHandle) return;
+  if (!files.length) return;
   try {
-    // Detect edits made to the file outside the designer since we last read or
-    // wrote it: if the on-disk text no longer matches our cached copy, a blind
-    // write-back would clobber them, so ask first.
-    const diskText = await (await fileHandle.getFile()).text();
-    if (lastFileText && diskText !== lastFileText) {
-      conflictDiskText = diskText;
-      document.getElementById("conflictName").textContent = fileHandle.name;
+    // Detect edits made to any connected file outside the designer since we last
+    // read or wrote it: if the on-disk text no longer matches our cached copy, a
+    // blind write-back would clobber them, so ask first.
+    const conflicts = [];
+    for (const f of files) {
+      const diskText = await (await f.handle.getFile()).text();
+      if (f.text && diskText !== f.text) { conflicts.push(f.handle.name); }
+    }
+    if (conflicts.length) {
+      document.getElementById("conflictName").textContent = conflicts.join(", ");
       document.getElementById("conflictDlg").showModal();
       return;
     }
-    await doWrite(diskText);
+    await doWrite(/*useDiskAsBase=*/false);
   } catch (e) { toast("Write failed: " + e.message); }
 }
 
@@ -1130,11 +1182,11 @@ document.getElementById("conflictCancel").addEventListener("click", () => {
 });
 document.getElementById("conflictOverwrite").addEventListener("click", async () => {
   document.getElementById("conflictDlg").close();
-  try { await doWrite(lastFileText); } catch (e) { toast("Write failed: " + e.message); }
+  try { await doWrite(/*useDiskAsBase=*/false); } catch (e) { toast("Write failed: " + e.message); }
 });
 document.getElementById("conflictMerge").addEventListener("click", async () => {
   document.getElementById("conflictDlg").close();
-  try { await doWrite(conflictDiskText); } catch (e) { toast("Write failed: " + e.message); }
+  try { await doWrite(/*useDiskAsBase=*/true); } catch (e) { toast("Write failed: " + e.message); }
 });
 document.getElementById("btnReconnect").addEventListener("click", reconnectFile);
 
