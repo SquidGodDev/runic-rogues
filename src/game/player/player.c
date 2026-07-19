@@ -170,6 +170,9 @@ void initPlayer(void) {
 	playerX = playerSpawnMapPosition.x * CELL_SIZE + CELL_SIZE / 2;
 	playerY = playerSpawnMapPosition.y * CELL_SIZE + CELL_SIZE / 2;
 	playerAngle = 0;
+	// Re-seed the absolute crank accumulator so the current crank position maps to
+	// forward, otherwise carried-over accumulation could face the player backwards.
+	crankAccumInit = false;
 	planeX = 0;
 	planeY = -0.59f; // I think it's supposed to be -tanf(FOV_RAD / 2) ~= -0.65, but adjusted since it was off for some reason
 	dirX = 1;
@@ -424,7 +427,9 @@ void handleInput(float deltaTime)
 	float rawCrankAngle = pd->system->getCrankAngle();
 	if (!crankAccumInit) {
 		prevCrankAngle = rawCrankAngle;
-		absoluteCrankAccum = rawCrankAngle;
+		// Seed centered on 0 so a crank near "up" (e.g. 355°) reads as a small offset
+		// (-5°) rather than a large one, keeping it forward-facing even when geared down.
+		absoluteCrankAccum = rawCrankAngle > 180.0f ? rawCrankAngle - 360.0f : rawCrankAngle;
 		crankAccumInit = true;
 	}
 	float crankAngleDelta = rawCrankAngle - prevCrankAngle;
