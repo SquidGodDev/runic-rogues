@@ -1,5 +1,6 @@
 # TODO
 ## Playthrough Notes
+- Change banshee to summoner class
 - Black hole spell
 - Increase enemy health in echoing caverns
 - Make bomber enemy throw bombs
