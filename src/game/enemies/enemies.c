@@ -71,9 +71,10 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BAT] = (EnemyData){
 		.name = "Bat",
-		.idleSFX = SFX_NONE,
-		.prepSFX = SFX_NONE,
-		.attackSFX = SFX_NONE,
+		.idleSFX = SFX_BAT_FLAP,
+		.idleSFXFrame1 = 2,
+		.prepSFX = SFX_BAT_PREP,
+		.attackSFX = SFX_BAT_ATTACK,
 		.health = 40,
 		.attackDetectionRange = 55,
 		.attackDistance = 10,

@@ -64,6 +64,9 @@ typedef enum SFX {
     SFX_SLIME_WALK,
     SFX_SLIME_PREP,
     SFX_SLIME_ATTACK,
+    SFX_BAT_FLAP,
+    SFX_BAT_PREP,
+    SFX_BAT_ATTACK,
     SFX_COUNT
 } SFX;
 

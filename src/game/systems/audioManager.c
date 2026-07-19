@@ -857,6 +857,56 @@ SFXData sfxData[] = {
         .center = 0,
         .rate = 11.3f,
         .phase = 0
+    },
+    [SFX_BAT_FLAP] = {
+        .defaultNote = 45,
+        .pitchRandomization = 1.2f,
+        .volume = 0.15f,
+        .waveform = kWaveformNoise,
+        .attack = 0.1f,
+        .decay = 0.32f,
+        .sustain = 0,
+        .release = 0.09f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.34f,
+        .center = 0.5f,
+        .rate = 2.8f,
+        .phase = 0,
+        .voices = 4
+    },
+    [SFX_BAT_PREP] = {
+        .defaultNote = 32,
+        .volume = 0.29f,
+        .waveform = kWaveformNoise,
+        .attack = 0.07f,
+        .decay = 0.35f,
+        .sustain = 0,
+        .release = 0.13f,
+        .curvature = 0.64f,
+        .lfoType = kLFOTypeTriangle,
+        .lfo = 1,
+        .depth = 0.85f,
+        .center = 0.5f,
+        .rate = 9.4f,
+        .phase = 0
+    },
+    [SFX_BAT_ATTACK] = {
+        .defaultNote = 32,
+        .volume = 0.33f,
+        .waveform = kWaveformNoise,
+        .attack = 0.26f,
+        .decay = 0.35f,
+        .sustain = 0,
+        .release = 0.13f,
+        .curvature = 0.64f,
+        .lfoType = kLFOTypeTriangle,
+        .lfo = 1,
+        .depth = 0.85f,
+        .center = 0.5f,
+        .rate = 9.4f,
+        .phase = 0
     }
 };
 
