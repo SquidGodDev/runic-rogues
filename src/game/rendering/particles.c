@@ -127,7 +127,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_MINI_BOMB,
 		.damageFrame = 47,
 		.damage = 10,
-		.damageRadius = CELL_SIZE
+		.damageRadius = CELL_SIZE * 2
 	},
 	[PARTICLE_TYPE_BLACK_HOLE] = {
 		.frameCount = 50,
@@ -241,6 +241,9 @@ void updateParticles(float deltaTime) {
 		}
 
 		if (data->damageFrame > 0 && curParticle->animationFrame >= data->damageFrame - 1 && !curParticle->appliedDamage) {
+			if (curParticle->type == PARTICLE_TYPE_BOMB || curParticle->type == PARTICLE_TYPE_MINI_BOMB) {
+				playSound(SFX_BOMB);
+			}
 			curParticle->appliedDamage = true;
 			if (curParticle->enemyParticle) {
 				float distSquared = distanceSquared(curParticle->x, curParticle->y, playerX, playerY);

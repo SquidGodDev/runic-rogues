@@ -225,6 +225,22 @@ SFXData sfxData[] = {
         .rate = 15.5f,
         .phase = 0
     },
+    [SFX_BOMB] = {
+        .defaultNote = 17,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformNoise,
+        .attack = 0,
+        .decay = 0.73f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 0.51f,
+        .lfoType = kLFOTypeTriangle,
+        .lfo = 1,
+        .depth = 0.45f,
+        .center = 0.5f,
+        .rate = 5.9f,
+        .phase = 0
+    },
     [SFX_WALL_HIT] = {
         .defaultNote = 31,
         .volume = DEFAULT_VOLUME,
@@ -234,8 +250,7 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0,
         .curvature = 1.0f,
-        .lfo = 0,
-        .voices = 3
+        .lfo = 0
     },
     [SFX_ENEMY_HIT] = {
         .defaultNote = 29,
@@ -246,8 +261,7 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0,
         .curvature = 1.0f,
-        .lfo = 0,
-        .voices = 4
+        .lfo = 0
     },
     [SFX_ENEMY_DEATH] = {
         .defaultNote = 14,
@@ -258,8 +272,7 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0.26f,
         .curvature = 1.0f,
-        .lfo = 0,
-        .voices = 3
+        .lfo = 0
     },
     [SFX_PLAYER_HIT] = {
         .defaultNote = 36,

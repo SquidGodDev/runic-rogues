@@ -17,6 +17,7 @@ typedef enum SFX {
     SFX_NET_BG,
     SFX_DASH,
     SFX_DASH_BG,
+    SFX_BOMB,
     SFX_WALL_HIT,
     SFX_ENEMY_HIT,
     SFX_ENEMY_DEATH,
