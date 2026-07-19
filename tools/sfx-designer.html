@@ -67,6 +67,18 @@
   .libItem.dragover { border-top: 2px solid var(--accent); }
   .libButtons { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; }
   .libButtons button { flex: 1 1 auto; }
+  #libList { overflow-y: auto; max-height: calc(100vh - 120px); }
+  .ctxMenu {
+    position: fixed; z-index: 50; display: none; min-width: 130px; padding: 4px;
+    background: var(--panel2); border: 1px solid var(--edge); border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.5);
+  }
+  .ctxMenu button {
+    display: block; width: 100%; text-align: left; background: transparent;
+    border: none; border-radius: 6px; padding: 7px 10px; font-size: 13px;
+  }
+  .ctxMenu button:hover { background: var(--panel); }
+  .ctxMenu button.danger:hover { color: var(--danger); }
 
   /* editor */
   .editor { padding: 6px 18px 40px; max-width: 720px; }
@@ -350,6 +362,7 @@ function renderLib() {
     el.querySelector(".nm").textContent = s.name;
     el.addEventListener("click", (e) => { if (e.target.dataset.play !== undefined) return; selected = i; renderAll(); });
     el.querySelector("[data-play]").addEventListener("click", (e) => { e.stopPropagation(); playParams(library[i]); });
+    el.addEventListener("contextmenu", (e) => { e.preventDefault(); showCtxMenu(e.clientX, e.clientY, i); });
     // drag reorder
     el.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", i); });
     el.addEventListener("dragover", (e) => { e.preventDefault(); el.classList.add("dragover"); });
@@ -366,6 +379,33 @@ function renderLib() {
     libList.appendChild(el);
   });
 }
+
+// ---- Library context menu ------------------------------------------------
+const ctxMenu = document.createElement("div");
+ctxMenu.className = "ctxMenu";
+ctxMenu.innerHTML = `<button data-act="dup">Duplicate</button><button data-act="del" class="danger">Delete</button>`;
+document.body.appendChild(ctxMenu);
+let ctxIndex = -1;
+ctxMenu.addEventListener("click", (e) => {
+  const act = e.target.dataset.act;
+  if (act === "dup") { dupSound(ctxIndex); }
+  else if (act === "del") { delSound(ctxIndex); }
+  hideCtxMenu();
+});
+function showCtxMenu(x, y, i) {
+  ctxIndex = i;
+  ctxMenu.style.display = "block";
+  const w = ctxMenu.offsetWidth, h = ctxMenu.offsetHeight;
+  ctxMenu.style.left = Math.min(x, window.innerWidth - w - 4) + "px";
+  ctxMenu.style.top = Math.min(y, window.innerHeight - h - 4) + "px";
+}
+function hideCtxMenu() { ctxMenu.style.display = "none"; ctxIndex = -1; }
+window.addEventListener("click", hideCtxMenu);
+window.addEventListener("scroll", hideCtxMenu, true);
+window.addEventListener("keydown", (e) => { if (e.key === "Escape") { hideCtxMenu(); } });
+window.addEventListener("contextmenu", (e) => {
+  if (!e.target.closest(".libItem") && !e.target.closest(".ctxMenu")) { hideCtxMenu(); }
+});
 
 // ---- Rendering: editor ---------------------------------------------------
 const editor = document.getElementById("editor");
@@ -1051,17 +1091,21 @@ document.getElementById("btnAdd").addEventListener("click", () => {
   s.name = "SFX_NEW_" + library.length;
   library.push(s); selected = library.length - 1; save(); renderAll();
 });
-document.getElementById("btnDup").addEventListener("click", () => {
-  if (!cur()) return;
+function dupSound(i) {
+  if (!library[i]) return;
   beginChange(null);
-  const s = Object.assign({}, cur()); s.name = cur().name + "_COPY";
-  library.splice(selected + 1, 0, s); selected++; save(); renderAll();
-});
-document.getElementById("btnDel").addEventListener("click", () => {
-  if (!cur() || library.length <= 1) { toast("Keep at least one sound"); return; }
+  const s = Object.assign({}, library[i]); s.name = library[i].name + "_COPY";
+  library.splice(i + 1, 0, s); selected = i + 1; save(); renderAll();
+}
+function delSound(i) {
+  if (!library[i] || library.length <= 1) { toast("Keep at least one sound"); return; }
   beginChange(null);
-  library.splice(selected, 1); selected = Math.max(0, selected - 1); save(); renderAll();
-});
+  library.splice(i, 1);
+  if (selected > i || selected >= library.length) { selected = Math.max(0, selected - 1); }
+  save(); renderAll();
+}
+document.getElementById("btnDup").addEventListener("click", () => dupSound(selected));
+document.getElementById("btnDel").addEventListener("click", () => delSound(selected));
 document.getElementById("btnReset").addEventListener("click", () => {
   if (confirm("Reset the library to the 5 built-in sounds? This discards your edits.")) {
     beginChange(null);
