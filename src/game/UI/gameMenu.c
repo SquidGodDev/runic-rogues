@@ -986,6 +986,8 @@ void updateGameMenu(float deltaTime) {
         if (focus == FOCUS_CONTENT) {
             if (pushed & (kButtonB | kButtonUp)) {
                 enterTabSelect();
+            } else if (DEBUG.enabled && (pushed & kButtonA)) {
+                runeInventoryDebugCycleSelected();
             } else if ((pushed & (kButtonA | kButtonDown)) && runeInventoryHasScrollbar()) {
                 focus = FOCUS_SCROLLBAR;
                 notifyEnterRuneScrollbar();

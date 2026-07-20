@@ -544,6 +544,9 @@ void setRuneLevel(RuneType type, int level) {
         level = RUNE_DATA[type].maxLevel;
     }
     runeLevels[type] = level;
+    if (level == 0) {
+        runeTriggerCounters[type] = 0.0f;
+    }
 
     recalculateRuneEffectsToSpells();
     clampPlayerHealth();

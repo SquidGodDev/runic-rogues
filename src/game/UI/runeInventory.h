@@ -10,6 +10,8 @@ typedef enum RuneInventoryFocus {
 
 void initRuneInventoryTab(void);
 void updateRuneInventoryTab(float deltaTime, RuneInventoryFocus focus);
+// Debug only: cycles the selected rune's level (unowned -> I -> ... -> max -> unowned).
+void runeInventoryDebugCycleSelected(void);
 bool runeInventoryHasScrollbar(void);
 bool runeInventoryAtScrollTop(void);
 void notifyEnterRuneScrollbar(void);

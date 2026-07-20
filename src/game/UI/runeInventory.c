@@ -60,6 +60,12 @@ static float scrollSuppressTimer;
 
 static const char *ROMAN_NUMERALS[] = { "", "I", "II", "III", "IV", "V" };
 
+// Debug only: 50% checkerboard blacked over unowned rune icons so they read as faded.
+static LCDPattern runeUnownedDither = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55
+};
+
 static RunePageData getRunePage(RuneType runeType) {
     if (runePageCached[runeType]) {
         return runePageCache[runeType];
@@ -150,9 +156,13 @@ static void drawRuneInventoryTab(RuneInventoryFocus focus) {
             int drawX = (int)iconCenterX - RUNE_ROW_ICON_SIZE / 2;
             int drawY = iconCenterY - RUNE_ROW_ICON_SIZE / 2;
 
-            int bitmapIndex = getRuneIconIndex(ownedRunesList[i]);
+            RuneType runeType = ownedRunesList[i];
+            int bitmapIndex = getRuneIconIndex(runeType);
             pd->graphics->setClipRect(drawX, drawY, RUNE_ROW_ICON_SIZE, RUNE_ROW_ICON_SIZE);
             pd->graphics->drawBitmap(BITMAPS[bitmapIndex], drawX, drawY, kBitmapUnflipped);
+            if (DEBUG.enabled && !runeIsOwned(runeType)) {
+                pd->graphics->fillRect(drawX, drawY, RUNE_ROW_ICON_SIZE, RUNE_ROW_ICON_SIZE, (LCDColor)runeUnownedDither);
+            }
             pd->graphics->setClipRect(0, RUNE_ROW_CLIP_TOP, SCREEN_WIDTH, RUNE_ROW_CLIP_BOTTOM - RUNE_ROW_CLIP_TOP + 1);
 
             if (i == cursorIndex && focus == RUNE_INV_FOCUS_RUNES) {
@@ -335,8 +345,10 @@ void notifyEnterRuneScrollbar(void) {
 
 void initRuneInventoryTab(void) {
     ownedRuneCount = 0;
+    // In debug, list every rune (unowned ones render faded and can be added via A);
+    // otherwise only the runes actually owned this run.
     for (int i = RUNE_TYPE_COUNT - 1; i > RUNE_TYPE_NONE; i--) {
-        if (runeIsOwned((RuneType)i)) {
+        if (DEBUG.enabled || runeIsOwned((RuneType)i)) {
             ownedRunesList[ownedRuneCount] = (RuneType)i;
             ownedRuneCount++;
         }
@@ -348,6 +360,36 @@ void initRuneInventoryTab(void) {
     holdTimer = 0.0f;
     scrollSuppressTimer = 0.0f;
     resetDescScrollOffset();
+}
+
+static void invalidateRunePage(RuneType runeType) {
+    if (!runePageCached[runeType]) {
+        return;
+    }
+    if (runePageCache[runeType].pageBitmapEN != NULL) {
+        pd->graphics->freeBitmap(runePageCache[runeType].pageBitmapEN);
+    }
+    if (runePageCache[runeType].pageBitmapJP != NULL) {
+        pd->graphics->freeBitmap(runePageCache[runeType].pageBitmapJP);
+    }
+    runePageCache[runeType] = (RunePageData){0};
+    runePageCached[runeType] = false;
+}
+
+void runeInventoryDebugCycleSelected(void) {
+    if (ownedRuneCount == 0) {
+        return;
+    }
+    RuneType runeType = ownedRunesList[cursorIndex];
+    int nextLevel = getRuneLevel(runeType) + 1;
+    if (nextLevel > getRuneMaxLevel(runeType)) {
+        nextLevel = 0;
+    }
+    setRuneLevel(runeType, nextLevel);
+    // Name numeral and description values changed, so the cached page is stale.
+    invalidateRunePage(runeType);
+    resetDescScrollOffset();
+    playSound(SFX_UI_RUNE_SLIDE);
 }
 
 void freeRuneInventoryCache(void) {
