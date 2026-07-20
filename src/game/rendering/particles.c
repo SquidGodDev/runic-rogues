@@ -16,6 +16,8 @@ typedef struct ParticleData {
 	int damageFrame;
 	int damage;
 	int damageRadius;
+	float knockbackTime;
+	float knockbackAmount;
 	int enemySpawnFrame;
 } ParticleData;
 
@@ -121,13 +123,25 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damage = 20,
 		.damageRadius = CELL_SIZE
 	},
+	[PARTICLE_TYPE_PLAYER_BOMB] = {
+		.frameCount = 66,
+		.animationTime = 0.03f,
+		.textureIndex = TEXTURE_PARTICLE_BOMB,
+		.damageFrame = 47,
+		.damage = 20,
+		.damageRadius = CELL_SIZE * 3,
+		.knockbackTime = 0.3f,
+		.knockbackAmount = 2.0f
+	},
 	[PARTICLE_TYPE_MINI_BOMB] = {
 		.frameCount = 66,
-		.animationTime = 0.05f,
+		.animationTime = 0.03f,
 		.textureIndex = TEXTURE_PARTICLE_MINI_BOMB,
 		.damageFrame = 47,
-		.damage = 10,
-		.damageRadius = CELL_SIZE * 2
+		.damage = 30,
+		.damageRadius = CELL_SIZE * 3,
+		.knockbackTime = 0.3f,
+		.knockbackAmount = 2.0f
 	},
 	[PARTICLE_TYPE_BLACK_HOLE] = {
 		.frameCount = 50,
@@ -252,6 +266,7 @@ void updateParticles(float deltaTime) {
 				}
 			} else {
 				damageEnemiesInArea(curParticle->x, curParticle->y, data->damageRadius, data->damage);
+				knockbackEnemiesInArea(curParticle->x, curParticle->y, data->damageRadius, curParticle->sourceX, curParticle->sourceY, data->knockbackTime, data->knockbackAmount, false /*awayFromPlayer*/);
 			}
 		}
 
