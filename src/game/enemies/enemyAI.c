@@ -1812,6 +1812,7 @@ static void dragonFireRing(Enemy *curEnemy, EnemyData *curEnemyData) {
 	int gap2 = (gap + DRAGON_RING_SLOTS / 4) % DRAGON_RING_SLOTS;
 	int gap3 = (gap + DRAGON_RING_SLOTS / 2) % DRAGON_RING_SLOTS;
 	int gap4 = (gap + 3 * DRAGON_RING_SLOTS / 4) % DRAGON_RING_SLOTS;
+	playSoundSpatial(SFX_DRAGON_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
 	for (int i = 0; i < DRAGON_RING_SLOTS; i++) {
 		if (leaveGaps && (i == gap || i == gap2 || i == gap3 || i == gap4)) {
 			continue;
@@ -1835,6 +1836,7 @@ static float dragonVolleyBaseAngle(Enemy *curEnemy, int lineCount, int volleyInd
 
 // Fires one projectile down each of lineCount evenly-spaced directions, starting from baseAngle.
 static void dragonFireVolley(Enemy *curEnemy, EnemyData *curEnemyData, float baseAngle, int lineCount) {
+	playSoundSpatial(SFX_DRAGON_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
 	float sector = 2.0f * PI / lineCount;
 	for (int k = 0; k < lineCount; k++) {
 		float angle = baseAngle + k * sector;
@@ -1859,6 +1861,7 @@ static void dragonRoomCenter(float *centerX, float *centerY) {
 
 // Fires a single four-way burst (90 degrees apart) starting from baseAngle.
 static void dragonFireSprinkler(Enemy *curEnemy, EnemyData *curEnemyData, float baseAngle) {
+	playSoundSpatial(SFX_DRAGON_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
 	for (int k = 0; k < 4; k++) {
 		float angle = baseAngle + k * (PI / 2.0f);
 		float dx = cosf(angle);
@@ -1943,9 +1946,11 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		// Wander between random room positions until the attack cooldown elapses, then start the next attack.
 		// When the sprinkler is up next, home in on the room center instead so the sweep opens fire from there.
 		if (curEnemy->stateTimer <= 0) {
+			playEnemyPrepSFX(curEnemy, curEnemyData);
 			dragonBeginAttack(curEnemy);
 		} else if (curEnemy->attackCycle == DRAGON_ATTACK_CYCLE_SPRINKLER) {
 			dragonRoomCenter(&curEnemy->targetX, &curEnemy->targetY);
+			playEnemyIdleSFX(curEnemy, curEnemyData);
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
 		} else {
 			float dx = curEnemy->targetX - curEnemy->x;
@@ -1953,6 +1958,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 			if (dx * dx + dy * dy <= DRAGON_WANDER_ARRIVAL_RADIUS * DRAGON_WANDER_ARRIVAL_RADIUS) {
 				pickRandomRoomTarget(curEnemy, DRAGON_WANDER_MIN_SPACING);
 			}
+			playEnemyIdleSFX(curEnemy, curEnemyData);
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
 		}
 		return;
@@ -2059,6 +2065,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 			}
 			curEnemy->attackedPlayer = true;
 			curEnemy->abilityCooldown = dragonProperties->volleyWarningLead;
+			playEnemyPrepSFX(curEnemy, curEnemyData);
 		}
 
 		// The first shot of each volley waits for the attack animation to wind up to the active frame

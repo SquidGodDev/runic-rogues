@@ -539,6 +539,10 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_DRAGON_BOSS] = (EnemyData){
 		.name = "Dragon",
+		.idleSFX = SFX_DRAGON_BOSS_WALK,
+		.idleSFXFrame1 = 1,
+		.idleSFXFrame2 = 8,
+		.prepSFX = SFX_DRAGON_BOSS_PREP,
 		.health = 1200,
 		.attackDetectionRange = 10,
 		.attackDistance = 10,
