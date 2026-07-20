@@ -316,6 +316,8 @@ static const WraithBossProperties *wraithProperties;
 
 #define WRAITH_VOLLEY_WARNING_LEAD 0.4f
 
+#define WRAITH_DASH_ARRIVE_DIST_SQ (CELL_SIZE * 0.5f * CELL_SIZE * 0.5f)  // Distance to target that counts as arrived, for the dash-arrive SFX
+
 #define WRAITH_TELEPORT_HIDE_DELAY   0.1f  // Time the disguise particle covers the boss before it vanishes
 #define WRAITH_TELEPORT_REVEAL_PRE_DELAY 0.55f  // Time the reveal particle plays before the boss reappears
 #define WRAITH_TELEPORT_REVEAL_DELAY 1.5f  // Time spent invisible at the new spot before reappearing
@@ -1707,6 +1709,7 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				transitionToState(curEnemy, WRAITH_STATE_DASH);
 				curEnemy->stateTimer = wraithProperties->dashTime;
 				curEnemy->stateCount++;
+				curEnemy->attackCycle = 0;  // One-shot flag for the dash-arrive SFX
 				playSoundSpatial(SFX_WRAITH_BOSS_DASH, curEnemy->x, curEnemy->y);
 
 				// Project line towards player and set target to first wall hit
@@ -1764,12 +1767,26 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	} else if (curEnemy->state == WRAITH_STATE_DASH || curEnemy->state == WRAITH_STATE_PROJECTILE || curEnemy->state == WRAITH_STATE_SUMMON || curEnemy->state == WRAITH_STATE_VOLLEY) {
 		// The PROJECTILE teleport attack manages its own exit; the others run on stateTimer
 		if (curEnemy->state != WRAITH_STATE_PROJECTILE && curEnemy->stateTimer <= 0) {
+			if (curEnemy->state == WRAITH_STATE_DASH && curEnemy->attackCycle == 0) {
+				// The dash ended without the impact check firing (wall avoidance stops the boss
+				// short of its on-wall target); play the arrive SFX now so every dash gets it.
+				playSoundSpatial(SFX_WRAITH_BOSS_ARRIVE, curEnemy->x, curEnemy->y);
+				curEnemy->attackCycle = 1;
+			}
 			transitionToState(curEnemy, ENEMY_STATE_IDLE);
 			curEnemy->stateTimer = wraithProperties->idleTime;
 		}
 
 		if (curEnemy->state == WRAITH_STATE_DASH) {
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
+			if (curEnemy->attackCycle == 0) {
+				float arriveDX = curEnemy->targetX - curEnemy->x;
+				float arriveDY = curEnemy->targetY - curEnemy->y;
+				if (arriveDX * arriveDX + arriveDY * arriveDY < WRAITH_DASH_ARRIVE_DIST_SQ) {
+					playSoundSpatial(SFX_WRAITH_BOSS_ARRIVE, curEnemy->x, curEnemy->y);
+					curEnemy->attackCycle = 1;
+				}
+			}
 		} else if (curEnemy->state == WRAITH_STATE_PROJECTILE) {
 			wraithUpdateTeleportAttack(curEnemy, curEnemyData);
 		} else if (curEnemy->state == WRAITH_STATE_SUMMON) {

@@ -1655,20 +1655,15 @@ SFXData sfxData[] = {
         .lfo = 0
     },
     [SFX_WRAITH_BOSS_ARRIVE] = {
-        .defaultNote = 28,
+        .defaultNote = 31,
         .volume = DEFAULT_VOLUME,
         .waveform = kWaveformNoise,
-        .attack = 0.08f,
-        .decay = 0.3f,
+        .attack = 0.19f,
+        .decay = 0.45f,
         .sustain = 0,
         .release = 0,
         .curvature = 1.0f,
-        .lfoType = kLFOTypeSine,
-        .lfo = 1,
-        .depth = 0.5f,
-        .center = 0.5f,
-        .rate = 7.9f,
-        .phase = 0
+        .lfo = 0
     },
     [SFX_WRAITH_BOSS_PROJECTILE] = {
         .defaultNote = 41,
@@ -1713,6 +1708,45 @@ SFXData sfxData[] = {
         .center = -0.29f,
         .rate = 11.2f,
         .phase = 0.87f
+    },
+    [SFX_DRAGON_BOSS_WALK] = {
+        .defaultNote = 18,
+        .pitchRandomization = 0.9f,
+        .volume = 0.27f,
+        .waveform = kWaveformNoise,
+        .attack = 0.17f,
+        .decay = 0.41f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.24f,
+        .center = 0.19f,
+        .rate = 13.1f,
+        .phase = 0.37f
+    },
+    [SFX_DRAGON_BOSS_PREP] = {
+        .defaultNote = 41,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformNoise,
+        .attack = 0.36f,
+        .decay = 0.59f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 0.43f,
+        .lfo = 0
+    },
+    [SFX_DRAGON_BOSS_PROJECTILE] = {
+        .defaultNote = 40,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformNoise,
+        .attack = 0.03f,
+        .decay = 0.42f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfo = 0
     }
 };
 
