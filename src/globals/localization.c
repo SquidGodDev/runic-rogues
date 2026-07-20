@@ -90,6 +90,10 @@ static const char *STR_KEYS[STR_COUNT] = {
     [STR_TITLE_BUTTON_SETTINGS] = "title.settings",
 
     [STR_CLASS_SELECT_TITLE] = "class_select.title",
+    [STR_CLASS_SELECT_BACK] = "class_select.back",
+    [STR_CLASS_SELECT_SELECT] = "class_select.select",
+    [STR_CLASS_SELECT_BASIC_TAG] = "class_select.basic_tag",
+    [STR_CLASS_SELECT_SPECIAL_TAG] = "class_select.special_tag",
 
     [STR_LOADING_DONE] = "loading.done",
     [STR_LOADING_FONTS] = "loading.fonts",

@@ -77,6 +77,10 @@ typedef enum StringKey {
 
     // Class select scene
     STR_CLASS_SELECT_TITLE,
+    STR_CLASS_SELECT_BACK,
+    STR_CLASS_SELECT_SELECT,
+    STR_CLASS_SELECT_BASIC_TAG,
+    STR_CLASS_SELECT_SPECIAL_TAG,
 
     // Loading scene
     STR_LOADING_DONE,
