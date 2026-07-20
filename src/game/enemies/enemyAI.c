@@ -1271,6 +1271,7 @@ void bansheeUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool att
 		bossSpawnWarningLine(curEnemy, aimAngle + halfCone);
 		transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
 		addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+		playEnemyPrepSFX(curEnemy, curEnemyData);
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
 		playEnemyAttackSFX(curEnemy, curEnemyData);
 

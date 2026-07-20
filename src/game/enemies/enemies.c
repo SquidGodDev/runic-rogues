@@ -507,9 +507,10 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BANSHEE] = (EnemyData){
 		.name = "Banshee",
-		.idleSFX = SFX_NONE,
-		.prepSFX = SFX_NONE,
-		.attackSFX = SFX_NONE,
+		.idleSFX = SFX_BANSHEE_IDLE,
+		.idleSFXFrame1 = 1,
+		.prepSFX = SFX_BANSHEE_PREP,
+		.attackSFX = SFX_BANSHEE_ATTACK,
 		.health = 200,
 		.attackDetectionRange = 150,
 		.attackDamage = 10,
