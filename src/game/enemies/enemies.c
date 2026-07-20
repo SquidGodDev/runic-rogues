@@ -453,9 +453,10 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_AIR_ELEMENTAL] = (EnemyData){
 		.name = "Air Elemental",
-		.idleSFX = SFX_NONE,
-		.prepSFX = SFX_NONE,
-		.attackSFX = SFX_NONE,
+		.idleSFX = SFX_AIR_ELEMENTAL_IDLE,
+		.idleSFXFrame1 = 1,
+		.prepSFX = SFX_AIR_ELEMENTAL_PREP,
+		.attackSFX = SFX_AIR_ELEMENTAL_ATTACK,
 		.health = 100,
 		.attackDetectionRange = 25,
 		.attackDamage = 10,
