@@ -80,7 +80,7 @@ static AreaEnemyPool areaPools[AREA_COUNT] = {
     },
     [AREA_TEST] = {
         .entries = {
-            { .type = ENEMY_TYPE_FLYING_TOME,   .cost = 1, .weight = 10 },
+            { .type = ENEMY_TYPE_BOMBER,   .cost = 1, .weight = 10 },
             { .type = ENEMY_TYPE_BOMBER,        .cost = 3, .weight = 5 },
             { .type = ENEMY_TYPE_ROCK_GOLEM,    .cost = 3, .weight = 5 },
             { .type = ENEMY_TYPE_AIR_ELEMENTAL, .cost = 3, .weight = 3 },
@@ -114,7 +114,7 @@ static const RoomBudget roomBudgets[AREA_COUNT][NON_BOSS_ROOM_COUNT] = {
         { .budget = 14, .minSpecials = 4 },
     },
     [AREA_TEST] = {
-        { .budget = 5,  .minSpecials = 0 },
+        { .budget = 3,  .minSpecials = 0 },
         { .budget = 8,  .minSpecials = 1 },
         { .budget = 10, .minSpecials = 1 },
         { .budget = 12, .minSpecials = 2 },

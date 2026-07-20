@@ -120,26 +120,18 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.animationTime = 0.03f,
 		.textureIndex = TEXTURE_PARTICLE_BOMB,
 		.damageFrame = 47,
-		.damage = 20,
-		.damageRadius = CELL_SIZE
-	},
-	[PARTICLE_TYPE_PLAYER_BOMB] = {
-		.frameCount = 66,
-		.animationTime = 0.03f,
-		.textureIndex = TEXTURE_PARTICLE_BOMB,
-		.damageFrame = 47,
-		.damage = 20,
+		.damage = 30,
 		.damageRadius = CELL_SIZE * 3,
 		.knockbackTime = 0.3f,
-		.knockbackAmount = 2.0f
+		.knockbackAmount = 1.5f
 	},
-	[PARTICLE_TYPE_MINI_BOMB] = {
+	[PARTICLE_TYPE_ENEMY_BOMB] = {
 		.frameCount = 66,
 		.animationTime = 0.03f,
 		.textureIndex = TEXTURE_PARTICLE_MINI_BOMB,
 		.damageFrame = 47,
-		.damage = 30,
-		.damageRadius = CELL_SIZE * 3,
+		.damage = 20,
+		.damageRadius = CELL_SIZE,
 		.knockbackTime = 0.3f,
 		.knockbackAmount = 2.0f
 	},
@@ -255,7 +247,7 @@ void updateParticles(float deltaTime) {
 		}
 
 		if (data->damageFrame > 0 && curParticle->animationFrame >= data->damageFrame - 1 && !curParticle->appliedDamage) {
-			if (curParticle->type == PARTICLE_TYPE_BOMB || curParticle->type == PARTICLE_TYPE_MINI_BOMB) {
+			if (curParticle->type == PARTICLE_TYPE_BOMB || curParticle->type == PARTICLE_TYPE_ENEMY_BOMB) {
 				playSound(SFX_BOMB);
 			}
 			curParticle->appliedDamage = true;

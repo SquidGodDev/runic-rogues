@@ -1016,16 +1016,10 @@ static void pickRandomRoomTargetNearPlayer(Enemy *curEnemy, float minDistance, f
 // === Bomber constants ===
 #define BOMBER_MIN_WANDER_COUNT 1
 #define BOMBER_MAX_WANDER_COUNT 1
-
-// Bomber cycle phases, stored in Enemy.attackCycle.
-typedef enum BomberPhase {
-	BOMBER_PHASE_WANDER,   // Visiting random positions without bombing
-	BOMBER_PHASE_BOMB_RUN  // Heading to the saved player position to drop a bomb
-} BomberPhase;
+#define BOMBER_THROW_SPEED 45.0f
 
 // Begins a new cycle: roll a wander count and queue up the first random position.
 static void bomberStartCycle(Enemy *curEnemy, EnemyData *curEnemyData) {
-	curEnemy->attackCycle = BOMBER_PHASE_WANDER;
 	curEnemy->stateCount = randInt(BOMBER_MIN_WANDER_COUNT, BOMBER_MAX_WANDER_COUNT);
 	pickRandomRoomTarget(curEnemy, curEnemyData->abilityDataPrimary);
 }
@@ -1034,8 +1028,8 @@ void bomberUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool atta
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		playEnemyIdleSFX(curEnemy, curEnemyData);
 
-		// On spawn the bomber is wandering with no positions queued yet — start a fresh cycle
-		if (curEnemy->attackCycle == BOMBER_PHASE_WANDER && curEnemy->stateCount == 0) {
+		// On spawn the bomber has no positions queued yet — start a fresh cycle
+		if (curEnemy->stateCount == 0) {
 			bomberStartCycle(curEnemy, curEnemyData);
 		}
 
@@ -1049,38 +1043,33 @@ void bomberUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool atta
 			return;
 		}
 
-		if (curEnemy->attackCycle == BOMBER_PHASE_WANDER) {
-			curEnemy->stateCount--;
-			if (curEnemy->stateCount > 0) {
-				// More random positions to visit
-				pickRandomRoomTarget(curEnemy, curEnemyData->abilityDataPrimary);
-			} else {
-				// Done wandering: lock in the player's position and head there to bomb
-				curEnemy->attackCycle = BOMBER_PHASE_BOMB_RUN;
-				curEnemy->targetX = playerX;
-				curEnemy->targetY = playerY;
-			}
+		curEnemy->stateCount--;
+		if (curEnemy->stateCount > 0) {
+			// More random positions to visit before throwing
+			pickRandomRoomTarget(curEnemy, curEnemyData->abilityDataPrimary);
 		} else {
-			// Reached the saved player position — plant the bomb
+			// Done wandering — throw a bomb at the player from where we stand
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 		}
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
 		playEnemyAttackSFX(curEnemy, curEnemyData);
 
-		// Plant a bomb half a cell towards the player once the attack animation reaches the active frame
+		// Lob a bomb projectile toward the player once the animation reaches the active frame.
+		// It plants the bomb wherever it lands — on a wall, on the player, or at the target on timeout.
 		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			curEnemy->attackedPlayer = true;
 			float toPlayerX = playerX - curEnemy->x;
 			float toPlayerY = playerY - curEnemy->y;
-			float length = sqrtf(toPlayerX * toPlayerX + toPlayerY * toPlayerY);
-			float bombX = curEnemy->x;
-			float bombY = curEnemy->y;
-			if (length > 0.001f) {
-				bombX += (toPlayerX / length) * (CELL_SIZE * 0.2f);
-				bombY += (toPlayerY / length) * (CELL_SIZE * 0.2f);
-			}
-			spawnParticle(PARTICLE_TYPE_MINI_BOMB, bombX, bombY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, true /* enemyParticle */);
+			float distance = sqrtf(toPlayerX * toPlayerX + toPlayerY * toPlayerY);
+			float deltaX = distance > 0.001f ? toPlayerX / distance : 1.0f;
+			float deltaY = distance > 0.001f ? toPlayerY / distance : 0.0f;
+			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+			SpellProjectileData throwData = curEnemyData->projectileData;
+			// Detonate at the player's position if nothing is hit along the way
+			throwData.activeTime = distance / BOMBER_THROW_SPEED;
+			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, BOMBER_THROW_SPEED, curEnemyData->attackDamage, throwData);
 		}
 
 		// Once the attack animation ends, start the next wander cycle

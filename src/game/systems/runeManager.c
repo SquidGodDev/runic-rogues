@@ -31,7 +31,7 @@ static void meditationCallback(float primaryValue, float secondaryValue) {
 static void bomberCallback(float primaryValue, float secondaryValue) {
     (void)primaryValue;
     (void)secondaryValue;
-    spawnParticle(PARTICLE_TYPE_MINI_BOMB, playerX, playerY, playerX, playerY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+    spawnParticle(PARTICLE_TYPE_BOMB, playerX, playerY, playerX, playerY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
 }
 
 static void fireDragonsBreath(void) {

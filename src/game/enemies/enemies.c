@@ -419,11 +419,13 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BOMBER] = (EnemyData){
 		.name = "Bomber",
-		.idleSFX = SFX_NONE,
+		.idleSFX = SFX_BOMBER_WALK,
+		.idleSFXFrame1 = 2,
+		.idleSFXFrame2 = 7,
 		.prepSFX = SFX_NONE,
-		.attackSFX = SFX_NONE,
+		.attackSFX = SFX_BOMBER_ATTACK,
 		.health = 130,
-		.attackDamage = 20,
+		.attackDamage = 1,
 		.attackCooldown = 0,
 		.moveSpeed = 0.6f,
 		.abilityDataPrimary = CELL_SIZE * 5.0f, // Minimum distance between random positions
@@ -436,6 +438,12 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameStart = 22,
 		.deathFrameEnd = 25,
 		.frameTime = 0.1f,
+		.projectileData = {
+			.textureIndex = TEXTURE_BOMB_PROJECTILE,
+			.frameCount = 1,
+			.hitParticle = PARTICLE_TYPE_ENEMY_BOMB,
+			.timeoutParticle = PARTICLE_TYPE_ENEMY_BOMB,
+		},
 		.update = bomberUpdate
 	},
 	[ENEMY_TYPE_AIR_ELEMENTAL] = (EnemyData){

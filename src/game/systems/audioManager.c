@@ -1214,6 +1214,40 @@ SFXData sfxData[] = {
         .rate = 4.4f,
         .phase = 0,
         .voices = 4
+    },
+    [SFX_BOMBER_WALK] = {
+        .defaultNote = 40,
+        .pitchRandomization = 0.8f,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformSquare,
+        .attack = 0,
+        .decay = 0.3f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSawtoothUp,
+        .lfo = 1,
+        .depth = 0.5f,
+        .center = 0.5f,
+        .rate = 5.0f,
+        .phase = 0
+    },
+    [SFX_BOMBER_ATTACK] = {
+        .defaultNote = 58,
+        .pitchRandomization = 1.4f,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformTriangle,
+        .attack = 0,
+        .decay = 0.3f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.89f,
+        .center = 0.45f,
+        .rate = 9.7f,
+        .phase = 0
     }
 };
 
