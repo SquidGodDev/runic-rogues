@@ -215,6 +215,16 @@ static void spawnRoomEnemies(void) {
     RoomBudget roomBudget = roomBudgets[getCurrentArea()][nextRoomIndex];
     EnemyType spawnQueue[MAX_SPAWN_QUEUE];
     int spawnCount = rollEnemiesFromBudget(spawnQueue, MAX_SPAWN_QUEUE, roomBudget.budget, roomBudget.minSpecials);
+
+    // Debug: force the test area's first room to spawn a chosen enemy type in place
+    // of the rolled enemies, keeping the rolled count and spawn positions.
+    if (DEBUG.testFirstRoomEnemy > 0 && getCurrentArea() == AREA_TEST && nextRoomIndex == 0) {
+        EnemyType forced = (EnemyType)(DEBUG.testFirstRoomEnemy - 1);
+        for (int i = 0; i < spawnCount; i++) {
+            spawnQueue[i] = forced;
+        }
+    }
+
     for (int i = 0; i < spawnCount; i++) {
         Point spawnPosition = getRoomSpawnPosition(currentRoomIndex, i);
         spawnEnemy(spawnQueue[i], spawnPosition.x, spawnPosition.y, false /*isMinion*/);

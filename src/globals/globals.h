@@ -28,6 +28,7 @@ typedef struct DebugFlags {
     bool instantKillBoss;
     bool startInTestArea;
     bool skipAreaMap;
+    int testFirstRoomEnemy;  // 0 = off; 1..ENEMY_TYPE_COUNT = spawn (EnemyType)(value - 1) in the test area's first room
 } DebugFlags;
 
 extern DebugFlags DEBUG;

@@ -58,6 +58,7 @@ setting.area_override,"Area Override",""
 setting.instant_room_clear,"Instant Room Clear",""
 setting.instant_kill_boss,"Instant Kill Boss",""
 setting.start_in_test_area,"Start In Test Area",""
+setting.test_first_room_enemy,"Test Enemy",""
 setting.skip_area_map,"Skip Area Map",""
 
 # == In-game menu exit tab ==

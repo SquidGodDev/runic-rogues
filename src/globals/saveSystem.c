@@ -4,6 +4,7 @@
 #include "globals/globals.h"
 #include "globals/saveSystem.h"
 #include "game/settings/settings.h"
+#include "game/enemies/enemies.h"
 
 #define SAVE_PATH "save.txt"
 #define SAVE_VERSION 1
@@ -126,6 +127,14 @@ static void applyKeyValue(const char *key, const char *value) {
         DEBUG.instantKillBoss = parseInt(value) != 0;
     } else if (strcmp(key, "debugStartInTestArea") == 0) {
         DEBUG.startInTestArea = parseInt(value) != 0;
+    } else if (strcmp(key, "debugTestFirstRoomEnemy") == 0) {
+        int enemy = parseInt(value);
+        if (enemy < 0) {
+            enemy = 0;
+        } else if (enemy > ENEMY_TYPE_COUNT) {
+            enemy = ENEMY_TYPE_COUNT;
+        }
+        DEBUG.testFirstRoomEnemy = enemy;
     } else if (strcmp(key, "debugSkipAreaMap") == 0) {
         DEBUG.skipAreaMap = parseInt(value) != 0;
     }
@@ -183,6 +192,7 @@ void saveGame(void) {
         "debugInstantRoomClear=%d\n"
         "debugInstantKillBoss=%d\n"
         "debugStartInTestArea=%d\n"
+        "debugTestFirstRoomEnemy=%d\n"
         "debugSkipAreaMap=%d\n",
         SAVE_VERSION,
         (int)SETTINGS.language,
@@ -209,6 +219,7 @@ void saveGame(void) {
         DEBUG.instantRoomClear ? 1 : 0,
         DEBUG.instantKillBoss ? 1 : 0,
         DEBUG.startInTestArea ? 1 : 0,
+        DEBUG.testFirstRoomEnemy,
         DEBUG.skipAreaMap ? 1 : 0
     );
 

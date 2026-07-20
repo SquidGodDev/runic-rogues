@@ -45,6 +45,7 @@ void resetDebugSettings(void) {
     DEBUG.instantRoomClear = false;
     DEBUG.instantKillBoss = false;
     DEBUG.startInTestArea = false;
+    DEBUG.testFirstRoomEnemy = 0;
     DEBUG.skipAreaMap = false;
 }
 

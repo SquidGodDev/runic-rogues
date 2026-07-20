@@ -9,6 +9,7 @@
 #include "game/UI/runeInventory.h"
 #include "game/UI/quitConfirmDialog.h"
 #include "game/player/player.h"
+#include "game/enemies/enemies.h"
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
 #include "game/tutorial/tutorialScene.h"
@@ -116,6 +117,7 @@ typedef struct SettingRowDef {
     int indent;                    // name indent level (0 = flush, 1 = under a section, 2 = sub-option)
     bool (*isDisabled)(void);      // NULL = always enabled; disabled rows stay selectable but locked
     bool valueEnFont;              // CONTROL_CHOICE: render the value in the EN sub font regardless of language
+    const char *(*intLabel)(int value); // CONTROL_INT: NULL renders the raw number; else renders this label
 } SettingRowDef;
 
 typedef struct SettingsTabDef {
@@ -175,12 +177,21 @@ static const SettingRowDef AUDIO_ROWS[] = {
     { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },
 };
 
+// CONTROL_INT label for DEBUG.testFirstRoomEnemy: 0 = off, else the enemy's name.
+static const char *testFirstRoomEnemyLabel(int value) {
+    if (value <= 0) {
+        return "Off";
+    }
+    return enemyData[value - 1].name;
+}
+
 static const SettingRowDef DEBUG_ROWS[] = {
     { STR_SETTING_SKIP_TO_ROOM, CONTROL_INT, &DEBUG.skipToRoom, 0, DEBUG_SKIP_TO_ROOM_MAX },
     { STR_SETTING_AREA_OVERRIDE, CONTROL_INT, &DEBUG.areaOverride, 0, DEBUG_AREA_OVERRIDE_MAX },
     { STR_SETTING_INSTANT_ROOM_CLEAR, CONTROL_CHECKBOX, &DEBUG.instantRoomClear },
     { STR_SETTING_INSTANT_KILL_BOSS, CONTROL_CHECKBOX, &DEBUG.instantKillBoss },
     { STR_SETTING_START_IN_TEST_AREA, CONTROL_CHECKBOX, &DEBUG.startInTestArea },
+    { STR_SETTING_TEST_FIRST_ROOM_ENEMY, CONTROL_INT, &DEBUG.testFirstRoomEnemy, 0, ENEMY_TYPE_COUNT, NULL, 0, 0, NULL, false, testFirstRoomEnemyLabel },
     { STR_SETTING_SKIP_AREA_MAP, CONTROL_CHECKBOX, &DEBUG.skipAreaMap },
     { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },
 };
@@ -189,7 +200,7 @@ static const SettingsTabDef SETTINGS_TABS[] = {
     [MENU_TAB_GENERAL]  = { GENERAL_ROWS, 5, resetGeneralSettings },
     [MENU_TAB_CONTROLS] = { CONTROLS_ROWS, 13, resetControlSettings },
     [MENU_TAB_AUDIO]    = { AUDIO_ROWS, 3, resetAudioSettings },
-    [MENU_TAB_DEBUG]    = { DEBUG_ROWS, 7, resetDebugSettings },
+    [MENU_TAB_DEBUG]    = { DEBUG_ROWS, 8, resetDebugSettings },
 };
 
 static bool rowIsSelectable(const SettingRowDef *row) {
@@ -757,13 +768,33 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
 
             drawSettingArrows(leftArrowLeft, rightArrowLeft, centerY, controlActive);
         } else if (row->type == CONTROL_INT) {
-            // Numbers always render in the EN sub font. Reserve a fixed region sized
-            // to three digits so the arrows hold position, then center the value
-            // (drawn without leading zeroes) within it.
-            char *valueStr = NULL;
-            pd->system->formatString(&valueStr, "%d", *(int *)row->value);
+            // Values always render in the EN sub font. When intLabel is set the value
+            // region is sized to the widest label across [minValue, maxValue] so the
+            // arrows hold position; otherwise it is sized to three digits. The current
+            // value (a number without leading zeroes, or its label) is centered within.
+            char *numStr = NULL;
+            const char *valueStr;
+            if (row->intLabel != NULL) {
+                valueStr = row->intLabel(*(int *)row->value);
+            } else {
+                pd->system->formatString(&numStr, "%d", *(int *)row->value);
+                valueStr = numStr;
+            }
             int valueLen = strlen(valueStr);
-            int valueRegionW = pd->graphics->getTextWidth(fontSubEN, "000", 3, kUTF8Encoding, -2);
+
+            int valueRegionW;
+            if (row->intLabel != NULL) {
+                valueRegionW = 0;
+                for (int v = row->minValue; v <= row->maxValue; v++) {
+                    const char *opt = row->intLabel(v);
+                    int optW = pd->graphics->getTextWidth(fontSubEN, opt, strlen(opt), kUTF8Encoding, -2);
+                    if (optW > valueRegionW) {
+                        valueRegionW = optW;
+                    }
+                }
+            } else {
+                valueRegionW = pd->graphics->getTextWidth(fontSubEN, "000", 3, kUTF8Encoding, -2);
+            }
             int valueW = pd->graphics->getTextWidth(fontSubEN, valueStr, valueLen, kUTF8Encoding, -2);
 
             const int arrowGap = 4;
@@ -783,7 +814,9 @@ static void drawSettingsTab(const SettingsTabDef *tab) {
             pd->graphics->setFont(font);
             pd->graphics->setTextTracking(tracking);
 
-            pd->system->realloc(valueStr, 0);
+            if (numStr != NULL) {
+                pd->system->realloc(numStr, 0);
+            }
 
             drawSettingArrows(leftArrowLeft, rightArrowLeft, centerY, controlActive);
         }
