@@ -1447,6 +1447,7 @@ static void bossSpawnWarningLine(Enemy *curEnemy, float angle) {
 }
 
 static void elderFireProjectileWave(Enemy *curEnemy, EnemyData *curEnemyData, int waveIndex) {
+	playSoundSpatial(SFX_ELDER_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
 	float angleOffset = (float)waveIndex * elderProperties->waveAngleOffset;
 	for (int i = 0; i < elderProperties->projectilesPerWave; i++) {
 		float angle = angleOffset + i * (2.0f * PI / (float)elderProperties->projectilesPerWave);
@@ -1458,19 +1459,21 @@ static void elderFireProjectileWave(Enemy *curEnemy, EnemyData *curEnemyData, in
 	}
 }
 
-static void elderBeginNextAttackCycle(Enemy *curEnemy) {
-	curEnemy->attackCycle = (curEnemy->attackCycle + 1) % ELDER_ATTACK_CYCLE_COUNT;
+static void elderBeginNextAttackCycle(Enemy *curEnemy, EnemyData *curEnemyData) {
+	curEnemy->attackCycle = (curEnemy->attackCycle + 0) % ELDER_ATTACK_CYCLE_COUNT;
 	curEnemy->stateCount = 0;
 	curEnemy->attackedPlayer = false;
 
 	switch ((ElderAttackCycle)curEnemy->attackCycle) {
 		case ELDER_ATTACK_CYCLE_SUMMON: {
+			playEnemyPrepSFX(curEnemy, curEnemyData);
 			transitionToState(curEnemy, ENEMY_STATE_PREP);
 			curEnemy->stateTimer = elderProperties->prepTime;
 			bossSpawnSummonsFromBudget(curEnemy, elderProperties->summonBudget, elderProperties->summonMinSpecials, elderProperties->summonRadius);
 			break;
 		}
 		case ELDER_ATTACK_CYCLE_ROOT: {
+			playEnemyPrepSFX(curEnemy, curEnemyData);
 			transitionToState(curEnemy, ENEMY_STATE_PREP);
 			curEnemy->stateTimer = elderProperties->prepTime;
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, elderProperties->prepTime);
@@ -1478,12 +1481,14 @@ static void elderBeginNextAttackCycle(Enemy *curEnemy) {
 			break;
 		}
 		case ELDER_ATTACK_CYCLE_PROJECTILES: {
+			playEnemyPrepSFX(curEnemy, curEnemyData);
 			transitionToState(curEnemy, ENEMY_STATE_PREP);
 			curEnemy->abilityCooldown = ELDER_BOSS_PROJECTILE_INTENT_TIME; // delay wave 0 until the warning indicator lands
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, ELDER_BOSS_PROJECTILE_INTENT_TIME);
 			break;
 		}
 		case ELDER_ATTACK_CYCLE_DASH: {
+			playEnemyPrepSFX(curEnemy, curEnemyData);
 			transitionToState(curEnemy, ELDER_STATE_DASH_PREP);
 			curEnemy->stateTimer = elderProperties->dashPrepTime;
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, elderProperties->dashPrepTime);
@@ -1503,8 +1508,9 @@ void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		if (curEnemy->stateTimer <= 0) {
-			elderBeginNextAttackCycle(curEnemy);
+			elderBeginNextAttackCycle(curEnemy, curEnemyData);
 		} else {
+			playEnemyIdleSFX(curEnemy, curEnemyData);
 			moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
 		}
 		return;
@@ -2100,6 +2106,7 @@ static void beginCharge(Enemy *curEnemy, float chargeSpeed) {
 }
 
 static void setupCharge(Enemy *curEnemy, EnemyData *curEnemyData, float chargeDistance, float chargeSpeed) {
+	playSoundSpatial(SFX_ELDER_BOSS_DASH, curEnemy->x, curEnemy->y);
     lockChargeTarget(curEnemy, chargeDistance);
     beginCharge(curEnemy, chargeSpeed);
 }

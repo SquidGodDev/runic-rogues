@@ -100,7 +100,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damageFrame = 4,
 		.damage = 10,
 		.damageRadius = CELL_SIZE / 2,
-		.sfx = SFX_NONE
+		.sfx = SFX_ELDER_BOSS_ROOT
 	},
 	[PARTICLE_TYPE_PLAYER_ROOT_ATTACK] = {
 		.frameCount = 10,
@@ -186,7 +186,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damage = 0,
 		.damageRadius = 0,
 		.enemySpawnFrame = 11,
-		.sfx = SFX_NONE
+		.sfx = SFX_SUMMON
 	},
 };
 
@@ -290,6 +290,9 @@ void updateParticles(float deltaTime) {
 				&& !curParticle->spawnTriggered) {
 			curParticle->spawnTriggered = true;
 			if (!isAreaCompleted()) {
+				if (data->sfx != SFX_NONE) {
+					playSoundSpatial(data->sfx, curParticle->x, curParticle->y);
+				}
 				spawnEnemy((EnemyType)curParticle->pendingEnemyType, (int)curParticle->x, (int)curParticle->y, true /*isMinion*/);
 			}
 		}

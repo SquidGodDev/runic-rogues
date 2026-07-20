@@ -215,6 +215,10 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_ELDER_BOSS] = (EnemyData){
 		.name = "Elder Boss",
+		.idleSFX = SFX_ELDER_BOSS_WALK,
+		.idleSFXFrame1 = 5,
+		.idleSFXFrame2 = 12,
+		.prepSFX = SFX_ELDER_BOSS_PREP,
 		.health = 700,
 		.attackDetectionRange = 10,
 		.attackDistance = 10,
