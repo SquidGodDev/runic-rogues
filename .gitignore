@@ -8,3 +8,5 @@
 .claude
 **__record
 *.stackdump
+assets/music/**/Backup/
+assets/music/**/*.wav

@@ -1,1 +1,2 @@
 Source/audio/music/*.wav filter=lfs diff=lfs merge=lfs -text
+assets/music/**/*.flp filter=lfs diff=lfs merge=lfs -text
