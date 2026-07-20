@@ -368,6 +368,9 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_WRAITH_BOSS] = (EnemyData){
 		.name = "Wraith Boss",
+		.idleSFX = SFX_WRAITH_BOSS_IDLE,
+		.idleSFXFrame1 = 5,
+		.prepSFX = SFX_WRAITH_BOSS_PREP,
 		.health = 850,
 		.attackDetectionRange = 10,
 		.attackDistance = 10,

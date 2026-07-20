@@ -1610,11 +1610,13 @@ static void wraithFireVolleyShot(Enemy *curEnemy, EnemyData *curEnemyData) {
 	float deltaY = sinf(angle);
 	float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 	float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+	playSoundSpatial(SFX_WRAITH_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
 	fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, wraithProperties->volleyProjectileSpeed, curEnemyData->attackDamage, curEnemyData->projectileData);
 }
 
 // Starts one teleport rep: a spawn particle covers the boss, then it vanishes and relocates.
 static void wraithBeginTeleportDisguise(Enemy *curEnemy) {
+	playSoundSpatial(SFX_WRAITH_BOSS_TELEPORT_OUT, curEnemy->x, curEnemy->y);
 	spawnParticle(PARTICLE_TYPE_SPAWN, curEnemy->x, curEnemy->y, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
 	curEnemy->attackCycle = WRAITH_TELEPORT_PHASE_DISGUISE;
 	curEnemy->abilityCooldown = WRAITH_TELEPORT_HIDE_DELAY;
@@ -1641,6 +1643,7 @@ static void wraithUpdateTeleportAttack(Enemy *curEnemy, EnemyData *curEnemyData)
 	} else if (curEnemy->attackCycle == WRAITH_TELEPORT_PHASE_HIDDEN) {
 		// Drop the reveal particle so it leads the reappearance by the same delay as the disguise
 		spawnParticle(PARTICLE_TYPE_SPAWN, curEnemy->x, curEnemy->y, curEnemy->x, curEnemy->y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+		playSoundSpatial(SFX_WRAITH_BOSS_TELEPORT_IN, curEnemy->x, curEnemy->y);
 		curEnemy->attackCycle = WRAITH_TELEPORT_PHASE_REVEAL;
 		curEnemy->abilityCooldown = WRAITH_TELEPORT_REVEAL_PRE_DELAY;
 	} else if (curEnemy->attackCycle == WRAITH_TELEPORT_PHASE_REVEAL) {
@@ -1654,6 +1657,7 @@ static void wraithUpdateTeleportAttack(Enemy *curEnemy, EnemyData *curEnemyData)
 		float deltaY = (playerY - curEnemy->y) / distanceToPlayer;
 		float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
 		float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+		playSoundSpatial(SFX_WRAITH_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
 		fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, curEnemyData->abilityDataSecondary, curEnemyData->attackDamage, curEnemyData->projectileData);
 		curEnemy->stateCount++;
 		curEnemy->abilityCooldown = wraithProperties->projectileCooldown;
@@ -1689,7 +1693,9 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	}
 
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
 		if (curEnemy->stateTimer <= 0) {
+			playEnemyPrepSFX(curEnemy, curEnemyData);
 			transitionToState(curEnemy, ENEMY_STATE_PREP);
 			curEnemy->stateTimer = wraithProperties->prepTime;
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, wraithProperties->prepTime);
@@ -1701,6 +1707,7 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 				transitionToState(curEnemy, WRAITH_STATE_DASH);
 				curEnemy->stateTimer = wraithProperties->dashTime;
 				curEnemy->stateCount++;
+				playSoundSpatial(SFX_WRAITH_BOSS_DASH, curEnemy->x, curEnemy->y);
 
 				// Project line towards player and set target to first wall hit
 				float targetX, targetY;
