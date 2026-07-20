@@ -1238,6 +1238,66 @@ SFXData sfxData[] = {
         .center = 0.45f,
         .rate = 9.7f,
         .phase = 0
+    },
+    [SFX_MUMMY_WALK] = {
+        .defaultNote = 44,
+        .pitchRandomization = 1.3f,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformNoise,
+        .attack = 0.07f,
+        .decay = 0.15f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 0.9f,
+        .lfoType = kLFOTypeSquare,
+        .lfo = 1,
+        .depth = 0.94f,
+        .center = 0.04f,
+        .rate = 5.3f,
+        .phase = 0.38f
+    },
+    [SFX_MUMMY_PREP] = {
+        .defaultNote = 53,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformPOVosim,
+        .attack = 0.27f,
+        .decay = 0.56f,
+        .sustain = 0,
+        .release = 0.07f,
+        .curvature = 0.72f,
+        .lfo = 0
+    },
+    [SFX_MUMMY_ATTACK] = {
+        .defaultNote = 47,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformSine,
+        .attack = 0.16f,
+        .decay = 0.46f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 0.94f,
+        .lfoType = kLFOTypeSquare,
+        .lfo = 1,
+        .depth = 0.49f,
+        .center = 0.29f,
+        .rate = 9.1f,
+        .phase = 0
+    },
+    [SFX_WRAITH_BOSS_TELEPORT] = {
+        .defaultNote = 59,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformPOPhase,
+        .attack = 0.28f,
+        .decay = 0.56f,
+        .sustain = 0,
+        .release = 0,
+        .curvature = 0.82f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.81f,
+        .center = -0.29f,
+        .rate = 11.2f,
+        .phase = 0.87f
     }
 };
 

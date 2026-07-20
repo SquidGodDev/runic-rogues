@@ -513,7 +513,7 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_BRASS_KNUCKLES, 1);
     // setRuneLevel(RUNE_TYPE_BLUNDERBUSS, 1);
     // setRuneLevel(RUNE_TYPE_RICOCHET, 1);
-    setRuneLevel(RUNE_TYPE_BOMBER, 1);
+    // setRuneLevel(RUNE_TYPE_BOMBER, 1);
     // setRuneLevel(RUNE_TYPE_DRAGONS_BREATH, 1);
     // setRuneLevel(RUNE_TYPE_ARMORED_SKIN, 1);
     // setRuneLevel(RUNE_TYPE_VIKING, 1);
