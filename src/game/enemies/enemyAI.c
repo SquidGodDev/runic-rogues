@@ -16,12 +16,18 @@
 #define BOSS_PHASE_COUNT      2
 
 // Plays the enemy's looping idle sound the tick the idle animation advances onto one of its
-// two configured idle frames. Frame 0 is treated as unset and ignored.
+// two configured idle frames. An idleSFXFrame of 0 is treated as unset and ignored.
 static void playEnemyIdleSFX(Enemy *curEnemy, EnemyData *curEnemyData) {
 	if (curEnemyData->idleSFX == SFX_NONE || !curEnemy->animationFrameAdvanced) {
 		return;
 	}
+	// The idle loop wraps to frame 0 on the tick it completes, so animationFrame never holds
+	// idleFrameEnd. Frame 0 is only ever reached via that wrap, so treat it as landing on
+	// idleFrameEnd — this lets a SFX frame configured as the final idle frame still fire.
 	int frame = curEnemy->animationFrame;
+	if (curEnemy->state == ENEMY_STATE_IDLE && frame == 0) {
+		frame = curEnemyData->idleFrameEnd;
+	}
 	if ((curEnemyData->idleSFXFrame1 != 0 && frame == curEnemyData->idleSFXFrame1) ||
 		(curEnemyData->idleSFXFrame2 != 0 && frame == curEnemyData->idleSFXFrame2)) {
 		playSoundSpatial(curEnemyData->idleSFX, curEnemy->x, curEnemy->y);
