@@ -385,6 +385,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_WRAITH] = (EnemyData){
 		.name = "Wraith",
+		.idleSFX = SFX_WRAITH_IDLE,
+		.idleSFXFrame1 = 1,
 		.health = 20,
 		.attackDetectionRange = 10,
 		.attackDistance = 5,

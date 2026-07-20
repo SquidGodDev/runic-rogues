@@ -1283,6 +1283,22 @@ SFXData sfxData[] = {
         .rate = 9.1f,
         .phase = 0
     },
+    [SFX_WRAITH_IDLE] = {
+        .defaultNote = 44,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformTriangle,
+        .attack = 0.08f,
+        .decay = 0.38f,
+        .sustain = 0,
+        .release = 0.32f,
+        .curvature = 0.86f,
+        .lfoType = kLFOTypeSine,
+        .lfo = 1,
+        .depth = 0.97f,
+        .center = 0.04f,
+        .rate = 15.3f,
+        .phase = 0.55f
+    },
     [SFX_WRAITH_BOSS_TELEPORT] = {
         .defaultNote = 59,
         .volume = DEFAULT_VOLUME,

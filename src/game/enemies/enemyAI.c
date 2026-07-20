@@ -519,6 +519,7 @@ void selfDestructEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index
 		damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
 		killEnemy(index);
 	} else {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
 		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
 	}
 }
