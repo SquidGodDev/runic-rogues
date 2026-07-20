@@ -402,9 +402,10 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	},
 	[ENEMY_TYPE_BABY_DRAGON] = (EnemyData){
 		.name = "Baby Dragon",
-		.idleSFX = SFX_NONE,
-		.prepSFX = SFX_NONE,
-		.attackSFX = SFX_NONE,
+		.idleSFX = SFX_BABY_DRAGON_FLAP,
+		.idleSFXFrame1 = 4,
+		.prepSFX = SFX_BABY_DRAGON_PREP,
+		.attackSFX = SFX_BABY_DRAGON_ATTACK,
 		.health = 100,
 		.attackDetectionRange = 25,
 		.attackDamage = 12,

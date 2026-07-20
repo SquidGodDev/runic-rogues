@@ -805,6 +805,7 @@ void proximityProjectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, in
 		playEnemyIdleSFX(curEnemy, curEnemyData);
 		// Start shooting projectile if player is in range
 		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
+			playEnemyPrepSFX(curEnemy, curEnemyData);
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
