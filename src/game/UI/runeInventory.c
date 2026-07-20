@@ -51,7 +51,7 @@ static float scrollAccum;
 static Language lastPageLanguage;  // locale the scroll bounds were last computed for
 
 #define HOLD_DELAY      0.3f
-#define HOLD_REPEAT     0.2f
+#define HOLD_REPEAT     0.1f
 
 static PDButtons heldDir;
 static float holdTimer;

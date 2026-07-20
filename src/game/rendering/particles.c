@@ -19,6 +19,7 @@ typedef struct ParticleData {
 	float knockbackTime;
 	float knockbackAmount;
 	int enemySpawnFrame;
+	SFX sfx;
 } ParticleData;
 
 Particle particles[MAX_PARTICLE_COUNT] = {0};
@@ -28,36 +29,42 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.animationTime = 0.016f,
 		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK,
 		.damageFrame = 0,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_PROJECTILE_BREAK_2] = {
 		.frameCount = 16,
 		.animationTime = 0.016f,
 		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK_2,
 		.damageFrame = 0,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_PROJECTILE_BREAK_3] = {
 		.frameCount = 17,
 		.animationTime = 0.016f,
 		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK_3,
 		.damageFrame = 0,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_PROJECTILE_BREAK_4] = {
 		.frameCount = 15,
 		.animationTime = 0.016f,
 		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK_4,
 		.damageFrame = 0,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_PROJECTILE_BREAK_5] = {
 		.frameCount = 15,
 		.animationTime = 0.016f,
 		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_BREAK_5,
 		.damageFrame = 0,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_PROJECTILE_SHRINK] = {
 		.frameCount = 3,
 		.animationTime = 0.05f,
 		.textureIndex = TEXTURE_PARTICLE_PROJECTILE_SHRINK,
 		.damageFrame = 0,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_WARNING] = {
 		.frameCount = 4,
@@ -65,7 +72,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_WARNING,
 		.damageFrame = 0,
 		.damage = 0,
-		.damageRadius = 0
+		.damageRadius = 0,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_WARNING_SHORT] = {
 		.frameCount = 2,
@@ -73,7 +81,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_WARNING,
 		.damageFrame = 0,
 		.damage = 0,
-		.damageRadius = 0
+		.damageRadius = 0,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_WARNING_LONG] = {
 		.frameCount = 6,
@@ -81,7 +90,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_WARNING,
 		.damageFrame = 0,
 		.damage = 0,
-		.damageRadius = 0
+		.damageRadius = 0,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_BOSS_ROOT_ATTACK] = {
 		.frameCount = 10,
@@ -89,7 +99,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_ROOT_ATTACK,
 		.damageFrame = 4,
 		.damage = 10,
-		.damageRadius = CELL_SIZE / 2
+		.damageRadius = CELL_SIZE / 2,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_PLAYER_ROOT_ATTACK] = {
 		.frameCount = 10,
@@ -97,7 +108,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_ROOT_ATTACK,
 		.damageFrame = 4,
 		.damage = 10,
-		.damageRadius = CELL_SIZE
+		.damageRadius = CELL_SIZE,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_LIGHTNING_ATTACK] = {
 		.frameCount = 6,
@@ -105,7 +117,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_LIGHTNING_ATTACK,
 		.damageFrame = 0,
 		.damage = 0,
-		.damageRadius = CELL_SIZE
+		.damageRadius = CELL_SIZE,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_SERPENT_TAIL] = {
 		.frameCount = 7,
@@ -113,7 +126,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_SERPENT_TAIL,
 		.damageFrame = 3,
 		.damage = 10,
-		.damageRadius = CELL_SIZE / 2
+		.damageRadius = CELL_SIZE / 2,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_BOMB] = {
 		.frameCount = 66,
@@ -123,7 +137,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damage = 30,
 		.damageRadius = CELL_SIZE * 3,
 		.knockbackTime = 0.3f,
-		.knockbackAmount = 1.5f
+		.knockbackAmount = 1.5f,
+		.sfx = SFX_BOMB
 	},
 	[PARTICLE_TYPE_ENEMY_BOMB] = {
 		.frameCount = 66,
@@ -133,7 +148,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damage = 20,
 		.damageRadius = CELL_SIZE,
 		.knockbackTime = 0.3f,
-		.knockbackAmount = 2.0f
+		.knockbackAmount = 2.0f,
+		.sfx = SFX_BOMB
 	},
 	[PARTICLE_TYPE_BLACK_HOLE] = {
 		.frameCount = 50,
@@ -141,7 +157,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_BLACK_HOLE,
 		.damageFrame = 0,
 		.damage = 0,
-		.damageRadius = 0
+		.damageRadius = 0,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_RUBBLE] = {
 		.frameCount = 9,
@@ -149,7 +166,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_RUBBLE,
 		.damageFrame = 2,
 		.damage = 10,
-		.damageRadius = CELL_SIZE * 0.5f
+		.damageRadius = CELL_SIZE * 0.5f,
+		.sfx = SFX_ROCK_GOLEM_RUBBLE
 	},
 	[PARTICLE_TYPE_HEAL] = {
 		.frameCount = 8,
@@ -157,7 +175,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.textureIndex = TEXTURE_PARTICLE_HEAL,
 		.damageFrame = 0,
 		.damage = 0,
-		.damageRadius = 0
+		.damageRadius = 0,
+		.sfx = SFX_NONE
 	},
 	[PARTICLE_TYPE_SPAWN] = {
 		.frameCount = 18,
@@ -166,7 +185,8 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damageFrame = 0,
 		.damage = 0,
 		.damageRadius = 0,
-		.enemySpawnFrame = 11
+		.enemySpawnFrame = 11,
+		.sfx = SFX_NONE
 	},
 };
 
@@ -237,6 +257,9 @@ void updateParticles(float deltaTime) {
 		if (curParticle->animationTime <= 0) {
 			curParticle->animationTime += data->animationTime;
 			curParticle->animationFrame += 1;
+			if (curParticle->type == PARTICLE_TYPE_WARNING && (curParticle->animationFrame % 2 == 1)) {
+				playSoundSpatial(data->sfx, curParticle->x, curParticle->y);
+			}
 			if (curParticle->animationFrame >= curParticle->frameCount) {
 				curParticle->active = 0;
 				if (curParticle->spawnOnEndParticleType != PARTICLE_TYPE_NONE && !isAreaCompleted()) {
@@ -247,8 +270,8 @@ void updateParticles(float deltaTime) {
 		}
 
 		if (data->damageFrame > 0 && curParticle->animationFrame >= data->damageFrame - 1 && !curParticle->appliedDamage) {
-			if (curParticle->type == PARTICLE_TYPE_BOMB || curParticle->type == PARTICLE_TYPE_ENEMY_BOMB) {
-				playSound(SFX_BOMB);
+			if (data->sfx != SFX_NONE) {
+				playSoundSpatial(data->sfx, curParticle->x, curParticle->y);
 			}
 			curParticle->appliedDamage = true;
 			if (curParticle->enemyParticle) {

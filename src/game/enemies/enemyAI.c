@@ -1172,6 +1172,7 @@ static void rockGolemSummonRubble(Enemy *curEnemy, EnemyData *curEnemyData) {
 		dy /= length;
 	}
 
+	playEnemyAttackSFX(curEnemy, curEnemyData);
 	for (int i = 1; i <= rubbleCount; i++) {
 		float distance = i * spacing;
 		float spawnX = curEnemy->x + dx * distance;
@@ -1191,6 +1192,7 @@ void rockGolemUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 
 		bool forceAttack = curEnemy->stateTimer <= 0;
 		if (forceAttack || (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index))) {
+			playEnemyPrepSFX(curEnemy, curEnemyData);
 			curEnemy->attackCooldown = curEnemyData->attackCooldown;
 			curEnemy->stateTimer = curEnemyData->abilityDataTertiary + randFloat(-1.0f, 1.0f);
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
@@ -1199,8 +1201,6 @@ void rockGolemUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 
 		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
 	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
-		playEnemyAttackSFX(curEnemy, curEnemyData);
-
 		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
 			curEnemy->attackedPlayer = true;
 
