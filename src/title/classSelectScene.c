@@ -65,8 +65,8 @@
 #define FOOTER_BACK_X_OFFSET 20        // 35 - 15
 #define FOOTER_SELECT_RIGHT_OFFSET 149 // 164 - 15
 
-#define SCROLL_SPEED 140.0f
-#define CRANK_SCROLL_FACTOR 0.7f
+#define SCROLL_SPEED 160.0f
+#define CRANK_SCROLL_FACTOR 0.5f
 
 // Pre-rendered model animation plays at its authored rate, independent of the
 // selectable display refresh rate.
