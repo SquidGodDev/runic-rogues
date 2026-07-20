@@ -1068,7 +1068,7 @@ void bomberUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool atta
 			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
 			SpellProjectileData throwData = curEnemyData->projectileData;
 			// Detonate at the player's position if nothing is hit along the way
-			throwData.activeTime = distance / BOMBER_THROW_SPEED;
+			// throwData.activeTime = distance / BOMBER_THROW_SPEED;
 			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, BOMBER_THROW_SPEED, curEnemyData->attackDamage, throwData);
 		}
 

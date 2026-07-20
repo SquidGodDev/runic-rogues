@@ -20,10 +20,11 @@
 #define SFX_FALLOFF_MAX 8.0f * CELL_SIZE
 #define SFX_PAN_STRENGTH 0.8f
 
-// Max pooled voices per SFX. Voices give polyphony so overlapping spatial plays of the
-// same SFX (e.g. several enemies hit at once) don't steal each other. Non-spatial SFX
-// leave `voices` unset and use a single voice
+// Pooled voices per SFX. Voices give polyphony so overlapping plays of the same SFX
+// (e.g. several enemies acting at once) don't steal each other. SFX leave `voices` unset
+// to take DEFAULT_SFX_VOICES; set it explicitly (e.g. 1) to override.
 #define MAX_SFX_VOICES 4
+#define DEFAULT_SFX_VOICES 3
 
 typedef struct SFXData {
     int defaultNote;
@@ -41,7 +42,7 @@ typedef struct SFXData {
     float center;
     float rate;
     float phase;
-    int voices;  // polyphony for overlapping spatial plays; 0 == single voice
+    int voices;  // polyphony for overlapping plays; 0 == DEFAULT_SFX_VOICES
 } SFXData;
 
 SFXData sfxData[] = {
@@ -250,8 +251,7 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0,
         .curvature = 1.0f,
-        .lfo = 0,
-        .voices = 3
+        .lfo = 0
     },
     [SFX_ENEMY_HIT] = {
         .defaultNote = 29,
@@ -262,8 +262,7 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0,
         .curvature = 1.0f,
-        .lfo = 0,
-        .voices = 4
+        .lfo = 0
     },
     [SFX_ENEMY_DEATH] = {
         .defaultNote = 14,
@@ -274,8 +273,7 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0.26f,
         .curvature = 1.0f,
-        .lfo = 0,
-        .voices = 3
+        .lfo = 0
     },
     [SFX_PLAYER_HIT] = {
         .defaultNote = 36,
@@ -873,8 +871,7 @@ SFXData sfxData[] = {
         .depth = 0.34f,
         .center = 0.5f,
         .rate = 2.8f,
-        .phase = 0,
-        .voices = 4
+        .phase = 0
     },
     [SFX_BAT_PREP] = {
         .defaultNote = 32,
@@ -923,8 +920,7 @@ SFXData sfxData[] = {
         .depth = 0.5f,
         .center = 0.5f,
         .rate = 16.2f,
-        .phase = 0,
-        .voices = 4
+        .phase = 0
     },
     [SFX_SKELETON_PREP] = {
         .defaultNote = 38,
@@ -970,8 +966,7 @@ SFXData sfxData[] = {
         .sustain = 0,
         .release = 0,
         .curvature = 1.0f,
-        .lfo = 0,
-        .voices = 4
+        .lfo = 0
     },
     [SFX_SERPENT_PREP] = {
         .defaultNote = 41,
@@ -1123,8 +1118,7 @@ SFXData sfxData[] = {
         .depth = 0.34f,
         .center = 0.5f,
         .rate = 2.8f,
-        .phase = 0,
-        .voices = 4
+        .phase = 0
     },
     [SFX_FLYING_TOME_PREP] = {
         .defaultNote = 41,
@@ -1141,8 +1135,7 @@ SFXData sfxData[] = {
         .depth = 0.34f,
         .center = 0.5f,
         .rate = 8.3f,
-        .phase = 0,
-        .voices = 4
+        .phase = 0
     },
     [SFX_FLYING_TOME_ATTACK] = {
         .defaultNote = 45,
@@ -1159,8 +1152,7 @@ SFXData sfxData[] = {
         .depth = 0.34f,
         .center = 0.5f,
         .rate = 11.6f,
-        .phase = 0,
-        .voices = 4
+        .phase = 0
     },
     [SFX_LIVING_ARMOR_WALK] = {
         .defaultNote = 28,
@@ -1194,8 +1186,7 @@ SFXData sfxData[] = {
         .depth = 0.5f,
         .center = 0.5f,
         .rate = 7.8f,
-        .phase = 0,
-        .voices = 4
+        .phase = 0
     },
     [SFX_LIVING_ARMOR_ATTACK] = {
         .defaultNote = 30,
@@ -1212,8 +1203,7 @@ SFXData sfxData[] = {
         .depth = 0.5f,
         .center = 0.5f,
         .rate = 4.4f,
-        .phase = 0,
-        .voices = 4
+        .phase = 0
     },
     [SFX_BOMBER_WALK] = {
         .defaultNote = 40,
@@ -1281,7 +1271,7 @@ static PDSynth *buildSynth(SFXData data) {
 
 void createSynth(SFX sfx) {
     SFXData data = sfxData[sfx];
-    int count = data.voices > 0 ? data.voices : 1;
+    int count = data.voices > 0 ? data.voices : DEFAULT_SFX_VOICES;
     if (count > MAX_SFX_VOICES) {
         count = MAX_SFX_VOICES;
     }
