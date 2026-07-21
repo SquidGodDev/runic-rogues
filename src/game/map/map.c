@@ -488,7 +488,9 @@ int isClearLine(int x1, int y1, int x2, int y2) {
 }
 
 void castRayToWall(float x1, float y1, float x2, float y2, float *targetX, float *targetY) {
-    int maxSteps = 50;
+    // One CELL_SIZE step per iteration, so a ray can never stay in bounds longer than the
+    // map diagonal; MAP_WIDTH + MAP_HEIGHT bounds that with margin (was a flat 50).
+    int maxSteps = MAP_WIDTH + MAP_HEIGHT;
     float rayX = x1;
     float rayY = y1;
     float dx = x2 - x1;
@@ -506,8 +508,10 @@ void castRayToWall(float x1, float y1, float x2, float y2, float *targetX, float
     float stepY = (dy / length) * stepSize;
 
     for (int i = 0; i < maxSteps; i++) {
-        int mapX = (int)rayX / CELL_SIZE;
-        int mapY = (int)rayY / CELL_SIZE;
+        // Arithmetic shift (CELL_SIZE == 16) floors correctly for negative coords, unlike the
+        // signed divide it replaces, which rounded toward zero and mis-mapped cell -1 to 0.
+        int mapX = (int)rayX >> 4;
+        int mapY = (int)rayY >> 4;
         if (mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) {
             *targetX = rayX - stepX;
             *targetY = rayY - stepY;

@@ -1834,6 +1834,7 @@ static FilePlayer *musicFiles[MUSIC_COUNT];
 #define MUSIC_LOWPASS_RESONANCE 0.2f
 static SoundChannel *musicChannel = NULL;
 static TwoPoleFilter *musicLowpass = NULL;
+static bool musicLowpassAttached = false;
 
 static void initMusicChannel(void) {
     musicChannel = pd->sound->channel->newChannel();
@@ -1844,7 +1845,8 @@ static void initMusicChannel(void) {
     pd->sound->effect->twopolefilter->setFrequency(musicLowpass, MUSIC_LOWPASS_FREQUENCY);
     pd->sound->effect->twopolefilter->setResonance(musicLowpass, MUSIC_LOWPASS_RESONANCE);
     pd->sound->effect->setMix((SoundEffect *)musicLowpass, 0.0f);
-    pd->sound->channel->addEffect(musicChannel, (SoundEffect *)musicLowpass);
+    // The filter is added to the channel lazily (setMusicLowpassEnabled) and removed once it
+    // fades back out, so its per-sample iir cost is only paid while the effect is actually used.
 }
 
 int getAudioAssetCount(void) {
@@ -1957,6 +1959,11 @@ static float musicChannelGainTarget = 1.0f;
 
 void setMusicLowpassEnabled(bool enabled) {
     filterMixTarget = enabled ? 1.0f : 0.0f;
+    if (enabled && musicLowpass != NULL && musicChannel != NULL && !musicLowpassAttached) {
+        pd->sound->effect->setMix((SoundEffect *)musicLowpass, filterMix);
+        pd->sound->channel->addEffect(musicChannel, (SoundEffect *)musicLowpass);
+        musicLowpassAttached = true;
+    }
 }
 
 void resetMusicManager(void) {
@@ -1977,6 +1984,10 @@ void resetMusicManager(void) {
     }
     if (musicLowpass != NULL) {
         pd->sound->effect->setMix((SoundEffect *)musicLowpass, 0.0f);
+        if (musicLowpassAttached && musicChannel != NULL) {
+            pd->sound->channel->removeEffect(musicChannel, (SoundEffect *)musicLowpass);
+            musicLowpassAttached = false;
+        }
     }
 }
 
@@ -2044,7 +2055,7 @@ void stopSong(void) {
 }
 
 static void updateMusicLowpass(float deltaTime) {
-    if (musicLowpass == NULL) {
+    if (musicLowpass == NULL || !musicLowpassAttached) {
         return;
     }
     float step = (MUSIC_LOWPASS_FADE_TIME > 0.0f) ? (deltaTime / MUSIC_LOWPASS_FADE_TIME) : 1.0f;
@@ -2060,6 +2071,10 @@ static void updateMusicLowpass(float deltaTime) {
         }
     }
     pd->sound->effect->setMix((SoundEffect *)musicLowpass, filterMix);
+    if (filterMix <= 0.0f && filterMixTarget <= 0.0f) {
+        pd->sound->channel->removeEffect(musicChannel, (SoundEffect *)musicLowpass);
+        musicLowpassAttached = false;
+    }
 }
 
 static void updateMusicChannelGain(float deltaTime) {

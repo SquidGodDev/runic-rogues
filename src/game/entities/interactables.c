@@ -23,6 +23,7 @@ typedef struct InteractableData {
 } InteractableData;
 
 Interactable INTERACTABLES[MAX_INTERACTABLE_COUNT] = { 0 };
+static int activeInteractableCount = 0;
 
 InteractableData interactableData[INTERACTABLE_TYPE_COUNT] = {
 	[INTERACTABLE_TYPE_EXIT] = {
@@ -46,9 +47,13 @@ void initInteractables(void) {
 	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
 		INTERACTABLES[i].active = false;
 	}
+	activeInteractableCount = 0;
 }
 
 int getInteractableIndexAtPosition(float x, float y) {
+	if (activeInteractableCount <= 0) {
+		return -1;
+	}
 	for (int i = 0; i < MAX_INTERACTABLE_COUNT; i++) {
 		if (!INTERACTABLES[i].active) {
 			continue;
@@ -90,6 +95,7 @@ void interact(int interactableIndex) {
 		case INTERACTABLE_TYPE_CAMPFIRE:
 			healPlayer(CAMPFIRE_HEAL_AMOUNT);
 			INTERACTABLES[interactableIndex].active = false;
+			activeInteractableCount -= 1;
 			int campfireMapX = (INTERACTABLES[interactableIndex].x - CELL_SIZE / 2) / CELL_SIZE;
 			int campfireMapY = (INTERACTABLES[interactableIndex].y - CELL_SIZE / 2) / CELL_SIZE;
 			addInteractable(campfireMapX, campfireMapY, INTERACTABLE_TYPE_EXTINGUISHED_CAMPFIRE);
@@ -123,6 +129,7 @@ int addInteractable(int mapX, int mapY, InteractableType type) {
         .type = type,
         .active = true
     };
+	activeInteractableCount += 1;
 
 	return newInteractableIndex;
 }
