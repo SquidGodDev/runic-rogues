@@ -496,19 +496,19 @@ void drawMinimap(void) {
     }
     // Draw projectiles
     for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
-        Projectile curProjectile = projectiles[i];
-        if (!curProjectile.active || !curProjectile.isEnemy) {
+        if (!projectiles[i].active || !projectiles[i].isEnemy) {
             continue;
         }
+        Projectile curProjectile = projectiles[i];
 
         drawEntityToMinimap(curProjectile.x, curProjectile.y, TEXTURES[TEXTURE_MINIMAP_PROJECTILE], playerAngleCos, playerAngleSin, entityFrameBuffer);
     }
     // Draw warnings
     for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {
-        Particle curParticle = particles[i];
-        if (!curParticle.active || curParticle.type != PARTICLE_TYPE_WARNING) {
+        if (!particles[i].active || particles[i].type != PARTICLE_TYPE_WARNING) {
             continue;
         }
+        Particle curParticle = particles[i];
 
         drawEntityToMinimap(curParticle.x, curParticle.y, TEXTURES[TEXTURE_MINIMAP_WARNING], playerAngleCos, playerAngleSin, entityFrameBuffer);
     }
