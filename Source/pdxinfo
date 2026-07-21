@@ -4,3 +4,4 @@ description=A 3D fantasy roguelike
 bundleID=com.squidgod.runicrogues
 version=0.7.0
 buildNumber=4
+imagePath=launcherImages
