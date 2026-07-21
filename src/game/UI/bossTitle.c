@@ -21,7 +21,7 @@ static LCDBitmap *renderBossTitle(BossTitle title, Language language) {
     LCDFont *font = (language == LANGUAGE_JP) ? fontSubJPDoubleOutline : fontSubENDoubleOutline;
     int len = (int)strlen(text);
 
-    int tracking = (language == LANGUAGE_JP) ? 0 : -1;
+    int tracking = (language == LANGUAGE_JP) ? 0 : -3;
     int width = pd->graphics->getTextWidth(font, text, len, kUTF8Encoding, tracking);
     int height = pd->graphics->getFontHeight(font);
 

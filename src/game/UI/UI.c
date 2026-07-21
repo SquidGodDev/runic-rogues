@@ -685,9 +685,9 @@ void drawBossHealthBar(void) {
     } else {
         healthPercentage = getBossHealthPercentage();
     }
-    int healthBarWidth = healthPercentage * 68;
+    int healthBarWidth = healthPercentage * 58;
 
-    int healthBarX = 63;
+    int healthBarX = 68;
     int healthBarY = 29;
     pd->graphics->drawBitmap(BITMAPS[BITMAP_BOSS_HEALTH_BAR], healthBarX, healthBarY, kBitmapUnflipped);
     pd->graphics->fillRect(healthBarX + 3, healthBarY + 3, healthBarWidth, 4, kColorWhite);
