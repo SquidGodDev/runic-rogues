@@ -1072,12 +1072,12 @@ bool damageEnemy(int index, int damage) {
 
 void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-		Enemy enemy = enemies[i];
-		if (!enemy.active) {
+		Enemy *enemy = &enemies[i];
+		if (!enemy->active) {
 			continue;
 		}
-		int enemyMapX = (int)enemy.x / CELL_SIZE;
-		int enemyMapY = (int)enemy.y / CELL_SIZE;
+		int enemyMapX = (int)enemy->x / CELL_SIZE;
+		int enemyMapY = (int)enemy->y / CELL_SIZE;
 		if (enemyMapX == mapX && enemyMapY == mapY) {
 			damageEnemy(i, damage);
 		}
@@ -1087,11 +1087,11 @@ void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
 void damageEnemiesInArea(float x, float y, int radius, int damage) {
 	int radiusSquared = radius * radius;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-		Enemy enemy = enemies[i];
-		if (!enemy.active) {
+		Enemy *enemy = &enemies[i];
+		if (!enemy->active) {
 			continue;
 		}
-		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
+		float distSquared = distanceSquared(enemy->x, enemy->y, x, y);
 		if (distSquared < radiusSquared) {
 			damageEnemy(i, damage);
 		}
@@ -1101,11 +1101,11 @@ void damageEnemiesInArea(float x, float y, int radius, int damage) {
 void knockbackEnemiesInArea(float searchX, float searchY, int radius, float sourceX, float sourceY, float knockbackTime, float knockbackAmount, bool awayFromPlayer) {
 	int radiusSquared = radius * radius;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-		Enemy enemy = enemies[i];
-		if (!enemy.active) {
+		Enemy *enemy = &enemies[i];
+		if (!enemy->active) {
 			continue;
 		}
-		float distSquared = distanceSquared(enemy.x, enemy.y, searchX, searchY);
+		float distSquared = distanceSquared(enemy->x, enemy->y, searchX, searchY);
 		if (distSquared < radiusSquared) {
 			knockbackEnemy(i, sourceX, sourceY, knockbackTime, knockbackAmount, awayFromPlayer);
 		}
@@ -1115,11 +1115,11 @@ void knockbackEnemiesInArea(float searchX, float searchY, int radius, float sour
 void cancelEnemyAttacksInArea(float x, float y, int radius) {
 	int radiusSquared = radius * radius;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-		Enemy enemy = enemies[i];
-		if (!enemy.active) {
+		Enemy *enemy = &enemies[i];
+		if (!enemy->active) {
 			continue;
 		}
-		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
+		float distSquared = distanceSquared(enemy->x, enemy->y, x, y);
 		if (distSquared < radiusSquared) {
 			cancelEnemyAttack(i);
 		}
@@ -1129,11 +1129,11 @@ void cancelEnemyAttacksInArea(float x, float y, int radius) {
 void slowEnemiesInArea(float x, float y, int radius, float slowTime, float slowAmount) {
 	int radiusSquared = radius * radius;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-		Enemy enemy = enemies[i];
-		if (!enemy.active) {
+		Enemy *enemy = &enemies[i];
+		if (!enemy->active) {
 			continue;
 		}
-		float distSquared = distanceSquared(enemy.x, enemy.y, x, y);
+		float distSquared = distanceSquared(enemy->x, enemy->y, x, y);
 		if (distSquared < radiusSquared) {
 			slowEnemy(i, slowTime, slowAmount);
 		}
@@ -1142,12 +1142,12 @@ void slowEnemiesInArea(float x, float y, int radius, float slowTime, float slowA
 
 int checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime, float slowAmount) {
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
-		Enemy curEnemy = enemies[i];
-		if (!curEnemy.active || setContains(hitEnemies, i)) {
+		Enemy *curEnemy = &enemies[i];
+		if (!curEnemy->active || setContains(hitEnemies, i)) {
 			continue;
 		}
 
-		float distSquared = distanceSquared(x, y, curEnemy.x, curEnemy.y);
+		float distSquared = distanceSquared(x, y, curEnemy->x, curEnemy->y);
 		if (distSquared < collisionRange) {
 			if (slowTime > 0) {
 				slowEnemy(i, slowTime, slowAmount);
