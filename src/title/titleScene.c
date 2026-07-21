@@ -129,11 +129,17 @@ void updateTitleScene(float deltaTime) {
     updateDebugCode(pushed);
 
     if (pushed & kButtonUp) {
-        playSound(SFX_UI_RUNE_SLIDE);
-        selectedIndex = (selectedIndex - 1 + BUTTON_COUNT) % BUTTON_COUNT;
+        if (selectedIndex > 0) {
+            playSound(SFX_UI_RUNE_SLIDE);
+            selectedIndex--;
+        }
+        // selectedIndex = (selectedIndex - 1 + BUTTON_COUNT) % BUTTON_COUNT;
     } else if (pushed & kButtonDown) {
-        playSound(SFX_UI_RUNE_SLIDE);
-        selectedIndex = (selectedIndex + 1) % BUTTON_COUNT;
+        if (selectedIndex < BUTTON_COUNT - 1) {
+            playSound(SFX_UI_RUNE_SLIDE);
+            selectedIndex++;
+        }
+        // selectedIndex = (selectedIndex + 1) % BUTTON_COUNT;
     } else if (pushed & kButtonA) {
         playSound(SFX_CLASS_SELECT);
         if (selectedIndex == 0) {
