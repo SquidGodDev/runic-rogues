@@ -12,7 +12,7 @@
 
 # Notes
 Movement:
-- Momentum: Damage ramps the longer you're moving, resets when you stop.
+- Momentum: Damage ramps the longer you're moving up to 200%, resets when you stop.
 - Focus: Standing still increases your damage by 15%
 - Rootwalker: Leave a damaging trail behind you when moving (summons root particles periodically).
 - Rapier: Continuously damaging enemies increases your move speed up to a cap (hits within 1s, up to 200%)

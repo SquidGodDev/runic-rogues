@@ -345,12 +345,19 @@ void notifyEnterRuneScrollbar(void) {
 
 void initRuneInventoryTab(void) {
     ownedRuneCount = 0;
-    // In debug, list every rune (unowned ones render faded and can be added via A);
-    // otherwise only the runes actually owned this run.
-    for (int i = RUNE_TYPE_COUNT - 1; i > RUNE_TYPE_NONE; i--) {
-        if (DEBUG.enabled || runeIsOwned((RuneType)i)) {
-            ownedRunesList[ownedRuneCount] = (RuneType)i;
-            ownedRuneCount++;
+    int obtainedCount = getObtainedRuneCount();
+    for (int i = 0; i < obtainedCount; i++) {
+        ownedRunesList[ownedRuneCount] = getObtainedRune(i);
+        ownedRuneCount++;
+    }
+    // In debug, also list the unowned runes (they render faded and can be added
+    // via A) after the owned ones, in enum order.
+    if (DEBUG.enabled) {
+        for (int i = RUNE_TYPE_NONE + 1; i < RUNE_TYPE_COUNT; i++) {
+            if (!runeIsOwned((RuneType)i)) {
+                ownedRunesList[ownedRuneCount] = (RuneType)i;
+                ownedRuneCount++;
+            }
         }
     }
 

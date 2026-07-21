@@ -310,6 +310,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_THUNDERCLOUD] = {
         .iconIndex = BITMAP_RUNE_THUNDERCLOUD,
+        .hudIconIndex = BITMAP_RUNE_HUD_LIGHTNING,
         .primaryBaseValue   = 10, // damage
         .primaryPerLevel    = 0,
         .secondaryBaseValue = 1, // chain count
@@ -402,6 +403,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_VIKING] = {
         // Damage multiplier handled directly in damageEnemy()
         .iconIndex = BITMAP_RUNE_VIKING,
+        .hudIconIndex = BITMAP_RUNE_HUD_VIKING,
         .primaryBaseValue = 2,
         .primaryPerLevel  = 0,
         .maxLevel = 1
@@ -482,7 +484,33 @@ void initRuneLocalization(void) {
 int runeLevels[RUNE_TYPE_COUNT];
 float runeTriggerCounters[RUNE_TYPE_COUNT];
 
+// Runes in the order they were first obtained this run.
+static RuneType runeObtainOrder[RUNE_TYPE_COUNT];
+static int runeObtainCount;
+
+static void addToObtainOrder(RuneType type) {
+    for (int i = 0; i < runeObtainCount; i++) {
+        if (runeObtainOrder[i] == type) {
+            return;
+        }
+    }
+    runeObtainOrder[runeObtainCount++] = type;
+}
+
+static void removeFromObtainOrder(RuneType type) {
+    for (int i = 0; i < runeObtainCount; i++) {
+        if (runeObtainOrder[i] == type) {
+            for (int j = i; j < runeObtainCount - 1; j++) {
+                runeObtainOrder[j] = runeObtainOrder[j + 1];
+            }
+            runeObtainCount--;
+            return;
+        }
+    }
+}
+
 void initRunes(void) {
+    runeObtainCount = 0;
     for (int i = 0; i < RUNE_TYPE_COUNT; i++) {
         runeLevels[i] = 0;
         runeTriggerCounters[i] = 0.0f;
@@ -530,7 +558,11 @@ void addRune(RuneType type) {
         return;
     }
 
+    bool wasOwned = runeLevels[type] > 0;
     runeLevels[type]++;
+    if (!wasOwned) {
+        addToObtainOrder(type);
+    }
 
     recalculateRuneEffectsToSpells();
     clampPlayerHealth();
@@ -543,13 +575,30 @@ void setRuneLevel(RuneType type, int level) {
     if (level > RUNE_DATA[type].maxLevel) {
         level = RUNE_DATA[type].maxLevel;
     }
+    bool wasOwned = runeLevels[type] > 0;
     runeLevels[type] = level;
     if (level == 0) {
         runeTriggerCounters[type] = 0.0f;
+        if (wasOwned) {
+            removeFromObtainOrder(type);
+        }
+    } else if (!wasOwned) {
+        addToObtainOrder(type);
     }
 
     recalculateRuneEffectsToSpells();
     clampPlayerHealth();
+}
+
+int getObtainedRuneCount(void) {
+    return runeObtainCount;
+}
+
+RuneType getObtainedRune(int index) {
+    if (index < 0 || index >= runeObtainCount) {
+        return RUNE_TYPE_NONE;
+    }
+    return runeObtainOrder[index];
 }
 
 int getRuneLevel(RuneType type) {
@@ -651,6 +700,34 @@ char *getRuneDescription(RuneType type, Language language, int runeLevel) {
 
 int getRuneIconIndex(RuneType type) {
     return RUNE_DATA[type].iconIndex;
+}
+
+int getRuneHudIconIndex(RuneType type) {
+    return RUNE_DATA[type].hudIconIndex;
+}
+
+RuneTriggerType getRuneTriggerType(RuneType type) {
+    return RUNE_DATA[type].triggerType;
+}
+
+float getRuneTriggerProgress(RuneType type) {
+    int level = runeLevels[type];
+    if (level <= 0) {
+        return 0.0f;
+    }
+    RuneData *rune = &RUNE_DATA[type];
+    float threshold = rune->triggerBaseValue + rune->triggerPerLevel * (level - 1);
+    if (threshold <= 0.0f) {
+        return 0.0f;
+    }
+    float progress = runeTriggerCounters[type] / threshold;
+    if (progress < 0.0f) {
+        progress = 0.0f;
+    }
+    if (progress > 1.0f) {
+        progress = 1.0f;
+    }
+    return progress;
 }
 
 RuneClassFilter getRuneClassFilter(RuneType type) {

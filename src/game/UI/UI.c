@@ -6,6 +6,7 @@
 #include "globals/localization.h"
 #include "game/UI/UI.h"
 #include "game/UI/bossTitle.h"
+#include "game/UI/runeHUD.h"
 #include "game/player/player.h"
 #include "game/player/playerStats.h"
 #include "game/player/spells/spells.h"
@@ -886,6 +887,7 @@ void drawUI(float deltaTime, bool duringCinematic) {
     }
 
     drawHealth(deltaTime);
+    drawRuneHUD();
     drawUIAnimations(deltaTime);
     drawWeapon(deltaTime);
     drawSpellUI();

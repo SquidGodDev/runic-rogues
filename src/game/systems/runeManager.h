@@ -83,6 +83,7 @@ typedef struct RuneData {
     char *descriptionEN;
     char *descriptionJP;
     int iconIndex;
+    int hudIconIndex;
     float primaryBaseValue;
     float primaryPerLevel;
     float secondaryBaseValue;
@@ -112,12 +113,19 @@ void initRuneLocalization(void);
 bool runeIsOwned(RuneType type);
 void addRune(RuneType type);
 void setRuneLevel(RuneType type, int level);
+// Runes in the order they were first obtained this run.
+int getObtainedRuneCount(void);
+RuneType getObtainedRune(int index);
 int getRuneLevel(RuneType type);
 int getRuneMaxLevel(RuneType type);
 bool runeIsMaxLevel(RuneType type);
 char *getRuneName(RuneType type, Language language);
 char *getRuneDescription(RuneType type, Language language, int runeLevel);
 int getRuneIconIndex(RuneType type);
+int getRuneHudIconIndex(RuneType type);
+RuneTriggerType getRuneTriggerType(RuneType type);
+// Progress (0..1) of a RUNE_TRIGGER_TIME rune toward its next trigger.
+float getRuneTriggerProgress(RuneType type);
 RuneClassFilter getRuneClassFilter(RuneType type);
 RuneRarity getRuneRarity(RuneType type);
 float getRuneValue(RuneType type);
