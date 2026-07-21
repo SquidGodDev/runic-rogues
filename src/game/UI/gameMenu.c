@@ -4,7 +4,9 @@
 #include "globals/globals.h"
 #include "globals/localization.h"
 #include "globals/saveSystem.h"
+#include "globals/sceneManager.h"
 #include "game/gameScene.h"
+#include "game/systems/progressionManager.h"
 #include "game/UI/gameMenu.h"
 #include "game/UI/runeInventory.h"
 #include "game/UI/quitConfirmDialog.h"
@@ -118,6 +120,7 @@ typedef struct SettingRowDef {
     bool (*isDisabled)(void);      // NULL = always enabled; disabled rows stay selectable but locked
     bool valueEnFont;              // CONTROL_CHOICE: render the value in the EN sub font regardless of language
     const char *(*intLabel)(int value); // CONTROL_INT: NULL renders the raw number; else renders this label
+    void (*onChange)(void);        // CONTROL_INT: NULL, or called once the value changes and the adjustment settles
 } SettingRowDef;
 
 typedef struct SettingsTabDef {
@@ -177,6 +180,9 @@ static const SettingRowDef AUDIO_ROWS[] = {
     { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },
 };
 
+// Reload the test area from its first room so the freshly-chosen debug enemy spawns.
+static void reloadTestAreaFirstRoom(void);
+
 // CONTROL_INT label for DEBUG.testFirstRoomEnemy: 0 = off, else the enemy's name.
 static const char *testFirstRoomEnemyLabel(int value) {
     if (value <= 0) {
@@ -191,7 +197,7 @@ static const SettingRowDef DEBUG_ROWS[] = {
     { STR_SETTING_INSTANT_ROOM_CLEAR, CONTROL_CHECKBOX, &DEBUG.instantRoomClear },
     { STR_SETTING_INSTANT_KILL_BOSS, CONTROL_CHECKBOX, &DEBUG.instantKillBoss },
     { STR_SETTING_START_IN_TEST_AREA, CONTROL_CHECKBOX, &DEBUG.startInTestArea },
-    { STR_SETTING_TEST_FIRST_ROOM_ENEMY, CONTROL_INT, &DEBUG.testFirstRoomEnemy, 0, ENEMY_TYPE_COUNT, NULL, 0, 0, NULL, false, testFirstRoomEnemyLabel },
+    { STR_SETTING_TEST_FIRST_ROOM_ENEMY, CONTROL_INT, &DEBUG.testFirstRoomEnemy, 0, ENEMY_TYPE_COUNT, NULL, 0, 0, NULL, false, testFirstRoomEnemyLabel, reloadTestAreaFirstRoom },
     { STR_SETTING_SKIP_AREA_MAP, CONTROL_CHECKBOX, &DEBUG.skipAreaMap },
     { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },
 };
@@ -294,6 +300,10 @@ static float navHoldTimer;
 
 static bool settingsDirty;     // a setting changed but hasn't been persisted yet
 
+// A CONTROL_INT row's onChange, requested by an A press and deferred to the end of
+// the frame since it may close the menu / switch scenes mid-update.
+static void (*onChangePending)(void);
+
 static void createCloseMenuItem(void);
 
 static void markSettingsDirty(void) {
@@ -327,9 +337,20 @@ static void closeGameMenu(void) {
     createGameMenuItem();
 }
 
+// Debug: close the menu and re-enter the test area from room 0 so the newly-selected
+// testFirstRoomEnemy spawns immediately. No-op outside the test area.
+static void reloadTestAreaFirstRoom(void) {
+    if (getCurrentArea() != AREA_TEST) {
+        return;
+    }
+    closeGameMenu();
+    switchScene(SCENE_GAME);
+}
+
 static void enterTabSelect(void) {
     playSound(SFX_UI_NAVIGATE);
     flushSettingsSave();
+    onChangePending = NULL;
     focus = FOCUS_TABS;
     selectedTab = activeTab;
 }
@@ -551,6 +572,11 @@ static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, 
         }
         case CONTROL_INT: {
             adjustInt((int *)row->value, row->minValue, row->maxValue, true, true, current, pushed, deltaTime);
+            // Left/right/crank scrub the value freely; A commits and fires onChange.
+            if (row->onChange != NULL && (pushed & kButtonA)) {
+                playSound(SFX_UI_CLICK);
+                onChangePending = row->onChange;
+            }
             break;
         }
         case CONTROL_RESET_BUTTON: {
@@ -1103,6 +1129,15 @@ void updateGameMenu(float deltaTime) {
 
         if (settingsDirty && adjHeldDir == 0 && crankChange == 0.0f) {
             flushSettingsSave();
+        }
+
+        // Fire a committed onChange. This may close the menu and switch scenes, so run
+        // it last and bail — nothing below should touch menu state afterward.
+        if (onChangePending != NULL) {
+            void (*cb)(void) = onChangePending;
+            onChangePending = NULL;
+            cb();
+            return;
         }
     }
 
