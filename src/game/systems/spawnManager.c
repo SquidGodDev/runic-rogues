@@ -280,6 +280,7 @@ void setCurrentRoomIndex(int roomIndex) {
 }
 
 void roomCompleted(void) {
+    playSound(SFX_CLEAR_ROOM);
     signalRuneTrigger(RUNE_TRIGGER_ROOM_CLEAR, 1.0f);
     showPopup(POPUP_ROOM_CLEARED, POPUP_POSITION_CENTER);
     nextRoomIndex++;

@@ -769,6 +769,22 @@ SFXData sfxData[] = {
         .rate = 10.5f,
         .phase = 0
     },
+    [SFX_CLEAR_ROOM] = {
+        .defaultNote = 68,
+        .volume = 0.27f,
+        .waveform = kWaveformNoise,
+        .attack = 0.17f,
+        .decay = 0.62f,
+        .sustain = 0,
+        .release = 0.07f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSquare,
+        .lfo = 1,
+        .depth = 0.59f,
+        .center = 0,
+        .rate = 10.5f,
+        .phase = 0
+    },
     [SFX_BABY_SLIME_WALK] = {
         .defaultNote = 60,
         .pitchRandomization = 1.3f,
