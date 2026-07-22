@@ -18,19 +18,6 @@ Slow/Freeze:
 - Snowball: Every 5 seconds, throw out a (1, 2, 3) projectiles towards random enemies that slows and damages them
 - Ice Cube: Dashing through enemies slows them
 
-Implement the following runes. For any rune HUD icons, make it a black square temporarily.
-Tank:
-- Bulwark: Reduce the first instance of damage you take in each room to 1.
-  - Make a rune HUD icon for this when active.
-- Lightning Rod: Taking damage arcs lightning towards the nearest 5 enemies
-- Thorns: Taking damage summons roots around you (in a tight ring 1 cell out, 8 total)
-  - This is an existing one, but rewrite the behavior to this.
-- Healing Potion: Enemies have a (5%, 10%, 20%) chance of dropping a healing potion
-- Stone Golem: Take 20% less damage when standing still
-  - Make a rune HUD icon for this when active
-- Adrenaline: Below 33% HP, spell cooldowns are halved.
-  - Make a rune HUD icon for this when active
-
 Dash:
 - Thunder Boots: Dashing arcs lightning towards the nearest 1, 2, 3 enemie(s)
 - Kunai: Dashing through enemies damages them (5 damage)
@@ -46,6 +33,7 @@ Knight:
 Ranger:
 - Bomb Arrow: Max charge arrows have a 20% chance of dropping a bomb on the first enemy hit
 - Quickdraw: Decrease bow draw time by (15%, 30%, 50%)
+
 ## Runes
   - Start rune for each class
   - Trigger runes

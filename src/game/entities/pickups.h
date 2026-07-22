@@ -8,6 +8,7 @@
 typedef enum PickupType {
     PICKUP_TYPE_XP_ORB,
     PICKUP_TYPE_ARROW,
+    PICKUP_TYPE_HEALTH_POTION,
     PICKUP_TYPE_COUNT
 } PickupType;
 

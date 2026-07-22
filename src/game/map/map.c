@@ -328,6 +328,7 @@ Point getRoomSpawnPosition(int roomIndex, int spawnSlot) {
 }
 
 void closeEntranceGate(void) {
+    signalRuneTrigger(RUNE_TRIGGER_ROOM_ENTER, 1.0f);
     for (int i = 0; i < entranceGate.cellCount; i++) {
         setCell(entranceGate.cells[i].x, entranceGate.cells[i].y, MAP_WALL);
     }
@@ -341,6 +342,7 @@ void openRoomGate(int gateIndex) {
 }
 
 void closeRoomGate(int gateIndex) {
+    signalRuneTrigger(RUNE_TRIGGER_ROOM_ENTER, 1.0f);
     RoomGate *gate = &roomGates[gateIndex];
     for (int i = 0; i < gate->cellCount; i++) {
         setCell(gate->cells[i].x, gate->cells[i].y, MAP_WALL);

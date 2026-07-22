@@ -83,6 +83,25 @@ void startChainLightning(float fromX, float fromY, int damage, int chainCount) {
     chainFromPosition(fromX, fromY, chainCount, hitEnemies);
 }
 
+void arcLightningToNearestEnemies(float fromX, float fromY, float maxRange, int damage, int count) {
+    float maxDistSq = maxRange * maxRange;
+    bool hitEnemies[MAX_ENEMY_COUNT] = {false};
+    bool struckAny = false;
+    for (int i = 0; i < count; i++) {
+        int targetIndex = findNearestActiveEnemy(fromX, fromY, maxDistSq, hitEnemies);
+        if (targetIndex < 0) {
+            break;
+        }
+        hitEnemies[targetIndex] = true;
+        damageEnemy(targetIndex, damage);
+        spawnParticle(PARTICLE_TYPE_LIGHTNING_ATTACK, enemies[targetIndex].x, enemies[targetIndex].y, enemies[targetIndex].x, enemies[targetIndex].y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+        struckAny = true;
+    }
+    if (struckAny) {
+        playSound(SFX_LIGHTNING);
+    }
+}
+
 void startChainLightningOnNearestEnemy(float fromX, float fromY, float maxRange, int damage, int chainCount) {
     float maxDistSq = maxRange * maxRange;
     int targetIndex = findNearestActiveEnemy(fromX, fromY, maxDistSq, NULL);

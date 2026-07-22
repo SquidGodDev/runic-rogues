@@ -199,7 +199,7 @@ int getMaxUtilitySpells(void);
 int getUtilitySpellCount(void);
 float getUtilitySpellCharge(void);
 void castUtilitySpell(void);
-// Grants one dash charge, capped at the current maximum (Second Wind rune).
+// Grants one dash charge, capped at the current maximum (Afterimage rune).
 void grantUtilitySpellCharge(void);
 // Reduces the special spell's remaining cooldown, clamped at zero (Flywheel rune).
 void reduceSpecialSpellCooldown(float amount);

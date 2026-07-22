@@ -295,9 +295,14 @@ void updateSpells(float deltaTime) {
         }
     }
 
+    // A cooldown reduction of R means cooldowns elapse 1/(1-R) times as fast
+    float cooldownRate = 1.0f;
+    if (adrenalineIsActive()) {
+        cooldownRate = 1.0f / (1.0f - getRuneValue(RUNE_TYPE_ADRENALINE));
+    }
     for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         if (spellCooldowns[i] > 0.0f) {
-            spellCooldowns[i] -= deltaTime;
+            spellCooldowns[i] -= deltaTime * cooldownRate;
             if (spellCooldowns[i] < 0.0f) {
                 spellCooldowns[i] = 0.0f;
             }

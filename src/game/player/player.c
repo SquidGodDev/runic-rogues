@@ -14,6 +14,8 @@
 #include "game/entities/interactables.h"
 #include "game/enemies/enemies.h"
 #include "game/rendering/textures.h"
+#include "game/rendering/particles.h"
+#include "game/systems/chainLightningManager.h"
 #include "game/map/map.h"
 #include "game/systems/audioManager.h"
 #include "game/systems/progressionManager.h"
@@ -27,6 +29,7 @@
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
 #define HIT_INVINCIBILITY_TIME 0.5f // Seconds
+#define THORNS_ROOT_COUNT 8 // Roots summoned in a ring when hit
 
 #define DOUBLE_TAP_TIME 0.3f // Seconds
 
@@ -699,9 +702,9 @@ void playerDash(void) {
 }
 
 void healPlayer(float amount) {
-	playerHealth += amount;
-	if (playerHealth >= getPlayerMaxHealth()) {
-		playerHealth = getPlayerMaxHealth();
+	if (playerHealth < getPlayerMaxHealth()) {
+		playSound(SFX_HEAL);
+		playerHealth += amount;
 	}
 }
 
@@ -734,12 +737,33 @@ void damagePlayer(float amount) {
     signalRuneTrigger(RUNE_TRIGGER_DAMAGED, 1.0f);
 
     if (runeIsOwned(RUNE_TYPE_THORNS)) {
-        damageEnemiesInArea(playerX, playerY, CELL_SIZE * 2, (int)getRuneValue(RUNE_TYPE_THORNS));
+        // Summon a tight ring of roots one cell out from the player
+        for (int i = 0; i < THORNS_ROOT_COUNT; i++) {
+            float angle = (2.0f * PI / THORNS_ROOT_COUNT) * i;
+            float rootX = playerX + cosf(angle) * CELL_SIZE;
+            float rootY = playerY + sinf(angle) * CELL_SIZE;
+            spawnParticle(PARTICLE_TYPE_PLAYER_ROOT_ATTACK, rootX, rootY, rootX, rootY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+        }
+    }
+    if (runeIsOwned(RUNE_TYPE_LIGHTNING_ROD)) {
+        arcLightningToNearestEnemies(playerX, playerY, CELL_SIZE * 8,
+            (int)getRuneValue(RUNE_TYPE_LIGHTNING_ROD),
+            (int)getRuneSecondaryValue(RUNE_TYPE_LIGHTNING_ROD));
     }
     if (runeIsOwned(RUNE_TYPE_ARMORED_SKIN)) {
         float armorRadius = CELL_SIZE * 2.5f;
         knockbackEnemiesInArea(playerX, playerY, (int)armorRadius, playerX, playerY, 0.35f, 4.0f, true /*awayFromPlayer*/);
         damageEnemiesInArea(playerX, playerY, (int)armorRadius, (int)getRuneValue(RUNE_TYPE_ARMORED_SKIN));
+    }
+
+    if (runeIsOwned(RUNE_TYPE_STONE_GOLEM) && !playerIsMoving()) {
+        amount *= 1.0f - getRuneValue(RUNE_TYPE_STONE_GOLEM);
+    }
+    if (bulwarkIsAvailable()) {
+        if (amount > 1.0f) {
+            amount = 1.0f;
+        }
+        consumeBulwark();
     }
 
     runStatsRecordDamageTaken((int)amount);
@@ -814,5 +838,4 @@ void updatePlayer(float deltaTime) {
     }
 	handleInput(deltaTime);
 	handleInteractables();
-	healPlayer(getPlayerHealthRegenRate() * deltaTime);
 }

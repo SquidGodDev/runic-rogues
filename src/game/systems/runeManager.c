@@ -8,6 +8,7 @@
 #include "globals/localization.h"
 #include "game/player/spells/spells.h"
 #include "game/player/classes/classData.h"
+#include "game/player/playerStats.h"
 #include "game/systems/chainLightningManager.h"
 #include "game/systems/timerManager.h"
 #include "game/player/player.h"
@@ -35,6 +36,7 @@ static float crescendoTime;    // seconds of continuous movement (0..ramp time)
 static float rapierProgress;  // move-speed ramp (0..1)
 static float rapierWindow;    // seconds left before Rapier resets
 static float rootwalkerTimer; // accumulates while moving, spawns roots at interval
+static bool bulwarkAvailable; // Bulwark shield, consumed on the first hit each room
 
 static void rapierCallback(float primaryValue, float secondaryValue) {
     (void)primaryValue;
@@ -43,6 +45,16 @@ static void rapierCallback(float primaryValue, float secondaryValue) {
     if (rapierProgress > 1.0f) {
         rapierProgress = 1.0f;
     }
+}
+
+static void bulwarkCallback(float primaryValue, float secondaryValue) {
+    (void)primaryValue;
+    (void)secondaryValue;
+    if (!bulwarkAvailable) {
+        return;
+    }
+    playSound(SFX_SHIELD_RESTORE);
+    bulwarkAvailable = true;
 }
 
 static void thunderStoneCallback(float primaryValue, float secondaryValue) {
@@ -90,7 +102,7 @@ static void dragonsBreathCallback(float primaryValue, float secondaryValue) {
     addTimer(DRAGONS_BREATH_INTERVAL, DRAGONS_BREATH_PROJECTILE_COUNT - 1, dragonsBreathTimerCallback, NULL);
 }
 
-static void secondWindCallback(float primaryValue, float secondaryValue) {
+static void afterimageCallback(float primaryValue, float secondaryValue) {
     (void)primaryValue;
     (void)secondaryValue;
     grantUtilitySpellCharge();
@@ -360,7 +372,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .iconIndex = BITMAP_RUNE_THORNS,
         .primaryBaseValue = 12,
         .primaryPerLevel  = 0,
-        .maxLevel = 1
+        .maxLevel = 1,
+        .classFilter = RUNE_CLASS_FILTER_NONE // Disabled for now
     },
     [RUNE_TYPE_BRASS_KNUCKLES] = {
         .iconIndex = BITMAP_RUNE_BRASS_KNUCKLES,
@@ -433,12 +446,12 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryPerLevel  = 0,
         .maxLevel = 1
     },
-    [RUNE_TYPE_SECOND_WIND] = {
-        .iconIndex = BITMAP_RUNE_SECOND_WIND,
+    [RUNE_TYPE_AFTERIMAGE] = {
+        .iconIndex = BITMAP_RUNE_AFTERIMAGE,
         .maxLevel = 1,
         .triggerType = RUNE_TRIGGER_KILL_ENEMY,
         .triggerBaseValue = 1.0f,
-        .triggerCallback  = secondWindCallback
+        .triggerCallback  = afterimageCallback
     },
     [RUNE_TYPE_FLYWHEEL] = {
         .iconIndex = BITMAP_RUNE_FLYWHEEL,
@@ -479,6 +492,51 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .triggerType = RUNE_TRIGGER_DAMAGE_ENEMY,
         .triggerBaseValue = 1.0f,
         .triggerCallback  = rapierCallback
+    },
+    [RUNE_TYPE_BULWARK] = {
+        // First-hit reduction + HUD availability handled directly in damagePlayer();
+        // shield refreshes each room via the ROOM_ENTER trigger
+        .iconIndex = BITMAP_RUNE_BULWARK,
+        .hudIconIndex = BITMAP_RUNE_HUD_BULWARK,
+        .maxLevel = 1,
+        .triggerType = RUNE_TRIGGER_ROOM_ENTER,
+        .triggerBaseValue = 1.0f,
+        .triggerCallback  = bulwarkCallback
+    },
+    [RUNE_TYPE_LIGHTNING_ROD] = {
+        // Lightning arc handled directly in damagePlayer()
+        .iconIndex = BITMAP_RUNE_LIGHTNING_ROD,
+        .primaryBaseValue   = 5, // damage per arc
+        .primaryPerLevel = 2,
+        .secondaryBaseValue = 3,  // enemies struck
+        .secondaryPerLevel = 1,
+        .maxLevel = 3
+    },
+    [RUNE_TYPE_HEALING_POTION] = {
+        // Drop roll handled in damageEnemy() via rollHealingPotionDrop()
+        .iconIndex = BITMAP_RUNE_HEALING_POTION,
+        .primaryBaseValue = 0.05f, // drop chance
+        .primaryPerLevel  = 0.05f,
+        .maxLevel = 3,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY
+    },
+    [RUNE_TYPE_STONE_GOLEM] = {
+        // Damage reduction + HUD handled directly in damagePlayer()
+        .iconIndex = BITMAP_RUNE_STONE_GOLEM,
+        .hudIconIndex = BITMAP_RUNE_HUD_STONE_GOLEM,
+        .primaryBaseValue = 0.2f, // 20% less damage while still
+        .maxLevel = 1,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY
+    },
+    [RUNE_TYPE_ADRENALINE] = {
+        // Cooldown reduction handled directly in updateSpells()
+        .iconIndex = BITMAP_RUNE_ADRENALINE,
+        .hudIconIndex = BITMAP_RUNE_HUD_ADRENALINE,
+        .primaryBaseValue   = 0.25f, // cooldown reduction while active
+        .secondaryBaseValue = 0.33f, // health fraction cutoff
+        .maxLevel = 1,
+        .primaryModifyOperation   = MODIFY_OP_MULTIPLY,
+        .secondaryModifyOperation = MODIFY_OP_MULTIPLY
     }
 };
 
@@ -515,12 +573,17 @@ static const char *RUNE_LOC_IDS[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_DRAGONS_BREATH] = "dragons_breath",
     [RUNE_TYPE_ARMORED_SKIN] = "armored_skin",
     [RUNE_TYPE_VIKING] = "viking",
-    [RUNE_TYPE_SECOND_WIND] = "second_wind",
+    [RUNE_TYPE_AFTERIMAGE] = "afterimage",
     [RUNE_TYPE_FLYWHEEL] = "flywheel",
     [RUNE_TYPE_CRESCENDO] = "crescendo",
     [RUNE_TYPE_FOCUS] = "focus",
     [RUNE_TYPE_ROOTWALKER] = "rootwalker",
     [RUNE_TYPE_RAPIER] = "rapier",
+    [RUNE_TYPE_BULWARK] = "bulwark",
+    [RUNE_TYPE_LIGHTNING_ROD] = "lightning_rod",
+    [RUNE_TYPE_HEALING_POTION] = "healing_potion",
+    [RUNE_TYPE_STONE_GOLEM] = "stone_golem",
+    [RUNE_TYPE_ADRENALINE] = "adrenaline",
 };
 
 void initRuneLocalization(void) {
@@ -580,6 +643,7 @@ void initRunes(void) {
     rapierProgress = 0.0f;
     rapierWindow = 0.0f;
     rootwalkerTimer = 0.0f;
+    bulwarkAvailable = true;
 
     // == Testing runes ==
     // setRuneLevel(RUNE_TYPE_VAMPIRISM, 1);
@@ -610,7 +674,7 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_DRAGONS_BREATH, 1);
     // setRuneLevel(RUNE_TYPE_ARMORED_SKIN, 1);
     // setRuneLevel(RUNE_TYPE_VIKING, 1);
-    // setRuneLevel(RUNE_TYPE_SECOND_WIND, 1);
+    // setRuneLevel(RUNE_TYPE_AFTERIMAGE, 1);
     // setRuneLevel(RUNE_TYPE_FLYWHEEL, 1);
     // setRuneLevel(RUNE_TYPE_CRESCENDO, 1);
     // setRuneLevel(RUNE_TYPE_FOCUS, 1);
@@ -966,4 +1030,24 @@ void updateRuneEffects(float deltaTime) {
             }
         }
     }
+}
+
+bool bulwarkIsAvailable(void) {
+    return runeIsOwned(RUNE_TYPE_BULWARK) && bulwarkAvailable;
+}
+
+void consumeBulwark(void) {
+    playSound(SFX_SHIELD_BREAK);
+    bulwarkAvailable = false;
+}
+
+bool adrenalineIsActive(void) {
+    return runeIsOwned(RUNE_TYPE_ADRENALINE) && playerHealth < getPlayerMaxHealth() * getRuneSecondaryValue(RUNE_TYPE_ADRENALINE);
+}
+
+bool rollHealingPotionDrop(void) {
+    if (!runeIsOwned(RUNE_TYPE_HEALING_POTION)) {
+        return false;
+    }
+    return randFloat(0.0f, 1.0f) < getRuneValue(RUNE_TYPE_HEALING_POTION);
 }

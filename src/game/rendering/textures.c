@@ -86,7 +86,8 @@ const char *texturePathStrings[] = {
 	"images/interactables/campfire",
 	"images/interactables/extinguishedCampfire",
 	"images/pickups/xpOrb",
-	"images/pickups/arrow"
+	"images/pickups/arrow",
+	"images/particles/healthPotion"
 };
 
 LCDBitmap* BITMAPS[BITMAP_PATHS_COUNT];
@@ -158,18 +159,26 @@ const char *bitmapPathStrings[] = {
 	"images/runes/dragonsBreath",
 	"images/runes/armoredSkin",
 	"images/runes/viking",
-	"images/runes/secondWind",
+	"images/runes/afterimage",
 	"images/runes/flywheel",
 	"images/runes/crescendo",
 	"images/runes/focus",
 	"images/runes/rapier",
 	"images/runes/rootwalker",
+	"images/runes/bulwark",
+	"images/runes/lightningRod",
+	"images/runes/healingPotion",
+	"images/runes/stoneGolem",
+	"images/runes/adrenaline",
 	"images/runes/runeHUD/runeHUDSlot",
 	"images/runes/runeHUD/lightning",
 	"images/runes/runeHUD/viking",
 	"images/runes/runeHUD/crescendo",
 	"images/runes/runeHUD/focus",
 	"images/runes/runeHUD/rapier",
+	"images/runes/runeHUD/bulwark",
+	"images/runes/runeHUD/stoneGolem",
+	"images/runes/runeHUD/adrenaline",
 	"images/areaMap/cornerPieceTL",
 	"images/areaMap/cornerPieceTR",
 	"images/areaMap/cornerPieceBL",

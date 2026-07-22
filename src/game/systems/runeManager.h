@@ -37,12 +37,17 @@ typedef enum RuneType {
     RUNE_TYPE_DRAGONS_BREATH,
     RUNE_TYPE_ARMORED_SKIN,
     RUNE_TYPE_VIKING,
-    RUNE_TYPE_SECOND_WIND,
+    RUNE_TYPE_AFTERIMAGE,
     RUNE_TYPE_FLYWHEEL,
     RUNE_TYPE_CRESCENDO,
     RUNE_TYPE_FOCUS,
     RUNE_TYPE_ROOTWALKER,
     RUNE_TYPE_RAPIER,
+    RUNE_TYPE_BULWARK,
+    RUNE_TYPE_LIGHTNING_ROD,
+    RUNE_TYPE_HEALING_POTION,
+    RUNE_TYPE_STONE_GOLEM,
+    RUNE_TYPE_ADRENALINE,
     RUNE_TYPE_COUNT
 } RuneType;
 
@@ -78,7 +83,8 @@ typedef enum RuneTriggerType {
     RUNE_TRIGGER_DAMAGE_ENEMY,
     RUNE_TRIGGER_KILL_ENEMY,
     RUNE_TRIGGER_EXPERIENCE,
-    RUNE_TRIGGER_ROOM_CLEAR
+    RUNE_TRIGGER_ROOM_CLEAR,
+    RUNE_TRIGGER_ROOM_ENTER
 } RuneTriggerType;
 
 typedef struct RuneData {
@@ -146,3 +152,11 @@ float getCrescendoSpeedMultiplier(void);
 // Rapier: ramp progress (0..1) and the resulting move-speed multiplier.
 float getRapierProgress(void);
 float getRapierSpeedMultiplier(void);
+
+// Bulwark: shield is available when owned and not yet consumed this room.
+bool bulwarkIsAvailable(void);
+void consumeBulwark(void);
+// Adrenaline: active while owned and below 33% health.
+bool adrenalineIsActive(void);
+// Healing Potion: roll the per-level drop chance on enemy death.
+bool rollHealingPotionDrop(void);

@@ -1067,6 +1067,9 @@ bool damageEnemy(int index, int damage) {
 
 		if (index != bossIndex && !curEnemy.isMinion) {
 			enemiesDefeated++;
+			if (rollHealingPotionDrop()) {
+				spawnPickup(curEnemy.x, curEnemy.y, PICKUP_TYPE_HEALTH_POTION);
+			}
 		}
 	}
 

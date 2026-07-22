@@ -4,12 +4,15 @@
 #include "game/entities/entities.h"
 #include "game/entities/pickups.h"
 #include "game/player/player.h"
+#include "game/player/playerStats.h"
 #include "game/map/map.h"
+#include "game/rendering/particles.h"
 #include "game/systems/progressionManager.h"
 #include "game/systems/runeManager.h"
 #include "game/systems/audioManager.h"
 
 #define PICKUP_DISTANCE 80.0f
+#define HEALTH_POTION_HEAL_AMOUNT 5.0f
 #define EXPIRATION_TIME 10.0f
 #define EXPIRATION_FLASH_TIME 2.0f
 #define EXPIRATION_FLASH_INTERVAL 0.2f
@@ -30,6 +33,11 @@ PickupData pickupData[PICKUP_TYPE_COUNT] = {
         .textureIndex = TEXTURE_ARROW,
         .animationFrames = 8,
         .animationFrameTime = 0.2f
+    },
+    [PICKUP_TYPE_HEALTH_POTION] = {
+        .textureIndex = TEXTURE_HEALTH_POTION,
+        .animationFrames = 6,
+        .animationFrameTime = 0.12f
     }
 };
 
@@ -81,13 +89,25 @@ void updatePickups(float deltaTime) {
         }
         
         if (distanceSquared(pickup->x, pickup->y, playerX, playerY) <= PICKUP_DISTANCE) {
-            pickup->active = false;
             if (pickup->type == PICKUP_TYPE_XP_ORB) {
+                pickup->active = false;
                 addExperience(1.0f);
                 signalRuneTrigger(RUNE_TRIGGER_EXPERIENCE, 1.0f);
             } else if (pickup->type == PICKUP_TYPE_ARROW) {
+                pickup->active = false;
                 playSound(SFX_TUTORIAL_ARROW_PICKUP);
+            } else if (pickup->type == PICKUP_TYPE_HEALTH_POTION) {
+                if (playerHealth < getPlayerMaxHealth()) {
+                    playSound(SFX_HEAL);
+                    pickup->active = false;
+                    healPlayer(HEALTH_POTION_HEAL_AMOUNT);
+                    spawnParticle(PARTICLE_TYPE_HEAL, playerX, playerY, playerX, playerY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+                }
             }
+        }
+
+        if (!pickup->active) {
+            continue;
         }
 
         if (pickup->type != PICKUP_TYPE_ARROW) {
