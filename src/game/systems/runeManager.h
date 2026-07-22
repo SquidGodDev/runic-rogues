@@ -39,6 +39,10 @@ typedef enum RuneType {
     RUNE_TYPE_VIKING,
     RUNE_TYPE_SECOND_WIND,
     RUNE_TYPE_FLYWHEEL,
+    RUNE_TYPE_CRESCENDO,
+    RUNE_TYPE_FOCUS,
+    RUNE_TYPE_ROOTWALKER,
+    RUNE_TYPE_RAPIER,
     RUNE_TYPE_COUNT
 } RuneType;
 
@@ -132,3 +136,13 @@ float getRuneValue(RuneType type);
 float getRuneSecondaryValue(RuneType type);
 void applyRuneEffectsToSpells(void);
 void signalRuneTrigger(RuneTriggerType type, float amount);
+
+// Per-frame update for runes whose effect ramps with movement/combat state
+// (Crescendo, Rootwalker, Rapier). Call once per gameplay frame.
+void updateRuneEffects(float deltaTime);
+// Crescendo: ramp progress (0..1) and the resulting move-speed multiplier.
+float getCrescendoProgress(void);
+float getCrescendoSpeedMultiplier(void);
+// Rapier: ramp progress (0..1) and the resulting move-speed multiplier.
+float getRapierProgress(void);
+float getRapierSpeedMultiplier(void);

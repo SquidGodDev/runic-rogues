@@ -10,13 +10,6 @@
 - Projectile speed feels so-so (make base speed slower?)
 - Adjust rogue damage
 
-# Notes
-Movement:
-- Momentum: Damage ramps the longer you're moving up to 200%, resets when you stop.
-- Focus: Standing still increases your damage by 15%
-- Rootwalker: Leave a damaging trail behind you when moving (summons root particles periodically).
-- Rapier: Continuously damaging enemies increases your move speed up to a cap (hits within 1s, up to 200%)
-
 Slow/Freeze:
 - Blizzard: Killing an enemy slows nearby enemies.
 - [Change] Frost Shard: Enemies have a (20%, 40%, 60%) of being slowed when damaged
@@ -25,17 +18,24 @@ Slow/Freeze:
 - Snowball: Every 5 seconds, throw out a (1, 2, 3) projectiles towards random enemies that slows and damages them
 - Ice Cube: Dashing through enemies slows them
 
+Implement the following runes. For any rune HUD icons, make it a black square temporarily.
 Tank:
 - Bulwark: Reduce the first instance of damage you take in each room to 1.
+  - Make a rune HUD icon for this when active.
 - Lightning Rod: Taking damage arcs lightning towards the nearest 5 enemies
-- [Change] Thorns: Taking damage summons roots around you (in a tight ring 1 cell out, 8 total)
+- Thorns: Taking damage summons roots around you (in a tight ring 1 cell out, 8 total)
+  - This is an existing one, but rewrite the behavior to this.
 - Healing Potion: Enemies have a (5%, 10%, 20%) chance of dropping a healing potion
 - Stone Golem: Take 20% less damage when standing still
-- Adrenaline: Below 33% HP, spell cooldowns drop sharply.
+  - Make a rune HUD icon for this when active
+- Adrenaline: Below 33% HP, spell cooldowns are halved.
+  - Make a rune HUD icon for this when active
 
 Dash:
 - Thunder Boots: Dashing arcs lightning towards the nearest 1, 2, 3 enemie(s)
 - Kunai: Dashing through enemies damages them (5 damage)
+- Feather: Dash distance is doubled
+- Locomotive: Deal increased damaged based on your current movement speed
 
 Mage:
 - High Voltage: Lightning spell arcs to (1, 2, 3) more enemies

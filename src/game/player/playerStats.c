@@ -46,5 +46,11 @@ float getPlayerMoveSpeed(void) {
     if (runeIsOwned(RUNE_TYPE_SWIFT)) {
         moveSpeed *= (1.0f + getRuneValue(RUNE_TYPE_SWIFT));
     }
+    if (runeIsOwned(RUNE_TYPE_RAPIER)) {
+        moveSpeed *= getRapierSpeedMultiplier();
+    }
+    if (runeIsOwned(RUNE_TYPE_CRESCENDO)) {
+        moveSpeed *= getCrescendoSpeedMultiplier();
+    }
     return moveSpeed;
 }

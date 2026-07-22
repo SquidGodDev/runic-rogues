@@ -1011,6 +1011,10 @@ bool damageEnemy(int index, int damage) {
 		damage = (int)(damage * getRuneValue(RUNE_TYPE_VIKING));
 	}
 
+	if (runeIsOwned(RUNE_TYPE_FOCUS) && !playerIsMoving()) {
+		damage = (int)(damage * (1.0f + getRuneValue(RUNE_TYPE_FOCUS)));
+	}
+
 	runStatsRecordDamageDealt(damage);
 	runStatsCreditSyncHit();
 

@@ -69,19 +69,38 @@ static bool vikingActive(void) {
     return playerHealth < getPlayerMaxHealth() * 0.5f;
 }
 
+// Runes whose HUD icon fills as an effect ramps up. Returns the fill fraction
+// (0..1) via outProgress, or false if this rune has no permanent fill entry.
+static bool runeHudFillProgress(RuneType type, float *outProgress) {
+    if (getRuneTriggerType(type) == RUNE_TRIGGER_TIME) {
+        *outProgress = getRuneTriggerProgress(type);
+        return true;
+    }
+    if (type == RUNE_TYPE_CRESCENDO) {
+        *outProgress = getCrescendoProgress();
+        return true;
+    }
+    if (type == RUNE_TYPE_RAPIER) {
+        *outProgress = getRapierProgress();
+        return true;
+    }
+    return false;
+}
+
 void drawRuneHUD(void) {
     int obtainedCount = getObtainedRuneCount();
     int slotIndex = 0;
 
     pd->graphics->pushContext(NULL);
 
-    // Permanent trigger-timer entries, in the order the runes were obtained.
+    // Permanent fill entries (trigger timers, ramping buffs), in obtain order.
     for (int i = 0; i < obtainedCount; i++) {
         RuneType type = getObtainedRune(i);
-        if (getRuneTriggerType(type) != RUNE_TRIGGER_TIME) {
+        float progress;
+        if (!runeHudFillProgress(type, &progress)) {
             continue;
         }
-        drawFillSlot(slotIndex, getRuneHudIconIndex(type), getRuneTriggerProgress(type));
+        drawFillSlot(slotIndex, getRuneHudIconIndex(type), progress);
         slotIndex++;
     }
 
@@ -89,6 +108,9 @@ void drawRuneHUD(void) {
     for (int i = 0; i < obtainedCount; i++) {
         RuneType type = getObtainedRune(i);
         if (type == RUNE_TYPE_VIKING && vikingActive()) {
+            drawStaticSlot(slotIndex, getRuneHudIconIndex(type));
+            slotIndex++;
+        } else if (type == RUNE_TYPE_FOCUS && !playerIsMoving()) {
             drawStaticSlot(slotIndex, getRuneHudIconIndex(type));
             slotIndex++;
         }

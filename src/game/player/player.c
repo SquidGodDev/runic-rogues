@@ -711,6 +711,14 @@ void clampPlayerHealth(void) {
 	}
 }
 
+#define PLAYER_MOVING_SPEED_THRESHOLD 5.0f
+
+bool playerIsMoving(void) {
+	float vx = movementStats.xVelocity;
+	float vy = movementStats.yVelocity;
+	return (vx * vx + vy * vy) > (PLAYER_MOVING_SPEED_THRESHOLD * PLAYER_MOVING_SPEED_THRESHOLD);
+}
+
 void damagePlayer(float amount) {
     if (playerState.hitInvincibility > 0 || playerState.dead) {
         if (!playerState.dead) {

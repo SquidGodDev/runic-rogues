@@ -20,6 +20,31 @@
 #define DRAGONS_BREATH_CONE_ANGLE (30.0f * PI / 180.0f)
 #define DRAGONS_BREATH_INTERVAL 0.1f
 
+// Time for a full Crescendo bar to decay back to zero once you stop moving. The
+// ramp time (seconds of movement to reach max) is the rune's secondary value.
+#define CRESCENDO_DECAY_TIME 1.0f
+// Rapier ramps its move-speed bonus per hit (the increment is the rune's
+// secondary value); if no hit lands within RAPIER_HIT_WINDOW seconds the bonus
+// decays to zero over RAPIER_DECAY_TIME.
+#define RAPIER_HIT_WINDOW 1.5f
+#define RAPIER_DECAY_TIME 1.0f
+// Seconds between damaging root spawns while Rootwalker is moving.
+#define ROOTWALKER_INTERVAL 0.35f
+
+static float crescendoTime;    // seconds of continuous movement (0..ramp time)
+static float rapierProgress;  // move-speed ramp (0..1)
+static float rapierWindow;    // seconds left before Rapier resets
+static float rootwalkerTimer; // accumulates while moving, spawns roots at interval
+
+static void rapierCallback(float primaryValue, float secondaryValue) {
+    (void)primaryValue;
+    rapierWindow = RAPIER_HIT_WINDOW;
+    rapierProgress += secondaryValue;
+    if (rapierProgress > 1.0f) {
+        rapierProgress = 1.0f;
+    }
+}
+
 static void thunderStoneCallback(float primaryValue, float secondaryValue) {
     startChainLightningOnNearestEnemy(playerX, playerY, CELL_SIZE * 5, (int)primaryValue, (int)secondaryValue);
 }
@@ -422,6 +447,38 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .triggerType = RUNE_TRIGGER_DASH,
         .triggerBaseValue = 1.0f,
         .triggerCallback  = flywheelCallback
+    },
+    [RUNE_TYPE_CRESCENDO] = {
+        // Move-speed multiplier handled directly in getPlayerMoveSpeed()
+        .iconIndex = BITMAP_RUNE_CRESCENDO,
+        .hudIconIndex = BITMAP_RUNE_HUD_CRESCENDO,
+        .primaryBaseValue   = 0.5f,  // +50% move speed at max ramp
+        .secondaryBaseValue = 10.0f, // seconds of movement to reach max
+        .maxLevel = 1
+    },
+    [RUNE_TYPE_FOCUS] = {
+        // Damage multiplier handled directly in damageEnemy()
+        .iconIndex = BITMAP_RUNE_FOCUS,
+        .hudIconIndex = BITMAP_RUNE_HUD_FOCUS,
+        .primaryBaseValue = 0.15f,
+        .maxLevel = 1
+    },
+    [RUNE_TYPE_ROOTWALKER] = {
+        // Root spawning handled directly in updateRuneEffects()
+        .iconIndex = BITMAP_RUNE_ROOTWALKER,
+        .maxLevel = 1,
+        .classFilter = RUNE_CLASS_FILTER_NONE // Disabled for now
+    },
+    [RUNE_TYPE_RAPIER] = {
+        // Move-speed multiplier handled directly in getPlayerMoveSpeed()
+        .iconIndex = BITMAP_RUNE_RAPIER,
+        .hudIconIndex = BITMAP_RUNE_HUD_RAPIER,
+        .primaryBaseValue   = 0.5f, // +50% move speed at cap
+        .secondaryBaseValue = 0.1f, // ramp progress percentage added per hit
+        .maxLevel = 1,
+        .triggerType = RUNE_TRIGGER_DAMAGE_ENEMY,
+        .triggerBaseValue = 1.0f,
+        .triggerCallback  = rapierCallback
     }
 };
 
@@ -460,6 +517,10 @@ static const char *RUNE_LOC_IDS[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_VIKING] = "viking",
     [RUNE_TYPE_SECOND_WIND] = "second_wind",
     [RUNE_TYPE_FLYWHEEL] = "flywheel",
+    [RUNE_TYPE_CRESCENDO] = "crescendo",
+    [RUNE_TYPE_FOCUS] = "focus",
+    [RUNE_TYPE_ROOTWALKER] = "rootwalker",
+    [RUNE_TYPE_RAPIER] = "rapier",
 };
 
 void initRuneLocalization(void) {
@@ -515,6 +576,10 @@ void initRunes(void) {
         runeLevels[i] = 0;
         runeTriggerCounters[i] = 0.0f;
     }
+    crescendoTime = 0.0f;
+    rapierProgress = 0.0f;
+    rapierWindow = 0.0f;
+    rootwalkerTimer = 0.0f;
 
     // == Testing runes ==
     // setRuneLevel(RUNE_TYPE_VAMPIRISM, 1);
@@ -547,6 +612,10 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_VIKING, 1);
     // setRuneLevel(RUNE_TYPE_SECOND_WIND, 1);
     // setRuneLevel(RUNE_TYPE_FLYWHEEL, 1);
+    // setRuneLevel(RUNE_TYPE_CRESCENDO, 1);
+    // setRuneLevel(RUNE_TYPE_FOCUS, 1);
+    // setRuneLevel(RUNE_TYPE_ROOTWALKER, 1);
+    // setRuneLevel(RUNE_TYPE_RAPIER, 1);
 }
 
 bool runeIsOwned(RuneType type) {
@@ -824,6 +893,77 @@ void signalRuneTrigger(RuneTriggerType type, float amount) {
             float primaryValue = rune->primaryBaseValue + rune->primaryPerLevel * (level - 1);
             float secondaryValue = rune->secondaryBaseValue + rune->secondaryPerLevel * (level - 1);
             rune->triggerCallback(primaryValue, secondaryValue);
+        }
+    }
+}
+
+float getCrescendoProgress(void) {
+    float rampTime = getRuneSecondaryValue(RUNE_TYPE_CRESCENDO);
+    if (rampTime <= 0.0f) {
+        return 0.0f;
+    }
+    return crescendoTime / rampTime;
+}
+
+float getCrescendoSpeedMultiplier(void) {
+    if (!runeIsOwned(RUNE_TYPE_CRESCENDO)) {
+        return 1.0f;
+    }
+    return 1.0f + getCrescendoProgress() * getRuneValue(RUNE_TYPE_CRESCENDO);
+}
+
+float getRapierProgress(void) {
+    return rapierProgress;
+}
+
+float getRapierSpeedMultiplier(void) {
+    if (!runeIsOwned(RUNE_TYPE_RAPIER)) {
+        return 1.0f;
+    }
+    return 1.0f + rapierProgress * getRuneValue(RUNE_TYPE_RAPIER);
+}
+
+void updateRuneEffects(float deltaTime) {
+    bool moving = playerIsMoving();
+
+    if (runeIsOwned(RUNE_TYPE_CRESCENDO)) {
+        float rampTime = getRuneSecondaryValue(RUNE_TYPE_CRESCENDO);
+        if (moving) {
+            crescendoTime += deltaTime;
+            if (crescendoTime > rampTime) {
+                crescendoTime = rampTime;
+            }
+        } else {
+            crescendoTime -= (rampTime / CRESCENDO_DECAY_TIME) * deltaTime;
+            if (crescendoTime < 0.0f) {
+                crescendoTime = 0.0f;
+            }
+        }
+    }
+
+    if (runeIsOwned(RUNE_TYPE_ROOTWALKER)) {
+        if (moving) {
+            rootwalkerTimer += deltaTime;
+            if (rootwalkerTimer >= ROOTWALKER_INTERVAL) {
+                rootwalkerTimer -= ROOTWALKER_INTERVAL;
+                spawnParticle(PARTICLE_TYPE_PLAYER_ROOT_ATTACK, playerX, playerY, playerX, playerY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
+            }
+        } else {
+            rootwalkerTimer = 0.0f;
+        }
+    }
+
+    if (runeIsOwned(RUNE_TYPE_RAPIER)) {
+        if (rapierWindow > 0.0f) {
+            rapierWindow -= deltaTime;
+            if (rapierWindow < 0.0f) {
+                rapierWindow = 0.0f;
+            }
+        } else if (rapierProgress > 0.0f) {
+            rapierProgress -= (1.0f / RAPIER_DECAY_TIME) * deltaTime;
+            if (rapierProgress < 0.0f) {
+                rapierProgress = 0.0f;
+            }
         }
     }
 }

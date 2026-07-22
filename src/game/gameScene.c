@@ -110,6 +110,7 @@ void initGameScene(void)
 void updateGameplaySubsystems(float deltaTime)
 {
 	signalRuneTrigger(RUNE_TRIGGER_TIME, deltaTime);
+	updateRuneEffects(deltaTime);
 	updatePickups(deltaTime);
 	updateSpells(deltaTime);
 	updatePlayer(deltaTime);
