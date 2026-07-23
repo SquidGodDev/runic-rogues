@@ -121,19 +121,20 @@ void encloseMapInWalls(int width, int height) {
 static void generateMultiRoomDungeon(void) {
     fillMap(MAP_WALL);
 
-    // Start hallway: x=[1,5] floor, y=5. Entrance gate tracks x=5 to close behind player.
+    // Start hallway: x=[1,5] floor, y=8. Entrance gate tracks x=5 to close behind player.
     for (int x = 1; x <= 5; x++) {
-        setCell(x, 5, MAP_FLOOR);
+        setCell(x, 8, MAP_FLOOR);
     }
     entranceGate = (RoomGate){ .cellCount = 1 };
-    entranceGate.cells[0] = (Point){.x = 5, .y = 5};
+    entranceGate.cells[0] = (Point){.x = 5, .y = 8};
 
-    // Non-boss rooms: 5 rooms of 9x9 interior, stride 14 (9 room + 5 hallway)
+    // Non-boss rooms: 5 rooms of 9x9 interior, stride 14 (9 room + 5 hallway).
+    // Row is centered at y=8 so the 15-tall boss room can center on the same corridor line.
     int roomInteriorSize = 9;
     int hallwayLength = 5;
     for (int i = 0; i < NON_BOSS_ROOM_COUNT; i++) {
         int minX = 6 + i * (roomInteriorSize + hallwayLength);
-        int minY = 1;
+        int minY = 4;
         int maxX = minX + roomInteriorSize - 1;
         int maxY = minY + roomInteriorSize - 1;
         dungeonRooms[i] = (DungeonRoom){
@@ -144,14 +145,14 @@ static void generateMultiRoomDungeon(void) {
         carveRoom(minX, minY, maxX, maxY);
     }
 
-    // Boss room: 15x15 interior, below Room 4 (minX=62, maxX=70, centerX=66, maxY=9)
-    // Entrance hallway at y=[10,14], boss room starts at y=15
+    // Boss room: 15x15 interior, straight ahead (east) of Room 4, vertically centered on the
+    // corridor line (centerY=8). Room 4: maxX=70. Hallway x=[71,75] at y=8, boss room at x=76.
     dungeonRooms[DUNGEON_ROOM_COUNT - 1] = (DungeonRoom){
-        .interiorMinX = 59, .interiorMinY = 15,
-        .interiorMaxX = 73, .interiorMaxY = 29,
-        .centerX = 66, .centerY = 22
+        .interiorMinX = 76, .interiorMinY = 1,
+        .interiorMaxX = 90, .interiorMaxY = 15,
+        .centerX = 83, .centerY = 8
     };
-    carveRoom(59, 15, 73, 29);
+    carveRoom(76, 1, 90, 15);
 
     // Inter-room gates: 5-cell hallways (1 gate column + 4 wall columns), 1 cell wide at centerY
     for (int i = 0; i < NON_BOSS_ROOM_COUNT - 1; i++) {
@@ -171,28 +172,30 @@ static void generateMultiRoomDungeon(void) {
         roomGates[i] = gate;
     }
 
-    // Boss gate: 5-cell vertical hallway (1 gate row + 4 wall rows), 3 cells wide
-    // Centered at x=66 (room 4 centerX), connecting room 4 bottom to boss room top
+    // Boss gate: 5-cell horizontal hallway (1 gate column + 4 wall columns), 3 cells wide.
+    // Front column shows a single centered gate cell flanked by walls; opening it reveals the
+    // full 3-wide passage connecting Room 4's east wall to the boss room.
     {
-        int hallMinX = 65;
-        int hallMaxX = 67;
-        int gateY = dungeonRooms[NON_BOSS_ROOM_COUNT - 1].interiorMaxY + 1;
+        DungeonRoom *lastRoom = &dungeonRooms[NON_BOSS_ROOM_COUNT - 1];
+        int gateX = lastRoom->interiorMaxX + 1;
+        int hallMinY = lastRoom->centerY - 1;
+        int hallMaxY = lastRoom->centerY + 1;
         int cellIdx = 0;
         RoomGate gate = { .cellCount = 0 };
 
-        // Front row: MAP_GATE
-        for (int x = hallMinX; x <= hallMaxX; x++) {
-            if (x == (hallMinX + hallMaxX) / 2) {
-                setCell(x, gateY, MAP_GATE);
+        // Front column: middle row MAP_GATE, flanking rows MAP_WALL
+        for (int y = hallMinY; y <= hallMaxY; y++) {
+            if (y == lastRoom->centerY) {
+                setCell(gateX, y, MAP_GATE);
             } else {
-                setCell(x, gateY, MAP_WALL);
+                setCell(gateX, y, MAP_WALL);
             }
-            gate.cells[cellIdx++] = (Point){.x = x, .y = gateY};
+            gate.cells[cellIdx++] = (Point){.x = gateX, .y = y};
         }
-        // Hallway rows: remain MAP_WALL, opened with gate
-        for (int dy = 1; dy <= 4; dy++) {
-            for (int x = hallMinX; x <= hallMaxX; x++) {
-                gate.cells[cellIdx++] = (Point){.x = x, .y = gateY + dy};
+        // Hallway columns: remain MAP_WALL, opened with gate
+        for (int dx = 1; dx <= 4; dx++) {
+            for (int y = hallMinY; y <= hallMaxY; y++) {
+                gate.cells[cellIdx++] = (Point){.x = gateX + dx, .y = y};
             }
         }
         gate.cellCount = cellIdx;
@@ -217,7 +220,7 @@ Point getPlayerSpawnMapPosition(void) {
         DungeonRoom *room = &dungeonRooms[DEBUG.skipToRoom - 1];
         return (Point){.x = room->interiorMinX + 1, .y = room->centerY};
     }
-    return (Point){.x = 1, .y = 5};
+    return (Point){.x = 1, .y = 8};
 }
 
 Point getExitMapPosition(void) {

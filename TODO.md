@@ -10,6 +10,21 @@
 - Projectile speed feels so-so (make base speed slower?)
 - Adjust rogue damage
 
+- Make navigating left/right in rune description jump to the next rune
+
+Translation Review Order:
+1. Title
+2. Tutorial
+3. Area names
+4. Class names
+5. Spell names
+6. Class descriptions
+7. Rune names
+8. Rune descriptions
+9. Settings
+
+Implement the following runes. Any rune icons should copy the images/runes/empty.png as a placeholder. Any rune HUD icons should be a transparent empty square for now. Any numbers used in the runes should be stored as primary/secondary/tertiary values into the RuneData itself to make it easy to adjust.
+
 Slow/Freeze:
 - Blizzard: Killing an enemy slows nearby enemies.
 - [Change] Frost Shard: Enemies have a (20%, 40%, 60%) of being slowed when damaged
@@ -18,11 +33,16 @@ Slow/Freeze:
 - Snowball: Every 5 seconds, throw out a (1, 2, 3) projectiles towards random enemies that slows and damages them
 - Ice Cube: Dashing through enemies slows them
 
+Damaging Instances:
+- Black Hole: Damaging an enemy has a (5%, 10%, 15%) chance of spawning a black hole
+
 Dash:
 - Thunder Boots: Dashing arcs lightning towards the nearest 1, 2, 3 enemie(s)
-- Kunai: Dashing through enemies damages them (5 damage)
+- Kunai: Dashing through enemies damages them
+  - 5 damage
 - Feather: Dash distance is doubled
 - Locomotive: Deal increased damaged based on your current movement speed
+  - Uncapped. Scale is that if the player is going 100% faster than their base speed (double their base speed), that equals 50% more damage
 
 Mage:
 - High Voltage: Lightning spell arcs to (1, 2, 3) more enemies

@@ -14,7 +14,7 @@
 #define SCREEN_HEIGHT 120
 #define HALF_SCREEN_HEIGHT SCREEN_HEIGHT / 2
 #define CELL_SIZE 16
-#define MAP_WIDTH 76
+#define MAP_WIDTH 92
 #define MAP_HEIGHT 32
 
 // Runtime debug flags, adjustable in-game via the debug settings tab (unlocked
