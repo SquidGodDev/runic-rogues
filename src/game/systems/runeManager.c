@@ -67,6 +67,7 @@ static void meditationCallback(float primaryValue, float secondaryValue) {
 static void bomberCallback(float primaryValue, float secondaryValue) {
     (void)primaryValue;
     (void)secondaryValue;
+    playSound(SFX_BOMB_DROP);
     spawnParticle(PARTICLE_TYPE_BOMB, playerX, playerY, playerX, playerY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
 }
 

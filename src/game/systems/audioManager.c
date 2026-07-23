@@ -285,6 +285,22 @@ SFXData sfxData[] = {
         .rate = 5.9f,
         .phase = 0
     },
+    [SFX_BOMB_DROP] = {
+        .defaultNote = 73,
+        .volume = DEFAULT_VOLUME,
+        .waveform = kWaveformSquare,
+        .attack = 0,
+        .decay = 0.18f,
+        .sustain = 0,
+        .release = 0.14f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSawtoothUp,
+        .lfo = 1,
+        .depth = 0.46f,
+        .center = 0,
+        .rate = 8.6f,
+        .phase = 0
+    },
     [SFX_WALL_HIT] = {
         .defaultNote = 31,
         .volume = DEFAULT_VOLUME,
