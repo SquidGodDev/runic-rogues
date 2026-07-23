@@ -828,6 +828,9 @@ void drawRoomInfo(void) {
             pd->system->realloc(objectiveString, 0);
         pd->graphics->popContext();
         return;
+    } else {
+        // Added Rune HUD, so not drawing room info anymore
+        return;
     }
 
     int roomIndex = getCurrentRoomIndex();
