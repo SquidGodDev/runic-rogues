@@ -216,7 +216,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .secondaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary   = modifySpellKnockbackTime,
         .applySpellModifierSecondary = modifySpellKnockbackAmount,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
+        .classFilter = RUNE_CLASS_FILTER_NONE // Disabled for now
     },
     [RUNE_TYPE_IRON_GAUNTLET] = {
         .iconIndex = BITMAP_RUNE_IRON_GAUNTLET,
@@ -230,7 +230,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .secondaryModifyOperation = MODIFY_OP_ADD,
         .applySpellModifierPrimary   = modifySpellKnockbackTime,
         .applySpellModifierSecondary = modifySpellKnockbackAmount,
-        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER
+        .classFilter = RUNE_CLASS_FILTER_MAGE | RUNE_CLASS_FILTER_ROGUE | RUNE_CLASS_FILTER_RANGER,
+        .classFilter = RUNE_CLASS_FILTER_NONE // Disabled for now
     },
     [RUNE_TYPE_FROST_SHARD] = {
         .iconIndex = BITMAP_RUNE_FROST_SHARD,
