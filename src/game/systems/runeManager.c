@@ -770,12 +770,30 @@ static void strReplaceFirst(char *buf, const char *token, const char *replacemen
     memcpy(pos, replacement, repLen);
 }
 
+static void replaceValueToken(char *buf, const char *token, float value, bool asPercent) {
+    if (strstr(buf, token) == NULL) {
+        return;
+    }
+
+    char *valueStr = NULL;
+    if (asPercent) {
+        pd->system->formatString(&valueStr, "%d", (int)roundf(value * 100));
+    } else if ((float)(int)value == value) {
+        pd->system->formatString(&valueStr, "%d", (int)value);
+    } else {
+        int tenths = (int)roundf(value * 10);
+        pd->system->formatString(&valueStr, "%d.%d", tenths / 10, tenths % 10);
+    }
+    strReplaceFirst(buf, token, valueStr);
+    pd->system->realloc(valueStr, 0);
+}
+
 char *getRuneDescription(RuneType type, Language language, int runeLevel) {
     const RuneData *rune = &RUNE_DATA[type];
     const char *tmpl = (language == LANGUAGE_EN) ? rune->descriptionEN : rune->descriptionJP;
     char *buf        = (language == LANGUAGE_EN) ? descBufferEN : descBufferJP;
 
-    if (strstr(tmpl, "{1}") == NULL && strstr(tmpl, "{2}") == NULL && strstr(tmpl, "{T}") == NULL) {
+    if (strchr(tmpl, '{') == NULL) {
         return (char *)tmpl;
     }
 
@@ -786,48 +804,16 @@ char *getRuneDescription(RuneType type, Language language, int runeLevel) {
         runeLevel = 1;
     }
 
-    if (strstr(buf, "{1}") != NULL) {
-        float pv = fabsf(rune->primaryBaseValue + rune->primaryPerLevel * (runeLevel - 1));
-        char *pvStr = NULL;
-        if (rune->primaryModifyOperation == MODIFY_OP_MULTIPLY) {
-            pd->system->formatString(&pvStr, "%d", (int)roundf(pv * 100));
-        } else if ((float)(int)pv == pv) {
-            pd->system->formatString(&pvStr, "%d", (int)pv);
-        } else {
-            int tenths = (int)roundf(pv * 10);
-            pd->system->formatString(&pvStr, "%d.%d", tenths / 10, tenths % 10);
-        }
-        strReplaceFirst(buf, "{1}", pvStr);
-        pd->system->realloc(pvStr, 0);
-    }
+    float primaryValue   = fabsf(rune->primaryBaseValue + rune->primaryPerLevel * (runeLevel - 1));
+    float secondaryValue = fabsf(rune->secondaryBaseValue + rune->secondaryPerLevel * (runeLevel - 1));
+    float triggerValue   = fabsf(rune->triggerBaseValue + rune->triggerPerLevel * (runeLevel - 1));
 
-    if (strstr(buf, "{2}") != NULL) {
-        float sv = fabsf(rune->secondaryBaseValue + rune->secondaryPerLevel * (runeLevel - 1));
-        char *svStr = NULL;
-        if (rune->secondaryModifyOperation == MODIFY_OP_MULTIPLY) {
-            pd->system->formatString(&svStr, "%d", (int)roundf(sv * 100));
-        } else if ((float)(int)sv == sv) {
-            pd->system->formatString(&svStr, "%d", (int)sv);
-        } else {
-            int tenths = (int)roundf(sv * 10);
-            pd->system->formatString(&svStr, "%d.%d", tenths / 10, tenths % 10);
-        }
-        strReplaceFirst(buf, "{2}", svStr);
-        pd->system->realloc(svStr, 0);
-    }
-
-    if (strstr(buf, "{T}") != NULL) {
-        float tv = fabsf(rune->triggerBaseValue + rune->triggerPerLevel * (runeLevel - 1));
-        char *tvStr = NULL;
-        if ((float)(int)tv == tv) {
-            pd->system->formatString(&tvStr, "%d", (int)tv);
-        } else {
-            int tenths = (int)roundf(tv * 10);
-            pd->system->formatString(&tvStr, "%d.%d", tenths / 10, tenths % 10);
-        }
-        strReplaceFirst(buf, "{T}", tvStr);
-        pd->system->realloc(tvStr, 0);
-    }
+    // {1P}/{2P} force percent formatting for runes whose modify operation isn't MULTIPLY
+    replaceValueToken(buf, "{1P}", primaryValue, true);
+    replaceValueToken(buf, "{2P}", secondaryValue, true);
+    replaceValueToken(buf, "{1}", primaryValue, rune->primaryModifyOperation == MODIFY_OP_MULTIPLY);
+    replaceValueToken(buf, "{2}", secondaryValue, rune->secondaryModifyOperation == MODIFY_OP_MULTIPLY);
+    replaceValueToken(buf, "{T}", triggerValue, false);
 
     return buf;
 }
