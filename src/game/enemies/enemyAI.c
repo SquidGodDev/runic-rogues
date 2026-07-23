@@ -1462,7 +1462,7 @@ static void elderFireProjectileWave(Enemy *curEnemy, EnemyData *curEnemyData, in
 }
 
 static void elderBeginNextAttackCycle(Enemy *curEnemy, EnemyData *curEnemyData) {
-	curEnemy->attackCycle = (curEnemy->attackCycle + 0) % ELDER_ATTACK_CYCLE_COUNT;
+	curEnemy->attackCycle = (curEnemy->attackCycle + 1) % ELDER_ATTACK_CYCLE_COUNT;
 	curEnemy->stateCount = 0;
 	curEnemy->attackedPlayer = false;
 
