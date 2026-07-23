@@ -137,8 +137,8 @@ static const StringKey nextRoomPages[] = {
 
 // Reminder pages restate the controls and objective for each task that can stall.
 static const StringKey r1ReminderPages[] = {
-    STR_TUTORIAL_R1_1,
-    STR_TUTORIAL_R1_3
+    STR_TUTORIAL_R1_2,
+    STR_TUTORIAL_R1_4
 };
 static const StringKey r2ReminderPages[] = {
     STR_TUTORIAL_R2_1,
@@ -153,7 +153,7 @@ static const StringKey r4ReminderPages[] = {
     STR_TUTORIAL_R4_4
 };
 static const StringKey exitReminderPages[] = {
-    STR_TUTORIAL_R6_1
+    STR_TUTORIAL_R6_2
 };
 
 static const StringKey *getReminderPages(int *outCount) {

@@ -894,7 +894,7 @@ void drawUI(float deltaTime, bool duringCinematic) {
     // drawMinimap();
     drawExitArrow();
     drawInteractablePrompt();
-    // drawRoomInfo();
+    drawRoomInfo();
     // drawExperienceBar();
     drawDirectionIndicators(deltaTime);
     drawPopup(deltaTime);

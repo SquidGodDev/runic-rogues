@@ -387,11 +387,13 @@ void updateClassSelectScene(float deltaTime) {
         pd->graphics->drawBitmap(frame, modelDrawX, modelDrawY, kBitmapUnflipped);
     }
 
-    pd->graphics->setFont(fontTitleEN);
+    bool isJapanese = (SETTINGS.language == LANGUAGE_JP);
+    pd->graphics->setFont(isJapanese ? fontTitleJP : fontTitleEN);
     pd->graphics->setDrawMode(kDrawModeInverted);
     pd->graphics->setTextTracking(0);
-    const char *title = classData[selectedIndex].name;
-    int titleWidth = pd->graphics->getTextWidth(fontTitleEN, title, strlen(title), kUTF8Encoding, 0);
+    ClassData *cd = &classData[selectedIndex];
+    const char *title = isJapanese ? cd->nameJP : cd->name;
+    int titleWidth = pd->graphics->getTextWidth(isJapanese ? fontTitleJP : fontTitleEN, title, strlen(title), kUTF8Encoding, 0);
     pd->graphics->drawText(title, strlen(title), kUTF8Encoding, (SCREEN_WIDTH - titleWidth) / 2, TITLE_Y);
     pd->graphics->setDrawMode(kDrawModeCopy);
 

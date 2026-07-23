@@ -8,7 +8,7 @@
 #include "game/systems/audioManager.h"
 
 #define TD_BOX_MARGIN       8
-#define TD_BOX_PADDING_X    6
+#define TD_BOX_PADDING_X    4
 #define TD_BOX_PADDING_Y    5
 #define TD_BOX_HEIGHT       42
 #define TD_BOX_X            TD_BOX_MARGIN
@@ -18,10 +18,12 @@
 #define TD_TEXT_MAX_W       (TD_BOX_W - TD_BOX_PADDING_X * 2)
 #define TD_LINE_LEADING     0
 #define TD_TEXT_TRACKING    -1
+#define TD_TEXT_TRACKING_JP 0
 #define TD_MAX_LINES        4
 #define TD_MAX_LINE_LEN     128
 
 #define TD_CHAR_TIME        0.05f
+#define TD_CHAR_TIME_JP     0.08f
 #define TD_IN_DURATION      0.70f
 #define TD_OUT_DURATION     0.5f
 
@@ -85,9 +87,82 @@ static char charAtRevealIndex(int index) {
     return '\0';
 }
 
-static void wrapPage(const char *text) {
-    dLineCount = 0;
-    dPageTotalChars = 0;
+static void pushLine(const char *src, int byteLen) {
+    if (dLineCount >= TD_MAX_LINES) {
+        return;
+    }
+    if (byteLen >= TD_MAX_LINE_LEN) {
+        byteLen = TD_MAX_LINE_LEN - 1;
+    }
+    memcpy(dLines[dLineCount], src, byteLen);
+    dLines[dLineCount][byteLen] = '\0';
+    dLineCharCounts[dLineCount] = utf8NumChars(dLines[dLineCount]);
+    dPageTotalChars += dLineCharCounts[dLineCount];
+    dLineCount++;
+}
+
+// Characters that must not begin a line (Japanese kinsoku shori): closing
+// punctuation, small kana, and the long-vowel mark stay with the prior line.
+static bool isJpNoStartChar(const char *s, int byteLen) {
+    static const char *const noStart[] = {
+        "、", "。", "，", "．", "！", "？", "」", "』", "）", "】", "・", "ー",
+        "ゃ", "ゅ", "ょ", "っ", "ゎ", "ャ", "ュ", "ョ", "ッ", "ヮ",
+        "ぁ", "ぃ", "ぅ", "ぇ", "ぉ", "ァ", "ィ", "ゥ", "ェ", "ォ"
+    };
+    for (int i = 0; i < (int)(sizeof(noStart) / sizeof(noStart[0])); i++) {
+        if ((int)strlen(noStart[i]) == byteLen && memcmp(s, noStart[i], byteLen) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Japanese has no spaces to break on, so wrap character-by-character, measuring
+// the line width as each glyph is added.
+static void wrapPageJP(const char *text) {
+    char cur[TD_MAX_LINE_LEN];
+    int curLen = 0;
+    int i = 0;
+    while (text[i] && dLineCount < TD_MAX_LINES) {
+        int clen = 1;
+        while (text[i + clen] && ((unsigned char)text[i + clen] & 0xC0) == 0x80) {
+            clen++;
+        }
+
+        if (curLen + clen >= TD_MAX_LINE_LEN) {
+            pushLine(cur, curLen);
+            curLen = 0;
+        }
+
+        char trial[TD_MAX_LINE_LEN];
+        int trialLen = curLen + clen;
+        memcpy(trial, cur, curLen);
+        memcpy(trial + curLen, text + i, clen);
+        trial[trialLen] = '\0';
+
+        int width = pd->graphics->getTextWidth(fontSubJP, trial, trialLen, kUTF8Encoding, TD_TEXT_TRACKING_JP);
+
+        if (width <= TD_TEXT_MAX_W || curLen == 0) {
+            memcpy(cur, trial, trialLen + 1);
+            curLen = trialLen;
+            i += clen;
+        } else if (isJpNoStartChar(text + i, clen)) {
+            memcpy(cur, trial, trialLen + 1);
+            curLen = trialLen;
+            i += clen;
+            pushLine(cur, curLen);
+            curLen = 0;
+        } else {
+            pushLine(cur, curLen);
+            curLen = 0;
+        }
+    }
+    if (curLen > 0) {
+        pushLine(cur, curLen);
+    }
+}
+
+static void wrapPageEN(const char *text) {
     char cur[TD_MAX_LINE_LEN];
     cur[0] = '\0';
     int curLen = 0;
@@ -129,12 +204,7 @@ static void wrapPage(const char *text) {
                     memcpy(cur, trial, trialLen + 1);
                     curLen = trialLen;
                 } else {
-                    if (dLineCount < TD_MAX_LINES) {
-                        memcpy(dLines[dLineCount], cur, curLen + 1);
-                        dLineCharCounts[dLineCount] = utf8NumChars(dLines[dLineCount]);
-                        dPageTotalChars += dLineCharCounts[dLineCount];
-                        dLineCount++;
-                    }
+                    pushLine(cur, curLen);
                     if (wordLen >= TD_MAX_LINE_LEN) {
                         wordLen = TD_MAX_LINE_LEN - 1;
                     }
@@ -150,11 +220,19 @@ static void wrapPage(const char *text) {
         }
         i++;
     }
-    if (curLen > 0 && dLineCount < TD_MAX_LINES) {
-        memcpy(dLines[dLineCount], cur, curLen + 1);
-        dLineCharCounts[dLineCount] = utf8NumChars(dLines[dLineCount]);
-        dPageTotalChars += dLineCharCounts[dLineCount];
-        dLineCount++;
+    if (curLen > 0) {
+        pushLine(cur, curLen);
+    }
+}
+
+static void wrapPage(const char *text) {
+    dLineCount = 0;
+    dPageTotalChars = 0;
+
+    if (SETTINGS.language == LANGUAGE_JP) {
+        wrapPageJP(text);
+    } else {
+        wrapPageEN(text);
     }
 
     dRevealedChars = 0;
@@ -204,10 +282,11 @@ void updateTutorialDialog(float deltaTime) {
         return;
     }
 
+    float charTime = (SETTINGS.language == LANGUAGE_JP) ? TD_CHAR_TIME_JP : TD_CHAR_TIME;
     if (dState == TD_TYPING) {
         dCharAccumulator += deltaTime;
-        while (dCharAccumulator >= TD_CHAR_TIME && dRevealedChars < dPageTotalChars) {
-            dCharAccumulator -= TD_CHAR_TIME;
+        while (dCharAccumulator >= charTime && dRevealedChars < dPageTotalChars) {
+            dCharAccumulator -= charTime;
             if (charAtRevealIndex(dRevealedChars) != ' ') {
                 playSound(SFX_TUTORIAL_TYPEWRITER);
             }
@@ -261,9 +340,10 @@ void drawTutorialDialog(void) {
         return;
     }
 
-    pd->graphics->setFont(fontSubEN);
-    pd->graphics->setTextTracking(TD_TEXT_TRACKING);
-    int fontHeight = pd->graphics->getFontHeight(fontSubEN);
+    bool isJapanese = (SETTINGS.language == LANGUAGE_JP);
+    pd->graphics->setFont(isJapanese ? fontSubJP : fontSubEN);
+    pd->graphics->setTextTracking(isJapanese ? TD_TEXT_TRACKING_JP : TD_TEXT_TRACKING);
+    int fontHeight = pd->graphics->getFontHeight(isJapanese ? fontSubJP : fontSubEN);
     int textY = boxY + TD_BOX_PADDING_Y;
     int consumed = 0;
     for (int i = 0; i < dLineCount; i++) {
@@ -273,8 +353,7 @@ void drawTutorialDialog(void) {
             charsThisLine = lineLen;
         }
         if (charsThisLine > 0) {
-            int byteLen = utf8ByteOffsetForChar(dLines[i], charsThisLine);
-            pd->graphics->drawText(dLines[i], byteLen, kUTF8Encoding, TD_TEXT_X, textY + i * (fontHeight + TD_LINE_LEADING));
+            pd->graphics->drawText(dLines[i], charsThisLine, kUTF8Encoding, TD_TEXT_X, textY + i * (fontHeight + TD_LINE_LEADING));
         }
         consumed += lineLen;
         if (consumed >= dRevealedChars) {
