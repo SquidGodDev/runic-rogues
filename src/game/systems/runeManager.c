@@ -17,8 +17,7 @@
 
 #define DRAGONS_BREATH_SPEED 120.0f
 #define DRAGONS_BREATH_DAMAGE 8
-#define DRAGONS_BREATH_PROJECTILE_COUNT 8
-#define DRAGONS_BREATH_CONE_ANGLE (30.0f * PI / 180.0f)
+#define DRAGONS_BREATH_CONE_ANGLE (15.0f * PI / 180.0f)
 #define DRAGONS_BREATH_INTERVAL 0.1f
 
 // Time for a full Crescendo bar to decay back to zero once you stop moving. The
@@ -95,11 +94,12 @@ static void dragonsBreathTimerCallback(int repeatCount, void *userData) {
 }
 
 static void dragonsBreathCallback(float primaryValue, float secondaryValue) {
-    (void)primaryValue;
     (void)secondaryValue;
-    // Spray the fireballs one at a time, staggered over DRAGONS_BREATH_INTERVAL
+    // Spray the fireballs one at a time, staggered over DRAGONS_BREATH_INTERVAL.
+    // primaryValue is the total projectile count (scales with rune level).
+    int projectileCount = (int)primaryValue;
     fireDragonsBreath();
-    addTimer(DRAGONS_BREATH_INTERVAL, DRAGONS_BREATH_PROJECTILE_COUNT - 1, dragonsBreathTimerCallback, NULL);
+    addTimer(DRAGONS_BREATH_INTERVAL, projectileCount - 1, dragonsBreathTimerCallback, NULL);
 }
 
 static void afterimageCallback(float primaryValue, float secondaryValue) {
@@ -425,8 +425,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_DRAGONS_BREATH] = {
         .iconIndex = BITMAP_RUNE_DRAGONS_BREATH,
-        .rarity = RUNE_RARITY_RARE,
-        .maxLevel = 1,
+        .primaryBaseValue = 3,
+        .primaryPerLevel  = 3,
+        .maxLevel = 3,
         .triggerType = RUNE_TRIGGER_DASH,
         .triggerBaseValue = 1.0f,
         .triggerCallback  = dragonsBreathCallback
