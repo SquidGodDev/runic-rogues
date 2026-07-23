@@ -5,6 +5,7 @@
 #include "game/systems/runeManager.h"
 
 #define SHOP_DESC_MAX_WIDTH 177
+#define SHOP_DESC_MAX_WIDTH_WIDE 185
 #define SHOP_DESC_MAX_HEIGHT 57
 
 typedef struct ShopItem {

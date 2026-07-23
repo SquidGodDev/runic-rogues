@@ -22,6 +22,9 @@
 #define RUNE_DESC_X             4
 #define RUNE_DESC_Y             60
 #define RUNE_DESC_WIDTH         185
+// Wider width used when the description fits without a scrollbar, reclaiming the
+// space the scrollbar would otherwise occupy.
+#define RUNE_DESC_WIDTH_WIDE    192
 #define RUNE_DESC_HEIGHT        (SCREEN_HEIGHT - RUNE_DESC_Y - 2)
 #define RUNE_SCROLLBAR_X        193
 #define RUNE_SCROLLBAR_Y        61
@@ -85,10 +88,17 @@ static RunePageData getRunePage(RuneType runeType) {
         int tracking = -2;
         int leading = 0;
         int titleH = pd->graphics->getFontHeight(fontTitleEN);
+        int descWidth = RUNE_DESC_WIDTH_WIDE;
         int descH = pd->graphics->getTextHeightForMaxWidth(fontSubEN, descEN, strlen(descEN),
-                        RUNE_DESC_WIDTH, kUTF8Encoding, kWrapWord, tracking, leading);
+                        descWidth, kUTF8Encoding, kWrapWord, tracking, leading);
         int totalH = titleH + 6 + descH;
-        LCDBitmap *bmp = pd->graphics->newBitmap(RUNE_DESC_WIDTH, totalH, kColorClear);
+        if (totalH > RUNE_DESC_HEIGHT) {
+            descWidth = RUNE_DESC_WIDTH;
+            descH = pd->graphics->getTextHeightForMaxWidth(fontSubEN, descEN, strlen(descEN),
+                        descWidth, kUTF8Encoding, kWrapWord, tracking, leading);
+            totalH = titleH + 6 + descH;
+        }
+        LCDBitmap *bmp = pd->graphics->newBitmap(descWidth, totalH, kColorClear);
         pd->graphics->pushContext(bmp);
             pd->graphics->setFont(fontTitleEN);
             pd->graphics->setTextTracking(titleTracking);
@@ -98,7 +108,7 @@ static RunePageData getRunePage(RuneType runeType) {
             pd->graphics->setTextLeading(leading);
             pd->graphics->setDrawMode(kDrawModeCopy);
             pd->graphics->drawTextInRect(descEN, strlen(descEN), kUTF8Encoding,
-                                         0, titleH + 6, RUNE_DESC_WIDTH, descH,
+                                         0, titleH + 6, descWidth, descH,
                                          kWrapWord, kAlignTextLeft);
         pd->graphics->popContext();
         pd->system->realloc(nameEN, 0);
@@ -112,10 +122,17 @@ static RunePageData getRunePage(RuneType runeType) {
         int tracking = 1;
         int leading = 2;
         int titleH = pd->graphics->getFontHeight(fontTitleJP);
+        int descWidth = RUNE_DESC_WIDTH_WIDE;
         int descH = pd->graphics->getTextHeightForMaxWidth(fontSubJP, descJP, strlen(descJP),
-                        RUNE_DESC_WIDTH, kUTF8Encoding, kWrapWord, tracking, leading);
+                        descWidth, kUTF8Encoding, kWrapWord, tracking, leading);
         int totalH = titleH + 6 + descH;
-        LCDBitmap *bmp = pd->graphics->newBitmap(RUNE_DESC_WIDTH, totalH, kColorClear);
+        if (totalH > RUNE_DESC_HEIGHT) {
+            descWidth = RUNE_DESC_WIDTH;
+            descH = pd->graphics->getTextHeightForMaxWidth(fontSubJP, descJP, strlen(descJP),
+                        descWidth, kUTF8Encoding, kWrapWord, tracking, leading);
+            totalH = titleH + 6 + descH;
+        }
+        LCDBitmap *bmp = pd->graphics->newBitmap(descWidth, totalH, kColorClear);
         pd->graphics->pushContext(bmp);
             pd->graphics->setFont(fontTitleJP);
             pd->graphics->setTextTracking(titleTracking);
@@ -125,7 +142,7 @@ static RunePageData getRunePage(RuneType runeType) {
             pd->graphics->setTextLeading(leading);
             pd->graphics->setDrawMode(kDrawModeCopy);
             pd->graphics->drawTextInRect(descJP, strlen(descJP), kUTF8Encoding,
-                                         0, titleH + 6, RUNE_DESC_WIDTH, descH,
+                                         0, titleH + 6, descWidth, descH,
                                          kWrapWord, kAlignTextLeft);
         pd->graphics->popContext();
         pd->system->realloc(nameJP, 0);
@@ -186,7 +203,7 @@ static void drawRuneInventoryTab(RuneInventoryFocus focus) {
             pageHeight = page.pageHeightEN;
         }
 
-        pd->graphics->setClipRect(RUNE_DESC_X, RUNE_DESC_Y, RUNE_DESC_WIDTH, RUNE_DESC_HEIGHT);
+        pd->graphics->setClipRect(RUNE_DESC_X, RUNE_DESC_Y, RUNE_DESC_WIDTH_WIDE, RUNE_DESC_HEIGHT);
         pd->graphics->drawBitmap(pageBitmap, RUNE_DESC_X, RUNE_DESC_Y - descScrollOffset, kBitmapUnflipped);
         pd->graphics->clearClipRect();
 

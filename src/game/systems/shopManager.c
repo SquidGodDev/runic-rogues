@@ -90,11 +90,19 @@ ShopPageData createShopPage(const char *name, const char *desc, const char *type
     }
 
     int titleFontHeight = pd->graphics->getFontHeight(fontTitle);
-    int descHeight = pd->graphics->getTextHeightForMaxWidth(fontSub, desc, strlen(desc), SHOP_DESC_MAX_WIDTH, kUTF8Encoding, kWrapWord, tracking, leading);
+    // Lay out at the wider width first; only fall back to the narrower width (which
+    // leaves room for the scrollbar) if the text overflows and actually needs one.
+    int descWidth = SHOP_DESC_MAX_WIDTH_WIDE;
+    int descHeight = pd->graphics->getTextHeightForMaxWidth(fontSub, desc, strlen(desc), descWidth, kUTF8Encoding, kWrapWord, tracking, leading);
     int totalHeight = titleFontHeight + SHOP_TITLE_DESC_SPACING + descHeight;
-    LCDBitmap *shopDescBitmap = pd->graphics->newBitmap(SHOP_DESC_MAX_WIDTH, totalHeight, kColorClear);
+    if (totalHeight > SHOP_DESC_MAX_HEIGHT) {
+        descWidth = SHOP_DESC_MAX_WIDTH;
+        descHeight = pd->graphics->getTextHeightForMaxWidth(fontSub, desc, strlen(desc), descWidth, kUTF8Encoding, kWrapWord, tracking, leading);
+        totalHeight = titleFontHeight + SHOP_TITLE_DESC_SPACING + descHeight;
+    }
+    LCDBitmap *shopDescBitmap = pd->graphics->newBitmap(descWidth, totalHeight, kColorClear);
     if (shopDescBitmap == NULL) {
-        pd->system->logToConsole("shopManager: newBitmap failed (%dx%d) for '%s'", SHOP_DESC_MAX_WIDTH, totalHeight, name);
+        pd->system->logToConsole("shopManager: newBitmap failed (%dx%d) for '%s'", descWidth, totalHeight, name);
         return (ShopPageData){
             .shopDescBitmap = NULL,
             .descHeight = totalHeight
@@ -110,7 +118,7 @@ ShopPageData createShopPage(const char *name, const char *desc, const char *type
         pd->graphics->setFont(fontSub);
         pd->graphics->setTextTracking(tracking);
         pd->graphics->setTextLeading(leading);
-        pd->graphics->drawTextInRect(desc, strlen(desc), kUTF8Encoding, 0, titleFontHeight + SHOP_TITLE_DESC_SPACING, SHOP_DESC_MAX_WIDTH, descHeight, kWrapWord, kAlignTextLeft);
+        pd->graphics->drawTextInRect(desc, strlen(desc), kUTF8Encoding, 0, titleFontHeight + SHOP_TITLE_DESC_SPACING, descWidth, descHeight, kWrapWord, kAlignTextLeft);
     pd->graphics->popContext();
 
     return (ShopPageData){
@@ -395,7 +403,7 @@ void drawShop(float deltaTime) {
         descHeight = curShopItem.descHeightEN;
     }
     if (shopDescBitmap != NULL) {
-        pd->graphics->setClipRect(SHOP_DESC_X, SHOP_DESC_Y, SHOP_DESC_MAX_WIDTH, SHOP_DESC_MAX_HEIGHT);
+        pd->graphics->setClipRect(SHOP_DESC_X, SHOP_DESC_Y, SHOP_DESC_MAX_WIDTH_WIDE, SHOP_DESC_MAX_HEIGHT);
         pd->graphics->drawBitmap(shopDescBitmap, SHOP_DESC_X, SHOP_DESC_Y - shopDescOffset, kBitmapUnflipped);
         pd->graphics->clearClipRect();
     } else {
