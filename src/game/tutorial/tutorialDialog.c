@@ -8,9 +8,9 @@
 #include "game/systems/audioManager.h"
 
 #define TD_BOX_MARGIN       8
-#define TD_BOX_PADDING_X    4
+#define TD_BOX_PADDING_X    8
 #define TD_BOX_PADDING_Y    5
-#define TD_BOX_HEIGHT       42
+#define TD_BOX_HEIGHT       52
 #define TD_BOX_X            TD_BOX_MARGIN
 #define TD_BOX_W            (SCREEN_WIDTH - TD_BOX_MARGIN * 2)
 #define TD_BOX_Y_BASE       (SCREEN_HEIGHT - TD_BOX_MARGIN - TD_BOX_HEIGHT)
