@@ -367,7 +367,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 	{
 		// Phase 0
 		{
-			.attackCooldown        = 6.0f,
+			.attackCooldown        = 8.0f,
 			.ringCount             = 3,
 			.ringSpacing           = 0.5f,
 			.ringProjectileSpeed   = 25.0f,
@@ -375,16 +375,16 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sprinklerShots            = 10,
 			.sprinklerShotSpacing      = 0.06f,
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
-			.sprinklerProjectileSpeed  = 40.0f,
+			.sprinklerProjectileSpeed  = 35.0f,
 			.sprinklerProjectileDamage = 12,
-			.volleyLineCount       = 16,
-			.volleyShots           = 7,
-			.volleyCount           = 3,
-			.volleyShotSpacing     = 0.2f,
-			.volleySpacing         = 1.5f,
-			.volleyProjectileSpeed = 100.0f,
+			.volleyLineCount       = 16, // Radial lines fired per shot
+			.volleyShots           = 5, // Projectiles per line per volley
+			.volleyCount           = 3, // Number of volleys per phase
+			.volleyShotSpacing     = 0.4f, // Time between shots within a volley
+			.volleySpacing         = 2.0f, // Time between volleys
+			.volleyProjectileSpeed = 80.0f,
 			.volleyProjectileDamage = 12,
-			.volleyWarningLead     = 0.8f,
+			.volleyWarningLead     = 1.3f,
 			.summonCount           = 4,
 			.summonMinSpecials     = 0,
 			.summonRadius          = CELL_SIZE * 2.0f,
@@ -392,7 +392,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 		},
 		// Phase 1
 		{
-			.attackCooldown        = 3.0f,
+			.attackCooldown        = 6.0f,
 			.ringCount             = 4,
 			.ringSpacing           = 0.5f,
 			.ringProjectileSpeed   = 25.0f,
@@ -402,16 +402,16 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
 			.sprinklerProjectileSpeed  = 40.0f,
 			.sprinklerProjectileDamage = 14,
-			.volleyLineCount       = 16,
-			.volleyShots           = 10,
-			.volleyCount           = 5,
-			.volleyShotSpacing     = 0.2f,
-			.volleySpacing         = 1.5f,
-			.volleyProjectileSpeed = 100.0f,
+			.volleyLineCount       = 16, // Radial lines fired per shot
+			.volleyShots           = 8, // Projectiles per line per volley
+			.volleyCount           = 5, // Number of volleys per phase
+			.volleyShotSpacing     = 0.4f, // Time between shots within a volley
+			.volleySpacing         = 2.0f, // Time between volleys
+			.volleyProjectileSpeed = 90.0f,
 			.volleyProjectileDamage = 14,
-			.volleyWarningLead     = 0.6f,
-			.summonCount           = 4,
-			.summonMinSpecials     = 4,
+			.volleyWarningLead     = 1.0f,
+			.summonCount           = 3,
+			.summonMinSpecials     = 3,
 			.summonRadius          = CELL_SIZE * 2.0f,
 			.summonTime            = 1.5f,
 		},
