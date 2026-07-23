@@ -371,6 +371,9 @@ void initRuneInventoryTab(void) {
     // via A) after the owned ones, in enum order.
     if (DEBUG.enabled) {
         for (int i = RUNE_TYPE_NONE + 1; i < RUNE_TYPE_COUNT; i++) {
+            if (getRuneClassFilter((RuneType)i) == RUNE_CLASS_FILTER_NONE) {
+                continue;
+            }
             if (!runeIsOwned((RuneType)i)) {
                 ownedRunesList[ownedRuneCount] = (RuneType)i;
                 ownedRuneCount++;
