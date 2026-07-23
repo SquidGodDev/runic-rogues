@@ -181,17 +181,23 @@ void createShopOptions(void) {
     stackShuffle(&commonStack);
     stackShuffle(&rareStack);
 
+    // At most one shop slot may be a rare rune
+    bool rarePlaced = false;
     for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
         ShopPageData shopPageDataEN;
         ShopPageData shopPageDataJP;
         RuneType shopRune = RUNE_TYPE_VAMPIRISM; // Default rune if no options available
-        bool rollRare = randFloat(0.0f, 1.0f) < SHOP_RARE_RUNE_CHANCE;
+        bool allowRare = !rarePlaced;
+        bool rollRare = allowRare && randFloat(0.0f, 1.0f) < SHOP_RARE_RUNE_CHANCE;
         Stack *primaryStack = rollRare ? &rareStack : &commonStack;
-        Stack *fallbackStack = rollRare ? &commonStack : &rareStack;
+        Stack *fallbackStack = (rollRare || !allowRare) ? &commonStack : &rareStack;
         if (!stackIsEmpty(primaryStack)) {
             shopRune = (RuneType)stackPop(primaryStack);
         } else if (!stackIsEmpty(fallbackStack)) {
             shopRune = (RuneType)stackPop(fallbackStack);
+        }
+        if (getRuneRarity(shopRune) == RUNE_RARITY_RARE) {
+            rarePlaced = true;
         }
         // Debug for testing rune in shop
         // if (i == 0) {
