@@ -79,6 +79,7 @@ void interact(int interactableIndex) {
 
 	switch (curInteractable.type) {
 		case INTERACTABLE_TYPE_EXIT:
+			playSound(SFX_GATE_CONFIRM);
 			if (getCurrentArea() == AREA_ECHOING_CAVERNS && isAreaCompleted()) {
 				runStatsCaptureFinal(true);
 				switchScene(SCENE_GAME_OVER);

@@ -345,6 +345,22 @@ SFXData sfxData[] = {
         .curvature = 0.75f,
         .lfo = 0
     },
+    [SFX_GATE_CONFIRM] = {
+        .defaultNote = 38,
+        .volume = 0.39f,
+        .waveform = kWaveformNoise,
+        .attack = 0,
+        .decay = 0.49f,
+        .sustain = 0,
+        .release = 0.13f,
+        .curvature = 1.0f,
+        .lfoType = kLFOTypeSquare,
+        .lfo = 1,
+        .depth = 0.23f,
+        .center = 0,
+        .rate = 12.6f,
+        .phase = 0
+    },
     [SFX_UI_NAVIGATE_TAB] = {
         .defaultNote = 58,
         .volume = 1.0f,
@@ -401,7 +417,7 @@ SFXData sfxData[] = {
         .lfo = 0
     },
     [SFX_UI_RUNE_SLIDE] = {
-        .defaultNote = 24,
+        .defaultNote = 30,
         .volume = 0.08f,
         .waveform = kWaveformNoise,
         .attack = 0.1f,
