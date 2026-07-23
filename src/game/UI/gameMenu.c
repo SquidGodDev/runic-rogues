@@ -1059,6 +1059,9 @@ void updateGameMenu(float deltaTime) {
             } else if ((pushed & kButtonUp) && runeInventoryAtScrollTop()) {
                 focus = FOCUS_CONTENT;
                 playSound(SFX_UI_NAVIGATE);
+            } else if (runeInventoryConsumeNavigated()) {
+                // Left/right in the scrollbar switches runes, which returns to the row.
+                focus = FOCUS_CONTENT;
             }
         }
     } else if (activeTab == MENU_TAB_EXIT) {

@@ -60,6 +60,7 @@ static PDButtons heldDir;
 static float holdTimer;
 
 static float scrollSuppressTimer;
+static bool navigatedFlag;
 
 static const char *ROMAN_NUMERALS[] = { "", "I", "II", "III", "IV", "V" };
 
@@ -229,6 +230,7 @@ static void navigate(PDButtons dir) {
     }
 
     if (dir & kButtonLeft) {
+        navigatedFlag = true;
         playSound(SFX_UI_RUNE_SLIDE);
         if (cursorIndex == 0) {
             cursorIndex = ownedRuneCount - 1;
@@ -237,6 +239,7 @@ static void navigate(PDButtons dir) {
         }
         resetDescScrollOffset();
     } else if (dir & kButtonRight) {
+        navigatedFlag = true;
         playSound(SFX_UI_RUNE_SLIDE);
         if (cursorIndex == ownedRuneCount - 1) {
             cursorIndex = 0;
@@ -244,6 +247,30 @@ static void navigate(PDButtons dir) {
             cursorIndex++;
         }
         resetDescScrollOffset();
+    }
+}
+
+static void updateNavigationHold(float deltaTime, PDButtons current, PDButtons pushed) {
+    PDButtons dirCurrent = current & (kButtonLeft | kButtonRight);
+    PDButtons dirPushed = pushed & (kButtonLeft | kButtonRight);
+
+    if (dirPushed) {
+        heldDir = dirPushed;
+        holdTimer = 0.0f;
+        navigate(dirPushed);
+    } else if (dirCurrent && dirCurrent == heldDir) {
+        float prevTimer = holdTimer;
+        holdTimer += deltaTime;
+        if (holdTimer >= HOLD_DELAY) {
+            float phase = holdTimer - HOLD_DELAY;
+            float prevPhase = prevTimer >= HOLD_DELAY ? prevTimer - HOLD_DELAY : 0.0f;
+            if ((int)(phase / HOLD_REPEAT) > (int)(prevPhase / HOLD_REPEAT)) {
+                navigate(heldDir);
+            }
+        }
+    } else {
+        heldDir = 0;
+        holdTimer = 0.0f;
     }
 }
 
@@ -280,28 +307,9 @@ void updateRuneInventoryTab(float deltaTime, RuneInventoryFocus focus) {
     pd->system->getButtonState(&current, &pushed, NULL);
 
     if (focus == RUNE_INV_FOCUS_RUNES) {
-        PDButtons dirCurrent = current & (kButtonLeft | kButtonRight);
-        PDButtons dirPushed = pushed & (kButtonLeft | kButtonRight);
-
-        if (dirPushed) {
-            heldDir = dirPushed;
-            holdTimer = 0.0f;
-            navigate(dirPushed);
-        } else if (dirCurrent && dirCurrent == heldDir) {
-            float prevTimer = holdTimer;
-            holdTimer += deltaTime;
-            if (holdTimer >= HOLD_DELAY) {
-                float phase = holdTimer - HOLD_DELAY;
-                float prevPhase = prevTimer >= HOLD_DELAY ? prevTimer - HOLD_DELAY : 0.0f;
-                if ((int)(phase / HOLD_REPEAT) > (int)(prevPhase / HOLD_REPEAT)) {
-                    navigate(heldDir);
-                }
-            }
-        } else {
-            heldDir = 0;
-            holdTimer = 0.0f;
-        }
+        updateNavigationHold(deltaTime, current, pushed);
     } else if (focus == RUNE_INV_FOCUS_SCROLLBAR) {
+        updateNavigationHold(deltaTime, current, pushed);
         if (scrollSuppressTimer > 0.0f) {
             if (current & kButtonDown) {
                 scrollSuppressTimer -= deltaTime;
@@ -356,8 +364,15 @@ bool runeInventoryAtScrollTop(void) {
     return descScrollOffset <= 0;
 }
 
+bool runeInventoryConsumeNavigated(void) {
+    bool navigated = navigatedFlag;
+    navigatedFlag = false;
+    return navigated;
+}
+
 void notifyEnterRuneScrollbar(void) {
     scrollSuppressTimer = HOLD_DELAY;
+    navigatedFlag = false;
 }
 
 void initRuneInventoryTab(void) {
@@ -386,6 +401,7 @@ void initRuneInventoryTab(void) {
     heldDir = 0;
     holdTimer = 0.0f;
     scrollSuppressTimer = 0.0f;
+    navigatedFlag = false;
     resetDescScrollOffset();
 }
 

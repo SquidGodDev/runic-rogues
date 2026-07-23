@@ -14,5 +14,7 @@ void updateRuneInventoryTab(float deltaTime, RuneInventoryFocus focus);
 void runeInventoryDebugCycleSelected(void);
 bool runeInventoryHasScrollbar(void);
 bool runeInventoryAtScrollTop(void);
+// True once per left/right rune switch, so the menu can drop scrollbar focus.
+bool runeInventoryConsumeNavigated(void);
 void notifyEnterRuneScrollbar(void);
 void freeRuneInventoryCache(void);
