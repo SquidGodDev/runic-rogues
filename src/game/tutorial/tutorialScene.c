@@ -17,6 +17,7 @@
 #include "game/enemies/enemies.h"
 #include "game/entities/interactables.h"
 #include "game/entities/pickups.h"
+#include "game/entities/projectiles.h"
 #include "game/systems/runStats.h"
 #include "game/systems/shopManager.h"
 #include "game/systems/runeManager.h"
@@ -317,6 +318,7 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R2_ENTER: {
+            clearProjectiles();
             closeBehindIfEntered(1, 0);
             setCurrentRoomIndex(1);
             setTutorialAbilities(true, false, false);
@@ -356,6 +358,7 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R3_ENTER: {
+            clearProjectiles();
             closeRoomGate(1);
             setCurrentRoomIndex(2);
             setTutorialAbilities(false, true, false);
@@ -387,6 +390,7 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R4_ENTER: {
+            clearProjectiles();
             closeRoomGate(2);
             setCurrentRoomIndex(3);
             // From room 4 on, every input stays enabled.
@@ -422,6 +426,7 @@ static void updateTutorialPhase(float deltaTime) {
             break;
         }
         case TUTORIAL_R5_ENTER: {
+            clearProjectiles();
             closeRoomGate(3);
             setCurrentRoomIndex(4);
             clearArrow();
@@ -542,6 +547,15 @@ bool getTutorialObjectiveText(StringKey *outKey, int *outCurrent, int *outTarget
             *outCurrent = r2Killed;
             *outTarget = 3;
             return true;
+        case TUTORIAL_R3_DIALOG:
+        case TUTORIAL_R3_WAITING: {
+            int killed = 3 - dummiesAlive();
+            if (killed < 0) { killed = 0; }
+            *outKey = STR_TUTORIAL_OBJ_ENEMY;
+            *outCurrent = killed;
+            *outTarget = 3;
+            return true;
+        }
         case TUTORIAL_R4_DIALOG:
         case TUTORIAL_R4_WAITING: {
             int dashes = playerDashCount - r4DashBaseline;
