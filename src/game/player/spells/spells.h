@@ -22,8 +22,8 @@ typedef enum Spell {
     SPELL_KNIFE,
     SPELL_FAN_OF_KNIVES,
     SPELL_BOW_SHOT,
-    SPELL_TURRET,
     SPELL_NET_TRAP,
+    SPELL_TURRET,
     SPELL_COUNT
 } Spell;
 

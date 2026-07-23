@@ -105,7 +105,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .damage = 10,
         .projectileData = (SpellProjectileData) {
             .speed = 75.0f,
-            .activeTime = 5.0f, // base active time, so it doesn't accidentally stay on screen forever somehow 
             .textureIndex = TEXTURE_FIREBALL,
             .frameCount = 4,
             .frameTime = 0.09f
@@ -195,7 +194,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .damage = 8,
         .projectileData = (SpellProjectileData) {
             .speed = 100.0f,
-            .activeTime = 5.0f, // base active time, so it doesn't accidentally stay on screen forever somehow
             .textureIndex = TEXTURE_KNIFE,
             .frameCount = 8,
             .frameTime = 0.07f
@@ -223,7 +221,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         },
         .projectileData = (SpellProjectileData) {
             .speed = 125.0f,
-            .activeTime = 5.0f, // base active time, so it doesn't accidentally stay on screen forever somehow
             .pierceCount = 2,
             .spreadCount = 5,
             .spreadAngle = 10.0f * (PI / 180),
@@ -272,6 +269,27 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .secondarySfx = SFX_BOW_DRAW_BG
         }
     },
+    [SPELL_NET_TRAP] = {
+        .spellIconIndex = BITMAP_SPELL_NET_TRAP_ICON,
+        .cast = chargedProjectileCast,
+        .sfx = SFX_NET,
+        .secondarySfx = SFX_NET_BG,
+        .cooldown = 4.0f,
+        .damage = 10,
+        // Base stats represent charge level 1; higher levels add the speed bonuses below.
+        .projectileData = (SpellProjectileData) {
+            .speed = 100.0f,
+            .acceleration = 0.0f,
+            .knockbackTime = 0.2f,
+            .knockbackAmount = -3.0f,
+            .knockbackFromProjectile = true,
+            .knockbackRadius = 3.0f,
+            .textureIndex = TEXTURE_NET,
+            .frameCount = 5,
+            .frameTime = 0.05f,
+            .holdLastFrame = true
+        }
+    },
     [SPELL_TURRET] = {
         .spellIconIndex = BITMAP_SPELL_BOW_SHOT_ICON,
         .cast = turretCast,
@@ -295,27 +313,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .ringProjectileCount = 16,
             .targetedProjectileCount = 1,
             .targetedSpreadAngle = 15.0f * (PI / 180.0f)
-        }
-    },
-    [SPELL_NET_TRAP] = {
-        .spellIconIndex = BITMAP_SPELL_NET_TRAP_ICON,
-        .cast = chargedProjectileCast,
-        .sfx = SFX_NET,
-        .secondarySfx = SFX_NET_BG,
-        .cooldown = 4.0f,
-        .damage = 10,
-        // Base stats represent charge level 1; higher levels add the speed bonuses below.
-        .projectileData = (SpellProjectileData) {
-            .speed = 100.0f,
-            .acceleration = 0.0f,
-            .knockbackTime = 0.2f,
-            .knockbackAmount = -3.0f,
-            .knockbackFromProjectile = true,
-            .knockbackRadius = 3.0f,
-            .textureIndex = TEXTURE_NET,
-            .frameCount = 5,
-            .frameTime = 0.05f,
-            .holdLastFrame = true
         }
     }
 };

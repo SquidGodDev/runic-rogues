@@ -22,6 +22,9 @@
 #define ENEMY_PROJECTILE_COLLISION_RANGE 10
 #define PARTICLE_OFFSET CELL_SIZE / 2
 
+// base active time, so we don't accidentally keep projectiles on screen forever if it gets out of bounds or stuck somehow
+#define BASE_ACTIVE_TIME 5.0f
+
 Projectile projectiles[MAX_PROJECTILE_COUNT] = {0};
 
 void initProjectiles(void) {
@@ -67,7 +70,7 @@ void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX
 				.bounceCount = spellProjectileData.bounceCount,
 				.onHitSpell = spellProjectileData.onHitSpell,
 				.hitEnemies = hitEnemies,
-				.activeTime = spellProjectileData.activeTime,
+				.activeTime = spellProjectileData.activeTime > 0 ? spellProjectileData.activeTime : BASE_ACTIVE_TIME,
 				.attackId = isEnemy ? 0 : runStatsGetCurrentAttackId(),
 				.active = 1
 			};
