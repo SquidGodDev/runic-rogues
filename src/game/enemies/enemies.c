@@ -1015,6 +1015,10 @@ bool damageEnemy(int index, int damage) {
 		damage = (int)(damage * (1.0f + getRuneValue(RUNE_TYPE_FOCUS)));
 	}
 
+	if (runeIsOwned(RUNE_TYPE_GLASS_DAGGER)) {
+		damage = (int)(damage * (1.0f + getRuneValue(RUNE_TYPE_GLASS_DAGGER)));
+	}
+
 	runStatsRecordDamageDealt(damage);
 	runStatsCreditSyncHit();
 

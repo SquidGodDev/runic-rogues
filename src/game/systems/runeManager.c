@@ -145,16 +145,14 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .maxLevel = 3,
         .primaryModifyOperation = MODIFY_OP_MULTIPLY
     },
-    [RUNE_TYPE_DAGGER] = {
-        .iconIndex = BITMAP_RUNE_DAGGER,
-        .primaryBaseValue = 3,
-        .primaryPerLevel = 3,
-        .secondaryBaseValue = 10,
-        .secondaryPerLevel = 10,
+    [RUNE_TYPE_GLASS_DAGGER] = {
+        .iconIndex = BITMAP_RUNE_GLASS_DAGGER,
+        .primaryBaseValue = 0.1f,
+        .primaryPerLevel = 0.1f,
+        .secondaryBaseValue = 20,
+        .secondaryPerLevel = 20,
         .maxLevel = 3,
-        .spellTarget = RUNE_SPELL_TARGET_BASIC,
-        .primaryModifyOperation = MODIFY_OP_ADD,
-        .applySpellModifierPrimary = modifySpellDamage
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY
     },
     [RUNE_TYPE_BROADSWORD] = {
         .iconIndex = BITMAP_RUNE_BROADSWORD,
@@ -165,7 +163,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .maxLevel = 3,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation = MODIFY_OP_ADD,
-        .applySpellModifierPrimary = modifySpellDamage
+        .applySpellModifierPrimary = modifySpellDamage,
+        .classFilter = RUNE_CLASS_FILTER_NONE // Disabled for now
     },
     [RUNE_TYPE_POCKET_WATCH] = {
         .iconIndex = BITMAP_RUNE_POCKET_WATCH,
@@ -548,7 +547,7 @@ static const char *RUNE_LOC_IDS[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_WINGED_BOOTS] = "winged_boots",
     [RUNE_TYPE_HEALTHY] = "healthy",
     [RUNE_TYPE_SWIFT] = "swift",
-    [RUNE_TYPE_DAGGER] = "dagger",
+    [RUNE_TYPE_GLASS_DAGGER] = "glass_dagger",
     [RUNE_TYPE_BROADSWORD] = "broadsword",
     [RUNE_TYPE_POCKET_WATCH] = "pocket_watch",
     [RUNE_TYPE_HOURGLASS] = "hourglass",
@@ -650,7 +649,7 @@ void initRunes(void) {
     // setRuneLevel(RUNE_TYPE_VAMPIRISM, 1);
     // setRuneLevel(RUNE_TYPE_HEALTHY, 1);
     // setRuneLevel(RUNE_TYPE_SWIFT, 1);
-    // setRuneLevel(RUNE_TYPE_DAGGER, 1);
+    // setRuneLevel(RUNE_TYPE_GLASS_DAGGER, 1);
     // setRuneLevel(RUNE_TYPE_BROADSWORD, 1);
     // setRuneLevel(RUNE_TYPE_POCKET_WATCH, 1);
     // setRuneLevel(RUNE_TYPE_HOURGLASS, 1);
