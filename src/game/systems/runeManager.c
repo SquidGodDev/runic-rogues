@@ -474,7 +474,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         // Damage multiplier handled directly in damageEnemy()
         .iconIndex = BITMAP_RUNE_FOCUS,
         .hudIconIndex = BITMAP_RUNE_HUD_FOCUS,
-        .primaryBaseValue = 0.15f,
+        .primaryBaseValue = 0.10f,
         .maxLevel = 1
     },
     [RUNE_TYPE_ROOTWALKER] = {
