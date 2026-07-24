@@ -10,7 +10,7 @@
 # 漢語/和語 (Thorns=棘, Afterimage=残像, Ricochet=跳弾). If it's close, go with the shorter one.
 # UI/settings: JP-native, minimal Latin (numeric units like 1x / FPS stay ASCII).
 # "spell" -> スキル (all classes). Basic/special -> 基本/特殊スキル.
-# "room" ->　エリア
+# "room" -> エリア
 
 # == System menu items ==
 # The system menu font lacks some Japanese glyphs, so jp is left empty (falls back to en).
@@ -156,6 +156,8 @@ shop.skip_desc,"Skip rune selection for this level up.","ルーン選択をス�
 
 # == Rune names and descriptions ==
 # Placeholders {1} {2} {T} are substituted at runtime with the rune's values.
+# {1} and {2} render as a percentage only when that value's modify operation is
+# MODIFY_OP_MULTIPLY; use {1P}/{2P} to force percent for non-multiply runes
 rune.vampirism.name,"Vampirism","吸血"
 rune.vampirism.desc,"{1}% chance to heal 1 health when you damage an enemy.","敵にダメージを与えると{1}%の確率で体力を1回復する。"
 rune.winged_boots.name,"Winged Boots","疾風の靴"
@@ -203,9 +205,9 @@ rune.meditation.desc,"Restore {1} health when a room is cleared.","エリアを�
 rune.thorns.name,"Thorns","棘"
 rune.thorns.desc,"When hit, deal {1} damage to nearby enemies.","被弾時、周囲の敵に{1}ダメージを与える。"
 rune.brass_knuckles.name,"Brass Knuckles","メリケンサック"
-rune.brass_knuckles.desc,"Basic spell range is greatly reduced, but deals {2}% damage.","基本スキルの射程が大幅に短くなるが、与ダメージが{2}%になる。"
+rune.brass_knuckles.desc,"Basic spell range is greatly reduced, but deals {2}% more damage.","基本スキルの射程が大幅に短くなるが、与ダメージが{2}%増加する。"
 rune.blunderbuss.name,"Blunderbuss","ラッパ銃"
-rune.blunderbuss.desc,"Special spell range is greatly reduced, but deals {2}% damage.","特殊スキルの射程が大幅に短くなるが、与ダメージが{2}%になる。"
+rune.blunderbuss.desc,"Special spell range is greatly reduced, but deals {2}% more damage.","特殊スキルの射程が大幅に短くなるが、与ダメージが{2}%増加する。"
 rune.ricochet.name,"Ricochet","跳弾"
 rune.ricochet.desc,"Basic spell projectiles bounce off walls {1} time(s).","基本スキルの弾が壁で{1}回跳ね返る。"
 rune.bomber.name,"Bomber!","ボンバー！"
@@ -221,13 +223,13 @@ rune.afterimage.desc,"Defeating an enemy restores a dash charge.","敵を倒す�
 rune.flywheel.name,"Flywheel","フライホイール"
 rune.flywheel.desc,"Each dash reduces your special ability cooldown by {1}s.","ダッシュするたびに特殊能力のクールダウンが{1}秒短縮される。"
 rune.crescendo.name,"Crescendo","クレッシェンド"
-rune.crescendo.desc,"Moving ramps your move speed up to 50%, resetting when you stop.","移動し続けると移動速度が最大50%まで上昇し、止まるとリセットされる。"
+rune.crescendo.desc,"Moving ramps your move speed up to {1P}%, resetting when you stop.","移動し続けると移動速度が最大{1P}%まで上昇し、止まるとリセットされる。"
 rune.focus.name,"Focus","集中"
-rune.focus.desc,"Deal 15% more damage while standing still.","静止しているとき、与ダメージが15%増加する。"
+rune.focus.desc,"Deal {1P}% more damage while standing still.","静止しているとき、与ダメージが{1P}%増加する。"
 rune.rootwalker.name,"Rootwalker","ルートウォーカー"
 rune.rootwalker.desc,"Leave a damaging trail of roots behind you while moving.","移動中、ダメージを与える根の軌跡を残す。"
 rune.rapier.name,"Rapier","レイピア"
-rune.rapier.desc,"Continuously damaging enemies ramps your move speed up to 200%.","敵に連続でダメージを与えると移動速度が最大200%まで上昇する。"
+rune.rapier.desc,"Continuously damaging enemies ramps your move speed up to {1P}%.","敵に連続でダメージを与えると移動速度が最大{1P}%まで上昇する。"
 rune.bulwark.name,"Bulwark","鉄壁"
 rune.bulwark.desc,"Reduce the first hit you take each room to 1 damage.","各エリアで最初に受けるダメージを1に軽減する。"
 rune.lightning_rod.name,"Lightning Rod","避雷針"

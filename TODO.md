@@ -1,16 +1,10 @@
 # TODO
 ## Playthrough Notes
+- Adjust move speed, health per class
 - Change banshee to summoner class
 - Black hole spell
-- Increase enemy health in echoing caverns
-- Make bomber enemy throw bombs
-- Put enemies in attack lockout when spawned
-- Custom Rat AI
 - Slow effect doesn't feel impactful
 - Projectile speed feels so-so (make base speed slower?)
-- Adjust rogue damage
-
-- Make navigating left/right in rune description jump to the next rune
 
 Translation Review Order:
 1. Title

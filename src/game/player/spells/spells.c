@@ -381,7 +381,7 @@ void modifyProjectilePierceCount(SpellData *spell, float value, ModifyOperation 
             spell->projectileData.pierceCount += (int)value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->projectileData.pierceCount = (int)(spell->projectileData.pierceCount * value);
+            spell->projectileData.pierceCount = (int)roundf(spell->projectileData.pierceCount * (1.0f + value));
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->projectileData.pierceCount == 0) {
@@ -398,8 +398,8 @@ void modifySlowTime(SpellData *spell, float value, ModifyOperation operation) {
             spell->meleeData.slowTime += value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->projectileData.slowTime *= value;
-            spell->meleeData.slowTime *= value;
+            spell->projectileData.slowTime *= 1.0f + value;
+            spell->meleeData.slowTime *= 1.0f + value;
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->projectileData.slowTime == 0.0f) {
@@ -419,8 +419,8 @@ void modifySlowAmount(SpellData *spell, float value, ModifyOperation operation) 
             spell->meleeData.slowAmount += value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->projectileData.slowAmount *= value;
-            spell->meleeData.slowAmount *= value;
+            spell->projectileData.slowAmount *= 1.0f + value;
+            spell->meleeData.slowAmount *= 1.0f + value;
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->projectileData.slowAmount == 0.0f) {
@@ -445,7 +445,7 @@ void modifyProjectileSpreadCount(SpellData *spell, float value, ModifyOperation 
             if (spell->projectileData.spreadCount == 0) {
                 spell->projectileData.spreadCount = 1;
             }
-            spell->projectileData.spreadCount = (int)(spell->projectileData.spreadCount * value);
+            spell->projectileData.spreadCount = (int)roundf(spell->projectileData.spreadCount * (1.0f + value));
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->projectileData.spreadCount == 0) {
@@ -461,7 +461,7 @@ void modifyProjectileSpreadAngle(SpellData *spell, float value, ModifyOperation 
             spell->projectileData.spreadAngle += value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->projectileData.spreadAngle *= value;
+            spell->projectileData.spreadAngle *= 1.0f + value;
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->projectileData.spreadAngle == 0.0f) {
@@ -477,7 +477,7 @@ void modifyProjectileBounceCount(SpellData *spell, float value, ModifyOperation 
             spell->projectileData.bounceCount += (int)value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->projectileData.bounceCount = (int)(spell->projectileData.bounceCount * value);
+            spell->projectileData.bounceCount = (int)roundf(spell->projectileData.bounceCount * (1.0f + value));
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->projectileData.bounceCount == 0) {
@@ -493,7 +493,7 @@ void modifyProjectileActiveTime(SpellData *spell, float value, ModifyOperation o
             spell->projectileData.activeTime += value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->projectileData.activeTime *= value;
+            spell->projectileData.activeTime *= 1.0f + value;
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->projectileData.activeTime == 0.0f) {
@@ -570,14 +570,14 @@ void modifySpellCooldown(SpellData *spell, float value, ModifyOperation operatio
 void modifySpellDamage(SpellData *spell, float value, ModifyOperation operation) {
     switch (operation) {
         case MODIFY_OP_ADD:
-            spell->damage += (int)value;
+            spell->damage += value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->damage = (int)(spell->damage * value);
+            spell->damage *= 1.0f + value;
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
-            if (spell->damage == 0) {
-                spell->damage = (int)value;
+            if (spell->damage == 0.0f) {
+                spell->damage = value;
             }
             break;
     }
@@ -590,8 +590,8 @@ void modifySpellKnockbackTime(SpellData *spell, float value, ModifyOperation ope
             spell->projectileData.knockbackTime += value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->knockbackTime *= value;
-            spell->projectileData.knockbackTime *= value;
+            spell->knockbackTime *= 1.0f + value;
+            spell->projectileData.knockbackTime *= 1.0f + value;
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->knockbackTime == 0.0f) {
@@ -611,8 +611,8 @@ void modifySpellKnockbackAmount(SpellData *spell, float value, ModifyOperation o
             spell->projectileData.knockbackAmount += value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->knockbackAmount *= value;
-            spell->projectileData.knockbackAmount *= value;
+            spell->knockbackAmount *= 1.0f + value;
+            spell->projectileData.knockbackAmount *= 1.0f + value;
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->knockbackAmount == 0.0f) {
@@ -632,7 +632,7 @@ void modifyRepeatCount(SpellData *spell, float value, ModifyOperation operation)
             spell->repeatData.repeatCount += (int)value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->repeatData.repeatCount = (int)(spell->repeatData.repeatCount * value);
+            spell->repeatData.repeatCount = (int)roundf(spell->repeatData.repeatCount * (1.0f + value));
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->repeatData.repeatCount == 0) {
@@ -648,7 +648,7 @@ void modifyRepeatActivationTime(SpellData *spell, float value, ModifyOperation o
             spell->repeatData.activationTime += value;
             break;
         case MODIFY_OP_MULTIPLY:
-            spell->repeatData.activationTime *= value;
+            spell->repeatData.activationTime *= 1.0f + value;
             break;
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->repeatData.activationTime == 0.0f) {

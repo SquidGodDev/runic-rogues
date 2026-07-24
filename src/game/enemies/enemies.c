@@ -1001,25 +1001,33 @@ void killAllNonBossEnemies(void) {
 	}
 }
 
-bool damageEnemy(int index, int damage) {
+bool damageEnemy(int index, float damage) {
 	Enemy curEnemy = enemies[index];
 	if (curEnemy.state == ENEMY_STATE_DEAD || curEnemy.invincibilityTime > 0) {
 		return false;
 	}
 
 	if (runeIsOwned(RUNE_TYPE_VIKING) && playerHealth < getPlayerMaxHealth() * 0.5f) {
-		damage = (int)(damage * getRuneValue(RUNE_TYPE_VIKING));
+		damage *= 1.0f + getRuneValue(RUNE_TYPE_VIKING);
 	}
 
 	if (runeIsOwned(RUNE_TYPE_FOCUS) && !playerIsMoving()) {
-		damage = (int)(damage * (1.0f + getRuneValue(RUNE_TYPE_FOCUS)));
+		damage *= 1.0f + getRuneValue(RUNE_TYPE_FOCUS);
 	}
 
 	if (runeIsOwned(RUNE_TYPE_GLASS_DAGGER)) {
-		damage = (int)(damage * (1.0f + getRuneValue(RUNE_TYPE_GLASS_DAGGER)));
+		damage *= 1.0f + getRuneValue(RUNE_TYPE_GLASS_DAGGER);
 	}
 
-	runStatsRecordDamageDealt(damage);
+	// Damage stays fractional through every multiplier and quantizes once here, so
+	// small percentage runes can't be swallowed by repeated truncation. A hit that
+	// carries any damage at all always lands for at least 1.
+	int appliedDamage = (int)roundf(damage);
+	if (appliedDamage < 1 && damage > 0.0f) {
+		appliedDamage = 1;
+	}
+
+	runStatsRecordDamageDealt(appliedDamage);
 	runStatsCreditSyncHit();
 
 	if (runeIsOwned(RUNE_TYPE_VAMPIRISM) && randFloat(0, 1) < getRuneValue(RUNE_TYPE_VAMPIRISM)) {
@@ -1029,7 +1037,7 @@ bool damageEnemy(int index, int damage) {
 	EnemyData curEnemyData = enemyData[curEnemy.type];
 	curEnemy.hitFlashTime = HIT_FLASH_TIME;
 	signalRuneTrigger(RUNE_TRIGGER_DAMAGE_ENEMY, 1.0f);
-	curEnemy.health -= damage;
+	curEnemy.health -= appliedDamage;
 	playSoundSpatial(SFX_ENEMY_HIT, curEnemy.x, curEnemy.y);
 
 	if (curEnemy.health <= 0) {
@@ -1081,7 +1089,7 @@ bool damageEnemy(int index, int damage) {
 	return true;
 }
 
-void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
+void damageEnemiesAtMapPosition(int mapX, int mapY, float damage) {
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy *enemy = &enemies[i];
 		if (!enemy->active) {
@@ -1095,7 +1103,7 @@ void damageEnemiesAtMapPosition(int mapX, int mapY, int damage) {
 	}
 }
 
-void damageEnemiesInArea(float x, float y, int radius, int damage) {
+void damageEnemiesInArea(float x, float y, int radius, float damage) {
 	int radiusSquared = radius * radius;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy *enemy = &enemies[i];
@@ -1151,7 +1159,7 @@ void slowEnemiesInArea(float x, float y, int radius, float slowTime, float slowA
 	}
 }
 
-int checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime, float slowAmount) {
+int checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, float damage, float slowTime, float slowAmount) {
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		Enemy *curEnemy = &enemies[i];
 		if (!curEnemy->active || setContains(hitEnemies, i)) {

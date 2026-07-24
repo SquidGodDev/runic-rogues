@@ -12,7 +12,7 @@
 #define FIRE_ANGLE_OFFSET PI / 8
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
-static void fireProjectileSpread(float x, float y, float angle, int damage, SpellProjectileData projectileData) {
+static void fireProjectileSpread(float x, float y, float angle, float damage, SpellProjectileData projectileData) {
     int spreadCount = projectileData.spreadCount;
     spreadCount = spreadCount < 1 ? 1 : spreadCount;
     float spreadAngle = projectileData.spreadAngle;
@@ -46,7 +46,7 @@ void chargedProjectileCast(Spell spell, SpellCastData *castData, float x, float 
     SpellProjectileData projectile = data.projectileData;
     projectile.speed += level->speedBonus;
     projectile.pierceCount += level->pierceBonus;
-    int damage = data.damage + level->damageBonus;
+    float damage = data.damage + level->damageBonus;
 
     fireProjectileSpread(x, y, angle, damage, projectile);
 }
@@ -56,7 +56,7 @@ void swordCast(Spell spell, SpellCastData *castData, float x, float y, float ang
     float meleeY = y + sinf(angle) * CELL_SIZE / 2;
     SpellData *data = &spellData[spell];
     int damageRadius = data->meleeData.range;
-    int damage = data->damage;
+    float damage = data->damage;
     float knockbackTime = data->knockbackTime;
     float knockbackAmount = data->knockbackAmount;
     damageEnemiesInArea(meleeX, meleeY, damageRadius, damage);
@@ -70,7 +70,7 @@ void swordCast(Spell spell, SpellCastData *castData, float x, float y, float ang
 void explosionCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
     SpellData *data = &spellData[spell];
     int damageRadius = data->meleeData.range;
-    int damage = data->damage;
+    float damage = data->damage;
     float knockbackTime = data->knockbackTime;
     float knockbackAmount = data->knockbackAmount;
     damageEnemiesInArea(x, y, damageRadius, damage);

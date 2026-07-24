@@ -43,7 +43,7 @@ typedef struct SpellCastData {
 
 // Per-level bonuses applied additively on top of the spell's (rune-modified) base stats
 typedef struct ChargeLevelData {
-    int damageBonus;
+    float damageBonus;
     float speedBonus;
     int pierceBonus;
     float playerSpeedModifier; // negative slows the player while charging at this level
@@ -129,7 +129,7 @@ typedef struct SpellData {
     SFX sfx;          // sound played when the spell is cast
     SFX secondarySfx; // optional second sound, e.g. the bow draw; SFX_NONE for none
     float cooldown;
-    int damage;
+    float damage;
     float knockbackTime;
     float knockbackAmount;
     bool useInitialCastAngle;
@@ -142,6 +142,8 @@ typedef struct SpellData {
     TurretData turretData;
 } SpellData;
 
+// MODIFY_OP_MULTIPLY treats value as a signed percentage delta: the field is
+// scaled by (1 + value), so 0.3 is +30%, -0.5 is -50%, and 0 is a no-op.
 typedef enum ModifyOperation {
     MODIFY_OP_ADD,
     MODIFY_OP_MULTIPLY,

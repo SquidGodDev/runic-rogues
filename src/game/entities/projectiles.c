@@ -40,7 +40,7 @@ void clearProjectiles(void) {
 	}
 }
 
-void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, SpellProjectileData spellProjectileData) {
+void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, float damage, int textureIndex, bool isEnemy, SpellProjectileData spellProjectileData) {
 	for (int i = 0; i < MAX_PROJECTILE_COUNT; i++) {
 		if (!projectiles[i].active) {
 			Set *hitEnemies = projectiles[i].hitEnemies;
@@ -79,11 +79,11 @@ void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX
 	}
 }
 
-void firePlayerProjectile(float x, float y, float deltaX, float deltaY, int damage, SpellProjectileData spellProjectileData) {
+void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float damage, SpellProjectileData spellProjectileData) {
 	fireProjectile(x, y, x, y, deltaX, deltaY, spellProjectileData.speed, damage, spellProjectileData.textureIndex, 0 /*isEnemy*/, spellProjectileData);
 }
 
-void fireEnemyProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, int damage, SpellProjectileData spellProjectileData) {
+void fireEnemyProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, float damage, SpellProjectileData spellProjectileData) {
 	int textureIndex = spellProjectileData.textureIndex != 0 ? spellProjectileData.textureIndex : TEXTURE_ENEMY_PROJECTILE;
 	fireProjectile(x, y, sourceX, sourceY, deltaX, deltaY, speed, damage, textureIndex, 1 /*isEnemy*/, spellProjectileData);
 }

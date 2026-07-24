@@ -747,13 +747,13 @@ void damagePlayer(float amount) {
     }
     if (runeIsOwned(RUNE_TYPE_LIGHTNING_ROD)) {
         arcLightningToNearestEnemies(playerX, playerY, CELL_SIZE * 8,
-            (int)getRuneValue(RUNE_TYPE_LIGHTNING_ROD),
+            getRuneValue(RUNE_TYPE_LIGHTNING_ROD),
             (int)getRuneSecondaryValue(RUNE_TYPE_LIGHTNING_ROD));
     }
     if (runeIsOwned(RUNE_TYPE_ARMORED_SKIN)) {
         float armorRadius = CELL_SIZE * 2.5f;
         knockbackEnemiesInArea(playerX, playerY, (int)armorRadius, playerX, playerY, 0.35f, 4.0f, true /*awayFromPlayer*/);
-        damageEnemiesInArea(playerX, playerY, (int)armorRadius, (int)getRuneValue(RUNE_TYPE_ARMORED_SKIN));
+        damageEnemiesInArea(playerX, playerY, (int)armorRadius, getRuneValue(RUNE_TYPE_ARMORED_SKIN));
     }
 
     if (runeIsOwned(RUNE_TYPE_STONE_GOLEM) && !playerIsMoving()) {

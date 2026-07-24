@@ -57,7 +57,7 @@ static void bulwarkCallback(float primaryValue, float secondaryValue) {
 }
 
 static void thunderStoneCallback(float primaryValue, float secondaryValue) {
-    startChainLightningOnNearestEnemy(playerX, playerY, CELL_SIZE * 5, (int)primaryValue, (int)secondaryValue);
+    startChainLightningOnNearestEnemy(playerX, playerY, CELL_SIZE * 5, primaryValue, (int)secondaryValue);
 }
 
 static void meditationCallback(float primaryValue, float secondaryValue) {
@@ -288,7 +288,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryPerLevel    = 2,
         .secondaryBaseValue = 15 * (PI / 180),
         .secondaryPerLevel = -5 * (PI / 180),
-        .tertiaryBaseValue  = 0.5f,
+        .tertiaryBaseValue  = -0.5f, // damage penalty, half damage
         .maxLevel = 2,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
         .primaryModifyOperation   = MODIFY_OP_ADD,
@@ -306,7 +306,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryPerLevel    = 2,
         .secondaryBaseValue = 15 * (PI / 180),
         .secondaryPerLevel = -5 * (PI / 180),
-        .tertiaryBaseValue  = 0.5f,
+        .tertiaryBaseValue  = -0.5f, // damage penalty, half damage
         .maxLevel = 2,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
         .primaryModifyOperation   = MODIFY_OP_ADD,
@@ -380,7 +380,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .rarity = RUNE_RARITY_RARE,
         .primaryBaseValue   = 0.5f, // absolute projectile lifetime (seconds)
         .primaryPerLevel    = -0.1f,
-        .secondaryBaseValue = 1.3f, // damage multiplier
+        .secondaryBaseValue = 0.3f, // damage bonus, +30%
         .secondaryPerLevel  = 0.5f,
         .maxLevel = 1,
         .spellTarget = RUNE_SPELL_TARGET_BASIC,
@@ -395,7 +395,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .rarity = RUNE_RARITY_RARE,
         .primaryBaseValue   = 0.5f, // absolute projectile lifetime (seconds)
         .primaryPerLevel    = -0.1f,
-        .secondaryBaseValue = 1.3f, // damage multiplier
+        .secondaryBaseValue = 0.3f, // damage bonus, +30%
         .secondaryPerLevel  = 0.5f,
         .maxLevel = 1,
         .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
@@ -443,7 +443,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         // Damage multiplier handled directly in damageEnemy()
         .iconIndex = BITMAP_RUNE_VIKING,
         .hudIconIndex = BITMAP_RUNE_HUD_VIKING,
-        .primaryBaseValue = 2,
+        .primaryBaseValue = 1.0f, // +100%, i.e. double damage
         .primaryPerLevel  = 0,
         .maxLevel = 1
     },

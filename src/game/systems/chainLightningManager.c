@@ -13,7 +13,7 @@
 #define CHAIN_LIGHTNING_CHAIN_RANGE (CELL_SIZE * 5)
 #define CHAIN_LIGHTNING_DELAY       0.12f
 
-static int chainStateDamage; // stored here so timer callbacks can access it
+static float chainStateDamage; // stored here so timer callbacks can access it
 // Static array so pointer-to-element passed to addTimer remains valid across frames
 static int chainTargetIndices[CHAIN_LIGHTNING_MAX_CHAINS];
 
@@ -67,7 +67,7 @@ static void chainFromPosition(float searchX, float searchY, int chainCount, bool
     }
 }
 
-void startChainLightning(float fromX, float fromY, int damage, int chainCount) {
+void startChainLightning(float fromX, float fromY, float damage, int chainCount) {
     playSound(SFX_LIGHTNING);
     spawnParticle(PARTICLE_TYPE_LIGHTNING_ATTACK, fromX, fromY, fromX, fromY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
     chainStateDamage = damage;
@@ -83,7 +83,7 @@ void startChainLightning(float fromX, float fromY, int damage, int chainCount) {
     chainFromPosition(fromX, fromY, chainCount, hitEnemies);
 }
 
-void arcLightningToNearestEnemies(float fromX, float fromY, float maxRange, int damage, int count) {
+void arcLightningToNearestEnemies(float fromX, float fromY, float maxRange, float damage, int count) {
     float maxDistSq = maxRange * maxRange;
     bool hitEnemies[MAX_ENEMY_COUNT] = {false};
     bool struckAny = false;
@@ -102,7 +102,7 @@ void arcLightningToNearestEnemies(float fromX, float fromY, float maxRange, int 
     }
 }
 
-void startChainLightningOnNearestEnemy(float fromX, float fromY, float maxRange, int damage, int chainCount) {
+void startChainLightningOnNearestEnemy(float fromX, float fromY, float maxRange, float damage, int chainCount) {
     float maxDistSq = maxRange * maxRange;
     int targetIndex = findNearestActiveEnemy(fromX, fromY, maxDistSq, NULL);
     if (targetIndex < 0) {

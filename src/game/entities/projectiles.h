@@ -16,7 +16,7 @@ typedef struct Projectile {
 	float acceleration;
 	SpellProjectileData spellProjectileData;
 	Set *hitEnemies;
-	int damage;
+	float damage;
 	int textureIndex;
 	int frameCount;
 	float frameTime;
@@ -35,7 +35,7 @@ extern Projectile projectiles[MAX_PROJECTILE_COUNT];
 
 void initProjectiles(void);
 void clearProjectiles(void);
-void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, int damage, int textureIndex, bool isEnemy, SpellProjectileData spellProjectileData);
-void firePlayerProjectile(float x, float y, float deltaX, float deltaY, int damage, SpellProjectileData spellProjectileData);
-void fireEnemyProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, int damage, SpellProjectileData spellProjectileData);
+void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, float damage, int textureIndex, bool isEnemy, SpellProjectileData spellProjectileData);
+void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float damage, SpellProjectileData spellProjectileData);
+void fireEnemyProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, float damage, SpellProjectileData spellProjectileData);
 void updateProjectiles(float deltaTime);

@@ -141,13 +141,13 @@ float getBossHealthPercentage(void);
 EnemyType getBossEnemyType(void);
 void killAllEnemies(void);
 void killAllNonBossEnemies(void);
-bool damageEnemy(int index, int damage);
+bool damageEnemy(int index, float damage);
 void killEnemy(int index);
-void damageEnemiesAtMapPosition(int mapX, int mapY, int damage);
-void damageEnemiesInArea(float x, float y, int radius, int damage);
+void damageEnemiesAtMapPosition(int mapX, int mapY, float damage);
+void damageEnemiesInArea(float x, float y, int radius, float damage);
 void knockbackEnemy(int index, int knockbackSourceX, int knockbackSourceY, float knockbackTime, float knockbackAmount, bool awayFromPlayer);
 void knockbackEnemiesInArea(float searchX, float searchY, int radius, float sourceX, float sourceY, float knockbackTime, float knockbackAmount, bool awayFromPlayer);
 void slowEnemiesInArea(float x, float y, int radius, float slowTime, float slowAmount);
 void cancelEnemyAttacksInArea(float x, float y, int radius);
 // Returns the index of the enemy hit, or -1 if none collided.
-int checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, int damage, float slowTime, float slowAmount);
+int checkEnemyCollision(float x, float y, Set *hitEnemies, float collisionRange, float damage, float slowTime, float slowAmount);
