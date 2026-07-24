@@ -518,6 +518,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .iconIndex = BITMAP_RUNE_HEALING_POTION,
         .primaryBaseValue = 0.05f, // drop chance
         .primaryPerLevel  = 0.05f,
+        .secondaryBaseValue = 5, // heal amount on pickup
         .maxLevel = 3,
         .primaryModifyOperation = MODIFY_OP_MULTIPLY
     },

@@ -12,7 +12,6 @@
 #include "game/systems/audioManager.h"
 
 #define PICKUP_DISTANCE 80.0f
-#define HEALTH_POTION_HEAL_AMOUNT 5.0f
 #define EXPIRATION_TIME 10.0f
 #define EXPIRATION_FLASH_TIME 2.0f
 #define EXPIRATION_FLASH_INTERVAL 0.2f
@@ -100,7 +99,7 @@ void updatePickups(float deltaTime) {
                 if (playerHealth < getPlayerMaxHealth()) {
                     playSound(SFX_HEAL);
                     pickup->active = false;
-                    healPlayer(HEALTH_POTION_HEAL_AMOUNT);
+                    healPlayer(getRuneSecondaryValue(RUNE_TYPE_HEALING_POTION));
                     spawnParticle(PARTICLE_TYPE_HEAL, playerX, playerY, playerX, playerY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
                 }
             }
