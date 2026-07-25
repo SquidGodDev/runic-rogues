@@ -14,6 +14,8 @@
 #include "game/player/player.h"
 #include "game/entities/projectiles.h"
 #include "game/rendering/particles.h"
+#include "game/enemies/enemies.h"
+#include "game/entities/pickups.h"
 
 #define DRAGONS_BREATH_SPEED 120.0f
 #define DRAGONS_BREATH_DAMAGE 8
@@ -31,14 +33,28 @@
 // Seconds between damaging root spawns while Rootwalker is moving.
 #define ROOTWALKER_INTERVAL 0.35f
 
+// Black Hole pulls for as long as its particle animates (50 frames x 0.1s). The
+// pull is a negative knockback, which decays over its own duration, so it is
+// re-applied on an interval to keep enemies drifting inward for the full window.
+#define BLACK_HOLE_DURATION 5.0f
+#define BLACK_HOLE_RADIUS (CELL_SIZE * 2)
+#define BLACK_HOLE_PULL_INTERVAL 0.5f
+#define BLACK_HOLE_PULL_TIME 0.4f
+
 static float crescendoTime;    // seconds of continuous movement (0..ramp time)
 static float rapierProgress;  // move-speed ramp (0..1)
 static float rapierWindow;    // seconds left before Rapier resets
 static float rootwalkerTimer; // accumulates while moving, spawns roots at interval
 static bool bulwarkAvailable; // Bulwark shield, consumed on the first hit each room
+static float blackHoleTime;      // seconds left on the active black hole
+static float blackHolePullTimer; // seconds until the next pull is applied
+static float blackHoleX;
+static float blackHoleY;
 
-static void rapierCallback(float primaryValue, float secondaryValue) {
+static void rapierCallback(float primaryValue, float secondaryValue, float x, float y) {
     (void)primaryValue;
+    (void)x;
+    (void)y;
     rapierWindow = RAPIER_HIT_WINDOW;
     rapierProgress += secondaryValue;
     if (rapierProgress > 1.0f) {
@@ -46,9 +62,11 @@ static void rapierCallback(float primaryValue, float secondaryValue) {
     }
 }
 
-static void bulwarkCallback(float primaryValue, float secondaryValue) {
+static void bulwarkCallback(float primaryValue, float secondaryValue, float x, float y) {
     (void)primaryValue;
     (void)secondaryValue;
+    (void)x;
+    (void)y;
     if (!bulwarkAvailable) {
         return;
     }
@@ -56,17 +74,24 @@ static void bulwarkCallback(float primaryValue, float secondaryValue) {
     bulwarkAvailable = true;
 }
 
-static void thunderStoneCallback(float primaryValue, float secondaryValue) {
+static void thunderStoneCallback(float primaryValue, float secondaryValue, float x, float y) {
+    (void)x;
+    (void)y;
     startChainLightningOnNearestEnemy(playerX, playerY, CELL_SIZE * 5, primaryValue, (int)secondaryValue);
 }
 
-static void meditationCallback(float primaryValue, float secondaryValue) {
+static void meditationCallback(float primaryValue, float secondaryValue, float x, float y) {
+    (void)secondaryValue;
+    (void)x;
+    (void)y;
     healPlayer(primaryValue);
 }
 
-static void bomberCallback(float primaryValue, float secondaryValue) {
+static void bomberCallback(float primaryValue, float secondaryValue, float x, float y) {
     (void)primaryValue;
     (void)secondaryValue;
+    (void)x;
+    (void)y;
     playSound(SFX_BOMB_DROP);
     spawnParticle(PARTICLE_TYPE_BOMB, playerX, playerY, playerX, playerY, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
 }
@@ -94,8 +119,10 @@ static void dragonsBreathTimerCallback(int repeatCount, void *userData) {
     fireDragonsBreath();
 }
 
-static void dragonsBreathCallback(float primaryValue, float secondaryValue) {
+static void dragonsBreathCallback(float primaryValue, float secondaryValue, float x, float y) {
     (void)secondaryValue;
+    (void)x;
+    (void)y;
     // Spray the fireballs one at a time, staggered over DRAGONS_BREATH_INTERVAL.
     // primaryValue is the total projectile count (scales with rune level).
     int projectileCount = (int)primaryValue;
@@ -103,15 +130,46 @@ static void dragonsBreathCallback(float primaryValue, float secondaryValue) {
     addTimer(DRAGONS_BREATH_INTERVAL, projectileCount - 1, dragonsBreathTimerCallback, NULL);
 }
 
-static void afterimageCallback(float primaryValue, float secondaryValue) {
+static void afterimageCallback(float primaryValue, float secondaryValue, float x, float y) {
     (void)primaryValue;
     (void)secondaryValue;
+    (void)x;
+    (void)y;
     grantUtilitySpellCharge();
 }
 
-static void flywheelCallback(float primaryValue, float secondaryValue) {
+static void flywheelCallback(float primaryValue, float secondaryValue, float x, float y) {
     (void)secondaryValue;
+    (void)x;
+    (void)y;
     reduceSpecialSpellCooldown(primaryValue);
+}
+
+static void healingPotionCallback(float primaryValue, float secondaryValue, float x, float y) {
+    // secondaryValue is the heal amount, read by pickups.c when the potion is collected
+    (void)secondaryValue;
+    if (randFloat(0.0f, 1.0f) >= primaryValue) {
+        return;
+    }
+    spawnPickup(x, y, PICKUP_TYPE_HEALTH_POTION);
+}
+
+static void blackHoleCallback(float primaryValue, float secondaryValue, float x, float y) {
+    // secondaryValue is the pull strength, applied per tick in updateRuneEffects()
+    (void)secondaryValue;
+    if (blackHoleTime > 0.0f) {
+        return;
+    }
+    if (randFloat(0.0f, 1.0f) >= primaryValue) {
+        return;
+    }
+    if (spawnParticle(PARTICLE_TYPE_BLACK_HOLE, x, y, x, y, PARTICLE_TYPE_NONE, false /*enemyParticle*/) < 0) {
+        return;
+    }
+    blackHoleX = x;
+    blackHoleY = y;
+    blackHoleTime = BLACK_HOLE_DURATION;
+    blackHolePullTimer = 0.0f;
 }
 
 // Name and description strings are loaded from localization.csv into the
@@ -514,13 +572,15 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .maxLevel = 3
     },
     [RUNE_TYPE_HEALING_POTION] = {
-        // Drop roll handled in damageEnemy() via rollHealingPotionDrop()
         .iconIndex = BITMAP_RUNE_HEALING_POTION,
         .primaryBaseValue = 0.05f, // drop chance
         .primaryPerLevel  = 0.05f,
         .secondaryBaseValue = 5, // heal amount on pickup
         .maxLevel = 3,
-        .primaryModifyOperation = MODIFY_OP_MULTIPLY
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY,
+        .triggerType = RUNE_TRIGGER_KILL_ENEMY,
+        .triggerBaseValue = 1.0f,
+        .triggerCallback  = healingPotionCallback
     },
     [RUNE_TYPE_STONE_GOLEM] = {
         // Damage reduction + HUD handled directly in damagePlayer()
@@ -539,6 +599,17 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .maxLevel = 1,
         .primaryModifyOperation   = MODIFY_OP_MULTIPLY,
         .secondaryModifyOperation = MODIFY_OP_MULTIPLY
+    },
+    [RUNE_TYPE_BLACK_HOLE] = {
+        .iconIndex = BITMAP_RUNE_BLACK_HOLE,
+        .primaryBaseValue = 0.05f, // spawn chance
+        .primaryPerLevel  = 0.05f,
+        .secondaryBaseValue = -0.5f, // pull strength, negative to draw enemies inward
+        .maxLevel = 3,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY,
+        .triggerType = RUNE_TRIGGER_KILL_ENEMY,
+        .triggerBaseValue = 1.0f,
+        .triggerCallback  = blackHoleCallback
     }
 };
 
@@ -586,6 +657,7 @@ static const char *RUNE_LOC_IDS[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_HEALING_POTION] = "healing_potion",
     [RUNE_TYPE_STONE_GOLEM] = "stone_golem",
     [RUNE_TYPE_ADRENALINE] = "adrenaline",
+    [RUNE_TYPE_BLACK_HOLE] = "black_hole",
 };
 
 void initRuneLocalization(void) {
@@ -646,6 +718,7 @@ void initRunes(void) {
     rapierWindow = 0.0f;
     rootwalkerTimer = 0.0f;
     bulwarkAvailable = true;
+    clearBlackHole();
 
     // == Testing runes ==
     // setRuneLevel(RUNE_TYPE_VAMPIRISM, 1);
@@ -920,6 +993,10 @@ void applyRuneEffectsToSpells(void) {
 }
 
 void signalRuneTrigger(RuneTriggerType type, float amount) {
+    signalRuneTriggerAtPosition(type, amount, playerX, playerY);
+}
+
+void signalRuneTriggerAtPosition(RuneTriggerType type, float amount, float x, float y) {
     if (type == RUNE_TRIGGER_NONE) {
         return;
     }
@@ -944,7 +1021,7 @@ void signalRuneTrigger(RuneTriggerType type, float amount) {
             runeTriggerCounters[i] -= threshold;
             float primaryValue = rune->primaryBaseValue + rune->primaryPerLevel * (level - 1);
             float secondaryValue = rune->secondaryBaseValue + rune->secondaryPerLevel * (level - 1);
-            rune->triggerCallback(primaryValue, secondaryValue);
+            rune->triggerCallback(primaryValue, secondaryValue, x, y);
         }
     }
 }
@@ -1018,6 +1095,17 @@ void updateRuneEffects(float deltaTime) {
             }
         }
     }
+
+    if (blackHoleTime > 0.0f) {
+        blackHoleTime -= deltaTime;
+        blackHolePullTimer -= deltaTime;
+        if (blackHolePullTimer <= 0.0f) {
+            blackHolePullTimer += BLACK_HOLE_PULL_INTERVAL;
+            knockbackEnemiesInArea(blackHoleX, blackHoleY, BLACK_HOLE_RADIUS, blackHoleX, blackHoleY,
+                                   BLACK_HOLE_PULL_TIME, getRuneSecondaryValue(RUNE_TYPE_BLACK_HOLE),
+                                   false /*awayFromPlayer*/);
+        }
+    }
 }
 
 bool bulwarkIsAvailable(void) {
@@ -1033,9 +1121,7 @@ bool adrenalineIsActive(void) {
     return runeIsOwned(RUNE_TYPE_ADRENALINE) && playerHealth < getPlayerMaxHealth() * getRuneSecondaryValue(RUNE_TYPE_ADRENALINE);
 }
 
-bool rollHealingPotionDrop(void) {
-    if (!runeIsOwned(RUNE_TYPE_HEALING_POTION)) {
-        return false;
-    }
-    return randFloat(0.0f, 1.0f) < getRuneValue(RUNE_TYPE_HEALING_POTION);
+void clearBlackHole(void) {
+    blackHoleTime = 0.0f;
+    blackHolePullTimer = 0.0f;
 }

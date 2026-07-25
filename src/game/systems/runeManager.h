@@ -48,6 +48,7 @@ typedef enum RuneType {
     RUNE_TYPE_HEALING_POTION,
     RUNE_TYPE_STONE_GOLEM,
     RUNE_TYPE_ADRENALINE,
+    RUNE_TYPE_BLACK_HOLE,
     RUNE_TYPE_COUNT
 } RuneType;
 
@@ -113,7 +114,7 @@ typedef struct RuneData {
     RuneTriggerType triggerType;
     float triggerBaseValue;
     float triggerPerLevel;
-    void (*triggerCallback)(float primaryValue, float secondaryValue);
+    void (*triggerCallback)(float primaryValue, float secondaryValue, float x, float y);
 } RuneData;
 
 void initRunes(void);
@@ -142,6 +143,7 @@ float getRuneValue(RuneType type);
 float getRuneSecondaryValue(RuneType type);
 void applyRuneEffectsToSpells(void);
 void signalRuneTrigger(RuneTriggerType type, float amount);
+void signalRuneTriggerAtPosition(RuneTriggerType type, float amount, float x, float y);
 
 // Per-frame update for runes whose effect ramps with movement/combat state
 // (Crescendo, Rootwalker, Rapier). Call once per gameplay frame.
@@ -158,5 +160,5 @@ bool bulwarkIsAvailable(void);
 void consumeBulwark(void);
 // Adrenaline: active while owned and below 33% health.
 bool adrenalineIsActive(void);
-// Healing Potion: roll the per-level drop chance on enemy death.
-bool rollHealingPotionDrop(void);
+// Black Hole: only one is active at a time; cleared with the particles it drives.
+void clearBlackHole(void);

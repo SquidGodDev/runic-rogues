@@ -240,6 +240,8 @@ rune.stone_golem.name,"Stone Golem","ストーンゴーレム"
 rune.stone_golem.desc,"Take {1}% less damage while standing still.","静止しているとき、被ダメージが{1}%減少する。"
 rune.adrenaline.name,"Adrenaline","アドレナリン"
 rune.adrenaline.desc,"Below {2}% HP, spell cooldowns are reduced by {1}%.","体力が{2}%以下のとき、スキルのクールダウンが{1}%減少する。"
+rune.black_hole.name,"Black Hole","ブラックホール"
+rune.black_hole.desc,"Defeating an enemy has a {1}% chance to spawn a black hole.","敵を倒すと、{1}%の確率でブラックホールが発生する。"
 
 # == Spell names and descriptions ==
 spell.none.name,"None","なし"

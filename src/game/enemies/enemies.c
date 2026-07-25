@@ -1057,7 +1057,6 @@ bool damageEnemy(int index, float damage) {
 			}
 		}
 
-		signalRuneTrigger(RUNE_TRIGGER_KILL_ENEMY, 1.0f);
 		playSoundSpatial(SFX_ENEMY_DEATH, curEnemy.x, curEnemy.y);
 		bool summonsMinions = enemyDeathEffect(index);
 
@@ -1079,9 +1078,7 @@ bool damageEnemy(int index, float damage) {
 
 		if (index != bossIndex && !curEnemy.isMinion) {
 			enemiesDefeated++;
-			if (rollHealingPotionDrop()) {
-				spawnPickup(curEnemy.x, curEnemy.y, PICKUP_TYPE_HEALTH_POTION);
-			}
+			signalRuneTriggerAtPosition(RUNE_TRIGGER_KILL_ENEMY, 1.0f, curEnemy.x, curEnemy.y);
 		}
 	}
 

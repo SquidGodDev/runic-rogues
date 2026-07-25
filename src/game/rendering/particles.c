@@ -8,6 +8,7 @@
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
 #include "game/systems/progressionManager.h"
+#include "game/systems/runeManager.h"
 
 typedef struct ParticleData {
 	int frameCount;
@@ -200,6 +201,7 @@ void clearParticles(void) {
 	for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {
 		particles[i].active = false;
 	}
+	clearBlackHole();
 }
 
 int spawnParticle(ParticleType type, float x, float y, float sourceX, float sourceY, ParticleType spawnOnEndParticleType, bool enemyParticle) {
