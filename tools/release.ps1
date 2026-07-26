@@ -168,20 +168,27 @@ if (Test-Path $zipPath)
     Write-Host "Overwrote the existing $(Split-Path -Leaf $zipPath)."
 }
 
-# Staged into a temp folder and zipped via ZipFile rather than Compress-Archive:
-# Windows PowerShell's Compress-Archive writes nested entries with backslash
-# separators, which unpack badly on macOS and Linux.
+# Entries are written by hand rather than with Compress-Archive or
+# CreateFromDirectory: on Windows PowerShell both emit nested entry names with
+# backslash separators, which the zip spec forbids. macOS and Linux then unpack
+# the archive as a pile of flat files literally named "RunicRogues.pdx\pdex.bin"
+# instead of a folder tree.
+Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-$staging = Join-Path ([IO.Path]::GetTempPath()) "release-$GameName-$([Guid]::NewGuid().ToString('N'))"
-New-Item -ItemType Directory -Path $staging | Out-Null
+$rootPrefix = (Split-Path -Parent $pdxDir).TrimEnd('\').Length + 1
+$archive = [IO.Compression.ZipFile]::Open($zipPath, [IO.Compression.ZipArchiveMode]::Create)
 try
 {
-    Copy-Item -Path $pdxDir -Destination $staging -Recurse
-    [IO.Compression.ZipFile]::CreateFromDirectory($staging, $zipPath, [IO.Compression.CompressionLevel]::Optimal, $false)
+    foreach ($file in Get-ChildItem -LiteralPath $pdxDir -Recurse -File)
+    {
+        $entryName = $file.FullName.Substring($rootPrefix).Replace('\', '/')
+        [IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+            $archive, $file.FullName, $entryName, [IO.Compression.CompressionLevel]::Optimal) | Out-Null
+    }
 }
 finally
 {
-    Remove-Item $staging -Recurse -Force -ErrorAction SilentlyContinue
+    $archive.Dispose()
 }
 
 # ---------------------------------------------------------------------- commit

@@ -1,6 +1,7 @@
 # TODO
 - Check https://saffroncr.itch.io/katavatis/devlog/1534514/building-a-tiny-3d-renderer-for-a-tiny-handheld for perf improvement notes
 - Add roar sfx to second boss phase
+- Add language select on launch (or start on the title screen first?)
 
 ## Playthrough Notes
 - Adjust move speed, health per class
