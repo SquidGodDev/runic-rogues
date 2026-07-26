@@ -13,6 +13,16 @@
             }
         },
         {
+            "name": "sim-release",
+            "displayName": "Simulator (Release)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/build-sim-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_C_COMPILER": "clang"
+            }
+        },
+        {
             "name": "device",
             "displayName": "Device",
             "generator": "Ninja",
@@ -24,7 +34,8 @@
         }
     ],
     "buildPresets": [
-        { "name": "sim",    "configurePreset": "sim" },
-        { "name": "device", "configurePreset": "device" }
+        { "name": "sim",         "configurePreset": "sim" },
+        { "name": "sim-release", "configurePreset": "sim-release" },
+        { "name": "device",      "configurePreset": "device" }
     ]
 }

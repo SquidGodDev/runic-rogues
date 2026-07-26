@@ -4,6 +4,7 @@
 .DS_Store
 *.dylib
 /build
+/releaseBuilds
 .sentry-native
 .claude
 **__record

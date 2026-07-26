@@ -1,4 +1,7 @@
 # TODO
+- Check https://saffroncr.itch.io/katavatis/devlog/1534514/building-a-tiny-3d-renderer-for-a-tiny-handheld for perf improvement notes
+- Add roar sfx to second boss phase
+
 ## Playthrough Notes
 - Adjust move speed, health per class
 - Change banshee to summoner class
@@ -26,9 +29,6 @@ Slow/Freeze:
 - Shatter: Deal bonus damage to slowed/frozen enemies
 - Snowball: Every 5 seconds, throw out a (1, 2, 3) projectiles towards random enemies that slows and damages them
 - Ice Cube: Dashing through enemies slows them
-
-Damaging Instances:
-- Black Hole: Damaging an enemy has a (5%, 10%, 15%) chance of spawning a black hole
 
 Dash:
 - Thunder Boots: Dashing arcs lightning towards the nearest 1, 2, 3 enemie(s)
@@ -69,6 +69,13 @@ Ranger:
     - More damage full health
     - Spawn random buff areas/pickups around map
 ## Ascension difficulty
+  1. Heal less after bosses (Heal 50% of missing health instead of 100% after each floor)
+  2. Enemies are more challenging (non-boss enemies deal 20% more damage and attack cooldown is 20% less)
+  3. Bosses are more challenging (use Difficulty 1 in the boss properties)
+  4. Start each run with less health (Start at 80% health)
+-8, +8 x
+-16 y
+  
   - Less health
   - Heal less after each area
   - No healing

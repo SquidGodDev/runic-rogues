@@ -151,6 +151,44 @@
             }
         },
         {
+            "label": "Playdate: Release Build",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/tools/release.ps1"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "showReuseMessage": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Playdate: Release Build (set version)",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/tools/release.ps1",
+                "-Version",
+                "${input:releaseVersion}"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "showReuseMessage": false
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "Debug Prelaunch Tasks",
             "dependsOn": [
                 "Playdate: Kill Simulator",
@@ -163,6 +201,13 @@
                 "showReuseMessage": false
             },
             "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "releaseVersion",
+            "type": "promptString",
+            "description": "New version for pdxinfo (e.g. 0.9.1). Leave blank to keep the current one."
         }
     ]
 }
