@@ -28,6 +28,9 @@
 #define GO_STAT_COUNT              6
 #define GO_BUTTON_COUNT            2
 
+#define HEADER_TRACKING 0
+#define BODY_TRACKING   0
+
 static int selectedButton;
 
 static const char *headerText(void) {
@@ -135,6 +138,7 @@ static void drawHeader(void) {
     int byteLen = strlen(text);
     LCDFont *font = headerFont();
     pd->graphics->setFont(font);
+    pd->graphics->setTextTracking(0);
     int width = pd->graphics->getTextWidth(font, text, byteLen, kUTF8Encoding, 0);
     int x = (SCREEN_WIDTH - width) / 2;
     pd->graphics->drawText(text, byteLen, kUTF8Encoding, x, GO_HEADER_Y);
@@ -169,6 +173,7 @@ static void drawFinalTime(void) {
     }
     LCDFont *font = bodyFont();
     pd->graphics->setFont(font);
+    pd->graphics->setTextTracking(BODY_TRACKING);
     int len = strlen(label);
     int width = pd->graphics->getTextWidth(font, label, len, kUTF8Encoding, 0);
     int fontH = pd->graphics->getFontHeight(font);
