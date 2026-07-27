@@ -14,7 +14,7 @@
 
 # == System menu items ==
 # The system menu font lacks some Japanese glyphs, so jp is left empty (falls back to en).
-menu.menu,"Menu",""
+menu.menu,"Runes+Menu",""
 menu.close,"Close",""
 menu.skip_tutorial,"Skip Tutorial",""
 
