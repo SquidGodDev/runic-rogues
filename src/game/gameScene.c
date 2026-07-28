@@ -129,8 +129,8 @@ void updateGameScene(float deltaTime)
 	tryCompleteQuitDialogInit();
 
 	// Run timer counts gameplay, shop, and cutscene time but pauses while the
-	// settings/inventory menu overlay is open.
-	if (gameState != GAME_STATE_MENU) {
+	// settings/inventory menu overlay or the quit-confirm dialog is open.
+	if (gameState != GAME_STATE_MENU && gameState != GAME_STATE_QUIT_CONFIRM) {
 		runStatsTick(deltaTime);
 	}
 
