@@ -766,6 +766,7 @@ void addRune(RuneType type) {
         return;
     }
 
+    int oldMaxHealth = getPlayerMaxHealth();
     bool wasOwned = runeLevels[type] > 0;
     runeLevels[type]++;
     if (!wasOwned) {
@@ -773,7 +774,7 @@ void addRune(RuneType type) {
     }
 
     recalculateRuneEffectsToSpells();
-    clampPlayerHealth();
+    applyMaxHealthChange(oldMaxHealth);
 }
 
 void setRuneLevel(RuneType type, int level) {
@@ -783,6 +784,7 @@ void setRuneLevel(RuneType type, int level) {
     if (level > RUNE_DATA[type].maxLevel) {
         level = RUNE_DATA[type].maxLevel;
     }
+    int oldMaxHealth = getPlayerMaxHealth();
     bool wasOwned = runeLevels[type] > 0;
     runeLevels[type] = level;
     if (level == 0) {
@@ -795,7 +797,7 @@ void setRuneLevel(RuneType type, int level) {
     }
 
     recalculateRuneEffectsToSpells();
-    clampPlayerHealth();
+    applyMaxHealthChange(oldMaxHealth);
 }
 
 int getObtainedRuneCount(void) {

@@ -717,6 +717,14 @@ void clampPlayerHealth(void) {
 	}
 }
 
+void applyMaxHealthChange(int oldMaxHealth) {
+	int newMaxHealth = getPlayerMaxHealth();
+	if (newMaxHealth > oldMaxHealth) {
+		playerHealth += newMaxHealth - oldMaxHealth;
+	}
+	clampPlayerHealth();
+}
+
 #define PLAYER_MOVING_SPEED_THRESHOLD 5.0f
 
 bool playerIsMoving(void) {
