@@ -705,6 +705,9 @@ void healPlayer(float amount) {
 	if (playerHealth < getPlayerMaxHealth()) {
 		playSound(SFX_HEAL);
 		playerHealth += amount;
+		if (playerHealth > getPlayerMaxHealth()) {
+			playerHealth = getPlayerMaxHealth();
+		}
 	}
 }
 
