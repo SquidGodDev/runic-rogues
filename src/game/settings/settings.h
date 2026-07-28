@@ -28,6 +28,12 @@ typedef enum FpsSetting {
 #define SETTING_BAR_MAX_LEVEL 6
 #define SETTING_BAR_DEFAULT_LEVEL 3
 
+// Crank turn speed is a 0-100 int; 50 keeps the original 1x feel and the extremes
+// span a wide sensitivity range (see getCrankTurnSpeedMultiplier).
+#define SETTING_CRANK_TURN_SPEED_MIN 0
+#define SETTING_CRANK_TURN_SPEED_MAX 100
+#define SETTING_CRANK_TURN_SPEED_DEFAULT 50
+
 #define SETTING_CRANK_OFFSET_MIN 0
 #define SETTING_CRANK_OFFSET_MAX 359
 

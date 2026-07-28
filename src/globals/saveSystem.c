@@ -71,8 +71,14 @@ static void applyKeyValue(const char *key, const char *value) {
             fps = FPS_SETTING_40;
         }
         SETTINGS.targetFps = fps;
-    } else if (strcmp(key, "crankTurnSpeed") == 0) {
-        SETTINGS.crankTurnSpeed = parseBarLevel(value);
+    } else if (strcmp(key, "crankTurnSpeedInt") == 0) {
+        int speed = parseInt(value);
+        if (speed < SETTING_CRANK_TURN_SPEED_MIN) {
+            speed = SETTING_CRANK_TURN_SPEED_MIN;
+        } else if (speed > SETTING_CRANK_TURN_SPEED_MAX) {
+            speed = SETTING_CRANK_TURN_SPEED_MAX;
+        }
+        SETTINGS.crankTurnSpeed = speed;
     } else if (strcmp(key, "dpadTurnSpeed") == 0) {
         SETTINGS.dpadTurnSpeed = parseBarLevel(value);
     } else if (strcmp(key, "dpadLeftRight") == 0) {
@@ -182,7 +188,7 @@ void saveGame(void) {
         "drawFPS=%d\n"
         "showTimer=%d\n"
         "targetFps=%d\n"
-        "crankTurnSpeed=%d\n"
+        "crankTurnSpeedInt=%d\n"
         "dpadTurnSpeed=%d\n"
         "dpadLeftRight=%d\n"
         "absoluteCrank=%d\n"

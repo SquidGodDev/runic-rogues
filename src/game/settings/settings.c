@@ -23,7 +23,7 @@ void resetGeneralSettings(void) {
 
 void resetControlSettings(void) {
     SETTINGS.controlScheme = CONTROL_SCHEME_CRANK;
-    SETTINGS.crankTurnSpeed = SETTING_BAR_DEFAULT_LEVEL;
+    SETTINGS.crankTurnSpeed = SETTING_CRANK_TURN_SPEED_DEFAULT;
     SETTINGS.dpadTurnSpeed = SETTING_BAR_DEFAULT_LEVEL;
     SETTINGS.dpadLeftRight = DPAD_LR_STRAFE;
     SETTINGS.absoluteCrank = false;
@@ -81,7 +81,11 @@ static float barLevelToRatio(int level) {
 #define SFX_VOLUME_MAX   1.0f
 
 float getCrankTurnSpeedMultiplier(void) {
-    return 0.5f + barLevelToRatio(SETTINGS.crankTurnSpeed);
+    // Exponential response so 50 keeps the original 1x feel while the extremes span
+    // a wide sensitivity range: 0 is 8x slower, 100 is 8x faster (small crank
+    // movements make big angle changes).
+    float t = (float)(SETTINGS.crankTurnSpeed - SETTING_CRANK_TURN_SPEED_DEFAULT) / SETTING_CRANK_TURN_SPEED_DEFAULT;
+    return powf(8.0f, t);
 }
 
 float getDpadTurnSpeedMultiplier(void) {

@@ -121,6 +121,7 @@ typedef struct SettingRowDef {
     bool valueEnFont;              // CONTROL_CHOICE: render the value in the EN sub font regardless of language
     const char *(*intLabel)(int value); // CONTROL_INT: NULL renders the raw number; else renders this label
     void (*onChange)(void);        // CONTROL_INT: NULL, or called once the value changes and the adjustment settles
+    bool intNoWrap;                // CONTROL_INT: clamp at min/max instead of wrapping around
 } SettingRowDef;
 
 typedef struct SettingsTabDef {
@@ -171,7 +172,7 @@ static const SettingRowDef GENERAL_ROWS[] = {
 static const SettingRowDef CONTROLS_ROWS[] = {
     { STR_SETTING_CONTROL, CONTROL_CHOICE, &SETTINGS.controlScheme, 0, 0, CONTROL_CHOICE_LABELS, CONTROL_SCHEME_COUNT },
     { STR_SECTION_CRANK_CONTROLS, CONTROL_SECTION_HEADER, NULL },
-    { STR_SETTING_CRANK_TURN_SPEED, CONTROL_BAR, &SETTINGS.crankTurnSpeed, 0, 0, NULL, 0, 1, crankControlsDisabled },
+    { STR_SETTING_CRANK_TURN_SPEED, CONTROL_INT, &SETTINGS.crankTurnSpeed, SETTING_CRANK_TURN_SPEED_MIN, SETTING_CRANK_TURN_SPEED_MAX, NULL, 0, 1, crankControlsDisabled, .intNoWrap = true },
     { STR_SETTING_DPAD_LEFT_RIGHT, CONTROL_CHOICE, &SETTINGS.dpadLeftRight, 0, 0, DPAD_LEFT_RIGHT_LABELS, DPAD_LR_MODE_COUNT, 1, crankControlsDisabled },
     { STR_SETTING_ABSOLUTE_CRANK, CONTROL_CHECKBOX, &SETTINGS.absoluteCrank, 0, 0, NULL, 0, 1, crankControlsDisabled },
     { STR_SETTING_ABSOLUTE_CRANK_OFFSET, CONTROL_INT, &SETTINGS.absoluteCrankOffset, SETTING_CRANK_OFFSET_MIN, SETTING_CRANK_OFFSET_MAX, NULL, 0, 2, absoluteCrankOptionsDisabled },
@@ -528,9 +529,9 @@ static void adjustInt(int *value, int minValue, int maxValue, bool wrap, bool ac
     }
 }
 
-// While a CONTROL_INT row is selected the crank drives the value (looping) instead of
+// While a CONTROL_INT row is selected the crank drives the value instead of
 // scrolling the list.
-static void adjustIntByCrank(int *value, int minValue, int maxValue, float crankChange) {
+static void adjustIntByCrank(int *value, int minValue, int maxValue, bool wrap, float crankChange) {
     if (crankChange == 0.0f) {
         return;
     }
@@ -538,7 +539,7 @@ static void adjustIntByCrank(int *value, int minValue, int maxValue, float crank
     int steps = (int)intCrankAccum;
     if (steps != 0) {
         intCrankAccum -= steps;
-        if (stepIntSetting(value, steps, minValue, maxValue, true)) {
+        if (stepIntSetting(value, steps, minValue, maxValue, wrap)) {
             markSettingsDirty();
         }
     }
@@ -581,7 +582,7 @@ static void handleSettingsRowInput(const SettingRowDef *row, PDButtons current, 
             break;
         }
         case CONTROL_INT: {
-            adjustInt((int *)row->value, row->minValue, row->maxValue, true, true, current, pushed, deltaTime);
+            adjustInt((int *)row->value, row->minValue, row->maxValue, !row->intNoWrap, true, current, pushed, deltaTime);
             // Left/right/crank scrub the value freely; A commits and fires onChange.
             if (row->onChange != NULL && (pushed & kButtonA)) {
                 playSound(SFX_UI_CLICK);
@@ -1127,7 +1128,7 @@ void updateGameMenu(float deltaTime) {
         float crankChange = pd->system->getCrankChange();
         const SettingRowDef *selRow = &tab->rows[listSelRow];
         if (selRow->type == CONTROL_INT && !rowIsDisabled(selRow)) {
-            adjustIntByCrank((int *)selRow->value, selRow->minValue, selRow->maxValue, crankChange);
+            adjustIntByCrank((int *)selRow->value, selRow->minValue, selRow->maxValue, !selRow->intNoWrap, crankChange);
         } else {
             float maxScrollPx = settingsMaxScrollPx(tab);
             if (maxScrollPx > 0.0f && crankChange != 0) {
