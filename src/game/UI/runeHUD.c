@@ -84,6 +84,10 @@ static bool runeHudFillProgress(RuneType type, float *outProgress) {
         *outProgress = getRapierProgress();
         return true;
     }
+    if (type == RUNE_TYPE_BOMBER) {
+        *outProgress = getRuneTriggerProgress(type);
+        return true;
+    }
     return false;
 }
 

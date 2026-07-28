@@ -219,7 +219,7 @@ rune.blunderbuss.desc,"Special spell range is greatly reduced, but deals {2}% mo
 rune.ricochet.name,"Ricochet","跳弾"
 rune.ricochet.desc,"Basic spell projectiles bounce off walls {1} time(s).","基本スキルの弾が壁で{1}回跳ね返る。"
 rune.bomber.name,"Bomber!","ボンバー！"
-rune.bomber.desc,"Every dash, drop a bomb that explodes after a short delay.","ダッシュするごとに、少し遅れて爆発する爆弾を落とす。"
+rune.bomber.desc,"Every {T} dashes, drop a bomb that explodes after a short delay.","{T}回ダッシュするごとに、少し遅れて爆発する爆弾を落とす。"
 rune.dragons_breath.name,"Dragon's Breath","ドラゴンブレス"
 rune.dragons_breath.desc,"Dashing sprays a cone of {1} fireballs in front of you.","ダッシュ時、正面に火の玉を{1}発扇状に噴射する。"
 rune.armored_skin.name,"Armored Skin","鋼の肌"

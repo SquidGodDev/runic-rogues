@@ -476,9 +476,12 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_BOMBER] = {
         .iconIndex = BITMAP_RUNE_BOMBER,
-        .maxLevel = 1,
+        .hudIconIndex = BITMAP_RUNE_HUD_BOMB,
+        .maxLevel = 3,
         .triggerType = RUNE_TRIGGER_DASH,
-        .triggerBaseValue = 1.0f,
+        // Drops a bomb every 3 / 2 / 1 dashes at level 1 / 2 / 3.
+        .triggerBaseValue = 3.0f,
+        .triggerPerLevel  = -1.0f,
         .triggerCallback  = bomberCallback
     },
     [RUNE_TYPE_DRAGONS_BREATH] = {
