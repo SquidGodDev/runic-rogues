@@ -98,6 +98,13 @@ static const char *STR_KEYS[STR_COUNT] = {
     [STR_CLASS_SELECT_BASIC_TAG] = "class_select.basic_tag",
     [STR_CLASS_SELECT_SPECIAL_TAG] = "class_select.special_tag",
 
+    [STR_DIFFICULTY_0] = "difficulty.0",
+    [STR_DIFFICULTY_1] = "difficulty.1",
+    [STR_DIFFICULTY_2] = "difficulty.2",
+    [STR_DIFFICULTY_3] = "difficulty.3",
+    [STR_DIFFICULTY_4] = "difficulty.4",
+    [STR_DIFFICULTY_LOCKED] = "difficulty.locked",
+
     [STR_LOADING_DONE] = "loading.done",
     [STR_LOADING_FONTS] = "loading.fonts",
     [STR_LOADING_TEXTURES] = "loading.textures",

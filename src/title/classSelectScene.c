@@ -12,6 +12,7 @@
 #include "game/player/spells/spellData.h"
 #include "game/systems/audioManager.h"
 #include "game/systems/runeManager.h"
+#include "game/systems/difficultyManager.h"
 
 #define TITLE_Y 5
 #define MODEL_CENTER_X 100
@@ -21,49 +22,63 @@
 #define RIGHT_ARROW_X 187
 #define ARROW_Y 51
 
-// Info popup, at rest, occupies (15, 25) and is 170x95. All popup-relative
+// Info popup, at rest, occupies (7, 9) and is 186x111. All popup-relative
 // layout below is expressed as offsets from that origin so the whole popup can
-// slide horizontally (class switch) and vertically (open/close) as one unit.
-#define INFO_REST_X 15
-#define INFO_REST_Y 25
-#define INFO_BG_WIDTH 170
-#define INFO_BG_HEIGHT 95
+// slide horizontally (class switch) and vertically (open/close) as one unit. The
+// background was widened 8px on each side and extended 16px at the top (to make
+// room for the difficulty selector above the footer), so the content spreads out
+// into the extra width and the footer's Y offset grew to stay put.
+#define INFO_REST_X 7
+#define INFO_REST_Y 9
+#define INFO_BG_WIDTH 186
+#define INFO_BG_HEIGHT 111
 
-// Scrollable content, rendered per class into a tall bitmap. Coordinates are
-// relative to the popup's top-left (content bitmap x 0 == popup left edge).
-#define CONTENT_WIDTH 160
+// Scrollable content, rendered per class into a tall bitmap. The bitmap is drawn
+// flush with the popup's left edge and widened to fill the extra background room.
+#define CONTENT_WIDTH 176
+#define CONTENT_X_INSET 0
 #define CONTENT_ICON_X 5
 #define CONTENT_NAME_X 35
 #define CONTENT_DESC_X 7
 #define CONTENT_DESC_Y 29
 #define CONTENT_BLOCK_SPACING 2
 #define CONTENT_BOTTOM_PADDING 6  // extra scroll room past the last line
-#define CONTENT_DESC_MAX_WIDTH 150
+#define CONTENT_DESC_MAX_WIDTH 166
 #define CONTENT_BLOCK_COUNT 3      // basic spell, special spell, starter rune
 
-// The content bitmap is anchored so its first icon sits at absolute y 30 (offset
+// The content bitmap is anchored so its first icon sits at absolute y 14 (offset
 // 5 from the popup origin). Scroll math measures from there to the separator bar
-// at y 101, so a view height of 71. The clip rect, however, extends up to the
+// at y 85, so a view height of 71. The clip rect, however, extends up to the
 // popup's inner border (offset 2) so scrolled content runs to the edge rather
 // than cutting off short of it.
-#define CONTENT_VIEW_TOP_OFFSET 5  // 30 - 25
-#define CONTENT_VIEW_HEIGHT 71     // 101 - 30
-#define CONTENT_CLIP_TOP_OFFSET 2  // inner border, 27 - 25
-#define CONTENT_CLIP_HEIGHT 74     // 101 - 27
+#define CONTENT_VIEW_TOP_OFFSET 5  // 14 - 9
+#define CONTENT_VIEW_HEIGHT 71     // 85 - 14
+#define CONTENT_CLIP_TOP_OFFSET 2  // inner border, 11 - 9
+#define CONTENT_CLIP_HEIGHT 74     // 85 - 11
 
 // Scrollbar track, popup-relative, styled to match the settings-menu scrollbar
-// (5px rounded-rect outline with a 1px inner thumb line). Top-left at (175, 31).
-#define SCROLLBAR_X_OFFSET 160     // 175 - 15
-#define SCROLLBAR_Y_OFFSET 6       // 31 - 25
+// (5px rounded-rect outline with a 1px inner thumb line). Top-left at (183, 15).
+#define SCROLLBAR_X_OFFSET 176     // 183 - 7
+#define SCROLLBAR_Y_OFFSET 6       // 15 - 9
 #define SCROLLBAR_WIDTH 5
-#define SCROLLBAR_HEIGHT 66        // 97 - 31
+#define SCROLLBAR_HEIGHT 66
 
-// Footer prompts, popup-relative: "Back" left-anchored at x 35 next to the B
-// button and "Select" right-anchored at x 164 next to the A button, both
-// vertically centered on the button icons whose center sits at y 111.
-#define FOOTER_CENTER_Y_OFFSET 86      // 111 - 25
-#define FOOTER_BACK_X_OFFSET 20        // 35 - 15
-#define FOOTER_SELECT_RIGHT_OFFSET 149 // 164 - 15
+// Footer prompts, popup-relative: "Back" left-anchored at x 27 next to the B
+// button and "Select" right-anchored at x 172 next to the A button, both
+// vertically centered on the button icons whose center sits at y 111. The footer
+// keeps its absolute position after the popup grew upward, so its Y offset grew.
+#define FOOTER_CENTER_Y_OFFSET 102     // 111 - 9
+#define FOOTER_BACK_X_OFFSET 20        // 27 - 7
+#define FOOTER_SELECT_RIGHT_OFFSET 165 // 172 - 7
+
+// Difficulty selector, popup-relative. The description text is centered at
+// absolute (100, 93); the difficulty number is centered at x 100 on the footer
+// text row; the arrows sit at absolute (82, 108) and (110, 108).
+#define DIFFICULTY_CENTER_X_OFFSET 93   // 100 - 7
+#define DIFFICULTY_TEXT_Y_OFFSET 84     // 93 - 9
+#define DIFFICULTY_LEFT_ARROW_X_OFFSET 75  // 82 - 7
+#define DIFFICULTY_RIGHT_ARROW_X_OFFSET 103 // 110 - 7
+#define DIFFICULTY_ARROW_Y_OFFSET 99    // 108 - 9
 
 #define SCROLL_SPEED 160.0f
 #define CRANK_SCROLL_FACTOR 0.5f
@@ -127,6 +142,11 @@ static int selectedIndex;
 static float displaySelected;
 static float slideStartValue;
 static float slideTime;
+
+// Currently-selected difficulty per class (0..DIFFICULTY_LEVEL_COUNT-1). The
+// player can browse any level, but starting a run at a level above the class's
+// unlocked difficulty is blocked and the description reads "Locked".
+static int selectedDifficulty[CLASS_COUNT];
 
 // Info popup open/close animation. infoDisplay eases between 0 (fully off the
 // bottom of the screen) and 1 (at rest). infoOpen is the target the slide eases
@@ -261,6 +281,10 @@ void initClassSelectScene(void) {
     scrollOffset = 0.0f;
 
     for (int i = 0; i < CLASS_COUNT; i++) {
+        selectedDifficulty[i] = 0;
+    }
+
+    for (int i = 0; i < CLASS_COUNT; i++) {
         Class3DModelData *modelData = &class3DModels[i];
         modelData->bitmapTable = BITMAP_TABLES[classBitmapTables[i].bitmapTablePath];
         pd->graphics->getBitmapData(pd->graphics->getTableBitmap(modelData->bitmapTable, 0), &modelData->width, &modelData->height, NULL, NULL, NULL);
@@ -305,6 +329,41 @@ static void drawInfoFooter(int popupX, int popupY) {
     pd->graphics->drawText(select, strlen(select), kUTF8Encoding, popupX + FOOTER_SELECT_RIGHT_OFFSET - selectWidth, footerY);
 }
 
+static void drawInfoDifficulty(int popupX, int popupY, int classIndex) {
+    bool isJapanese = (SETTINGS.language == LANGUAGE_JP);
+    LCDFont *font = isJapanese ? fontSubJP : fontSubEN;
+    int difficulty = selectedDifficulty[classIndex];
+    bool locked = difficulty > getClassUnlockedDifficulty((ClassType)classIndex);
+    int centerX = popupX + DIFFICULTY_CENTER_X_OFFSET;
+    // JP glyphs sit lower and read cramped at negative tracking, so nudge them up
+    // 2px and drop the tracking to 0.
+    int textTracking = isJapanese ? 0 : -2;
+    int jpYNudge = isJapanese ? -2 : 0;
+
+    pd->graphics->setFont(font);
+    pd->graphics->setDrawMode(kDrawModeCopy);
+    pd->graphics->setTextTracking(textTracking);
+
+    // Difficulty description (or "Locked") centered in the space above the footer.
+    const char *desc = locked ? getLocString(STR_DIFFICULTY_LOCKED) : getLocString(STR_DIFFICULTY_0 + difficulty);
+    int descWidth = pd->graphics->getTextWidth(font, desc, strlen(desc), kUTF8Encoding, textTracking);
+    pd->graphics->drawText(desc, strlen(desc), kUTF8Encoding, centerX - descWidth / 2, popupY + DIFFICULTY_TEXT_Y_OFFSET + jpYNudge);
+
+    // Difficulty number, centered on the footer text row between the arrows.
+    int footerY = popupY + FOOTER_CENTER_Y_OFFSET - pd->graphics->getFontHeight(font) / 2 + 1;
+    char numStr[2] = { (char)('0' + difficulty), '\0' };
+    int numWidth = pd->graphics->getTextWidth(font, numStr, 1, kUTF8Encoding, textTracking);
+    pd->graphics->drawText(numStr, 1, kUTF8Encoding, centerX - numWidth / 2, footerY + jpYNudge);
+
+    // Arrows flanking the number; hidden at the ends so the value doesn't wrap.
+    if (difficulty > 0) {
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_DIFFICULTY_LEFT_ARROW], popupX + DIFFICULTY_LEFT_ARROW_X_OFFSET, popupY + DIFFICULTY_ARROW_Y_OFFSET, kBitmapUnflipped);
+    }
+    if (difficulty < DIFFICULTY_LEVEL_COUNT - 1) {
+        pd->graphics->drawBitmap(BITMAPS[BITMAP_DIFFICULTY_RIGHT_ARROW], popupX + DIFFICULTY_RIGHT_ARROW_X_OFFSET, popupY + DIFFICULTY_ARROW_Y_OFFSET, kBitmapUnflipped);
+    }
+}
+
 static void drawInfoPopups(int popupY) {
     for (int i = 0; i < CLASS_COUNT; i++) {
         float popupXf = (float)INFO_REST_X + ((float)i - displaySelected) * (float)SCREEN_WIDTH;
@@ -318,12 +377,13 @@ static void drawInfoPopups(int popupY) {
         float scroll = (i == selectedIndex) ? scrollOffset : 0.0f;
         int viewTop = popupY + CONTENT_VIEW_TOP_OFFSET;
         if (classInfo[i].bitmap != NULL) {
-            pd->graphics->setClipRect(popupX, popupY + CONTENT_CLIP_TOP_OFFSET, CONTENT_WIDTH, CONTENT_CLIP_HEIGHT);
-            pd->graphics->drawBitmap(classInfo[i].bitmap, popupX, viewTop - (int)scroll, kBitmapUnflipped);
+            pd->graphics->setClipRect(popupX + CONTENT_X_INSET, popupY + CONTENT_CLIP_TOP_OFFSET, CONTENT_WIDTH, CONTENT_CLIP_HEIGHT);
+            pd->graphics->drawBitmap(classInfo[i].bitmap, popupX + CONTENT_X_INSET, viewTop - (int)scroll, kBitmapUnflipped);
             pd->graphics->clearClipRect();
         }
 
         drawInfoScrollbar(popupX, popupY, classInfo[i].contentHeight, scroll);
+        drawInfoDifficulty(popupX, popupY, i);
         drawInfoFooter(popupX, popupY);
     }
 }
@@ -414,34 +474,25 @@ void updateClassSelectScene(float deltaTime) {
     float crankChange = pd->system->getCrankChange();
 
     if (!isSceneTransitioning()) {
-        int newIndex = selectedIndex;
-        if (pushed & kButtonLeft) {
-            if (selectedIndex > 0) {
-                playSound(SFX_UI_RUNE_SLIDE);
-                newIndex = selectedIndex - 1;
-            } else {
-                playSound(SFX_CLASS_ERROR);
-            }
-        } else if (pushed & kButtonRight) {
-            if (selectedIndex < CLASS_COUNT - 1) {
-                playSound(SFX_UI_RUNE_SLIDE);
-                newIndex = selectedIndex + 1;
-            } else {
-                playSound(SFX_CLASS_ERROR);
-            }
-        }
-        if (newIndex != selectedIndex) {
-            slideStartValue = displaySelected;
-            selectedIndex = newIndex;
-            slideTime = SLIDE_DURATION;
-            scrollOffset = 0.0f;
-            Class3DModelData *m = &class3DModels[newIndex];
-            m->phase = CLASS_ANIM_INTRO;
-            m->currentFrame = 0;
-            m->currentFrameTime = 0.0f;
-        }
-
         if (infoOpen) {
+            // Left/right adjust the difficulty; they no longer switch class here.
+            int *difficulty = &selectedDifficulty[selectedIndex];
+            if (pushed & kButtonLeft) {
+                if (*difficulty > 0) {
+                    playSound(SFX_UI_RUNE_SLIDE);
+                    (*difficulty)--;
+                } else {
+                    playSound(SFX_CLASS_ERROR);
+                }
+            } else if (pushed & kButtonRight) {
+                if (*difficulty < DIFFICULTY_LEVEL_COUNT - 1) {
+                    playSound(SFX_UI_RUNE_SLIDE);
+                    (*difficulty)++;
+                } else {
+                    playSound(SFX_CLASS_ERROR);
+                }
+            }
+
             int scrollMax = classInfo[selectedIndex].contentHeight - CONTENT_VIEW_HEIGHT;
             if (scrollMax < 0) {
                 scrollMax = 0;
@@ -461,10 +512,16 @@ void updateClassSelectScene(float deltaTime) {
             }
 
             if (pushed & kButtonA) {
-                playSound(SFX_CLASS_SELECT);
-                setCurrentClass((ClassType)selectedIndex);
-                initRunStart();
-                switchScene(SCENE_AREA_MAP);
+                if (*difficulty > getClassUnlockedDifficulty((ClassType)selectedIndex)) {
+                    // Difficulty not yet unlocked for this class.
+                    playSound(SFX_CLASS_ERROR);
+                } else {
+                    playSound(SFX_CLASS_SELECT);
+                    setCurrentClass((ClassType)selectedIndex);
+                    setRunDifficulty(*difficulty);
+                    initRunStart();
+                    switchScene(SCENE_AREA_MAP);
+                }
             } else if (pushed & kButtonB) {
                 playSound(SFX_CLASS_BACK);
                 infoOpen = false;
@@ -472,6 +529,33 @@ void updateClassSelectScene(float deltaTime) {
                 infoSlideTime = SLIDE_DURATION;
             }
         } else {
+            int newIndex = selectedIndex;
+            if (pushed & kButtonLeft) {
+                if (selectedIndex > 0) {
+                    playSound(SFX_UI_RUNE_SLIDE);
+                    newIndex = selectedIndex - 1;
+                } else {
+                    playSound(SFX_CLASS_ERROR);
+                }
+            } else if (pushed & kButtonRight) {
+                if (selectedIndex < CLASS_COUNT - 1) {
+                    playSound(SFX_UI_RUNE_SLIDE);
+                    newIndex = selectedIndex + 1;
+                } else {
+                    playSound(SFX_CLASS_ERROR);
+                }
+            }
+            if (newIndex != selectedIndex) {
+                slideStartValue = displaySelected;
+                selectedIndex = newIndex;
+                slideTime = SLIDE_DURATION;
+                scrollOffset = 0.0f;
+                Class3DModelData *m = &class3DModels[newIndex];
+                m->phase = CLASS_ANIM_INTRO;
+                m->currentFrame = 0;
+                m->currentFrameTime = 0.0f;
+            }
+
             if (pushed & kButtonA) {
                 playSound(SFX_UI_RUNE_SLIDE);
                 infoOpen = true;

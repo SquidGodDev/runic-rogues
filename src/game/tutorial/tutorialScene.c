@@ -8,6 +8,7 @@
 #include "globals/saveSystem.h"
 
 #include "game/gameScene.h"
+#include "game/systems/difficultyManager.h"
 #include "game/map/map.h"
 #include "game/UI/UI.h"
 #include "game/UI/quitConfirmDialog.h"
@@ -234,6 +235,7 @@ static void setTutorialAbilities(bool basic, bool special, bool dash) {
 void initTutorialScene(void) {
     setCurrentArea(AREA_TUTORIAL);
     setTutorialActive(true);
+    setRunDifficulty(0);
     initGameScene();
 
     createGameMenuItem();

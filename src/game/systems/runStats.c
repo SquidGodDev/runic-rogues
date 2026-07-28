@@ -1,4 +1,7 @@
 #include "game/systems/runStats.h"
+#include "game/systems/difficultyManager.h"
+#include "game/player/classes/classData.h"
+#include "globals/saveSystem.h"
 
 #define RUN_STATS_ATTACK_RING 64
 
@@ -118,6 +121,13 @@ void runStatsCaptureFinal(bool wasVictory) {
     finalArea = getCurrentArea();
     finalRoom = getCurrentRoom();
     victory = wasVictory;
+
+    if (wasVictory) {
+        // Winning a run unlocks the next difficulty level for the class it was
+        // played with. Persist immediately so the unlock survives a power-off.
+        unlockNextDifficultyForClass(getCurrentClassType(), getRunDifficulty());
+        saveGame();
+    }
 
     for (int i = 0; i < RUN_STATS_ATTACK_RING; i++) {
         if (attackRing[i].attackId > 0 && attackRing[i].hit) {

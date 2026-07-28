@@ -18,6 +18,7 @@
 #include "game/systems/progressionManager.h"
 #include "game/systems/spawnManager.h"
 #include "game/systems/bossCinematic.h"
+#include "game/systems/difficultyManager.h"
 #include "game/systems/runStats.h"
 
 #define SPAWN_TEST_ENEMY 0
@@ -688,12 +689,48 @@ int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 	return newEnemyIndex;
 }
 
+static bool isBossEnemyType(EnemyType type) {
+	return type == ENEMY_TYPE_ELDER_BOSS
+		|| type == ENEMY_TYPE_WRAITH_BOSS
+		|| type == ENEMY_TYPE_DRAGON_BOSS;
+}
+
+// Scales non-boss enemy attack damage and cooldown by the current run difficulty
+// (difficulty 2+). Base values are captured once from the compile-time table so
+// the scaling is always recomputed from the originals rather than compounding.
+static void applyDifficultyEnemyScaling(void) {
+	static int baseAttackDamage[ENEMY_TYPE_COUNT];
+	static float baseAttackCooldown[ENEMY_TYPE_COUNT];
+	static bool baseCaptured = false;
+
+	if (!baseCaptured) {
+		for (int i = 0; i < ENEMY_TYPE_COUNT; i++) {
+			baseAttackDamage[i] = enemyData[i].attackDamage;
+			baseAttackCooldown[i] = enemyData[i].attackCooldown;
+		}
+		baseCaptured = true;
+	}
+
+	float damageMult = getDifficultyEnemyDamageMultiplier();
+	float cooldownMult = getDifficultyEnemyCooldownMultiplier();
+	for (int i = 0; i < ENEMY_TYPE_COUNT; i++) {
+		if (isBossEnemyType((EnemyType)i)) {
+			enemyData[i].attackDamage = baseAttackDamage[i];
+			enemyData[i].attackCooldown = baseAttackCooldown[i];
+		} else {
+			enemyData[i].attackDamage = (int)(baseAttackDamage[i] * damageMult + 0.5f);
+			enemyData[i].attackCooldown = baseAttackCooldown[i] * cooldownMult;
+		}
+	}
+}
+
 void initEnemies(void) {
 	bossIndex = -1;
 	enemiesDefeated = 0;
 	for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
 		enemies[i].active = 0;
 	}
+	applyDifficultyEnemyScaling();
 }
 
 int getEnemiesDefeated(void) {

@@ -10,6 +10,7 @@
 #include "game/systems/spawnManager.h"
 #include "game/systems/bossCinematic.h"
 #include "game/systems/audioManager.h"
+#include "game/systems/difficultyManager.h"
 #include "game/UI/UI.h"
 
 #define BOSS_DIFFICULTY_COUNT 2
@@ -1506,7 +1507,7 @@ void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 	if (isBossCinematicActive()) {
 		return;
 	}
-	elderProperties = &ELDER_BOSS_PROPERTIES[0][curEnemy->phase];
+	elderProperties = &ELDER_BOSS_PROPERTIES[getDifficultyBossPropertyIndex()][curEnemy->phase];
 
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		if (curEnemy->stateTimer <= 0) {
@@ -1679,7 +1680,7 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	if (isBossCinematicActive()) {
 		return;
 	}
-	wraithProperties = &WRAITH_BOSS_PROPERTIES[0][curEnemy->phase];
+	wraithProperties = &WRAITH_BOSS_PROPERTIES[getDifficultyBossPropertyIndex()][curEnemy->phase];
 
 	if (curEnemy->attackCooldown <= 0 && playerInAttackDistance(index)) {
 		curEnemy->attackCooldown = wraithProperties->attackCooldown;
@@ -1940,7 +1941,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	if (isBossCinematicActive()) {
 		return;
 	}
-	dragonProperties = &DRAGON_BOSS_PROPERTIES[0][curEnemy->phase];
+	dragonProperties = &DRAGON_BOSS_PROPERTIES[getDifficultyBossPropertyIndex()][curEnemy->phase];
 
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		// Wander between random room positions until the attack cooldown elapses, then start the next attack.

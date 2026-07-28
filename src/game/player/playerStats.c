@@ -1,5 +1,6 @@
 #include "game/player/playerStats.h"
 #include "game/systems/runeManager.h"
+#include "game/systems/difficultyManager.h"
 
 #define BASE_MAX_HEALTH 100
 #define BASE_HEALTH_REGEN_RATE 0.0f
@@ -18,6 +19,7 @@ int getPlayerMaxHealth(void) {
     if (runeIsOwned(RUNE_TYPE_BROADSWORD)) {
         maxHealth -= getRuneSecondaryValue(RUNE_TYPE_BROADSWORD);
     }
+    maxHealth = (int)(maxHealth * getDifficultyMaxHealthMultiplier() + 0.5f);
     return maxHealth;
 }
 

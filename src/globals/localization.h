@@ -85,6 +85,14 @@ typedef enum StringKey {
     STR_CLASS_SELECT_BASIC_TAG,
     STR_CLASS_SELECT_SPECIAL_TAG,
 
+    // Difficulty selector (STR_DIFFICULTY_0..4 must stay contiguous and ordered)
+    STR_DIFFICULTY_0,
+    STR_DIFFICULTY_1,
+    STR_DIFFICULTY_2,
+    STR_DIFFICULTY_3,
+    STR_DIFFICULTY_4,
+    STR_DIFFICULTY_LOCKED,
+
     // Loading scene
     STR_LOADING_DONE,
     STR_LOADING_FONTS,

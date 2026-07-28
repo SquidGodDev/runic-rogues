@@ -5,6 +5,7 @@
 #include "globals/saveSystem.h"
 #include "game/settings/settings.h"
 #include "game/enemies/enemies.h"
+#include "game/systems/difficultyManager.h"
 
 #define SAVE_PATH "save.txt"
 #define SAVE_VERSION 1
@@ -150,6 +151,14 @@ static void applyKeyValue(const char *key, const char *value) {
         DEBUG.testFirstRoomEnemy = enemy;
     } else if (strcmp(key, "debugSkipAreaMap") == 0) {
         DEBUG.skipAreaMap = parseInt(value) != 0;
+    } else if (strcmp(key, "classDifficulty0") == 0) {
+        setClassUnlockedDifficulty((ClassType)0, parseInt(value));
+    } else if (strcmp(key, "classDifficulty1") == 0) {
+        setClassUnlockedDifficulty((ClassType)1, parseInt(value));
+    } else if (strcmp(key, "classDifficulty2") == 0) {
+        setClassUnlockedDifficulty((ClassType)2, parseInt(value));
+    } else if (strcmp(key, "classDifficulty3") == 0) {
+        setClassUnlockedDifficulty((ClassType)3, parseInt(value));
     }
 }
 
@@ -206,7 +215,11 @@ void saveGame(void) {
         "debugInstantKillBoss=%d\n"
         "debugStartInTestArea=%d\n"
         "debugTestFirstRoomEnemy=%d\n"
-        "debugSkipAreaMap=%d\n",
+        "debugSkipAreaMap=%d\n"
+        "classDifficulty0=%d\n"
+        "classDifficulty1=%d\n"
+        "classDifficulty2=%d\n"
+        "classDifficulty3=%d\n",
         SAVE_VERSION,
         (int)SETTINGS.language,
         (int)SETTINGS.controlScheme,
@@ -233,7 +246,11 @@ void saveGame(void) {
         DEBUG.instantKillBoss ? 1 : 0,
         DEBUG.startInTestArea ? 1 : 0,
         DEBUG.testFirstRoomEnemy,
-        DEBUG.skipAreaMap ? 1 : 0
+        DEBUG.skipAreaMap ? 1 : 0,
+        getClassUnlockedDifficulty((ClassType)0),
+        getClassUnlockedDifficulty((ClassType)1),
+        getClassUnlockedDifficulty((ClassType)2),
+        getClassUnlockedDifficulty((ClassType)3)
     );
 
     if (len > 0 && body != NULL) {

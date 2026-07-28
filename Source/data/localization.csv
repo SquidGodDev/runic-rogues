@@ -86,6 +86,12 @@ class_select.back,"Back","戻る"
 class_select.select,"Select","決定"
 class_select.basic_tag,"(Basic)","(基本)"
 class_select.special_tag,"(Special)","(特殊)"
+difficulty.0,"Normal Difficulty","通常の難易度"
+difficulty.1,"Heal less after each floor","フロアごとの回復量が減少"
+difficulty.2,"Enemies are more challenging","敵が手強くなる"
+difficulty.3,"Bosses are more challenging","ボスが手強くなる"
+difficulty.4,"Start each run with less health","初期体力が減少"
+difficulty.locked,"Locked","ロック中"
 
 # == Loading scene ==
 loading.done,"Loaded!",""

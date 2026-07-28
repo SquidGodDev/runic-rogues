@@ -47,6 +47,7 @@ void initRunStart(void) {
 	setGameState(GAME_STATE_ACTIVE);
 	freeQuitScreenshot();
 	setTutorialActive(false);
+	notePlayerRunStart();
 	initSpells();
 	initRunes();
 	RuneType starterRune = (RuneType)getCurrentClassData()->starterRune;

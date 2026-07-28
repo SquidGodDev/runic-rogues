@@ -21,6 +21,7 @@
 #include "game/systems/progressionManager.h"
 #include "game/systems/runeManager.h"
 #include "game/systems/runStats.h"
+#include "game/systems/difficultyManager.h"
 #include "game/settings/settings.h"
 
 #define CRANK_SENSITIVITY 0.0075f
@@ -155,9 +156,32 @@ void suppressHeldPlayerButtons(void) {
 	suppressedButtons |= current;
 }
 
+// True for the first floor of a run so the player spawns at full health;
+// cleared after initPlayer so later floors apply the difficulty floor-heal.
+static bool runFirstFloor = false;
+
+void notePlayerRunStart(void) {
+	runFirstFloor = true;
+}
+
 void initPlayer(void) {
 	const ClassData *classData = getCurrentClassData();
-	playerHealth = getPlayerMaxHealth();
+	int maxHealth = getPlayerMaxHealth();
+	if (runFirstFloor || !difficultyReducesFloorHeal()) {
+		// First floor of the run, or difficulty 0: heal fully (100% of missing).
+		playerHealth = maxHealth;
+	} else {
+		// Difficulty 1+: heal only 50% of missing health, carrying over damage
+		// from the previous floor.
+		int missing = maxHealth - playerHealth;
+		if (missing > 0) {
+			playerHealth += missing / 2;
+		}
+		if (playerHealth > maxHealth) {
+			playerHealth = maxHealth;
+		}
+	}
+	runFirstFloor = false;
 	playerDashCount = 0;
 	basicSpellEnabled = true;
 	specialSpellEnabled = true;
