@@ -13,6 +13,9 @@ int getPlayerMaxHealth(void) {
     if (runeIsOwned(RUNE_TYPE_HEALTHY)) {
         maxHealth += getRuneValue(RUNE_TYPE_HEALTHY);
     }
+    if (runeIsOwned(RUNE_TYPE_KNIGHTS_HELM)) {
+        maxHealth += getRuneValue(RUNE_TYPE_KNIGHTS_HELM);
+    }
     if (runeIsOwned(RUNE_TYPE_GLASS_DAGGER)) {
         maxHealth -= getRuneSecondaryValue(RUNE_TYPE_GLASS_DAGGER);
     }
@@ -47,6 +50,9 @@ float getPlayerMoveSpeed(void) {
     float moveSpeed = BASE_MOVE_SPEED;
     if (runeIsOwned(RUNE_TYPE_SWIFT)) {
         moveSpeed *= (1.0f + getRuneValue(RUNE_TYPE_SWIFT));
+    }
+    if (runeIsOwned(RUNE_TYPE_KNIGHTS_HELM)) {
+        moveSpeed *= (1.0f + getRuneSecondaryValue(RUNE_TYPE_KNIGHTS_HELM));
     }
     if (runeIsOwned(RUNE_TYPE_RAPIER)) {
         moveSpeed *= getRapierSpeedMultiplier();

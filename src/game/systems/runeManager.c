@@ -613,6 +613,15 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .triggerType = RUNE_TRIGGER_KILL_ENEMY,
         .triggerBaseValue = 1.0f,
         .triggerCallback  = blackHoleCallback
+    },
+    [RUNE_TYPE_KNIGHTS_HELM] = {
+        // Max health + move speed handled directly in playerStats.c
+        .iconIndex = BITMAP_RUNE_KNIGHTS_HELM,
+        .primaryBaseValue   = 30,     // +30 max health
+        .secondaryBaseValue = -0.30f, // -30% move speed
+        .maxLevel = 1,
+        .secondaryModifyOperation = MODIFY_OP_MULTIPLY,
+        .classFilter = RUNE_CLASS_FILTER_KNIGHT
     }
 };
 
@@ -661,6 +670,7 @@ static const char *RUNE_LOC_IDS[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_STONE_GOLEM] = "stone_golem",
     [RUNE_TYPE_ADRENALINE] = "adrenaline",
     [RUNE_TYPE_BLACK_HOLE] = "black_hole",
+    [RUNE_TYPE_KNIGHTS_HELM] = "knights_helm",
 };
 
 void initRuneLocalization(void) {
