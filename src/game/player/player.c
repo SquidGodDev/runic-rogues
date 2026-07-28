@@ -331,7 +331,7 @@ static void updateSpecialSpellCharge(float deltaTime, bool bHeld) {
 void handleInput(float deltaTime)
 {
 	bool crankControl = SETTINGS.controlScheme == CONTROL_SCHEME_CRANK;
-	defaultStrafeSetting = crankControl && SETTINGS.dpadStrafe;
+	defaultStrafeSetting = crankControl && SETTINGS.dpadLeftRight == DPAD_LR_STRAFE;
 
 	int cellSize = CELL_SIZE;
 	int mapWidth = MAP_WIDTH;

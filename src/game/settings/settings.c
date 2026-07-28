@@ -25,7 +25,7 @@ void resetControlSettings(void) {
     SETTINGS.controlScheme = CONTROL_SCHEME_CRANK;
     SETTINGS.crankTurnSpeed = SETTING_BAR_DEFAULT_LEVEL;
     SETTINGS.dpadTurnSpeed = SETTING_BAR_DEFAULT_LEVEL;
-    SETTINGS.dpadStrafe = true;
+    SETTINGS.dpadLeftRight = DPAD_LR_STRAFE;
     SETTINGS.absoluteCrank = false;
     SETTINGS.absoluteCrankOffset = 0;
     SETTINGS.crankRatio = CRANK_RATIO_1X;

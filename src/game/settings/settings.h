@@ -33,6 +33,14 @@ typedef enum FpsSetting {
 
 // Absolute-crank gearing: how many crank revolutions map to a full 360° turn.
 // Index into the cycle; 1x is the default (one revolution = one turn).
+// What the d-pad left/right buttons do. Strafe is the default and maps to the
+// original behavior.
+typedef enum DpadLeftRightMode {
+    DPAD_LR_STRAFE,
+    DPAD_LR_TURN,
+    DPAD_LR_MODE_COUNT
+} DpadLeftRightMode;
+
 typedef enum CrankRatio {
     CRANK_RATIO_1X,   // 1 revolution = 360°
     CRANK_RATIO_HALF, // 2 revolutions = 360°
@@ -54,7 +62,7 @@ typedef struct Settings {
     int targetFps; // FpsSetting index; selects the display refresh rate
     int crankTurnSpeed;
     int dpadTurnSpeed;
-    bool dpadStrafe;
+    int dpadLeftRight; // DpadLeftRightMode index
     bool absoluteCrank;
     int absoluteCrankOffset; // degrees, 0-360; rotates the absolute-crank reference angle
     int crankRatio;          // CrankRatio index; scales absolute-crank gearing

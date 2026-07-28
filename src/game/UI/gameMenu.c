@@ -139,6 +139,15 @@ static bool dpadControlsDisabled(void) {
     return SETTINGS.controlScheme != CONTROL_SCHEME_DPAD;
 }
 
+// The d-pad turn speed governs d-pad turning, which is active in d-pad control and
+// also in crank control when strafing is off (d-pad turns instead of strafing).
+static bool dpadTurnSpeedDisabled(void) {
+    if (SETTINGS.controlScheme == CONTROL_SCHEME_DPAD) {
+        return false;
+    }
+    return SETTINGS.dpadLeftRight == DPAD_LR_STRAFE;
+}
+
 // Absolute-crank sub-options are dead unless crank control is active AND absolute
 // crank is turned on.
 static bool absoluteCrankOptionsDisabled(void) {
@@ -148,6 +157,7 @@ static bool absoluteCrankOptionsDisabled(void) {
 static const StringKey LANGUAGE_CHOICE_LABELS[LANGUAGE_COUNT] = { STR_LANG_ENGLISH, STR_LANG_JP };
 static const StringKey CONTROL_CHOICE_LABELS[CONTROL_SCHEME_COUNT] = { STR_CONTROL_CRANK, STR_CONTROL_DPAD };
 static const StringKey CRANK_RATIO_LABELS[CRANK_RATIO_COUNT] = { STR_CRANK_RATIO_1X, STR_CRANK_RATIO_HALF, STR_CRANK_RATIO_THIRD };
+static const StringKey DPAD_LEFT_RIGHT_LABELS[DPAD_LR_MODE_COUNT] = { STR_DPAD_LR_STRAFE, STR_DPAD_LR_TURN };
 static const StringKey FPS_CHOICE_LABELS[FPS_SETTING_COUNT] = { STR_FPS_30, STR_FPS_40, STR_FPS_50 };
 
 static const SettingRowDef GENERAL_ROWS[] = {
@@ -162,13 +172,13 @@ static const SettingRowDef CONTROLS_ROWS[] = {
     { STR_SETTING_CONTROL, CONTROL_CHOICE, &SETTINGS.controlScheme, 0, 0, CONTROL_CHOICE_LABELS, CONTROL_SCHEME_COUNT },
     { STR_SECTION_CRANK_CONTROLS, CONTROL_SECTION_HEADER, NULL },
     { STR_SETTING_CRANK_TURN_SPEED, CONTROL_BAR, &SETTINGS.crankTurnSpeed, 0, 0, NULL, 0, 1, crankControlsDisabled },
-    { STR_SETTING_DPAD_STRAFE, CONTROL_CHECKBOX, &SETTINGS.dpadStrafe, 0, 0, NULL, 0, 1, crankControlsDisabled },
+    { STR_SETTING_DPAD_LEFT_RIGHT, CONTROL_CHOICE, &SETTINGS.dpadLeftRight, 0, 0, DPAD_LEFT_RIGHT_LABELS, DPAD_LR_MODE_COUNT, 1, crankControlsDisabled },
     { STR_SETTING_ABSOLUTE_CRANK, CONTROL_CHECKBOX, &SETTINGS.absoluteCrank, 0, 0, NULL, 0, 1, crankControlsDisabled },
     { STR_SETTING_ABSOLUTE_CRANK_OFFSET, CONTROL_INT, &SETTINGS.absoluteCrankOffset, SETTING_CRANK_OFFSET_MIN, SETTING_CRANK_OFFSET_MAX, NULL, 0, 2, absoluteCrankOptionsDisabled },
     { STR_SETTING_CRANK_RATIO, CONTROL_CHOICE, &SETTINGS.crankRatio, 0, 0, CRANK_RATIO_LABELS, CRANK_RATIO_COUNT, 2, absoluteCrankOptionsDisabled, true },
     { STR_SETTING_INVERT_CRANK, CONTROL_CHECKBOX, &SETTINGS.invertCrank, 0, 0, NULL, 0, 1, crankControlsDisabled },
     { STR_SECTION_DPAD_CONTROLS, CONTROL_SECTION_HEADER, NULL },
-    { STR_SETTING_DPAD_TURN_SPEED, CONTROL_BAR, &SETTINGS.dpadTurnSpeed, 0, 0, NULL, 0, 1, dpadControlsDisabled },
+    { STR_SETTING_DPAD_TURN_SPEED, CONTROL_BAR, &SETTINGS.dpadTurnSpeed, 0, 0, NULL, 0, 1, dpadTurnSpeedDisabled },
     { STR_SETTING_INVERT_DPAD, CONTROL_CHECKBOX, &SETTINGS.invertDpad, 0, 0, NULL, 0, 1, dpadControlsDisabled },
     { STR_SETTING_SWAP_SPELL_BUTTONS, CONTROL_CHECKBOX, &SETTINGS.spellButtonsReversed },
     { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },

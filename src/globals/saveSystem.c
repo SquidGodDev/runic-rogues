@@ -75,8 +75,15 @@ static void applyKeyValue(const char *key, const char *value) {
         SETTINGS.crankTurnSpeed = parseBarLevel(value);
     } else if (strcmp(key, "dpadTurnSpeed") == 0) {
         SETTINGS.dpadTurnSpeed = parseBarLevel(value);
+    } else if (strcmp(key, "dpadLeftRight") == 0) {
+        int mode = parseInt(value);
+        if (mode < 0 || mode >= DPAD_LR_MODE_COUNT) {
+            mode = DPAD_LR_STRAFE;
+        }
+        SETTINGS.dpadLeftRight = mode;
     } else if (strcmp(key, "dpadStrafe") == 0) {
-        SETTINGS.dpadStrafe = parseInt(value) != 0;
+        // Legacy save: bool where 1 = strafe, 0 = turn.
+        SETTINGS.dpadLeftRight = parseInt(value) != 0 ? DPAD_LR_STRAFE : DPAD_LR_TURN;
     } else if (strcmp(key, "absoluteCrank") == 0) {
         SETTINGS.absoluteCrank = parseInt(value) != 0;
     } else if (strcmp(key, "absoluteCrankOffset") == 0) {
@@ -177,7 +184,7 @@ void saveGame(void) {
         "targetFps=%d\n"
         "crankTurnSpeed=%d\n"
         "dpadTurnSpeed=%d\n"
-        "dpadStrafe=%d\n"
+        "dpadLeftRight=%d\n"
         "absoluteCrank=%d\n"
         "absoluteCrankOffset=%d\n"
         "crankRatio=%d\n"
@@ -204,7 +211,7 @@ void saveGame(void) {
         SETTINGS.targetFps,
         SETTINGS.crankTurnSpeed,
         SETTINGS.dpadTurnSpeed,
-        SETTINGS.dpadStrafe ? 1 : 0,
+        SETTINGS.dpadLeftRight,
         SETTINGS.absoluteCrank ? 1 : 0,
         SETTINGS.absoluteCrankOffset,
         SETTINGS.crankRatio,
