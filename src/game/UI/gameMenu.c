@@ -182,6 +182,8 @@ static const SettingRowDef CONTROLS_ROWS[] = {
     { STR_SETTING_DPAD_TURN_SPEED, CONTROL_BAR, &SETTINGS.dpadTurnSpeed, 0, 0, NULL, 0, 1, dpadTurnSpeedDisabled },
     { STR_SETTING_INVERT_DPAD, CONTROL_CHECKBOX, &SETTINGS.invertDpad, 0, 0, NULL, 0, 1, dpadControlsDisabled },
     { STR_SETTING_SWAP_SPELL_BUTTONS, CONTROL_CHECKBOX, &SETTINGS.spellButtonsReversed },
+    { STR_SETTING_TOGGLE_FIRE_BASIC, CONTROL_CHECKBOX, &SETTINGS.toggleFireBasic },
+    { STR_SETTING_TOGGLE_FIRE_SPECIAL, CONTROL_CHECKBOX, &SETTINGS.toggleFireSpecial },
     { STR_SETTING_RESET, CONTROL_RESET_BUTTON, NULL },
 };
 
@@ -215,7 +217,7 @@ static const SettingRowDef DEBUG_ROWS[] = {
 
 static const SettingsTabDef SETTINGS_TABS[] = {
     [MENU_TAB_GENERAL]  = { GENERAL_ROWS, 5, resetGeneralSettings },
-    [MENU_TAB_CONTROLS] = { CONTROLS_ROWS, 13, resetControlSettings },
+    [MENU_TAB_CONTROLS] = { CONTROLS_ROWS, 15, resetControlSettings },
     [MENU_TAB_AUDIO]    = { AUDIO_ROWS, 3, resetAudioSettings },
     [MENU_TAB_DEBUG]    = { DEBUG_ROWS, 8, resetDebugSettings },
 };

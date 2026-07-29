@@ -32,6 +32,8 @@ void resetControlSettings(void) {
     SETTINGS.invertCrank = false;
     SETTINGS.invertDpad = false;
     SETTINGS.spellButtonsReversed = false;
+    SETTINGS.toggleFireBasic = false;
+    SETTINGS.toggleFireSpecial = false;
 }
 
 void resetAudioSettings(void) {

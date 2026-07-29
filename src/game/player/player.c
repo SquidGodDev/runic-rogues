@@ -134,6 +134,11 @@ static bool basicSpellEnabled = true;
 static bool specialSpellEnabled = true;
 static bool dashEnabled = true;
 
+// Toggle-fire state: when the matching setting is on, a button press flips this
+// and the spell fires continuously (as if held) until pressed again.
+static bool basicFireToggled = false;
+static bool specialFireToggled = false;
+
 static float getEffectiveDashSpeed(void);
 
 void setPlayerInputDisabled(bool disabled) {
@@ -188,6 +193,8 @@ void initPlayer(void) {
 	basicSpellEnabled = true;
 	specialSpellEnabled = true;
 	dashEnabled = true;
+	basicFireToggled = false;
+	specialFireToggled = false;
 	playerState = (PlayerState) {
 		.dead = 0,
 		.hitInvincibility = 0,
@@ -371,6 +378,9 @@ void handleInput(float deltaTime)
 		// Disable inputs
 		current = 0;
 		pushed = 0;
+		// Stop any toggled continuous fire so it doesn't resume on its own
+		basicFireToggled = false;
+		specialFireToggled = false;
 	}
 
 	suppressedButtons &= current;
@@ -397,12 +407,24 @@ void handleInput(float deltaTime)
 	PDButtons specialSpellButton = SETTINGS.spellButtonsReversed ? kButtonA : kButtonB;
 	// The A button also interacts, so whichever spell sits on A yields to interactions
 	bool interactBlocked = playerState.interactableIndex != -1 || playerState.interactedOnPress;
-	bool basicSpellHeld = (current & basicSpellButton) && (basicSpellButton != kButtonA || !interactBlocked);
-	bool specialSpellHeld = (current & specialSpellButton) && (specialSpellButton != kButtonA || !interactBlocked);
+
+	// Toggle-fire: a press flips the toggle (unless the A button was consumed by an
+	// interaction this frame); while toggled, the spell fires as if the button is held.
+	if (SETTINGS.toggleFireBasic && (pushed & basicSpellButton) && !(basicSpellButton == kButtonA && interactBlocked)) {
+		basicFireToggled = !basicFireToggled;
+	}
+	if (SETTINGS.toggleFireSpecial && (pushed & specialSpellButton) && !(specialSpellButton == kButtonA && interactBlocked)) {
+		specialFireToggled = !specialFireToggled;
+	}
+
+	bool basicHeldInput = SETTINGS.toggleFireBasic ? basicFireToggled : (bool)(current & basicSpellButton);
+	bool specialHeldInput = SETTINGS.toggleFireSpecial ? specialFireToggled : (bool)(current & specialSpellButton);
+	bool basicSpellHeld = basicHeldInput && (basicSpellButton != kButtonA || !interactBlocked);
+	bool specialSpellHeld = specialHeldInput && (specialSpellButton != kButtonA || !interactBlocked);
 
 	if (basicSpellEnabled) {
 		if (weaponAnimation.isChargeSpell) {
-			updateBasicSpellCharge(deltaTime, current & basicSpellButton);
+			updateBasicSpellCharge(deltaTime, basicHeldInput);
 		} else if (basicSpellHeld) {
 			bool animationCancellable = weaponAnimation.curFrame == 0 || weaponAnimation.curFrame > weaponAnimation.activeFrame;
 			if(spellIsCastable(BASIC_SPELL_INDEX) && animationCancellable) {
@@ -435,7 +457,7 @@ void handleInput(float deltaTime)
 
 	if (specialSpellEnabled) {
 		if (spellIsCharged(getSpecialSpell())) {
-			updateSpecialSpellCharge(deltaTime, current & specialSpellButton);
+			updateSpecialSpellCharge(deltaTime, specialHeldInput);
 		} else if (specialSpellHeld) {
 			if (castSpecialSpell() && (getCurrentClassType() == CLASS_MAGE)) {
 				startWeaponAnimation(SPECIAL_SPELL_INDEX);

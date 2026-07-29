@@ -62,6 +62,10 @@ static void applyKeyValue(const char *key, const char *value) {
         SETTINGS.drawMinimapWalls = parseInt(value) != 0;
     } else if (strcmp(key, "spellButtonsReversed") == 0) {
         SETTINGS.spellButtonsReversed = parseInt(value) != 0;
+    } else if (strcmp(key, "toggleFireBasic") == 0) {
+        SETTINGS.toggleFireBasic = parseInt(value) != 0;
+    } else if (strcmp(key, "toggleFireSpecial") == 0) {
+        SETTINGS.toggleFireSpecial = parseInt(value) != 0;
     } else if (strcmp(key, "drawFPS") == 0) {
         SETTINGS.drawFPS = parseInt(value) != 0;
     } else if (strcmp(key, "showTimer") == 0) {
@@ -194,6 +198,8 @@ void saveGame(void) {
         "controlScheme=%d\n"
         "drawMinimapWalls=%d\n"
         "spellButtonsReversed=%d\n"
+        "toggleFireBasic=%d\n"
+        "toggleFireSpecial=%d\n"
         "drawFPS=%d\n"
         "showTimer=%d\n"
         "targetFps=%d\n"
@@ -225,6 +231,8 @@ void saveGame(void) {
         (int)SETTINGS.controlScheme,
         SETTINGS.drawMinimapWalls ? 1 : 0,
         SETTINGS.spellButtonsReversed ? 1 : 0,
+        SETTINGS.toggleFireBasic ? 1 : 0,
+        SETTINGS.toggleFireSpecial ? 1 : 0,
         SETTINGS.drawFPS ? 1 : 0,
         SETTINGS.showTimer ? 1 : 0,
         SETTINGS.targetFps,

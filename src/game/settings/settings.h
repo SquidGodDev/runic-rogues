@@ -63,6 +63,8 @@ typedef struct Settings {
     int controlScheme;
     bool drawMinimapWalls;
     bool spellButtonsReversed;
+    bool toggleFireBasic;   // press (instead of hold) to toggle continuous basic-spell fire
+    bool toggleFireSpecial; // press (instead of hold) to toggle continuous special-spell fire
     bool drawFPS;
     bool showTimer;
     int targetFps; // FpsSetting index; selects the display refresh rate
