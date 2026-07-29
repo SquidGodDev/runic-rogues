@@ -88,6 +88,10 @@ static bool runeHudFillProgress(RuneType type, float *outProgress) {
         *outProgress = getRuneTriggerProgress(type);
         return true;
     }
+    if (type == RUNE_TYPE_BOMB_ARROW) {
+        *outProgress = getBombArrowProgress();
+        return true;
+    }
     return false;
 }
 

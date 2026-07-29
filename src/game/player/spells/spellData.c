@@ -4,7 +4,9 @@
 #include "game/enemies/enemies.h"
 #include "game/UI/UI.h"
 #include "game/systems/chainLightningManager.h"
+#include "game/systems/runeManager.h"
 #include "game/entities/turret.h"
+#include "game/systems/audioManager.h"
 #include "globals/globals.h"
 #include "globals/localization.h"
 
@@ -48,7 +50,24 @@ void chargedProjectileCast(Spell spell, SpellCastData *castData, float x, float 
     projectile.pierceCount += level->pierceBonus;
     float damage = data.damage + level->damageBonus;
 
+    // Bomb Arrow: every Nth max-charge bow shot is armed to drop a bomb on its
+    // first enemy hit (via SPELL_BOMB_ARROW_DROP as the projectile's onHitSpell).
+    if (spell == SPELL_BOW_SHOT && chargeLevel >= charge->levelCount && runeIsOwned(RUNE_TYPE_BOMB_ARROW)) {
+        if (bombArrowRegisterMaxChargeShot()) {
+            projectile.onHitSpell = SPELL_BOMB_ARROW_DROP;
+        }
+    }
+
     fireProjectileSpread(x, y, angle, damage, projectile);
+}
+
+void bombArrowDropCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
+    (void)spell;
+    (void)castData;
+    (void)angle;
+    (void)initialCast;
+    playSound(SFX_BOMB_DROP);
+    spawnParticle(PARTICLE_TYPE_BOMB, x, y, x, y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
 }
 
 void swordCast(Spell spell, SpellCastData *castData, float x, float y, float angle, bool initialCast) {
@@ -314,6 +333,13 @@ SpellData baseSpellData[SPELL_COUNT] = {
             .targetedProjectileCount = 1,
             .targetedSpreadAngle = 15.0f * (PI / 180.0f)
         }
+    },
+    [SPELL_BOMB_ARROW_DROP] = {
+        // Internal: cast as the onHitSpell of an armed Bomb Arrow, not equippable
+        .spellIconIndex = BITMAP_SPELL_EMPTY_ICON,
+        .cast = bombArrowDropCast,
+        .sfx = SFX_NONE,
+        .secondarySfx = SFX_NONE,
     }
 };
 
@@ -332,6 +358,7 @@ static const char *SPELL_LOC_IDS[SPELL_COUNT] = {
     [SPELL_BOW_SHOT] = "bow_shot",
     [SPELL_TURRET] = "turret",
     [SPELL_NET_TRAP] = "net_trap",
+    [SPELL_BOMB_ARROW_DROP] = NULL, // internal, no localization
 };
 
 void initSpellLocalization(void) {

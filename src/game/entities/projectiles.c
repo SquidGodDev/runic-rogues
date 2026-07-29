@@ -208,7 +208,14 @@ void updateProjectiles(float deltaTime) {
 				int particleX = curProjectile->x - PARTICLE_OFFSET * deltaX;
 				int particleY = curProjectile->y - PARTICLE_OFFSET * deltaY;
 				if (curProjectile->onHitSpell != SPELL_NONE) {
-					castSpellDirect(curProjectile->onHitSpell, particleX, particleY, atan2f(deltaY, deltaX));
+					// Bomb Arrow drops its bomb on the first enemy only; other on-hit
+					// spells (e.g. Chain Lightning) re-trigger on each pierced enemy.
+					if (curProjectile->onHitSpell == SPELL_BOMB_ARROW_DROP) {
+						curProjectile->onHitSpell = SPELL_NONE;
+						castSpellDirect(SPELL_BOMB_ARROW_DROP, particleX, particleY, atan2f(deltaY, deltaX));
+					} else {
+						castSpellDirect(curProjectile->onHitSpell, particleX, particleY, atan2f(deltaY, deltaX));
+					}
 				}
 				if (curProjectile->pierceCount <= 0) {
 					curProjectile->active = 0;

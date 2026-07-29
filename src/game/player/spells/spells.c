@@ -487,6 +487,22 @@ void modifyProjectileBounceCount(SpellData *spell, float value, ModifyOperation 
     }
 }
 
+void modifyProjectileChainCount(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->projectileData.primaryData += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->projectileData.primaryData *= 1.0f + value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->projectileData.primaryData == 0.0f) {
+                spell->projectileData.primaryData = value;
+            }
+            break;
+    }
+}
+
 void modifyProjectileActiveTime(SpellData *spell, float value, ModifyOperation operation) {
     switch (operation) {
         case MODIFY_OP_ADD:
@@ -620,6 +636,23 @@ void modifySpellKnockbackAmount(SpellData *spell, float value, ModifyOperation o
             }
             if (spell->projectileData.knockbackAmount == 0.0f) {
                 spell->projectileData.knockbackAmount = value;
+            }
+            break;
+    }
+}
+
+// ChargeData modifiers
+void modifyChargeTime(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->chargeData.timePerLevel += value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->chargeData.timePerLevel *= 1.0f + value;
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->chargeData.timePerLevel == 0.0f) {
+                spell->chargeData.timePerLevel = value;
             }
             break;
     }

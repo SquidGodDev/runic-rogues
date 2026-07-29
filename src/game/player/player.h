@@ -19,6 +19,7 @@ void healPlayer(float amount);
 void clampPlayerHealth(void);
 void applyMaxHealthChange(int oldMaxHealth);
 bool playerIsMoving(void);
+bool playerIsDashing(void);
 void damagePlayer(float amount);
 void damagePlayerFromDirection(float amount, float sourceX, float sourceY);
 void drawWeapon(float deltaTime);

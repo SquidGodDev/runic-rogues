@@ -134,6 +134,8 @@ static bool basicSpellEnabled = true;
 static bool specialSpellEnabled = true;
 static bool dashEnabled = true;
 
+static float getEffectiveDashSpeed(void);
+
 void setPlayerInputDisabled(bool disabled) {
 	inputDisabled = disabled;
 }
@@ -560,7 +562,7 @@ void handleInput(float deltaTime)
 			movementStats.strafeSpeed = maxSpeed;
 		}
 		if (playerIsDashing) {
-			movementStats.strafeSpeed = movementStats.dashSpeed;
+			movementStats.strafeSpeed = getEffectiveDashSpeed();
 		}
 	} else if ((movementDir & kButtonLeft) && strafeEnabled) {
 		if (movementStats.strafeSpeed > -movementStats.initialSpeed) {
@@ -571,7 +573,7 @@ void handleInput(float deltaTime)
 			movementStats.strafeSpeed = -maxSpeed;
 		}
 		if (playerIsDashing) {
-			movementStats.strafeSpeed = -movementStats.dashSpeed;
+			movementStats.strafeSpeed = -getEffectiveDashSpeed();
 		}
 	} else {
 		float dragCutoff = 0.1f * maxSpeed;
@@ -599,7 +601,7 @@ void handleInput(float deltaTime)
 			movementStats.speed = maxSpeed;
 		}
 		if (playerIsDashing) {
-			movementStats.speed = movementStats.dashSpeed;
+			movementStats.speed = getEffectiveDashSpeed();
 		}
 	} else if (movementDir & kButtonDown) {
 		if (movementStats.speed > -movementStats.initialSpeed) {
@@ -610,7 +612,7 @@ void handleInput(float deltaTime)
 			movementStats.speed = -maxSpeed;
 		}
 		if (playerIsDashing) {
-			movementStats.speed = -movementStats.dashSpeed;
+			movementStats.speed = -getEffectiveDashSpeed();
 		}
 	} else {
 		float dragCutoff = 0.1f * maxSpeed;
@@ -755,6 +757,20 @@ bool playerIsMoving(void) {
 	float vx = movementStats.xVelocity;
 	float vy = movementStats.yVelocity;
 	return (vx * vx + vy * vy) > (PLAYER_MOVING_SPEED_THRESHOLD * PLAYER_MOVING_SPEED_THRESHOLD);
+}
+
+bool playerIsDashing(void) {
+	return movementStats.curDashTime > 0;
+}
+
+// Dash speed, scaled by the Feather rune's distance multiplier when owned. A
+// higher speed over the same dash duration covers proportionally more ground.
+static float getEffectiveDashSpeed(void) {
+	float dashSpeed = movementStats.dashSpeed;
+	if (runeIsOwned(RUNE_TYPE_FEATHER)) {
+		dashSpeed *= getRuneValue(RUNE_TYPE_FEATHER);
+	}
+	return dashSpeed;
 }
 
 void damagePlayer(float amount) {

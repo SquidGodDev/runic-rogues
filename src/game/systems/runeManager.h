@@ -50,6 +50,12 @@ typedef enum RuneType {
     RUNE_TYPE_ADRENALINE,
     RUNE_TYPE_BLACK_HOLE,
     RUNE_TYPE_KNIGHTS_HELM,
+    RUNE_TYPE_THUNDER_BOOTS,
+    RUNE_TYPE_KUNAI,
+    RUNE_TYPE_FEATHER,
+    RUNE_TYPE_HIGH_VOLTAGE,
+    RUNE_TYPE_BOMB_ARROW,
+    RUNE_TYPE_QUICKDRAW,
     RUNE_TYPE_COUNT
 } RuneType;
 
@@ -163,3 +169,9 @@ void consumeBulwark(void);
 bool adrenalineIsActive(void);
 // Black Hole: only one is active at a time; cleared with the particles it drives.
 void clearBlackHole(void);
+
+// Bomb Arrow: counts max-charge bow shots. Returns true (and resets the counter)
+// on the shot that should be armed to drop a bomb on its first enemy hit.
+bool bombArrowRegisterMaxChargeShot(void);
+// HUD fill (0..1) for Bomb Arrow; reaches 1.0 when the next max-charge arrow drops a bomb.
+float getBombArrowProgress(void);

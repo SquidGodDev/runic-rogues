@@ -24,6 +24,7 @@ typedef enum Spell {
     SPELL_BOW_SHOT,
     SPELL_NET_TRAP,
     SPELL_TURRET,
+    SPELL_BOMB_ARROW_DROP,
     SPELL_COUNT
 } Spell;
 
@@ -159,6 +160,7 @@ void modifySlowAmount(SpellData *spell, float value, ModifyOperation operation);
 void modifyProjectileSpreadCount(SpellData *spell, float value, ModifyOperation operation);
 void modifyProjectileSpreadAngle(SpellData *spell, float value, ModifyOperation operation);
 void modifyProjectileBounceCount(SpellData *spell, float value, ModifyOperation operation);
+void modifyProjectileChainCount(SpellData *spell, float value, ModifyOperation operation);
 void modifyProjectileActiveTime(SpellData *spell, float value, ModifyOperation operation);
 // Overrides the projectile lifetime with an absolute value, shortening range regardless of the base activeTime.
 void setProjectileActiveTime(SpellData *spell, float value, ModifyOperation operation);
@@ -171,6 +173,9 @@ void modifySpellCooldown(SpellData *spell, float value, ModifyOperation operatio
 void modifySpellDamage(SpellData *spell, float value, ModifyOperation operation);
 void modifySpellKnockbackTime(SpellData *spell, float value, ModifyOperation operation);
 void modifySpellKnockbackAmount(SpellData *spell, float value, ModifyOperation operation);
+
+// ChargeData modifiers
+void modifyChargeTime(SpellData *spell, float value, ModifyOperation operation);
 
 // RepeatData modifiers
 void modifyRepeatCount(SpellData *spell, float value, ModifyOperation operation);

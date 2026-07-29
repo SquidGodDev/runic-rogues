@@ -41,6 +41,9 @@
 #define BLACK_HOLE_PULL_INTERVAL 0.5f
 #define BLACK_HOLE_PULL_TIME 0.4f
 
+// Radius around the player within which Kunai damages enemies dashed through.
+#define KUNAI_HIT_RADIUS (CELL_SIZE * 0.75f)
+
 static float crescendoTime;    // seconds of continuous movement (0..ramp time)
 static float rapierProgress;  // move-speed ramp (0..1)
 static float rapierWindow;    // seconds left before Rapier resets
@@ -50,6 +53,8 @@ static float blackHoleTime;      // seconds left on the active black hole
 static float blackHolePullTimer; // seconds until the next pull is applied
 static float blackHoleX;
 static float blackHoleY;
+static bool kunaiWasDashing;               // tracks dash edges to reset the hit list
+static bool kunaiHit[MAX_ENEMY_COUNT];     // enemies already struck during the current dash
 
 static void rapierCallback(float primaryValue, float secondaryValue, float x, float y) {
     (void)primaryValue;
@@ -78,6 +83,13 @@ static void thunderStoneCallback(float primaryValue, float secondaryValue, float
     (void)x;
     (void)y;
     startChainLightningOnNearestEnemy(playerX, playerY, CELL_SIZE * 5, primaryValue, (int)secondaryValue);
+}
+
+// Range within which Thunder Boots seeks enemies to arc lightning at on dash.
+#define THUNDER_BOOTS_RANGE (CELL_SIZE * 5)
+
+static void thunderBootsCallback(float primaryValue, float secondaryValue, float x, float y) {
+    arcLightningToNearestEnemies(x, y, THUNDER_BOOTS_RANGE, primaryValue, (int)secondaryValue);
 }
 
 static void meditationCallback(float primaryValue, float secondaryValue, float x, float y) {
@@ -622,6 +634,61 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .maxLevel = 1,
         .secondaryModifyOperation = MODIFY_OP_MULTIPLY,
         .classFilter = RUNE_CLASS_FILTER_KNIGHT
+    },
+    [RUNE_TYPE_THUNDER_BOOTS] = {
+        .iconIndex = BITMAP_RUNE_THUNDER_BOOTS,
+        .primaryBaseValue   = 10, // damage per arc
+        .primaryPerLevel    = 0,
+        .secondaryBaseValue = 1,  // enemies struck
+        .secondaryPerLevel  = 1,
+        .maxLevel = 3,
+        .triggerType = RUNE_TRIGGER_DASH,
+        .triggerBaseValue = 1.0f,
+        .triggerCallback  = thunderBootsCallback
+    },
+    [RUNE_TYPE_KUNAI] = {
+        // Dash-through damage handled directly in updateRuneEffects()
+        .iconIndex = BITMAP_RUNE_KUNAI,
+        .primaryBaseValue = 5, // damage dealt when dashing through an enemy
+        .maxLevel = 1
+    },
+    [RUNE_TYPE_FEATHER] = {
+        // Dash distance multiplier handled directly in player.c
+        .iconIndex = BITMAP_RUNE_FEATHER,
+        .primaryBaseValue = 2.0f, // dash distance multiplier
+        .maxLevel = 1,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY
+    },
+    [RUNE_TYPE_HIGH_VOLTAGE] = {
+        .iconIndex = BITMAP_RUNE_HIGH_VOLTAGE,
+        .primaryBaseValue = 1, // additional chain targets
+        .primaryPerLevel  = 1,
+        .maxLevel = 3,
+        .spellTarget = RUNE_SPELL_TARGET_SPECIAL,
+        .primaryModifyOperation = MODIFY_OP_ADD,
+        .applySpellModifierPrimary = modifyProjectileChainCount,
+        .classFilter = RUNE_CLASS_FILTER_MAGE
+    },
+    [RUNE_TYPE_BOMB_ARROW] = {
+        // Arming counter handled in bombArrowRegisterMaxChargeShot(); the bomb is
+        // dropped by SPELL_BOMB_ARROW_DROP set as the armed arrow's onHitSpell.
+        .iconIndex = BITMAP_RUNE_BOMB_ARROW,
+        .hudIconIndex = BITMAP_RUNE_HUD_BOMB_ARROW,
+        .maxLevel = 3,
+        // Bomb drops every 5 / 4 / 3 max-charge arrows at level 1 / 2 / 3.
+        .triggerBaseValue = 5.0f,
+        .triggerPerLevel  = -1.0f,
+        .classFilter = RUNE_CLASS_FILTER_RANGER
+    },
+    [RUNE_TYPE_QUICKDRAW] = {
+        .iconIndex = BITMAP_RUNE_QUICKDRAW,
+        .primaryBaseValue = -0.20f, // draw time reduction, -20%
+        .primaryPerLevel  = -0.15f,
+        .maxLevel = 3,
+        .spellTarget = RUNE_SPELL_TARGET_BASIC,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY,
+        .applySpellModifierPrimary = modifyChargeTime,
+        .classFilter = RUNE_CLASS_FILTER_RANGER
     }
 };
 
@@ -671,6 +738,12 @@ static const char *RUNE_LOC_IDS[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_ADRENALINE] = "adrenaline",
     [RUNE_TYPE_BLACK_HOLE] = "black_hole",
     [RUNE_TYPE_KNIGHTS_HELM] = "knights_helm",
+    [RUNE_TYPE_THUNDER_BOOTS] = "thunder_boots",
+    [RUNE_TYPE_KUNAI] = "kunai",
+    [RUNE_TYPE_FEATHER] = "feather",
+    [RUNE_TYPE_HIGH_VOLTAGE] = "high_voltage",
+    [RUNE_TYPE_BOMB_ARROW] = "bomb_arrow",
+    [RUNE_TYPE_QUICKDRAW] = "quickdraw",
 };
 
 void initRuneLocalization(void) {
@@ -731,6 +804,7 @@ void initRunes(void) {
     rapierWindow = 0.0f;
     rootwalkerTimer = 0.0f;
     bulwarkAvailable = true;
+    kunaiWasDashing = false;
     clearBlackHole();
 
     // == Testing runes ==
@@ -1070,6 +1144,31 @@ float getRapierSpeedMultiplier(void) {
 void updateRuneEffects(float deltaTime) {
     bool moving = playerIsMoving();
 
+    if (runeIsOwned(RUNE_TYPE_KUNAI)) {
+        bool dashing = playerIsDashing();
+        if (dashing) {
+            if (!kunaiWasDashing) {
+                for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+                    kunaiHit[i] = false;
+                }
+            }
+            float damage = getRuneValue(RUNE_TYPE_KUNAI);
+            float radiusSq = KUNAI_HIT_RADIUS * KUNAI_HIT_RADIUS;
+            for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
+                if (kunaiHit[i] || !enemies[i].active || enemies[i].health <= 0) {
+                    continue;
+                }
+                float dx = enemies[i].x - playerX;
+                float dy = enemies[i].y - playerY;
+                if (dx * dx + dy * dy <= radiusSq) {
+                    kunaiHit[i] = true;
+                    damageEnemy(i, damage);
+                }
+            }
+        }
+        kunaiWasDashing = dashing;
+    }
+
     if (runeIsOwned(RUNE_TYPE_CRESCENDO)) {
         float rampTime = getRuneSecondaryValue(RUNE_TYPE_CRESCENDO);
         if (moving) {
@@ -1139,4 +1238,44 @@ bool adrenalineIsActive(void) {
 void clearBlackHole(void) {
     blackHoleTime = 0.0f;
     blackHolePullTimer = 0.0f;
+}
+
+float getBombArrowProgress(void) {
+    int level = runeLevels[RUNE_TYPE_BOMB_ARROW];
+    if (level <= 0) {
+        return 0.0f;
+    }
+    RuneData *rune = &RUNE_DATA[RUNE_TYPE_BOMB_ARROW];
+    float threshold = rune->triggerBaseValue + rune->triggerPerLevel * (level - 1);
+    // Fill completes one shot early so a full bar means the next arrow is the bomb.
+    float span = threshold - 1.0f;
+    if (span <= 0.0f) {
+        return 1.0f;
+    }
+    float progress = runeTriggerCounters[RUNE_TYPE_BOMB_ARROW] / span;
+    if (progress < 0.0f) {
+        progress = 0.0f;
+    }
+    if (progress > 1.0f) {
+        progress = 1.0f;
+    }
+    return progress;
+}
+
+bool bombArrowRegisterMaxChargeShot(void) {
+    int level = runeLevels[RUNE_TYPE_BOMB_ARROW];
+    if (level <= 0) {
+        return false;
+    }
+    RuneData *rune = &RUNE_DATA[RUNE_TYPE_BOMB_ARROW];
+    float threshold = rune->triggerBaseValue + rune->triggerPerLevel * (level - 1);
+    if (threshold <= 0.0f) {
+        return false;
+    }
+    runeTriggerCounters[RUNE_TYPE_BOMB_ARROW] += 1.0f;
+    if (runeTriggerCounters[RUNE_TYPE_BOMB_ARROW] >= threshold) {
+        runeTriggerCounters[RUNE_TYPE_BOMB_ARROW] = 0.0f;
+        return true;
+    }
+    return false;
 }
