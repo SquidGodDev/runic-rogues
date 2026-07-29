@@ -80,7 +80,8 @@ void swordCast(Spell spell, SpellCastData *castData, float x, float y, float ang
     float knockbackAmount = data->knockbackAmount;
     damageEnemiesInArea(meleeX, meleeY, damageRadius, damage);
     knockbackEnemiesInArea(meleeX, meleeY, damageRadius, x, y, knockbackTime, knockbackAmount, false /*awayFromPlayer*/);
-    cancelEnemyAttacksInArea(meleeX, meleeY, damageRadius);
+    // Disable cancel enemy attacks for balance - a little too strong maybe
+    // cancelEnemyAttacksInArea(meleeX, meleeY, damageRadius);
     if (data->meleeData.slowTime > 0) {
         slowEnemiesInArea(meleeX, meleeY, damageRadius, data->meleeData.slowTime, data->meleeData.slowAmount);
     }
