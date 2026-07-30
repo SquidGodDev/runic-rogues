@@ -374,6 +374,7 @@ typedef struct DragonBossProperties {
 	float chargeDistance;        // Max dash travel (capped at the nearest wall)
 	float chargeSpeed;           // Dash move speed (per-frame step at DEFAULT_TARGET_FPS)
 	int   chargeDamage;          // Contact damage dealt on hit
+	float chargeInterval;        // Delay between consecutive dashes; the warning line telegraphs during it
 	// Attack 2 — four-armed sweeping sprinkler
 	int   sprinklerShots;            // Number of 4-way bursts fired
 	float sprinklerShotSpacing;      // Seconds between bursts
@@ -405,8 +406,9 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.chargeCount           = 3,
 			.chargePrepTime        = 0.5f,
 			.chargeDistance        = CELL_SIZE * 21.0f,
-			.chargeSpeed           = 3.5f,
+			.chargeSpeed           = 2.5f,
 			.chargeDamage          = 12,
+			.chargeInterval        = 0.6f,
 			.sprinklerShots            = 15,
 			.sprinklerShotSpacing      = 0.06f,
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
@@ -431,8 +433,9 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.chargeCount           = 4,
 			.chargePrepTime        = 0.4f,
 			.chargeDistance        = CELL_SIZE * 21.0f,
-			.chargeSpeed           = 4.5f,
+			.chargeSpeed           = 3.5f,
 			.chargeDamage          = 14,
+			.chargeInterval        = 0.3f,
 			.sprinklerShots            = 20,
 			.sprinklerShotSpacing      = 0.06f,
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
@@ -440,9 +443,9 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sprinklerProjectileDamage = 14,
 			.volleyLineCount       = 16, // Radial lines fired per shot
 			.volleyShots           = 8, // Projectiles per line per volley
-			.volleyCount           = 5, // Number of volleys per phase
-			.volleyShotSpacing     = 0.4f, // Time between shots within a volley
-			.volleySpacing         = 2.0f, // Time between volleys
+			.volleyCount           = 3, // Number of volleys per phase
+			.volleyShotSpacing     = 0.3f, // Time between shots within a volley
+			.volleySpacing         = 1.0f, // Time between volleys
 			.volleyProjectileSpeed = 66.0f,
 			.volleyProjectileDamage = 14,
 			.volleyWarningLead     = 1.0f,
@@ -455,52 +458,54 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 	// Difficulty 1
 	{
 		{
-			.attackCooldown        = 0.75f,
-			.chargeCount           = 3,
-			.chargePrepTime        = 0.5f,
+			.attackCooldown        = 3.0f,
+			.chargeCount           = 4,
+			.chargePrepTime        = 0.4f,
 			.chargeDistance        = CELL_SIZE * 21.0f,
-			.chargeSpeed           = 4.5f,
-			.chargeDamage          = 12,
+			.chargeSpeed           = 3.5f,
+			.chargeDamage          = 14,
+			.chargeInterval        = 0.3f,
 			.sprinklerShots            = 20,
 			.sprinklerShotSpacing      = 0.06f,
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
 			.sprinklerProjectileSpeed  = 40.0f,
-			.sprinklerProjectileDamage = 12,
-			.volleyLineCount       = 16,
-			.volleyShots           = 7,
-			.volleyCount           = 3,
-			.volleyShotSpacing     = 0.2f,
-			.volleySpacing         = 1.5f,
-			.volleyProjectileSpeed = 74.0f,
-			.volleyProjectileDamage = 12,
-			.volleyWarningLead     = 0.6f,
-			.summonCount           = 4,
-			.summonMinSpecials     = 0,
+			.sprinklerProjectileDamage = 14,
+			.volleyLineCount       = 16, // Radial lines fired per shot
+			.volleyShots           = 8, // Projectiles per line per volley
+			.volleyCount           = 3, // Number of volleys per phase
+			.volleyShotSpacing     = 0.3f, // Time between shots within a volley
+			.volleySpacing         = 1.0f, // Time between volleys
+			.volleyProjectileSpeed = 66.0f,
+			.volleyProjectileDamage = 14,
+			.volleyWarningLead     = 1.0f,
+			.summonCount           = 3,
+			.summonMinSpecials     = 3,
 			.summonRadius          = CELL_SIZE * 2.0f,
 			.summonTime            = 1.5f,
 		},
 		{
-			.attackCooldown        = 0.75f,
+			.attackCooldown        = 1.5f,
 			.chargeCount           = 4,
-			.chargePrepTime        = 0.4f,
+			.chargePrepTime        = 0.2f,
 			.chargeDistance        = CELL_SIZE * 21.0f,
-			.chargeSpeed           = 5.5f,
+			.chargeSpeed           = 3.5f,
 			.chargeDamage          = 14,
+			.chargeInterval        = 0.2f,
 			.sprinklerShots            = 30,
 			.sprinklerShotSpacing      = 0.06f,
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
-			.sprinklerProjectileSpeed  = 40.0f,
+			.sprinklerProjectileSpeed  = 45.0f,
 			.sprinklerProjectileDamage = 14,
-			.volleyLineCount       = 16,
-			.volleyShots           = 10,
-			.volleyCount           = 5,
-			.volleyShotSpacing     = 0.2f,
-			.volleySpacing         = 1.5f,
-			.volleyProjectileSpeed = 74.0f,
+			.volleyLineCount       = 16, // Radial lines fired per shot
+			.volleyShots           = 10, // Projectiles per line per volley
+			.volleyCount           = 3, // Number of volleys per phase
+			.volleyShotSpacing     = 0.275f, // Time between shots within a volley
+			.volleySpacing         = 0.5f, // Time between volleys
+			.volleyProjectileSpeed = 66.0f,
 			.volleyProjectileDamage = 14,
-			.volleyWarningLead     = 0.4f,
-			.summonCount           = 4,
-			.summonMinSpecials     = 4,
+			.volleyWarningLead     = 0.8f,
+			.summonCount           = 5,
+			.summonMinSpecials     = 5,
 			.summonRadius          = CELL_SIZE * 2.0f,
 			.summonTime            = 1.5f,
 		},
@@ -2076,8 +2081,8 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 			damagePlayerFromDirection(dragonProperties->chargeDamage, curEnemy->x, curEnemy->y);
 		}
 
-		// Dash over: with no prep between charges, re-lock onto the player and dash again
-		// immediately, or finish the attack after the last dash
+		// Dash over: re-lock onto the player and telegraph the next path, then hold in the spacing
+		// sub-state for chargeInterval before dashing again, or finish the attack after the last dash
 		if (curEnemy->stateTimer <= 0) {
 			curEnemy->stateCount++;
 			if (curEnemy->stateCount >= dragonProperties->chargeCount) {
@@ -2085,8 +2090,8 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 			} else {
 				lockChargeTarget(curEnemy, dragonProperties->chargeDistance);
 				chargeSpawnWarningLine(curEnemy);
-				beginCharge(curEnemy, dragonProperties->chargeSpeed);
-				playSoundSpatial(SFX_DRAGON_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
+				curEnemy->nextState = DRAGON_SUBSTATE_SPACING;
+				curEnemy->stateTimer = dragonProperties->chargeInterval;
 			}
 		}
 		return;
