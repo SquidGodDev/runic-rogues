@@ -383,7 +383,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyCount           = 3, // Number of volleys per phase
 			.volleyShotSpacing     = 0.4f, // Time between shots within a volley
 			.volleySpacing         = 2.0f, // Time between volleys
-			.volleyProjectileSpeed = 80.0f,
+			.volleyProjectileSpeed = 58.0f,
 			.volleyProjectileDamage = 12,
 			.volleyWarningLead     = 1.3f,
 			.summonCount           = 4,
@@ -408,7 +408,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyCount           = 5, // Number of volleys per phase
 			.volleyShotSpacing     = 0.4f, // Time between shots within a volley
 			.volleySpacing         = 2.0f, // Time between volleys
-			.volleyProjectileSpeed = 90.0f,
+			.volleyProjectileSpeed = 66.0f,
 			.volleyProjectileDamage = 14,
 			.volleyWarningLead     = 1.0f,
 			.summonCount           = 3,
@@ -435,7 +435,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyCount           = 3,
 			.volleyShotSpacing     = 0.2f,
 			.volleySpacing         = 1.5f,
-			.volleyProjectileSpeed = 100.0f,
+			.volleyProjectileSpeed = 74.0f,
 			.volleyProjectileDamage = 12,
 			.volleyWarningLead     = 0.6f,
 			.summonCount           = 4,
@@ -459,7 +459,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyCount           = 5,
 			.volleyShotSpacing     = 0.2f,
 			.volleySpacing         = 1.5f,
-			.volleyProjectileSpeed = 100.0f,
+			.volleyProjectileSpeed = 74.0f,
 			.volleyProjectileDamage = 14,
 			.volleyWarningLead     = 0.4f,
 			.summonCount           = 4,
@@ -1836,11 +1836,14 @@ static float dragonVolleyBaseAngle(Enemy *curEnemy, int lineCount, int volleyInd
 }
 
 // Fires one projectile down each of lineCount evenly-spaced directions, starting from baseAngle.
-static void dragonFireVolley(Enemy *curEnemy, EnemyData *curEnemyData, float baseAngle, int lineCount) {
+// Successive shots within a volley (shotIndex) zigzag by a quarter sector to either side of each
+// line, so the streams weave through the gaps and the player can't sit still between the lines.
+static void dragonFireVolley(Enemy *curEnemy, EnemyData *curEnemyData, float baseAngle, int lineCount, int shotIndex) {
 	playSoundSpatial(SFX_DRAGON_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
 	float sector = 2.0f * PI / lineCount;
+	float zigzag = (shotIndex % 2 == 0 ? 1.0f : -1.0f) * (sector * 0.25f);
 	for (int k = 0; k < lineCount; k++) {
-		float angle = baseAngle + k * sector;
+		float angle = baseAngle + k * sector + zigzag;
 		float dx = cosf(angle);
 		float dy = sinf(angle);
 		float px = curEnemy->x + dx * PROJECTILE_OFFSET;
@@ -2073,7 +2076,7 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		bool windupReady = !firstShotOfVolley || curEnemy->animationFrame >= curEnemyData->attackActiveFrame;
 		if (curEnemy->abilityCooldown <= 0 && windupReady) {
 			float baseAngle = dragonVolleyBaseAngle(curEnemy, lineCount, curEnemy->stateCount / shotsPerVolley);
-			dragonFireVolley(curEnemy, curEnemyData, baseAngle, lineCount);
+			dragonFireVolley(curEnemy, curEnemyData, baseAngle, lineCount, curEnemy->stateCount % shotsPerVolley);
 			curEnemy->stateCount++;
 			curEnemy->abilityCooldown = dragonProperties->volleyShotSpacing;
 
