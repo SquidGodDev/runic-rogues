@@ -174,6 +174,11 @@ fi
 
 echo "pdex.bin + pdex.dylib present, pdxinfo reports $built_version ($built_build)."
 
+# The simulator binary only runs in the Simulator, never on device hardware.
+# Drop it so the shipped zip carries just pdex.bin.
+rm -f "$pdx_dir/pdex.dylib"
+echo "Removed pdex.dylib from the pdx (simulator-only, not needed on device)."
+
 # ------------------------------------------------------------------- packaging
 
 write_step "Packaging"

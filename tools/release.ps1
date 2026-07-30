@@ -152,6 +152,11 @@ if ($builtBuild -ne "$newBuildNumber" -or $builtVersion -ne $newVersion)
 
 Write-Host "pdex.bin + pdex.dll present, pdxinfo reports $builtVersion ($builtBuild)."
 
+# The simulator binary only runs in the Simulator, never on device hardware.
+# Drop it so the shipped zip carries just pdex.bin.
+Remove-Item (Join-Path $pdxDir 'pdex.dll') -Force
+Write-Host "Removed pdex.dll from the pdx (simulator-only, not needed on device)."
+
 # ------------------------------------------------------------------- packaging
 
 Write-Step "Packaging"
