@@ -134,8 +134,9 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 			.summonTime         = 2.0f,
 		},
 	},
-	// Difficulty 1 — placeholder copies of difficulty 0
+	// Difficulty 1
 	{
+		// Difficulty 1 Phase 0
 		{
 			.attackCooldown     = 1.0f,
 			.idleTime           = 3.0f,
@@ -145,20 +146,21 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 			.rootRepeatCount    = 3,
 			.rootRepeatInterval = 1.5f,
 			.dashPrepTime       = 1.5f,
-			.dashDistance       = CELL_SIZE * 2.0f,
+			.dashDistance       = CELL_SIZE * 3.0f,
 			.dashCount          = 5,
 			.dashSpeed          = 2.5f,
-			.projectileWaves    = 5,
+			.projectileWaves    = 8,
 			.projectilesPerWave = 10,
 			.projectileCooldown = 0.2f,
 			.projectileDamage   = 10,
-			.projectileSpeed    = 25.0f,
+			.projectileSpeed    = 35.0f,
 			.waveAngleOffset    = 5.0f * PI / 180.0f,
 			.summonBudget       = 12,
 			.summonMinSpecials  = 1,
 			.summonRadius       = CELL_SIZE * 2.0f,
 			.summonTime         = 2.0f,
 		},
+		// Difficulty 1 Phase 1
 		{
 			.attackCooldown     = 0.5f,
 			.idleTime           = 2.0f,
@@ -168,14 +170,14 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 			.rootRepeatCount    = 3,
 			.rootRepeatInterval = 2.0f,
 			.dashPrepTime       = 1.5f,
-			.dashDistance       = CELL_SIZE * 2.0f,
+			.dashDistance       = CELL_SIZE * 5.0f,
 			.dashCount          = 5,
 			.dashSpeed          = 3.0f,
-			.projectileWaves    = 5,
+			.projectileWaves    = 10,
 			.projectilesPerWave = 14,
 			.projectileCooldown = 0.2f,
 			.projectileDamage   = 10,
-			.projectileSpeed    = 25.0f,
+			.projectileSpeed    = 40.0f,
 			.waveAngleOffset    = 5.0f * PI / 180.0f,
 			.summonBudget       = 14,
 			.summonMinSpecials  = 3,
