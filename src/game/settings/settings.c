@@ -46,6 +46,7 @@ void resetDebugSettings(void) {
     DEBUG.areaOverride = 0;
     DEBUG.instantRoomClear = false;
     DEBUG.instantKillBoss = false;
+    DEBUG.oneHpBosses = false;
     DEBUG.startInTestArea = false;
     DEBUG.testFirstRoomEnemy = 0;
     DEBUG.skipAreaMap = false;

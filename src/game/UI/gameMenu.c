@@ -209,6 +209,7 @@ static const SettingRowDef DEBUG_ROWS[] = {
     { STR_SETTING_AREA_OVERRIDE, CONTROL_INT, &DEBUG.areaOverride, 0, DEBUG_AREA_OVERRIDE_MAX },
     { STR_SETTING_INSTANT_ROOM_CLEAR, CONTROL_CHECKBOX, &DEBUG.instantRoomClear },
     { STR_SETTING_INSTANT_KILL_BOSS, CONTROL_CHECKBOX, &DEBUG.instantKillBoss },
+    { STR_SETTING_ONE_HP_BOSSES, CONTROL_CHECKBOX, &DEBUG.oneHpBosses },
     { STR_SETTING_START_IN_TEST_AREA, CONTROL_CHECKBOX, &DEBUG.startInTestArea },
     { STR_SETTING_TEST_FIRST_ROOM_ENEMY, CONTROL_INT, &DEBUG.testFirstRoomEnemy, 0, ENEMY_TYPE_COUNT, NULL, 0, 0, NULL, false, testFirstRoomEnemyLabel, reloadTestAreaFirstRoom },
     { STR_SETTING_SKIP_AREA_MAP, CONTROL_CHECKBOX, &DEBUG.skipAreaMap },
@@ -219,7 +220,7 @@ static const SettingsTabDef SETTINGS_TABS[] = {
     [MENU_TAB_GENERAL]  = { GENERAL_ROWS, 5, resetGeneralSettings },
     [MENU_TAB_CONTROLS] = { CONTROLS_ROWS, 15, resetControlSettings },
     [MENU_TAB_AUDIO]    = { AUDIO_ROWS, 3, resetAudioSettings },
-    [MENU_TAB_DEBUG]    = { DEBUG_ROWS, 8, resetDebugSettings },
+    [MENU_TAB_DEBUG]    = { DEBUG_ROWS, 9, resetDebugSettings },
 };
 
 static bool rowIsSelectable(const SettingRowDef *row) {

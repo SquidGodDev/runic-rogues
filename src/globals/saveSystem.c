@@ -143,6 +143,8 @@ static void applyKeyValue(const char *key, const char *value) {
         DEBUG.instantRoomClear = parseInt(value) != 0;
     } else if (strcmp(key, "debugInstantKillBoss") == 0) {
         DEBUG.instantKillBoss = parseInt(value) != 0;
+    } else if (strcmp(key, "debugOneHpBosses") == 0) {
+        DEBUG.oneHpBosses = parseInt(value) != 0;
     } else if (strcmp(key, "debugStartInTestArea") == 0) {
         DEBUG.startInTestArea = parseInt(value) != 0;
     } else if (strcmp(key, "debugTestFirstRoomEnemy") == 0) {
@@ -227,6 +229,7 @@ void saveGame(void) {
         "debugAreaOverride=%d\n"
         "debugInstantRoomClear=%d\n"
         "debugInstantKillBoss=%d\n"
+        "debugOneHpBosses=%d\n"
         "debugStartInTestArea=%d\n"
         "debugTestFirstRoomEnemy=%d\n"
         "debugSkipAreaMap=%d\n"
@@ -264,6 +267,7 @@ void saveGame(void) {
         DEBUG.areaOverride,
         DEBUG.instantRoomClear ? 1 : 0,
         DEBUG.instantKillBoss ? 1 : 0,
+        DEBUG.oneHpBosses ? 1 : 0,
         DEBUG.startInTestArea ? 1 : 0,
         DEBUG.testFirstRoomEnemy,
         DEBUG.skipAreaMap ? 1 : 0,

@@ -36,6 +36,8 @@ Enemy enemies[MAX_ENEMY_COUNT] = {0};
 static int bossIndex;
 static int enemiesDefeated;
 
+static bool isBossEnemyType(EnemyType type);
+
 EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 	[ENEMY_TYPE_TEST] = (EnemyData){
 		.name = "Test",
@@ -686,6 +688,10 @@ int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 		enemies[newEnemyIndex].stateTimer = curEnemyData.abilityDataTertiary + randFloat(-1.0f, 1.0f); // Force-attack timer
 	}
 
+	if (DEBUG.oneHpBosses && isBossEnemyType(enemyType)) {
+		enemies[newEnemyIndex].health = 1;
+	}
+
 	return newEnemyIndex;
 }
 
@@ -1081,7 +1087,7 @@ bool damageEnemy(int index, float damage) {
 		if (index == bossIndex && curEnemy.phase == 0) {
 			// Transition to phase 2 instead of dying
 			curEnemy.phase = 1;
-			curEnemy.health = curEnemyData.health;
+			curEnemy.health = DEBUG.oneHpBosses ? 1 : curEnemyData.health;
 			curEnemy.hitFlashTime = 0;
 			curEnemy.invisible = false;
 			enemies[index] = curEnemy;

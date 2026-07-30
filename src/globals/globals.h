@@ -26,6 +26,7 @@ typedef struct DebugFlags {
     int areaOverride;  // 0 = off; 1 = Twilight Court, 2 = Lost Archives, 3 = Echoing Caverns
     bool instantRoomClear;
     bool instantKillBoss;
+    bool oneHpBosses;
     bool startInTestArea;
     bool skipAreaMap;
     int testFirstRoomEnemy;  // 0 = off; 1..ENEMY_TYPE_COUNT = spawn (EnemyType)(value - 1) in the test area's first room

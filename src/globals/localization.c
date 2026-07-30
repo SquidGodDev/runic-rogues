@@ -83,6 +83,7 @@ static const char *STR_KEYS[STR_COUNT] = {
     [STR_SETTING_AREA_OVERRIDE] = "setting.area_override",
     [STR_SETTING_INSTANT_ROOM_CLEAR] = "setting.instant_room_clear",
     [STR_SETTING_INSTANT_KILL_BOSS] = "setting.instant_kill_boss",
+    [STR_SETTING_ONE_HP_BOSSES] = "setting.one_hp_bosses",
     [STR_SETTING_START_IN_TEST_AREA] = "setting.start_in_test_area",
     [STR_SETTING_TEST_FIRST_ROOM_ENEMY] = "setting.test_first_room_enemy",
     [STR_SETTING_SKIP_AREA_MAP] = "setting.skip_area_map",
