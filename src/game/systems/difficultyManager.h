@@ -19,6 +19,11 @@ int getClassUnlockedDifficulty(ClassType classType);
 void setClassUnlockedDifficulty(ClassType classType, int level);
 void unlockNextDifficultyForClass(ClassType classType, int wonDifficulty);
 
+// Difficulty last selected in the class-select screen per class, used as the
+// default the next time that class is opened. Persisted via the save system.
+int getClassLastSelectedDifficulty(ClassType classType);
+void setClassLastSelectedDifficulty(ClassType classType, int level);
+
 // Difficulty the current run is being played at. Set when a run starts.
 int getRunDifficulty(void);
 void setRunDifficulty(int level);

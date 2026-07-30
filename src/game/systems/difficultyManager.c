@@ -2,6 +2,7 @@
 #include "globals/globals.h"
 
 static int classUnlockedDifficulty[CLASS_COUNT];
+static int classLastSelectedDifficulty[CLASS_COUNT];
 static int runDifficulty;
 
 static int clampLevel(int level) {
@@ -39,6 +40,20 @@ void unlockNextDifficultyForClass(ClassType classType, int wonDifficulty) {
     if (next > classUnlockedDifficulty[classType]) {
         classUnlockedDifficulty[classType] = next;
     }
+}
+
+int getClassLastSelectedDifficulty(ClassType classType) {
+    if (classType < 0 || classType >= CLASS_COUNT) {
+        return 0;
+    }
+    return classLastSelectedDifficulty[classType];
+}
+
+void setClassLastSelectedDifficulty(ClassType classType, int level) {
+    if (classType < 0 || classType >= CLASS_COUNT) {
+        return;
+    }
+    classLastSelectedDifficulty[classType] = clampLevel(level);
 }
 
 int getRunDifficulty(void) {

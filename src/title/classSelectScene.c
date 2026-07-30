@@ -5,6 +5,7 @@
 #include "globals/helpers.h"
 #include "globals/localization.h"
 #include "globals/sceneManager.h"
+#include "globals/saveSystem.h"
 #include "title/classSelectScene.h"
 #include "game/player/classes/classData.h"
 #include "game/gameScene.h"
@@ -281,7 +282,7 @@ void initClassSelectScene(void) {
     scrollOffset = 0.0f;
 
     for (int i = 0; i < CLASS_COUNT; i++) {
-        selectedDifficulty[i] = 0;
+        selectedDifficulty[i] = getClassLastSelectedDifficulty((ClassType)i);
     }
 
     for (int i = 0; i < CLASS_COUNT; i++) {
@@ -481,6 +482,8 @@ void updateClassSelectScene(float deltaTime) {
                 if (*difficulty > 0) {
                     playSound(SFX_UI_RUNE_SLIDE);
                     (*difficulty)--;
+                    setClassLastSelectedDifficulty((ClassType)selectedIndex, *difficulty);
+                    saveGame();
                 } else {
                     playSound(SFX_CLASS_ERROR);
                 }
@@ -488,6 +491,8 @@ void updateClassSelectScene(float deltaTime) {
                 if (*difficulty < DIFFICULTY_LEVEL_COUNT - 1) {
                     playSound(SFX_UI_RUNE_SLIDE);
                     (*difficulty)++;
+                    setClassLastSelectedDifficulty((ClassType)selectedIndex, *difficulty);
+                    saveGame();
                 } else {
                     playSound(SFX_CLASS_ERROR);
                 }
