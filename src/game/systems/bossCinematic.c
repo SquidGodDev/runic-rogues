@@ -157,7 +157,8 @@ void updateBossCinematic(float deltaTime) {
 			screenShake(SCREEN_SHAKE_MEDIUM);
 			Enemy *boss = &enemies[bossEnemyIndex];
 			transitionToState(boss, ENEMY_STATE_PREP);
-			if (boss->type == ENEMY_TYPE_WRAITH_BOSS) {
+			// Phase-transition re-entry keeps its brief pause; the wraith routes back through idle for it
+			if (boss->phase != 0 && boss->type == ENEMY_TYPE_WRAITH_BOSS) {
 				boss->nextState = ENEMY_STATE_IDLE;
 			}
 			phase = BOSS_CINEMATIC_MIDDLE;
@@ -213,7 +214,13 @@ void updateBossCinematic(float deltaTime) {
 		if (phaseTimer >= BOSS_CINEMATIC_ZOOM_OUT_TIME) {
 			setCameraGlobals(savedX, savedY, savedAngle);
 			if (bossEnemyIndex >= 0) {
-				enemies[bossEnemyIndex].stateTimer = 0;
+				Enemy *boss = &enemies[bossEnemyIndex];
+				// On initial room entry (phase 0) drop straight into idle so the boss attacks immediately;
+				// phase-transition re-entry stays in PREP so its handler restores the usual brief pause.
+				if (boss->phase == 0) {
+					transitionToState(boss, ENEMY_STATE_IDLE);
+				}
+				boss->stateTimer = 0;
 			}
 			phase = BOSS_CINEMATIC_INACTIVE;
 			setBossActive(true);

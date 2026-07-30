@@ -681,7 +681,7 @@ int spawnEnemy(EnemyType enemyType, int x, int y, bool isMinion) {
 		enemies[newEnemyIndex].stateTimer = 2.0f; // Initial idle time before first attack
 	} else if (enemyType == ENEMY_TYPE_DRAGON_BOSS) {
 		bossIndex = newEnemyIndex;
-		enemies[newEnemyIndex].stateTimer = 2.0f; // Initial idle time before first attack
+		enemies[newEnemyIndex].stateTimer = 0.0f; // Attack immediately on entering
 	} else if (enemyType == ENEMY_TYPE_ROCK_GOLEM) {
 		enemies[newEnemyIndex].stateTimer = curEnemyData.abilityDataTertiary + randFloat(-1.0f, 1.0f); // Force-attack timer
 	}

@@ -336,11 +336,12 @@ typedef enum WraithTeleportPhase {
 // === Dragon Boss properties ===
 typedef struct DragonBossProperties {
 	float attackCooldown;         // Seconds the dragon rests in idle between attacks
-	// Attack 1 — slow projectile rings
-	int   ringCount;              // Number of rings shot per attack
-	float ringSpacing;           // Seconds between rings (animation holds last frame)
-	float ringProjectileSpeed;
-	int   ringProjectileDamage;
+	// Attack 1 — charging dashes
+	int   chargeCount;           // Consecutive dashes per attack
+	float chargePrepTime;        // Wind-up before the first dash; the warning line telegraphs during it
+	float chargeDistance;        // Max dash travel (capped at the nearest wall)
+	float chargeSpeed;           // Dash move speed (per-frame step at DEFAULT_TARGET_FPS)
+	int   chargeDamage;          // Contact damage dealt on hit
 	// Attack 2 — four-armed sweeping sprinkler
 	int   sprinklerShots;            // Number of 4-way bursts fired
 	float sprinklerShotSpacing;      // Seconds between bursts
@@ -368,12 +369,13 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 	{
 		// Phase 0
 		{
-			.attackCooldown        = 8.0f,
-			.ringCount             = 3,
-			.ringSpacing           = 0.5f,
-			.ringProjectileSpeed   = 25.0f,
-			.ringProjectileDamage  = 12,
-			.sprinklerShots            = 10,
+			.attackCooldown        = 4.0f,
+			.chargeCount           = 3,
+			.chargePrepTime        = 0.5f,
+			.chargeDistance        = CELL_SIZE * 21.0f,
+			.chargeSpeed           = 3.5f,
+			.chargeDamage          = 12,
+			.sprinklerShots            = 15,
 			.sprinklerShotSpacing      = 0.06f,
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
 			.sprinklerProjectileSpeed  = 35.0f,
@@ -393,12 +395,13 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 		},
 		// Phase 1
 		{
-			.attackCooldown        = 6.0f,
-			.ringCount             = 4,
-			.ringSpacing           = 0.5f,
-			.ringProjectileSpeed   = 25.0f,
-			.ringProjectileDamage  = 14,
-			.sprinklerShots            = 15,
+			.attackCooldown        = 3.0f,
+			.chargeCount           = 4,
+			.chargePrepTime        = 0.4f,
+			.chargeDistance        = CELL_SIZE * 21.0f,
+			.chargeSpeed           = 4.5f,
+			.chargeDamage          = 14,
+			.sprinklerShots            = 20,
 			.sprinklerShotSpacing      = 0.06f,
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
 			.sprinklerProjectileSpeed  = 40.0f,
@@ -420,11 +423,12 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 	// Difficulty 1
 	{
 		{
-			.attackCooldown        = 1.5f,
-			.ringCount             = 3,
-			.ringSpacing           = 0.5f,
-			.ringProjectileSpeed   = 25.0f,
-			.ringProjectileDamage  = 12,
+			.attackCooldown        = 0.75f,
+			.chargeCount           = 3,
+			.chargePrepTime        = 0.5f,
+			.chargeDistance        = CELL_SIZE * 21.0f,
+			.chargeSpeed           = 4.5f,
+			.chargeDamage          = 12,
 			.sprinklerShots            = 20,
 			.sprinklerShotSpacing      = 0.06f,
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
@@ -444,11 +448,12 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.summonTime            = 1.5f,
 		},
 		{
-			.attackCooldown        = 1.5f,
-			.ringCount             = 4,
-			.ringSpacing           = 0.5f,
-			.ringProjectileSpeed   = 25.0f,
-			.ringProjectileDamage  = 14,
+			.attackCooldown        = 0.75f,
+			.chargeCount           = 4,
+			.chargePrepTime        = 0.4f,
+			.chargeDistance        = CELL_SIZE * 21.0f,
+			.chargeSpeed           = 5.5f,
+			.chargeDamage          = 14,
 			.sprinklerShots            = 30,
 			.sprinklerShotSpacing      = 0.06f,
 			.sprinklerSweepStep        = 6.0f * PI / 180.0f,
@@ -474,7 +479,7 @@ static const DragonBossProperties *dragonProperties;
 
 // Round-robin attack cycle, stored in Enemy.attackCycle.
 typedef enum DragonAttackCycle {
-	DRAGON_ATTACK_CYCLE_RINGS,
+	DRAGON_ATTACK_CYCLE_CHARGE,
 	DRAGON_ATTACK_CYCLE_SPRINKLER,
 	DRAGON_ATTACK_CYCLE_VOLLEY,
 	DRAGON_ATTACK_CYCLE_SUMMON,
@@ -484,15 +489,14 @@ typedef enum DragonAttackCycle {
 // Summon attack holds in the post-attack (held) pose; the dragon otherwise never uses POST_ATTACK.
 #define DRAGON_STATE_SUMMON ENEMY_STATE_POST_ATTACK
 
-// Sub-state within a multi-shot attack, stored in Enemy.nextState.
+// Sub-state within a multi-shot attack, stored in Enemy.nextState. The charge attack reuses these:
+// ATTACKING = dashing, SPACING = winding up (holding the prep pose while the warning line telegraphs).
 #define DRAGON_SUBSTATE_ATTACKING 0  // Playing the attack animation / firing
 #define DRAGON_SUBSTATE_SPACING   1  // Holding the last attack frame between shots
 
 // Sprinkler firing sub-state, stored in Enemy.nextState while in ENEMY_STATE_ATTACK_2. The dragon
 // homes in on the room center during its idle wander, so the sweep opens fire from there immediately.
 #define DRAGON_SPRINKLER_FIRING 1  // Sweeping the four-armed burst
-
-#define DRAGON_RING_SLOTS 32  // Ring positions before the two gaps are removed
 
 void proximityEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	playEnemyIdleSFX(curEnemy, curEnemyData);
@@ -1393,6 +1397,9 @@ void turretEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool
 // Forward declarations for charge helpers defined later in this file.
 static void setupCharge(Enemy *curEnemy, EnemyData *curEnemyData, float chargeDistance, float chargeSpeed);
 static float chargeSpeedAt(float progressRatio, float maxSpeed);
+static void lockChargeTarget(Enemy *curEnemy, float chargeDistance);
+static void beginCharge(Enemy *curEnemy, float chargeSpeed);
+static void chargeSpawnWarningLine(Enemy *curEnemy);
 
 static void elderSpawnRootWarnings(Enemy *curEnemy) {
 	for (int dir = 0; dir < 8; dir++) {
@@ -1804,27 +1811,18 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 
 // === Dragon Boss ===
 
-// Fires a full ring of projectiles. In phase 0 it leaves four evenly-spaced gaps, one per
-// quadrant: a random slot plus the slots a quarter, half, and three-quarters of the way around,
-// leaving DRAGON_RING_SLOTS - 4 projectiles. In phase 1 the ring is fired solid with no gaps.
-static void dragonFireRing(Enemy *curEnemy, EnemyData *curEnemyData) {
-	bool leaveGaps = (curEnemy->phase == 0);
-	int gap = randInt(0, DRAGON_RING_SLOTS - 1);
-	int gap2 = (gap + DRAGON_RING_SLOTS / 4) % DRAGON_RING_SLOTS;
-	int gap3 = (gap + DRAGON_RING_SLOTS / 2) % DRAGON_RING_SLOTS;
-	int gap4 = (gap + 3 * DRAGON_RING_SLOTS / 4) % DRAGON_RING_SLOTS;
-	playSoundSpatial(SFX_DRAGON_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
-	for (int i = 0; i < DRAGON_RING_SLOTS; i++) {
-		if (leaveGaps && (i == gap || i == gap2 || i == gap3 || i == gap4)) {
-			continue;
-		}
-		float angle = i * (2.0f * PI / (float)DRAGON_RING_SLOTS);
-		float dx = cosf(angle);
-		float dy = sinf(angle);
-		float px = curEnemy->x + dx * PROJECTILE_OFFSET;
-		float py = curEnemy->y + dy * PROJECTILE_OFFSET;
-		fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, dx, dy, dragonProperties->ringProjectileSpeed, dragonProperties->ringProjectileDamage, curEnemyData->projectileData);
-	}
+// Winds up the first dash: locks the charge target toward the player, telegraphs the path with a line
+// of warning particles, and holds the prep pose for chargePrepTime before the dash launches.
+static void dragonStartChargeWindup(Enemy *curEnemy, EnemyData *curEnemyData) {
+	lockChargeTarget(curEnemy, dragonProperties->chargeDistance);
+	chargeSpawnWarningLine(curEnemy);
+	curEnemy->nextState = DRAGON_SUBSTATE_SPACING;
+	curEnemy->stateTimer = dragonProperties->chargePrepTime;
+	curEnemy->attackedPlayer = false;
+	curEnemy->animationFrame = curEnemyData->prepFrameEnd - 1;
+	curEnemy->animationTime = curEnemyData->frameTime;
+	addAttackIntentIndicator(curEnemy->x, curEnemy->y, dragonProperties->chargePrepTime);
+	playEnemyPrepSFX(curEnemy, curEnemyData);
 }
 
 // Base angle for a volley's radial lines: aimed at the locked target, with odd volleys rotated half a
@@ -1910,9 +1908,9 @@ static void dragonBeginAttack(Enemy *curEnemy) {
 	curEnemy->abilityCooldown = 0;
 
 	switch (cycle) {
-		case DRAGON_ATTACK_CYCLE_RINGS: {
+		case DRAGON_ATTACK_CYCLE_CHARGE: {
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
-			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+			dragonStartChargeWindup(curEnemy, &enemyData[curEnemy->type]);
 			break;
 		}
 		case DRAGON_ATTACK_CYCLE_SPRINKLER: {
@@ -1984,34 +1982,45 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	}
 
 	if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
-		// == Slow projectile rings ==
+		// == Charging dashes ==
 		if (curEnemy->nextState == DRAGON_SUBSTATE_SPACING) {
-			// Hold the last attack frame during the gap between rings
-			curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
+			// Winding up: hold the prep pose while the warning line telegraphs the locked path
+			curEnemy->animationFrame = curEnemyData->prepFrameEnd - 1;
 			if (curEnemy->stateTimer <= 0) {
+				// Launch the dash toward the target locked in at windup start
+				beginCharge(curEnemy, dragonProperties->chargeSpeed);
 				curEnemy->nextState = DRAGON_SUBSTATE_ATTACKING;
-				curEnemy->attackedPlayer = false;
-				curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
-				curEnemy->animationTime = curEnemyData->frameTime;
+				playSoundSpatial(SFX_DRAGON_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
 			}
 			return;
 		}
 
-		// Fire one ring once the attack animation reaches the active frame
-		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+		// Freeze on the last prep frame for the whole dash
+		curEnemy->animationFrame = curEnemyData->prepFrameEnd - 1;
+
+		// Dashing: ramp along the trapezoidal speed curve toward the locked target
+		float totalDuration = -curEnemy->abilityCooldown;
+		float progressRatio = (totalDuration > 0.001f) ? (1.0f - curEnemy->stateTimer / totalDuration) : 1.0f;
+		float speed = chargeSpeedAt(progressRatio, dragonProperties->chargeSpeed);
+		moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, speed);
+
+		// Deal contact damage once per dash if the player is caught in the path
+		if (playerInAttackDistance(index) && !curEnemy->attackedPlayer) {
 			curEnemy->attackedPlayer = true;
-			dragonFireRing(curEnemy, curEnemyData);
-			curEnemy->stateCount++;
+			damagePlayerFromDirection(dragonProperties->chargeDamage, curEnemy->x, curEnemy->y);
 		}
 
-		// Once the animation finishes, either rest or hold for the next ring
-		if (attackAnimationReset) {
-			if (curEnemy->stateCount >= dragonProperties->ringCount) {
+		// Dash over: with no prep between charges, re-lock onto the player and dash again
+		// immediately, or finish the attack after the last dash
+		if (curEnemy->stateTimer <= 0) {
+			curEnemy->stateCount++;
+			if (curEnemy->stateCount >= dragonProperties->chargeCount) {
 				dragonReturnToIdle(curEnemy);
 			} else {
-				curEnemy->nextState = DRAGON_SUBSTATE_SPACING;
-				curEnemy->stateTimer = dragonProperties->ringSpacing;
-				curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
+				lockChargeTarget(curEnemy, dragonProperties->chargeDistance);
+				chargeSpawnWarningLine(curEnemy);
+				beginCharge(curEnemy, dragonProperties->chargeSpeed);
+				playSoundSpatial(SFX_DRAGON_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
 			}
 		}
 		return;
