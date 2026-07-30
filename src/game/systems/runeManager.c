@@ -16,6 +16,7 @@
 #include "game/rendering/particles.h"
 #include "game/enemies/enemies.h"
 #include "game/entities/pickups.h"
+#include "game/map/map.h"
 
 #define DRAGONS_BREATH_SPEED 120.0f
 #define DRAGONS_BREATH_DAMAGE 8
@@ -167,19 +168,39 @@ static void healingPotionCallback(float primaryValue, float secondaryValue, floa
 }
 
 static void blackHoleCallback(float primaryValue, float secondaryValue, float x, float y) {
-    // secondaryValue is the pull strength, applied per tick in updateRuneEffects()
+    // Spawns two cells ahead of the player every N basic casts (trigger-driven).
+    // primaryValue/secondaryValue carry no per-cast randomness here; secondaryValue
+    // is the pull strength, applied per tick in updateRuneEffects(). x/y are unused
+    // because the spawn point is derived from the player's position and facing.
+    (void)primaryValue;
     (void)secondaryValue;
+    (void)x;
+    (void)y;
     if (blackHoleTime > 0.0f) {
         return;
     }
-    if (randFloat(0.0f, 1.0f) >= primaryValue) {
+
+    float dirX = cosf(playerAngle);
+    float dirY = sinf(playerAngle);
+    // March up to two cells ahead, stopping just short of any wall so the hole
+    // lands in front of it rather than inside it.
+    float spawnX = playerX;
+    float spawnY = playerY;
+    for (float dist = 4.0f; dist <= CELL_SIZE * 2; dist += 4.0f) {
+        float testX = playerX + dirX * dist;
+        float testY = playerY + dirY * dist;
+        if (isBlocked((int)(testX / CELL_SIZE), (int)(testY / CELL_SIZE))) {
+            break;
+        }
+        spawnX = testX;
+        spawnY = testY;
+    }
+
+    if (spawnParticle(PARTICLE_TYPE_BLACK_HOLE, spawnX, spawnY, spawnX, spawnY, PARTICLE_TYPE_NONE, false /*enemyParticle*/) < 0) {
         return;
     }
-    if (spawnParticle(PARTICLE_TYPE_BLACK_HOLE, x, y, x, y, PARTICLE_TYPE_NONE, false /*enemyParticle*/) < 0) {
-        return;
-    }
-    blackHoleX = x;
-    blackHoleY = y;
+    blackHoleX = spawnX;
+    blackHoleY = spawnY;
     blackHoleTime = BLACK_HOLE_DURATION;
     blackHolePullTimer = 0.0f;
 }
@@ -617,13 +638,12 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_BLACK_HOLE] = {
         .iconIndex = BITMAP_RUNE_BLACK_HOLE,
-        .primaryBaseValue = 0.05f, // spawn chance
-        .primaryPerLevel  = 0.05f,
+        .hudIconIndex = BITMAP_RUNE_HUD_BLACK_HOLE,
         .secondaryBaseValue = -0.5f, // pull strength, negative to draw enemies inward
         .maxLevel = 3,
-        .primaryModifyOperation = MODIFY_OP_MULTIPLY,
-        .triggerType = RUNE_TRIGGER_KILL_ENEMY,
-        .triggerBaseValue = 1.0f,
+        .triggerType = RUNE_TRIGGER_BASIC_CAST,
+        .triggerBaseValue = 20.0f, // basic casts between spawns
+        .triggerPerLevel  = -5.0f, // 20 / 15 / 10 casts at levels 1-3
         .triggerCallback  = blackHoleCallback
     },
     [RUNE_TYPE_KNIGHTS_HELM] = {
@@ -1238,6 +1258,28 @@ bool adrenalineIsActive(void) {
 void clearBlackHole(void) {
     blackHoleTime = 0.0f;
     blackHolePullTimer = 0.0f;
+}
+
+float getBlackHoleProgress(void) {
+    int level = runeLevels[RUNE_TYPE_BLACK_HOLE];
+    if (level <= 0) {
+        return 0.0f;
+    }
+    RuneData *rune = &RUNE_DATA[RUNE_TYPE_BLACK_HOLE];
+    float threshold = rune->triggerBaseValue + rune->triggerPerLevel * (level - 1);
+    // Fill completes one cast early so a full bar means the next basic cast spawns the hole.
+    float span = threshold - 1.0f;
+    if (span <= 0.0f) {
+        return 1.0f;
+    }
+    float progress = runeTriggerCounters[RUNE_TYPE_BLACK_HOLE] / span;
+    if (progress < 0.0f) {
+        progress = 0.0f;
+    }
+    if (progress > 1.0f) {
+        progress = 1.0f;
+    }
+    return progress;
 }
 
 float getBombArrowProgress(void) {

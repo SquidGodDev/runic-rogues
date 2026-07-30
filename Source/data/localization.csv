@@ -252,7 +252,7 @@ rune.stone_golem.desc,"Take {1}% less damage while standing still.","静止し�
 rune.adrenaline.name,"Adrenaline","アドレナリン"
 rune.adrenaline.desc,"Below {2}% HP, spell cooldowns are reduced by {1}%.","体力が{2}%以下のとき、スキルのクールダウンが{1}%減少する。"
 rune.black_hole.name,"Black Hole","ブラックホール"
-rune.black_hole.desc,"Defeating an enemy has a {1}% chance to spawn a black hole.","敵を倒すと、{1}%の確率でブラックホールが発生する。"
+rune.black_hole.desc,"Every {T} basic casts, spawn a black hole in front of you.","{T}回基本呪文を唱えるごとに、目の前にブラックホールが発生する。"
 rune.knights_helm.name,"Knight's Helm","騎士の兜"
 rune.knights_helm.desc,"Increases maximum health by {1}, but reduces movement speed by {2}%.","最大体力が{1}増加するが、移動速度が{2}%減少する。"
 rune.thunder_boots.name,"Thunder Boots","雷鳴のブーツ"

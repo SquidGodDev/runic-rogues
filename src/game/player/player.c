@@ -882,7 +882,7 @@ void drawWeapon(float deltaTime) {
 		}
 
 		if (!weaponAnimation.spellCasted && weaponAnimation.curFrame >= weaponAnimation.activeFrame && weaponAnimation.spellIndex == BASIC_SPELL_INDEX) {
-			castSpell(BASIC_SPELL_INDEX);
+			castBasicSpell();
 			weaponAnimation.spellCasted = true;
 		}
 	}

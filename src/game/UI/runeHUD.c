@@ -92,6 +92,10 @@ static bool runeHudFillProgress(RuneType type, float *outProgress) {
         *outProgress = getBombArrowProgress();
         return true;
     }
+    if (type == RUNE_TYPE_BLACK_HOLE) {
+        *outProgress = getBlackHoleProgress();
+        return true;
+    }
     return false;
 }
 
