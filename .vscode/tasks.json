@@ -153,14 +153,28 @@
         {
             "label": "Playdate: Release Build",
             "type": "shell",
-            "command": "powershell",
-            "args": [
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                "${workspaceFolder}/tools/release.ps1"
-            ],
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-NoProfile",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    "${workspaceFolder}/tools/release.ps1"
+                ]
+            },
+            "osx": {
+                "command": "bash",
+                "args": [
+                    "${workspaceFolder}/tools/release.sh"
+                ]
+            },
+            "linux": {
+                "command": "bash",
+                "args": [
+                    "${workspaceFolder}/tools/release.sh"
+                ]
+            },
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
@@ -171,16 +185,34 @@
         {
             "label": "Playdate: Release Build (set version)",
             "type": "shell",
-            "command": "powershell",
-            "args": [
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                "${workspaceFolder}/tools/release.ps1",
-                "-Version",
-                "${input:releaseVersion}"
-            ],
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-NoProfile",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    "${workspaceFolder}/tools/release.ps1",
+                    "-Version",
+                    "${input:releaseVersion}"
+                ]
+            },
+            "osx": {
+                "command": "bash",
+                "args": [
+                    "${workspaceFolder}/tools/release.sh",
+                    "--version",
+                    "${input:releaseVersion}"
+                ]
+            },
+            "linux": {
+                "command": "bash",
+                "args": [
+                    "${workspaceFolder}/tools/release.sh",
+                    "--version",
+                    "${input:releaseVersion}"
+                ]
+            },
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
