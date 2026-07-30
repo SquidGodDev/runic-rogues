@@ -1,4 +1,5 @@
 #include "game/systems/difficultyManager.h"
+#include "globals/globals.h"
 
 static int classUnlockedDifficulty[CLASS_COUNT];
 static int runDifficulty;
@@ -14,6 +15,9 @@ static int clampLevel(int level) {
 }
 
 int getClassUnlockedDifficulty(ClassType classType) {
+    if (DEBUG.enabled) {
+        return DIFFICULTY_LEVEL_COUNT - 1;
+    }
     if (classType < 0 || classType >= CLASS_COUNT) {
         return 0;
     }
