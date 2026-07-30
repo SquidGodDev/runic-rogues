@@ -64,6 +64,8 @@ typedef struct ElderBossProperties {
 	float prepTime;
 	int   attack2Count;
 	float attack2Spacing;
+	int   rootRepeatCount;    // Number of root attacks fired in a row
+	float rootRepeatInterval; // Seconds between each root attack
 	float dashPrepTime;
 	float dashDistance;
 	int   dashCount;
@@ -85,17 +87,19 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 	{
 		// Phase 0
 		{
-			.attackCooldown     = 1.5f,
-			.idleTime           = 5.0f,
+			.attackCooldown     = 1.0f,
+			.idleTime           = 4.0f,
 			.prepTime           = 5.0f,
 			.attack2Count       = 4, // Root attack count
 			.attack2Spacing     = CELL_SIZE, // Root attack spacing
+			.rootRepeatCount    = 3,
+			.rootRepeatInterval = 2.5f,
 			.dashPrepTime       = 1.5f,
 			.dashDistance       = CELL_SIZE * 2.0f,
 			.dashCount          = 3,
 			.dashSpeed          = 2.0f,
 			.projectileWaves    = 5,
-			.projectilesPerWave = 8,
+			.projectilesPerWave = 6,
 			.projectileCooldown = 0.2f,
 			.projectileDamage   = 10,
 			.projectileSpeed    = 25.0f,
@@ -107,11 +111,13 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 		},
 		// Phase 1
 		{
-			.attackCooldown     = 1.5f,
+			.attackCooldown     = 0.5f,
 			.idleTime           = 3.0f,
 			.prepTime           = 3.0f,
 			.attack2Count       = 7, // Root attack count
 			.attack2Spacing     = CELL_SIZE, // Root attack spacing
+			.rootRepeatCount    = 3,
+			.rootRepeatInterval = 2.0f,
 			.dashPrepTime       = 1.0f,
 			.dashDistance       = CELL_SIZE * 3.0f,
 			.dashCount          = 5,
@@ -131,44 +137,48 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 	// Difficulty 1 — placeholder copies of difficulty 0
 	{
 		{
-			.attackCooldown     = 1.5f,
-			.idleTime           = 5.0f,
+			.attackCooldown     = 1.0f,
+			.idleTime           = 3.0f,
 			.prepTime           = 5.0f,
 			.attack2Count       = 5, // Root attack count
 			.attack2Spacing     = CELL_SIZE, // Root attack spacing
+			.rootRepeatCount    = 3,
+			.rootRepeatInterval = 1.5f,
 			.dashPrepTime       = 1.5f,
 			.dashDistance       = CELL_SIZE * 2.0f,
 			.dashCount          = 5,
-			.dashSpeed          = 2.0f,
+			.dashSpeed          = 2.5f,
 			.projectileWaves    = 5,
-			.projectilesPerWave = 8,
+			.projectilesPerWave = 10,
 			.projectileCooldown = 0.2f,
 			.projectileDamage   = 10,
 			.projectileSpeed    = 25.0f,
 			.waveAngleOffset    = 5.0f * PI / 180.0f,
-			.summonBudget       = 8,
+			.summonBudget       = 12,
 			.summonMinSpecials  = 1,
 			.summonRadius       = CELL_SIZE * 2.0f,
 			.summonTime         = 2.0f,
 		},
 		{
-			.attackCooldown     = 1.5f,
-			.idleTime           = 5.0f,
+			.attackCooldown     = 0.5f,
+			.idleTime           = 2.0f,
 			.prepTime           = 5.0f,
 			.attack2Count       = 5, // Root attack count
 			.attack2Spacing     = CELL_SIZE, // Root attack spacing
+			.rootRepeatCount    = 3,
+			.rootRepeatInterval = 2.0f,
 			.dashPrepTime       = 1.5f,
 			.dashDistance       = CELL_SIZE * 2.0f,
 			.dashCount          = 5,
-			.dashSpeed          = 2.0f,
+			.dashSpeed          = 3.0f,
 			.projectileWaves    = 5,
-			.projectilesPerWave = 8,
+			.projectilesPerWave = 14,
 			.projectileCooldown = 0.2f,
 			.projectileDamage   = 10,
 			.projectileSpeed    = 25.0f,
 			.waveAngleOffset    = 5.0f * PI / 180.0f,
-			.summonBudget       = 8,
-			.summonMinSpecials  = 1,
+			.summonBudget       = 14,
+			.summonMinSpecials  = 3,
 			.summonRadius       = CELL_SIZE * 2.0f,
 			.summonTime         = 2.0f,
 		},
@@ -1402,8 +1412,10 @@ static void beginCharge(Enemy *curEnemy, float chargeSpeed);
 static void chargeSpawnWarningLine(Enemy *curEnemy);
 
 static void elderSpawnRootWarnings(Enemy *curEnemy) {
+	// Aim the 8-direction fan so one line points at the player's current position.
+	float baseAngle = atan2f(playerY - curEnemy->y, playerX - curEnemy->x);
 	for (int dir = 0; dir < 8; dir++) {
-		float angle = dir * (PI / 4);
+		float angle = baseAngle + dir * (PI / 4);
 		float dx = cosf(angle);
 		float dy = sinf(angle);
 		for (int root = 1; root <= elderProperties->attack2Count; root++) {
@@ -1483,11 +1495,10 @@ static void elderBeginNextAttackCycle(Enemy *curEnemy, EnemyData *curEnemyData) 
 			break;
 		}
 		case ELDER_ATTACK_CYCLE_ROOT: {
-			playEnemyPrepSFX(curEnemy, curEnemyData);
+			// The PREP handler plays the prep animation/SFX and fires each wave; enter PREP and
+			// let the first wave trigger immediately.
 			transitionToState(curEnemy, ENEMY_STATE_PREP);
-			curEnemy->stateTimer = elderProperties->prepTime;
-			addAttackIntentIndicator(curEnemy->x, curEnemy->y, elderProperties->prepTime);
-			elderSpawnRootWarnings(curEnemy);
+			curEnemy->abilityCooldown = 0.0f;
 			break;
 		}
 		case ELDER_ATTACK_CYCLE_PROJECTILES: {
@@ -1547,8 +1558,17 @@ void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 				curEnemy->stateTimer = elderProperties->idleTime;
 			}
 		} else {
-			// Root: warning particles were spawned on entry; wait out the prep then rest.
-			if (curEnemy->stateTimer <= 0) {
+			// Root: fire rootRepeatCount waves of warning particles, spaced by rootRepeatInterval,
+			// replaying the prep animation before each wave.
+			if (curEnemy->stateCount < elderProperties->rootRepeatCount && curEnemy->abilityCooldown <= 0) {
+				playEnemyPrepSFX(curEnemy, curEnemyData);
+				transitionToState(curEnemy, ENEMY_STATE_PREP);
+				addAttackIntentIndicator(curEnemy->x, curEnemy->y, elderProperties->rootRepeatInterval);
+				elderSpawnRootWarnings(curEnemy);
+				curEnemy->stateCount++;
+				curEnemy->abilityCooldown = elderProperties->rootRepeatInterval;
+			}
+			if (curEnemy->stateCount >= elderProperties->rootRepeatCount && curEnemy->abilityCooldown <= 0) {
 				transitionToState(curEnemy, ENEMY_STATE_IDLE);
 				curEnemy->stateTimer = elderProperties->idleTime;
 			}
