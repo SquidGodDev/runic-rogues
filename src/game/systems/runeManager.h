@@ -169,7 +169,7 @@ void consumeBulwark(void);
 bool adrenalineIsActive(void);
 // Black Hole: only one is active at a time; cleared with the particles it drives.
 void clearBlackHole(void);
-// HUD fill (0..1) for Black Hole; reaches 1.0 when the next basic cast spawns a hole.
+// HUD fill (0..1) for Black Hole; reaches 1.0 when the next kill spawns a hole.
 float getBlackHoleProgress(void);
 
 // Bomb Arrow: counts max-charge bow shots. Returns true (and resets the counter)
