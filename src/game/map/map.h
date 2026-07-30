@@ -11,6 +11,8 @@
 #define DUNGEON_ROOM_COUNT 6
 #define NON_BOSS_ROOM_COUNT (DUNGEON_ROOM_COUNT - 1)
 
+#define BOSS_ROOM_INTERIOR_SIZE 9
+
 extern int map[MAP_WIDTH * MAP_HEIGHT];
 
 Point getPlayerSpawnMapPosition(void);

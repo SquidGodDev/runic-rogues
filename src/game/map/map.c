@@ -145,14 +145,23 @@ static void generateMultiRoomDungeon(void) {
         carveRoom(minX, minY, maxX, maxY);
     }
 
-    // Boss room: 15x15 interior, straight ahead (east) of Room 4, vertically centered on the
-    // corridor line (centerY=8). Room 4: maxX=70. Hallway x=[71,75] at y=8, boss room at x=76.
-    dungeonRooms[DUNGEON_ROOM_COUNT - 1] = (DungeonRoom){
-        .interiorMinX = 76, .interiorMinY = 1,
-        .interiorMaxX = 90, .interiorMaxY = 15,
-        .centerX = 83, .centerY = 8
-    };
-    carveRoom(76, 1, 90, 15);
+    // Boss room: square interior (BOSS_ROOM_INTERIOR_SIZE), straight ahead (east) of Room 4,
+    // vertically centered on the corridor line. Position is derived from Room 4's east edge
+    // plus the hallway so the room and its entrance always align with (and connect to) Room 4.
+    {
+        DungeonRoom *room4 = &dungeonRooms[NON_BOSS_ROOM_COUNT - 1];
+        int corridorY = room4->centerY;
+        int bossMinX = room4->interiorMaxX + hallwayLength + 1;
+        int bossMaxX = bossMinX + BOSS_ROOM_INTERIOR_SIZE - 1;
+        int bossMinY = corridorY - BOSS_ROOM_INTERIOR_SIZE / 2;
+        int bossMaxY = bossMinY + BOSS_ROOM_INTERIOR_SIZE - 1;
+        dungeonRooms[DUNGEON_ROOM_COUNT - 1] = (DungeonRoom){
+            .interiorMinX = bossMinX, .interiorMinY = bossMinY,
+            .interiorMaxX = bossMaxX, .interiorMaxY = bossMaxY,
+            .centerX = (bossMinX + bossMaxX) / 2, .centerY = corridorY
+        };
+        carveRoom(bossMinX, bossMinY, bossMaxX, bossMaxY);
+    }
 
     // Inter-room gates: 5-cell hallways (1 gate column + 4 wall columns), 1 cell wide at centerY
     for (int i = 0; i < NON_BOSS_ROOM_COUNT - 1; i++) {
