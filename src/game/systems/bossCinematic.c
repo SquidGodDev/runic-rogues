@@ -18,7 +18,7 @@
 #include "game/systems/runStats.h"
 
 // === Tunable cinematic parameters ===
-#define BOSS_CINEMATIC_DISTANCE_CELLS 3.0f
+#define BOSS_CINEMATIC_DISTANCE_CELLS 2.0f
 #define BOSS_CINEMATIC_ZOOM_IN_TIME   1.5f
 #define BOSS_CINEMATIC_ZOOM_OUT_TIME  1.0f
 #define BOSS_CINEMATIC_HOLD_TIME      2.0f
