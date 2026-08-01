@@ -192,6 +192,8 @@ const char *bitmapPathStrings[] = {
 	"images/runes/runeHUD/bomb",
 	"images/runes/runeHUD/bombArrow",
 	"images/runes/runeHUD/blackHole",
+	"images/runes/runeHUD/enchantedAmulet",
+	"images/runes/runeHUD/arcaneStaff",
 	"images/areaMap/cornerPieceTL",
 	"images/areaMap/cornerPieceTR",
 	"images/areaMap/cornerPieceBL",

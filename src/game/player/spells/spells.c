@@ -18,6 +18,7 @@
 
 static Spell spellDeck[SPELL_EQUIP_MAX];
 static SpellCastData spellCastData[SPELL_EQUIP_MAX];
+static int spellRepeatCounter[SPELL_EQUIP_MAX]; // counts casts toward the next repeat activation
 float spellCooldowns[SPELL_EQUIP_MAX];
 static int utilitySpellCount;
 static float utilitySpellCharge;
@@ -52,6 +53,7 @@ void resetSpellState(void) {
 
     for (int i = 0; i < SPELL_EQUIP_MAX; i++) {
         spellCooldowns[i] = 0.0f;
+        spellRepeatCounter[i] = 0;
     }
 
     utilitySpellCount = getPlayerUtilitySpellCount();
@@ -216,12 +218,23 @@ bool castSpell(int index) {
         }
     }
 
+    // The repeat only activates once every castInterval casts (1 = every cast)
+    int repeatCount = data->repeatData.repeatCount;
+    if (repeatCount > 0 && data->repeatData.castInterval > 1) {
+        spellRepeatCounter[index]++;
+        if (spellRepeatCounter[index] >= data->repeatData.castInterval) {
+            spellRepeatCounter[index] = 0;
+        } else {
+            repeatCount = 0;
+        }
+    }
+
     spellCooldowns[index] = cooldown;
-    if (data->repeatData.repeatCount > 0) {
+    if (repeatCount > 0) {
         spellCastData[index] = (SpellCastData) {
             .spell = spell,
             .maxCooldown = cooldown,
-            .castTime = data->repeatData.activationTime * (data->repeatData.repeatCount + 1),
+            .castTime = data->repeatData.activationTime * (repeatCount + 1),
             .activationTime = data->repeatData.activationTime,
             .activationCount = 0,
             .initialCastAngle = playerAngle
@@ -235,7 +248,7 @@ bool castSpell(int index) {
     playSound(data->sfx);
     playSound(data->secondarySfx);
     int attackId = runStatsBeginAttack();
-    if (data->repeatData.repeatCount > 0) {
+    if (repeatCount > 0) {
         spellCastData[index].attackId = attackId;
     }
     activateSpellEffect(index, playerAngle, true /* initialCast */);
@@ -670,6 +683,38 @@ void modifyRepeatCount(SpellData *spell, float value, ModifyOperation operation)
         case MODIFY_OP_REPLACE_IF_ZERO:
             if (spell->repeatData.repeatCount == 0) {
                 spell->repeatData.repeatCount = (int)value;
+            }
+            break;
+    }
+}
+
+// Progress (0..1) toward this slot's next extra repeat; 1.0 means the next cast fires it.
+float getSpellRepeatProgress(int index) {
+    Spell spell = spellDeck[index];
+    if (spell == SPELL_NONE) {
+        return 0.0f;
+    }
+    SpellData *data = &spellData[spell];
+    if (data->repeatData.repeatCount <= 0) {
+        return 0.0f;
+    }
+    if (data->repeatData.castInterval <= 1) {
+        return 1.0f;
+    }
+    return (float)spellRepeatCounter[index] / (data->repeatData.castInterval - 1);
+}
+
+void modifyRepeatInterval(SpellData *spell, float value, ModifyOperation operation) {
+    switch (operation) {
+        case MODIFY_OP_ADD:
+            spell->repeatData.castInterval += (int)value;
+            break;
+        case MODIFY_OP_MULTIPLY:
+            spell->repeatData.castInterval = (int)roundf(spell->repeatData.castInterval * (1.0f + value));
+            break;
+        case MODIFY_OP_REPLACE_IF_ZERO:
+            if (spell->repeatData.castInterval == 0) {
+                spell->repeatData.castInterval = (int)value;
             }
             break;
     }

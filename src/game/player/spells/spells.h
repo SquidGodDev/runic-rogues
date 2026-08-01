@@ -62,6 +62,7 @@ typedef struct ChargeData {
 typedef struct RepeatData {
     int repeatCount;
     float activationTime;
+    int castInterval; // repeat only fires once every N casts; 0 or 1 = every cast
 } RepeatData;
 
 typedef struct SpellProjectileData {
@@ -180,6 +181,8 @@ void modifyChargeTime(SpellData *spell, float value, ModifyOperation operation);
 // RepeatData modifiers
 void modifyRepeatCount(SpellData *spell, float value, ModifyOperation operation);
 void modifyRepeatActivationTime(SpellData *spell, float value, ModifyOperation operation);
+void modifyRepeatInterval(SpellData *spell, float value, ModifyOperation operation);
+float getSpellRepeatProgress(int index);
 
 void initSpells(void);
 // Loads spell names/descriptions from localization.csv into baseSpellData. Call

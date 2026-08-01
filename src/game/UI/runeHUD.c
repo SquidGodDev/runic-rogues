@@ -7,6 +7,7 @@
 #include "game/rendering/textures.h"
 #include "game/player/player.h"
 #include "game/player/playerStats.h"
+#include "game/player/spells/spells.h"
 
 #define RUNE_HUD_START_X   3
 #define RUNE_HUD_START_Y   14
@@ -94,6 +95,14 @@ static bool runeHudFillProgress(RuneType type, float *outProgress) {
     }
     if (type == RUNE_TYPE_BLACK_HOLE) {
         *outProgress = getBlackHoleProgress();
+        return true;
+    }
+    if (type == RUNE_TYPE_ENCHANTED_AMULET) {
+        *outProgress = getSpellRepeatProgress(BASIC_SPELL_INDEX);
+        return true;
+    }
+    if (type == RUNE_TYPE_ARCANE_STAFF) {
+        *outProgress = getSpellRepeatProgress(SPECIAL_SPELL_INDEX);
         return true;
     }
     return false;
