@@ -264,6 +264,19 @@ void openTutorialDialogPages(const StringKey *pages, int pageCount) {
     }
 }
 
+// Re-wrap the page currently on screen in the active language, keeping a
+// finished page fully revealed and restarting the typewriter on one still typing.
+void refreshTutorialDialogLanguage(void) {
+    if (dState == TD_HIDDEN || dPages == NULL || dPageIndex >= dPageCount) {
+        return;
+    }
+    bool wasComplete = (dState == TD_AWAIT_ADVANCE) || (dRevealedChars >= dPageTotalChars);
+    wrapPage(getLocString(dPages[dPageIndex]));
+    if (wasComplete) {
+        dRevealedChars = dPageTotalChars;
+    }
+}
+
 bool isTutorialDialogActive(void) {
     return dState != TD_HIDDEN;
 }

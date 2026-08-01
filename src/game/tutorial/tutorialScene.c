@@ -238,10 +238,9 @@ void initTutorialScene(void) {
     setRunDifficulty(0);
     initGameScene();
 
-    createGameMenuItem();
-
     removeSkipTutorialMenuItem();
     skipMenuItem = pd->system->addMenuItem(getLocString(STR_MENU_SKIP_TUTORIAL), onSkipTutorialSelect, NULL);
+    createGameMenuItem();
 
     tPhase = TUTORIAL_R1_DIALOG;
     r1ArrowStep = 0;

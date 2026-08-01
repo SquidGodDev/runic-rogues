@@ -11,3 +11,5 @@ void drawTutorialDialog(void);
 
 bool isTutorialDialogActive(void);
 bool isTutorialDialogComplete(void);
+
+void refreshTutorialDialogLanguage(void);

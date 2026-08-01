@@ -15,6 +15,7 @@
 #include "game/rendering/textures.h"
 #include "game/settings/settings.h"
 #include "game/tutorial/tutorialScene.h"
+#include "game/tutorial/tutorialDialog.h"
 #include "game/systems/audioManager.h"
 
 // Tab bar layout
@@ -476,6 +477,7 @@ static void cycleChoice(const SettingRowDef *row, int delta) {
     if (row->value == &SETTINGS.language) {
         refreshGameMenuItemTitle();
         refreshSkipTutorialMenuItemTitle();
+        refreshTutorialDialogLanguage();
     } else if (row->value == &SETTINGS.targetFps) {
         applyTargetFps();
     }
