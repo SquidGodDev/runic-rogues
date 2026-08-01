@@ -7,6 +7,7 @@ void updateTutorialScene(float deltaTime);
 bool isTutorialActive(void);
 void setTutorialActive(bool active);
 void removeSkipTutorialMenuItem(void);
+void skipTutorial(void);
 void refreshSkipTutorialMenuItemTitle(void);
 // Returns the current tutorial objective for the HUD. Writes the format string
 // key and the current/target counts, or returns false when no objective applies.

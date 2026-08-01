@@ -23,6 +23,8 @@ quit.title,"Quit Run?","ランをやめる？"
 quit.body,"Are you sure? All progress will be lost.","本当にやめますか？進行状況はすべて失われます。"
 common.yes,"Yes","はい"
 common.no,"No","いいえ"
+skip_tutorial.title,"Skip Tutorial?","スキップ？"
+skip_tutorial.body,"Are you sure you want to skip the tutorial?","本当にチュートリアルをスキップしますか？"
 
 # == In-game menu settings tabs ==
 setting.language,"Language","言語"

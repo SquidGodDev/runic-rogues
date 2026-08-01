@@ -25,6 +25,10 @@ typedef enum StringKey {
     STR_YES,
     STR_NO,
 
+    // Skip tutorial confirmation dialog
+    STR_SKIP_TUTORIAL_TITLE,
+    STR_SKIP_TUTORIAL_BODY,
+
     // In-game menu settings tabs
     STR_SETTING_LANGUAGE,
     STR_LANG_ENGLISH,

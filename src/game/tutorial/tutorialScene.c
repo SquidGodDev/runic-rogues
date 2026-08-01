@@ -94,13 +94,17 @@ void refreshSkipTutorialMenuItemTitle(void) {
     }
 }
 
-static void onSkipTutorialSelect(void *userdata) {
+void skipTutorial(void) {
     removeSkipTutorialMenuItem();
     setPlayerInputDisabled(false);
     tPhase = TUTORIAL_DONE;
     setTutorialCompleted(true);
     initRunStart();
     switchScene(SCENE_AREA_MAP);
+}
+
+static void onSkipTutorialSelect(void *userdata) {
+    initSkipTutorialConfirmDialog();
 }
 
 static const StringKey r1Pages[] = {

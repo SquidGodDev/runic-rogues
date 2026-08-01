@@ -43,6 +43,9 @@ static const char *STR_KEYS[STR_COUNT] = {
     [STR_YES] = "common.yes",
     [STR_NO] = "common.no",
 
+    [STR_SKIP_TUTORIAL_TITLE] = "skip_tutorial.title",
+    [STR_SKIP_TUTORIAL_BODY] = "skip_tutorial.body",
+
     [STR_SETTING_LANGUAGE] = "setting.language",
     [STR_LANG_ENGLISH] = "lang.english",
     [STR_LANG_JP] = "lang.jp",

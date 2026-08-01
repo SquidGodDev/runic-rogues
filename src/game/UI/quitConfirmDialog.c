@@ -27,17 +27,23 @@
 #define BUTTON_PADDING_X 5
 #define BUTTON_PADDING_Y 3
 
+typedef enum {
+    CONFIRM_MODE_QUIT,
+    CONFIRM_MODE_SKIP_TUTORIAL
+} ConfirmDialogMode;
+
 static LCDBitmap *gameScreenshot = NULL;
 static GameState previousGameState;
 static int selectedButtonIndex;
 static bool initPending = false;
+static ConfirmDialogMode dialogMode = CONFIRM_MODE_QUIT;
 
 static const char *getHeaderText(void) {
-    return getLocString(STR_QUIT_RUN_TITLE);
+    return getLocString(dialogMode == CONFIRM_MODE_SKIP_TUTORIAL ? STR_SKIP_TUTORIAL_TITLE : STR_QUIT_RUN_TITLE);
 }
 
 static const char *getBodyText(void) {
-    return getLocString(STR_QUIT_RUN_BODY);
+    return getLocString(dialogMode == CONFIRM_MODE_SKIP_TUTORIAL ? STR_SKIP_TUTORIAL_BODY : STR_QUIT_RUN_BODY);
 }
 
 static const char *getYesText(void) {
@@ -52,6 +58,16 @@ void initQuitConfirmDialog(void) {
     if (gameState == GAME_STATE_QUIT_CONFIRM || initPending) {
         return;
     }
+    dialogMode = CONFIRM_MODE_QUIT;
+    previousGameState = gameState;
+    initPending = true;
+}
+
+void initSkipTutorialConfirmDialog(void) {
+    if (gameState == GAME_STATE_QUIT_CONFIRM || initPending) {
+        return;
+    }
+    dialogMode = CONFIRM_MODE_SKIP_TUTORIAL;
     previousGameState = gameState;
     initPending = true;
 }
@@ -86,6 +102,11 @@ static void closeDialog(void) {
     freeQuitScreenshot();
     suppressHeldPlayerButtons();
     setGameState(previousGameState);
+}
+
+static void confirmSkipTutorial(void) {
+    freeQuitScreenshot();
+    skipTutorial();
 }
 
 static void confirmQuit(void) {
@@ -187,7 +208,11 @@ void updateQuitConfirmDialog(float deltaTime) {
 
     if (pushed & kButtonA) {
         if (selectedButtonIndex == 0) {
-            confirmQuit();
+            if (dialogMode == CONFIRM_MODE_SKIP_TUTORIAL) {
+                confirmSkipTutorial();
+            } else {
+                confirmQuit();
+            }
         } else {
             closeDialog();
         }
