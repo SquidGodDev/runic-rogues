@@ -6,6 +6,7 @@
 
 #include "globals/sceneManager.h"
 #include "title/loadingScene.h"
+#include "title/languageSelectScene.h"
 #include "title/classSelectScene.h"
 #include "title/titleScene.h"
 #include "title/roomMapScene.h"
@@ -162,6 +163,9 @@ void initNextScene(void) {
     switch (currentScene) {
         case SCENE_LOADING:
             initLoadingScene();
+            break;
+        case SCENE_LANGUAGE_SELECT:
+            initLanguageSelectScene();
             break;
         case SCENE_CLASS_SELECT:
             initClassSelectScene();
@@ -394,6 +398,9 @@ int updateSceneManager(void* userdata) {
     switch (currentScene) {
         case SCENE_LOADING:
             updateLoadingScene(deltaTime);
+            break;
+        case SCENE_LANGUAGE_SELECT:
+            updateLanguageSelectScene(deltaTime);
             break;
         case SCENE_CLASS_SELECT:
             updateClassSelectScene(deltaTime);

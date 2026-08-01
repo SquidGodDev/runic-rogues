@@ -2,6 +2,7 @@
 
 typedef enum Scene {
     SCENE_LOADING,
+    SCENE_LANGUAGE_SELECT,
     SCENE_CLASS_SELECT,
     SCENE_TITLE,
     SCENE_GAME,

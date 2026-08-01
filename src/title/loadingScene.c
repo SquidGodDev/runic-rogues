@@ -78,9 +78,7 @@ void updateLoadingScene(float deltaTime) {
         if (isTutorialCompleted()) {
             switchScene(SCENE_TITLE);
         } else {
-            setCurrentClass(CLASS_MAGE);
-            initRunStart();
-            switchScene(SCENE_TUTORIAL);
+            switchScene(SCENE_LANGUAGE_SELECT);
         }
     }
 }
