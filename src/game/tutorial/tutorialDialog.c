@@ -27,7 +27,8 @@
 #define TD_IN_DURATION      0.70f
 #define TD_OUT_DURATION     0.5f
 
-// System-menu arrow animation shown alongside the STR_TUTORIAL_R1_3 page.
+// System-menu arrow animation shown alongside the tutorial dialogs
+// that reference the system menu
 #define TD_MENU_ARROW_X         169
 #define TD_MENU_ARROW_Y         15
 #define TD_MENU_ARROW_FRAME_T   0.1f
@@ -56,7 +57,8 @@ static float dMenuArrowTime;
 static int dMenuArrowFrame;
 
 static bool dPageIsMenuArrow(void) {
-    return dPages != NULL && dPageIndex < dPageCount && dPages[dPageIndex] == STR_TUTORIAL_R1_3;
+    return dPages != NULL && dPageIndex < dPageCount &&
+    (dPages[dPageIndex] == STR_TUTORIAL_R1_3 || dPages[dPageIndex] == STR_TUTORIAL_R6_1);
 }
 
 static int utf8NumChars(const char *s) {
