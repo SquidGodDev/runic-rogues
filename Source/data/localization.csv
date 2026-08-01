@@ -228,7 +228,7 @@ rune.dragons_breath.desc,"Dashing sprays a cone of {1} fireballs in front of you
 rune.armored_skin.name,"Armored Skin","鋼の肌"
 rune.armored_skin.desc,"When hit, knock back and deal {1} damage to nearby enemies.","被弾時、周囲の敵をノックバックし{1}ダメージを与える。"
 rune.viking.name,"Viking","ヴァイキング"
-rune.viking.desc,"Deal double damage while below 50% health.","体力が50%以下のとき、与ダメージが2倍になる。"
+rune.viking.desc,"Deal {1P}% more damage while below 50% health.","体力が50%以下のとき、与ダメージが{1P}%増加する。"
 rune.afterimage.name,"Afterimage","残像"
 rune.afterimage.desc,"Defeating an enemy restores a dash charge.","敵を倒すとダッシュが1つ回復する。"
 rune.flywheel.name,"Flywheel","フライホイール"

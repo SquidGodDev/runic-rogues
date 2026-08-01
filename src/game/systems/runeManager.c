@@ -516,9 +516,9 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         // Damage multiplier handled directly in damageEnemy()
         .iconIndex = BITMAP_RUNE_VIKING,
         .hudIconIndex = BITMAP_RUNE_HUD_VIKING,
-        .primaryBaseValue = 1.0f, // +100%, i.e. double damage
-        .primaryPerLevel  = 0,
-        .maxLevel = 1
+        .primaryBaseValue = 0.2f, // +20% / +40% / +60% damage below 50% health
+        .primaryPerLevel  = 0.2f,
+        .maxLevel = 3
     },
     [RUNE_TYPE_AFTERIMAGE] = {
         .iconIndex = BITMAP_RUNE_AFTERIMAGE,
