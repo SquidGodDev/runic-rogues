@@ -117,6 +117,7 @@ const char *bitmapPathStrings[] = {
 	"images/shop/cursor",
 	"images/shop/skipCursor",
 	"images/shop/skipIcon",
+	"images/shop/rerollIcon",
 	"images/UI/prompts/bossHealthBar",
 	"images/UI/spells/AButton",
 	"images/UI/spells/BButton",

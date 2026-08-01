@@ -13,6 +13,8 @@
 #define LEVEL_UP_EXPERIENCE_BASE 10.0f
 #define LEVEL_UP_EXPERIENCE_SCALING 2.0f
 
+#define MAX_SHOP_REROLLS_PER_FLOOR 2
+
 static RoomType currentRoomType;
 static Area currentArea;
 static AreaData areaData[AREA_COUNT];
@@ -23,6 +25,7 @@ static int currentRoom = 0;
 static bool areaCompleted;
 static bool bossDefeated;
 static bool pendingExitSpawn;
+static int shopRerollsRemaining = MAX_SHOP_REROLLS_PER_FLOOR;
 
 void initProgressionManager(void) {
     currentArea = AREA_TWILIGHT_COURT;
@@ -36,6 +39,7 @@ void initProgressionManager(void) {
     currentRoomType = ROOM_TYPE_ENEMY;
     experience = 0.0f;
     curLevel = 0;
+    shopRerollsRemaining = MAX_SHOP_REROLLS_PER_FLOOR;
 
     areaData[AREA_TWILIGHT_COURT] = (AreaData){
         .wallTexture = TEXTURES[TEXTURE_TWILIGHT_COURT_WALL],
@@ -165,7 +169,18 @@ void showAreaEnterPopup(void) {
     showPopup(popup, POPUP_POSITION_CENTER);
 }
 
+int getShopRerollsRemaining(void) {
+    return shopRerollsRemaining;
+}
+
+void useShopReroll(void) {
+    if (shopRerollsRemaining > 0) {
+        shopRerollsRemaining--;
+    }
+}
+
 void incrementToNextRoom(void) {
+    shopRerollsRemaining = MAX_SHOP_REROLLS_PER_FLOOR;
     currentRoom++;
     if (currentRoom >= MAX_ROOM_COUNT) {
         currentRoom = 0;

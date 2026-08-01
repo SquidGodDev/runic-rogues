@@ -167,8 +167,8 @@ tutorial.obj_dash,"Dash %d/%d","ダッシュ %d/%d"
 
 # == Shop ==
 shop.type_rune,"Rune","ルーン"
-shop.skip_name,"Skip","スキップ"
-shop.skip_desc,"Skip rune selection for this level up.","ルーン選択をスキップします。"
+shop.reroll_name,"Reroll","リロール"
+shop.reroll_desc,"Reroll the rune options.","ルーンの選択肢を引き直します。"
 
 # == Rune names and descriptions ==
 # Placeholders {1} {2} {T} are substituted at runtime with the rune's values.

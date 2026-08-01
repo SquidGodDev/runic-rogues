@@ -167,8 +167,8 @@ typedef enum StringKey {
 
     // Shop
     STR_SHOP_TYPE_RUNE,
-    STR_SHOP_SKIP_NAME,
-    STR_SHOP_SKIP_DESC,
+    STR_SHOP_REROLL_NAME,
+    STR_SHOP_REROLL_DESC,
 
     STR_COUNT
 } StringKey;

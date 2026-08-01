@@ -42,3 +42,5 @@ void checkAndSpawnPendingExit(void);
 bool isAreaCompleted(void);
 void incrementToNextRoom(void);
 void showAreaEnterPopup(void);
+int getShopRerollsRemaining(void);
+void useShopReroll(void);

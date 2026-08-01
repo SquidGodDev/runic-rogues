@@ -169,8 +169,8 @@ static const char *STR_KEYS[STR_COUNT] = {
     [STR_TUTORIAL_OBJ_DASH] = "tutorial.obj_dash",
 
     [STR_SHOP_TYPE_RUNE] = "shop.type_rune",
-    [STR_SHOP_SKIP_NAME] = "shop.skip_name",
-    [STR_SHOP_SKIP_DESC] = "shop.skip_desc",
+    [STR_SHOP_REROLL_NAME] = "shop.reroll_name",
+    [STR_SHOP_REROLL_DESC] = "shop.reroll_desc",
 };
 
 // Parses one CSV field starting at *pp, unescaping quotes in place, and

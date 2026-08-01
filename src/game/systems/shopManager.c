@@ -30,7 +30,13 @@ typedef struct ShopPageData {
 } ShopPageData;
 
 #define SHOP_OPTION_COUNT 3
-#define SHOP_SKIP_OPTION_INDEX SHOP_OPTION_COUNT
+#define SHOP_REROLL_OPTION_INDEX SHOP_OPTION_COUNT
+
+// 50% checkerboard laid over the reroll icon when no rerolls remain, so it reads as faded/disabled.
+static LCDPattern rerollDisabledDither = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55
+};
 
 // Flat chance, per shop slot, that the slot rolls from the rare rune pool
 // instead of the common pool. Constant for the whole run (no pity/scaling).
@@ -45,6 +51,7 @@ typedef struct ShopPageData {
 #define SHOP_ICON_SPACING 39
 #define SHOP_ICON_SKIP_SPACING 60
 #define SHOP_ICON_SIZE 28
+#define SHOP_REROLL_COUNT_GAP -4
 #define SHOP_ICON_RAISE_AMOUNT 4
 #define SHOP_ICON_LERP_SPEED 12.0f
 #define SHOP_CURSOR_LERP_SPEED 20.0f
@@ -65,12 +72,12 @@ static int shopDescOffset;
 static int maxDescOffset;
 static int selectedShopOptionIndex;
 
-static LCDBitmap *skipDescBitmapEN = NULL;
-static LCDBitmap *skipDescBitmapJP = NULL;
-static int skipDescHeightEN;
-static int skipDescHeightJP;
+static LCDBitmap *rerollDescBitmapEN = NULL;
+static LCDBitmap *rerollDescBitmapJP = NULL;
+static int rerollDescHeightEN;
+static int rerollDescHeightJP;
 
-static float iconYOffsets[SHOP_SKIP_OPTION_INDEX + 1];
+static float iconYOffsets[SHOP_REROLL_OPTION_INDEX + 1];
 static float cursorX;
 
 static const char *ROMAN_NUMERALS[] = { "", "I", "II", "III", "IV", "V" };
@@ -234,7 +241,7 @@ bool adjustShopDescOffset(int delta) {
 void resetShopDescOffset(void) {
     shopDescOffset = 0;
 
-    if (selectedShopOptionIndex == SHOP_SKIP_OPTION_INDEX) {
+    if (selectedShopOptionIndex == SHOP_REROLL_OPTION_INDEX) {
         maxDescOffset = 0;
         return;
     }
@@ -256,7 +263,7 @@ static void initShopCommon(void) {
     pd->graphics->popContext();
     selectedShopOptionIndex = 1;
     cursorX = (float)(SHOP_ICON_BASE_X + selectedShopOptionIndex * SHOP_ICON_SPACING);
-    for (int i = 0; i <= SHOP_SKIP_OPTION_INDEX; i++) {
+    for (int i = 0; i <= SHOP_REROLL_OPTION_INDEX; i++) {
         iconYOffsets[i] = 0;
     }
     resetShopDescOffset();
@@ -265,26 +272,26 @@ static void initShopCommon(void) {
     playSound(SFX_SHOP_SLIDE_IN);
 }
 
-static void buildSkipPages(void) {
-    if (skipDescBitmapEN != NULL) {
-        pd->graphics->freeBitmap(skipDescBitmapEN);
+static void buildRerollPages(void) {
+    if (rerollDescBitmapEN != NULL) {
+        pd->graphics->freeBitmap(rerollDescBitmapEN);
     }
-    if (skipDescBitmapJP != NULL) {
-        pd->graphics->freeBitmap(skipDescBitmapJP);
+    if (rerollDescBitmapJP != NULL) {
+        pd->graphics->freeBitmap(rerollDescBitmapJP);
     }
-    ShopPageData skipPageEN = createShopPage(getLocStringFor(STR_SHOP_SKIP_NAME, LANGUAGE_EN), getLocStringFor(STR_SHOP_SKIP_DESC, LANGUAGE_EN), getLocStringFor(STR_SHOP_SKIP_NAME, LANGUAGE_EN), NULL, LANGUAGE_EN);
-    ShopPageData skipPageJP = createShopPage(getLocStringFor(STR_SHOP_SKIP_NAME, LANGUAGE_JP), getLocStringFor(STR_SHOP_SKIP_DESC, LANGUAGE_JP), getLocStringFor(STR_SHOP_SKIP_NAME, LANGUAGE_JP), NULL, LANGUAGE_JP);
-    skipDescBitmapEN = skipPageEN.shopDescBitmap;
-    skipDescHeightEN = skipPageEN.descHeight;
-    skipDescBitmapJP = skipPageJP.shopDescBitmap;
-    skipDescHeightJP = skipPageJP.descHeight;
+    ShopPageData rerollPageEN = createShopPage(getLocStringFor(STR_SHOP_REROLL_NAME, LANGUAGE_EN), getLocStringFor(STR_SHOP_REROLL_DESC, LANGUAGE_EN), getLocStringFor(STR_SHOP_REROLL_NAME, LANGUAGE_EN), NULL, LANGUAGE_EN);
+    ShopPageData rerollPageJP = createShopPage(getLocStringFor(STR_SHOP_REROLL_NAME, LANGUAGE_JP), getLocStringFor(STR_SHOP_REROLL_DESC, LANGUAGE_JP), getLocStringFor(STR_SHOP_REROLL_NAME, LANGUAGE_JP), NULL, LANGUAGE_JP);
+    rerollDescBitmapEN = rerollPageEN.shopDescBitmap;
+    rerollDescHeightEN = rerollPageEN.descHeight;
+    rerollDescBitmapJP = rerollPageJP.shopDescBitmap;
+    rerollDescHeightJP = rerollPageJP.descHeight;
 }
 
 void initShop(void) {
     isTutorialShop = false;
     freeShopItemBitmaps();
     createShopOptions();
-    buildSkipPages();
+    buildRerollPages();
     initShopCommon();
 }
 
@@ -303,7 +310,7 @@ void initShopWithRunes(RuneType runes[3]) {
             .runeType = runes[i]
         };
     }
-    buildSkipPages();
+    buildRerollPages();
     initShopCommon();
 }
 
@@ -364,26 +371,31 @@ void drawShop(float deltaTime) {
         pd->graphics->setDrawOffset(0, 0);
     }
 
-    int iconXPositions[SHOP_SKIP_OPTION_INDEX + 1];
-    int iconBitmapIndices[SHOP_SKIP_OPTION_INDEX + 1];
+    int iconXPositions[SHOP_REROLL_OPTION_INDEX + 1];
+    int iconBitmapIndices[SHOP_REROLL_OPTION_INDEX + 1];
     for (int i = 0; i < SHOP_OPTION_COUNT; i++) {
         iconXPositions[i] = SHOP_ICON_BASE_X + i * SHOP_ICON_SPACING;
         iconBitmapIndices[i] = shopItems[i].iconIndex;
     }
-    iconXPositions[SHOP_SKIP_OPTION_INDEX] = SHOP_ICON_BASE_X + (SHOP_OPTION_COUNT - 1) * SHOP_ICON_SPACING + SHOP_ICON_SKIP_SPACING;
-    iconBitmapIndices[SHOP_SKIP_OPTION_INDEX] = BITMAP_SHOP_SKIP_ICON;
+    iconXPositions[SHOP_REROLL_OPTION_INDEX] = SHOP_ICON_BASE_X + (SHOP_OPTION_COUNT - 1) * SHOP_ICON_SPACING + SHOP_ICON_SKIP_SPACING;
+    iconBitmapIndices[SHOP_REROLL_OPTION_INDEX] = BITMAP_SHOP_REROLL_ICON;
 
     float targetCursorX = (float)iconXPositions[selectedShopOptionIndex];
     cursorX = lerp(cursorX, targetCursorX, SHOP_CURSOR_LERP_SPEED * deltaTime);
 
-    for (int i = 0; i <= SHOP_SKIP_OPTION_INDEX; i++) {
-        float targetY = (i == selectedShopOptionIndex && i != SHOP_SKIP_OPTION_INDEX) ? -SHOP_ICON_RAISE_AMOUNT : 0;
+    int rerollsRemaining = isTutorialShop ? 0 : getShopRerollsRemaining();
+
+    for (int i = 0; i <= SHOP_REROLL_OPTION_INDEX; i++) {
+        float targetY = (i == selectedShopOptionIndex && i != SHOP_REROLL_OPTION_INDEX) ? -SHOP_ICON_RAISE_AMOUNT : 0;
         iconYOffsets[i] = lerp(iconYOffsets[i], targetY, SHOP_ICON_LERP_SPEED * deltaTime);
         int iconX = iconXPositions[i];
         int iconY = SHOP_ICON_BASE_Y + (int)iconYOffsets[i];
         pd->graphics->drawBitmap(BITMAPS[iconBitmapIndices[i]], iconX, iconY, kBitmapUnflipped);
+        if (i == SHOP_REROLL_OPTION_INDEX && rerollsRemaining <= 0) {
+            pd->graphics->fillRect(iconX, iconY, SHOP_ICON_SIZE, SHOP_ICON_SIZE, (LCDColor)rerollDisabledDither);
+        }
         if (i == selectedShopOptionIndex) {
-            LCDBitmap *cursorBitmap = i == SHOP_SKIP_OPTION_INDEX ? BITMAPS[BITMAP_SHOP_SKIP_CURSOR] : BITMAPS[BITMAP_SHOP_CURSOR];
+            LCDBitmap *cursorBitmap = i == SHOP_REROLL_OPTION_INDEX ? BITMAPS[BITMAP_SHOP_SKIP_CURSOR] : BITMAPS[BITMAP_SHOP_CURSOR];
             pd->graphics->drawBitmap(cursorBitmap, (int)cursorX - 4, iconY - 4, kBitmapUnflipped);
         }
     }
@@ -391,13 +403,25 @@ void drawShop(float deltaTime) {
     LCDBitmap *shopDescBitmap;
     int descHeight;
     pd->graphics->drawBitmap(BITMAPS[BITMAP_SHOP_POPUP_BACKGROUND], SHOP_PAGE_X, SHOP_PAGE_Y, kBitmapUnflipped);
-    if (selectedShopOptionIndex == SHOP_SKIP_OPTION_INDEX) {
+
+    // Rerolls remaining, drawn after the popup so the count isn't clipped by the panel top.
+    char *rerollCountText = NULL;
+    pd->system->formatString(&rerollCountText, "%d", rerollsRemaining);
+    pd->graphics->setDrawMode(kDrawModeCopy);
+    pd->graphics->setFont(fontSubENDoubleOutline);
+    int rerollTextWidth = pd->graphics->getTextWidth(fontSubENDoubleOutline, rerollCountText, strlen(rerollCountText), kUTF8Encoding, 0);
+    int rerollTextX = iconXPositions[SHOP_REROLL_OPTION_INDEX] + (SHOP_ICON_SIZE - rerollTextWidth) / 2 + 1;
+    int rerollTextY = SHOP_ICON_BASE_Y + SHOP_ICON_SIZE + SHOP_REROLL_COUNT_GAP;
+    pd->graphics->drawText(rerollCountText, strlen(rerollCountText), kUTF8Encoding, rerollTextX, rerollTextY);
+    pd->system->realloc(rerollCountText, 0);
+
+    if (selectedShopOptionIndex == SHOP_REROLL_OPTION_INDEX) {
         if (SETTINGS.language == LANGUAGE_JP) {
-            shopDescBitmap = skipDescBitmapJP;
-            descHeight = skipDescHeightJP;
+            shopDescBitmap = rerollDescBitmapJP;
+            descHeight = rerollDescHeightJP;
         } else {
-            shopDescBitmap = skipDescBitmapEN;
-            descHeight = skipDescHeightEN;
+            shopDescBitmap = rerollDescBitmapEN;
+            descHeight = rerollDescHeightEN;
         }
     } else if (SETTINGS.language == LANGUAGE_JP) {
         ShopItem curShopItem = shopItems[selectedShopOptionIndex];
@@ -462,13 +486,13 @@ void updateShop(float deltaTime) {
             }
             isTutorialShop = false;
             freeShopItemBitmaps();
-            if (skipDescBitmapEN != NULL) {
-                pd->graphics->freeBitmap(skipDescBitmapEN);
-                skipDescBitmapEN = NULL;
+            if (rerollDescBitmapEN != NULL) {
+                pd->graphics->freeBitmap(rerollDescBitmapEN);
+                rerollDescBitmapEN = NULL;
             }
-            if (skipDescBitmapJP != NULL) {
-                pd->graphics->freeBitmap(skipDescBitmapJP);
-                skipDescBitmapJP = NULL;
+            if (rerollDescBitmapJP != NULL) {
+                pd->graphics->freeBitmap(rerollDescBitmapJP);
+                rerollDescBitmapJP = NULL;
             }
             return;
         }
@@ -492,7 +516,7 @@ void updateShop(float deltaTime) {
             playSound(SFX_UI_ERROR);
         }
     } else if (pushed & kButtonRight) {
-        if (selectedShopOptionIndex < SHOP_SKIP_OPTION_INDEX) {
+        if (selectedShopOptionIndex < SHOP_REROLL_OPTION_INDEX) {
             selectedShopOptionIndex++;
             resetShopDescOffset();
             playSound(SFX_UI_RUNE_SLIDE);
@@ -513,11 +537,21 @@ void updateShop(float deltaTime) {
     }
 
     if (pushed & kButtonA) {
+        if (selectedShopOptionIndex == SHOP_REROLL_OPTION_INDEX) {
+            if (!isTutorialShop && getShopRerollsRemaining() > 0) {
+                useShopReroll();
+                freeShopItemBitmaps();
+                createShopOptions();
+                resetShopDescOffset();
+                playSound(SFX_SHOP_SELECT);
+            } else {
+                playSound(SFX_CLASS_ERROR);
+            }
+            return;
+        }
         playSound(SFX_SHOP_SELECT);
         playSound(SFX_SHOP_SLIDE_OUT);
-        if (selectedShopOptionIndex != SHOP_SKIP_OPTION_INDEX) {
-            selectShopItem(shopItems[selectedShopOptionIndex]);
-        }
+        selectShopItem(shopItems[selectedShopOptionIndex]);
         // Start un-muffling now so the fade-out runs alongside the shop slide-out.
         setMusicLowpassEnabled(false);
         shopState = SHOP_STATE_EXITING;
