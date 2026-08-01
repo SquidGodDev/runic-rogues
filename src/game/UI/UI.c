@@ -39,8 +39,15 @@
 
 #define EXIT_ARROW_X 100
 #define EXIT_ARROW_Y 30
-#define EXIT_ARROW_ROTATION_COUNT 64
-#define EXIT_ARROW_ROTATION_DEGREE_STEP (2 * PI / EXIT_ARROW_ROTATION_COUNT)
+#define EXIT_ARROW_POINTS 7
+#define EXIT_ARROW_TIP_DIST 18.0f
+#define EXIT_ARROW_HEAD_HALF_W 14.0f
+#define EXIT_ARROW_HEAD_BASE_DIST 2.0f
+#define EXIT_ARROW_STEM_HALF_W 5.0f
+#define EXIT_ARROW_STEM_TAIL_DIST -18.0f
+#define EXIT_ARROW_THICKNESS 7.0f
+#define EXIT_ARROW_PITCH 0.5f
+#define EXIT_ARROW_FOCAL 80.0f
 #define EXIT_ARROW_BOUNCE_HOPS 2
 #define EXIT_ARROW_BOUNCE_HOP_FRAMES 6
 #define EXIT_ARROW_BOUNCE_FRAMES (EXIT_ARROW_BOUNCE_HOPS * EXIT_ARROW_BOUNCE_HOP_FRAMES)
@@ -573,10 +580,6 @@ void drawExitArrow(void) {
     }
 
     float angleToExit = atan2f(exitWorldY - playerY, exitWorldX - playerX) - playerAngle;
-    int rotationTableIndex = (int)(angleToExit / EXIT_ARROW_ROTATION_DEGREE_STEP) % EXIT_ARROW_ROTATION_COUNT;
-    if (rotationTableIndex < 0) {
-        rotationTableIndex += EXIT_ARROW_ROTATION_COUNT;
-    }
 
     int bounceOffset = 0;
     if (exitBounceFrame >= 0) {
@@ -588,7 +591,69 @@ void drawExitArrow(void) {
         }
     }
 
-    drawCenteredBitmap(pd->graphics->getTableBitmap(BITMAP_TABLES[BITMAP_TABLE_EXIT_ARROW], rotationTableIndex), EXIT_ARROW_X, EXIT_ARROW_Y + bounceOffset);
+    float cx = EXIT_ARROW_X;
+    float cy = EXIT_ARROW_Y + bounceOffset;
+    float c = cosf(angleToExit);
+    float s = sinf(angleToExit);
+
+    // Arrow silhouette in local (u = right, v = pointing direction) coords,
+    // ordered clockwise: tip, right head/stem, bottom, left stem/head.
+    static const float localU[EXIT_ARROW_POINTS] = {
+        0.0f,
+        EXIT_ARROW_HEAD_HALF_W, EXIT_ARROW_STEM_HALF_W, EXIT_ARROW_STEM_HALF_W,
+        -EXIT_ARROW_STEM_HALF_W, -EXIT_ARROW_STEM_HALF_W, -EXIT_ARROW_HEAD_HALF_W
+    };
+    static const float localV[EXIT_ARROW_POINTS] = {
+        EXIT_ARROW_TIP_DIST,
+        EXIT_ARROW_HEAD_BASE_DIST, EXIT_ARROW_HEAD_BASE_DIST, EXIT_ARROW_STEM_TAIL_DIST,
+        EXIT_ARROW_STEM_TAIL_DIST, EXIT_ARROW_HEAD_BASE_DIST, EXIT_ARROW_HEAD_BASE_DIST
+    };
+
+    // Lay the arrow on a ground plane tilted down in perspective (far end lower
+    // and smaller), then extrude straight up to give it solid thickness.
+    int topX[EXIT_ARROW_POINTS], topY[EXIT_ARROW_POINTS];
+    int botX[EXIT_ARROW_POINTS], botY[EXIT_ARROW_POINTS];
+    for (int i = 0; i < EXIT_ARROW_POINTS; i++) {
+        float gx = localU[i] * c + localV[i] * s;
+        float gy = -localU[i] * s + localV[i] * c;
+        float persp = EXIT_ARROW_FOCAL / (EXIT_ARROW_FOCAL + gy);
+        topX[i] = (int)(cx + gx * persp + 0.5f);
+        topY[i] = (int)(cy + gy * persp * EXIT_ARROW_PITCH + 0.5f);
+        botX[i] = topX[i];
+        botY[i] = topY[i] - (int)(EXIT_ARROW_THICKNESS * persp + 0.5f);
+    }
+
+    LCDPattern sidePattern = {
+        0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+    };
+
+    // Shaded side walls extruded from every silhouette edge. Walls belonging to
+    // the upper edges get painted over by the top face below.
+    for (int i = 0; i < EXIT_ARROW_POINTS; i++) {
+        int j = (i + 1) % EXIT_ARROW_POINTS;
+        pd->graphics->fillTriangle(topX[i], topY[i], topX[j], topY[j], botX[j], botY[j], (LCDColor)sidePattern);
+        pd->graphics->fillTriangle(topX[i], topY[i], botX[j], botY[j], botX[i], botY[i], (LCDColor)sidePattern);
+    }
+
+    // Black outline of the extruded base (bottom edges + vertical corners).
+    for (int i = 0; i < EXIT_ARROW_POINTS; i++) {
+        int j = (i + 1) % EXIT_ARROW_POINTS;
+        pd->graphics->drawLine(botX[i], botY[i], botX[j], botY[j], 1, kColorBlack);
+        pd->graphics->drawLine(topX[i], topY[i], botX[i], botY[i], 1, kColorBlack);
+    }
+
+    // Lit top face: arrowhead triangle + stem quad (points 1,2,5,6 are colinear,
+    // so this tiles the whole silhouette without gaps).
+    pd->graphics->fillTriangle(topX[0], topY[0], topX[1], topY[1], topX[6], topY[6], kColorWhite);
+    pd->graphics->fillTriangle(topX[2], topY[2], topX[3], topY[3], topX[4], topY[4], kColorWhite);
+    pd->graphics->fillTriangle(topX[2], topY[2], topX[4], topY[4], topX[5], topY[5], kColorWhite);
+
+    // Black outline around the top face.
+    for (int i = 0; i < EXIT_ARROW_POINTS; i++) {
+        int j = (i + 1) % EXIT_ARROW_POINTS;
+        pd->graphics->drawLine(topX[i], topY[i], topX[j], topY[j], 1, kColorBlack);
+    }
 }
 
 void drawSpellUI(void) {

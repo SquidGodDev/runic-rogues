@@ -217,7 +217,6 @@ const char *bitmapPathStrings[] = {
 
 LCDBitmapTable* BITMAP_TABLES[BITMAP_TABLE_PATHS_COUNT];
 const char *bitmapTablePathStrings[] = {
-	"images/UI/prompts/exitArrow",
 	"images/player/hand",
 	"images/player/sword",
 	"images/player/knifeHand",

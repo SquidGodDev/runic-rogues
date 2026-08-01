@@ -222,7 +222,6 @@ extern LCDBitmap* BITMAPS[];
 extern uint8_t* SPELL_TEXTURES[];
 
 typedef enum BitmapTablePath {
-	BITMAP_TABLE_EXIT_ARROW,
 	BITMAP_TABLE_HAND,
 	BITMAP_TABLE_SWORD,
 	BITMAP_TABLE_KNIFE_HAND,
