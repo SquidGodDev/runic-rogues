@@ -27,6 +27,11 @@
 #define TD_IN_DURATION      0.70f
 #define TD_OUT_DURATION     0.5f
 
+// System-menu arrow animation shown alongside the STR_TUTORIAL_R1_3 page.
+#define TD_MENU_ARROW_X         169
+#define TD_MENU_ARROW_Y         15
+#define TD_MENU_ARROW_FRAME_T   0.1f
+
 typedef enum {
     TD_HIDDEN,
     TD_TRANSITION_IN,
@@ -47,6 +52,12 @@ static int dRevealedChars;
 static float dCharAccumulator;
 static float dTransitionTime;
 static bool dCompletedFlag;
+static float dMenuArrowTime;
+static int dMenuArrowFrame;
+
+static bool dPageIsMenuArrow(void) {
+    return dPages != NULL && dPageIndex < dPageCount && dPages[dPageIndex] == STR_TUTORIAL_R1_3;
+}
 
 static int utf8NumChars(const char *s) {
     int n = 0;
@@ -246,6 +257,8 @@ void openTutorialDialogPages(const StringKey *pages, int pageCount) {
     dState = TD_TRANSITION_IN;
     dTransitionTime = 0;
     dCompletedFlag = false;
+    dMenuArrowTime = 0;
+    dMenuArrowFrame = 0;
     if (pageCount > 0) {
         wrapPage(getLocString(pages[0]));
     }
@@ -262,6 +275,16 @@ bool isTutorialDialogComplete(void) {
 void updateTutorialDialog(float deltaTime) {
     if (dState == TD_HIDDEN) {
         return;
+    }
+
+    if (dPageIsMenuArrow()) {
+        int frameCount;
+        pd->graphics->getBitmapTableInfo(BITMAP_TABLES[BITMAP_TABLE_SYSTEM_MENU_ARROW], &frameCount, NULL);
+        dMenuArrowTime += deltaTime;
+        while (dMenuArrowTime >= TD_MENU_ARROW_FRAME_T) {
+            dMenuArrowTime -= TD_MENU_ARROW_FRAME_T;
+            dMenuArrowFrame = (dMenuArrowFrame + 1) % frameCount;
+        }
     }
 
     if (dState == TD_TRANSITION_IN) {
@@ -338,6 +361,11 @@ void drawTutorialDialog(void) {
 
     if (dState == TD_TRANSITION_IN || dState == TD_TRANSITION_OUT) {
         return;
+    }
+
+    if (dPageIsMenuArrow()) {
+        LCDBitmap *arrowFrame = pd->graphics->getTableBitmap(BITMAP_TABLES[BITMAP_TABLE_SYSTEM_MENU_ARROW], dMenuArrowFrame);
+        pd->graphics->drawBitmap(arrowFrame, TD_MENU_ARROW_X, TD_MENU_ARROW_Y, kBitmapUnflipped);
     }
 
     bool isJapanese = (SETTINGS.language == LANGUAGE_JP);

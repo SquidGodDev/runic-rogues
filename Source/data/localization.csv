@@ -139,7 +139,7 @@ popup.dragon_boss,"The Dragon","ドラゴン"
 # == Tutorial dialog pages ==
 tutorial.r1_1,"Welcome to the tutorial!","チュートリアルへようこそ！"
 tutorial.r1_2,"Use the d-pad to move and the crank to look around.","十字キーで移動し、クランクを回して、視点を変えよう。"
-tutorial.r1_3,"Access the system menu to change your controls.","システムメニューから操作方法を変更できるぞ。"
+tutorial.r1_3,"Control settings can be changed from the settings menu.","設定メニューから操作設定を変更できるぞ。"
 tutorial.r1_4,"Try moving to each arrow!","それぞれの矢印まで移動してみよう！"
 tutorial.r2_1,"Press the A button to cast your basic spell.","Aボタンで基本スキルを使おう。"
 tutorial.r2_2,"Hold A to keep casting whenever it's off cooldown.","Aを押し続けると、クールダウンが終わるたびに基本スキルが発動し続けるぞ。"
