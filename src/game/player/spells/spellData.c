@@ -149,7 +149,6 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .projectileData = (SpellProjectileData) {
             .speed        = 75.0f,
             .pierceCount  = 0,
-            .activeTime   = 1.0f,
             .onHitSpell   = SPELL_CHAIN_LIGHTNING_LINK,
             .primaryData  = 3, // chain count
             .textureIndex = TEXTURE_LIGHTNING_BALL,
