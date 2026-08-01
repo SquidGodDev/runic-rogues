@@ -138,6 +138,9 @@ popup.elder_boss,"The Elder","エルダー"
 popup.wraith_boss,"The Wraith","レイス"
 popup.dragon_boss,"The Dragon","ドラゴン"
 
+# == Interactable prompts ==
+prompt.next_floor,"Next Floor","次のフロアへ"
+
 # == Tutorial dialog pages ==
 tutorial.r1_1,"Welcome to the tutorial!","チュートリアルへようこそ！"
 tutorial.r1_2,"Use the d-pad to move and the crank to look around.","十字キーで移動し、クランクを回して、視点を変えよう。"

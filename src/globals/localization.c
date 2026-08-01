@@ -142,6 +142,8 @@ static const char *STR_KEYS[STR_COUNT] = {
     [STR_POPUP_WRAITH_BOSS] = "popup.wraith_boss",
     [STR_POPUP_DRAGON_BOSS] = "popup.dragon_boss",
 
+    [STR_PROMPT_NEXT_FLOOR] = "prompt.next_floor",
+
     [STR_TUTORIAL_R1_1] = "tutorial.r1_1",
     [STR_TUTORIAL_R1_2] = "tutorial.r1_2",
     [STR_TUTORIAL_R1_3] = "tutorial.r1_3",

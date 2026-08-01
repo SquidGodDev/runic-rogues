@@ -5,6 +5,7 @@
 #include "game/rendering/textures.h"
 #include "game/UI/popups.h"
 #include "game/UI/bossTitle.h"
+#include "game/UI/interactablePrompt.h"
 
 uint8_t* TEXTURES[TEXTURE_COUNT];
 TextureBounds* TEXTURE_BOUNDS[TEXTURE_COUNT];
@@ -110,8 +111,6 @@ const char *bitmapPathStrings[] = {
 	"images/UI/minimap/minimapMask",
 	"images/UI/wave/waveProgressBar",
 	"images/UI/prompts/AButton",
-	"images/UI/prompts/exitPrompt",
-	"images/UI/prompts/exitPrompt_JP",
 	"images/UI/prompts/restPrompt",
 	"images/UI/prompts/restPrompt_JP",
 	"images/shop/shopPopupBackground",
@@ -343,7 +342,7 @@ void loadDefaultFont(void) {
 }
 
 int getTextureAssetCount(void) {
-	return FONT_COUNT + TEXTURE_COUNT + BITMAP_PATHS_COUNT + BITMAP_TABLE_PATHS_COUNT + getBossTitleAssetCount();
+	return FONT_COUNT + TEXTURE_COUNT + BITMAP_PATHS_COUNT + BITMAP_TABLE_PATHS_COUNT + getBossTitleAssetCount() + getInteractablePromptAssetCount();
 }
 
 void loadTextureAsset(int step) {
@@ -394,6 +393,12 @@ void loadTextureAsset(int step) {
 
 	if (step < getBossTitleAssetCount()) {
 		buildBossTitle(step);
+		return;
+	}
+	step -= getBossTitleAssetCount();
+
+	if (step < getInteractablePromptAssetCount()) {
+		buildInteractablePrompt(step);
 		return;
 	}
 }

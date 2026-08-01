@@ -136,6 +136,9 @@ typedef enum StringKey {
     STR_POPUP_WRAITH_BOSS,
     STR_POPUP_DRAGON_BOSS,
 
+    // Interactable prompt labels (rendered to bitmaps for both languages on init)
+    STR_PROMPT_NEXT_FLOOR,
+
     // Tutorial dialog pages
     STR_TUTORIAL_R1_1,
     STR_TUTORIAL_R1_2,

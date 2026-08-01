@@ -6,6 +6,7 @@
 #include "globals/localization.h"
 #include "game/UI/UI.h"
 #include "game/UI/bossTitle.h"
+#include "game/UI/interactablePrompt.h"
 #include "game/UI/runeHUD.h"
 #include "game/player/player.h"
 #include "game/player/playerStats.h"
@@ -537,11 +538,7 @@ void drawInteractablePrompt(void) {
     }
 
     if (curInteractable.type == INTERACTABLE_TYPE_EXIT) {
-        if (SETTINGS.language == LANGUAGE_JP) {
-            drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_EXIT_JP], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
-        } else {
-            drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_EXIT], INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
-        }
+        drawCenteredBitmap(getInteractablePromptBitmap(INTERACTABLE_PROMPT_NEXT_FLOOR), INTERACTABLE_PROMPT_LABEL_X, INTERACTABLE_PROMPT_LABEL_Y);
         drawCenteredBitmap(BITMAPS[BITMAP_PROMPT_A_BUTTON], INTERACTABLE_BUTTON_PROMPT_X, INTERACTABLE_BUTTON_PROMPT_Y);
     } else if (curInteractable.type == INTERACTABLE_TYPE_CAMPFIRE) {
         if (SETTINGS.language == LANGUAGE_JP) {
