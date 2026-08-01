@@ -211,8 +211,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
     },
     [RUNE_TYPE_SWIFT] = {
         .iconIndex = BITMAP_RUNE_SWIFT,
-        .primaryBaseValue = 0.25f,
-        .primaryPerLevel = 0.25f,
+        .primaryBaseValue = 0.10f,
+        .primaryPerLevel = 0.10f,
         .maxLevel = 3,
         .primaryModifyOperation = MODIFY_OP_MULTIPLY
     },
@@ -539,8 +539,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         // Move-speed multiplier handled directly in getPlayerMoveSpeed()
         .iconIndex = BITMAP_RUNE_CRESCENDO,
         .hudIconIndex = BITMAP_RUNE_HUD_CRESCENDO,
-        .primaryBaseValue   = 0.5f,  // +50% move speed at max ramp
-        .secondaryBaseValue = 10.0f, // seconds of movement to reach max
+        .primaryBaseValue   = 0.3f,  // +30% move speed at max ramp
+        .secondaryBaseValue = 15.0f, // seconds of movement to reach max
         .maxLevel = 1
     },
     [RUNE_TYPE_FOCUS] = {
@@ -560,9 +560,10 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         // Move-speed multiplier handled directly in getPlayerMoveSpeed()
         .iconIndex = BITMAP_RUNE_RAPIER,
         .hudIconIndex = BITMAP_RUNE_HUD_RAPIER,
-        .primaryBaseValue   = 0.5f, // +50% move speed at cap
-        .secondaryBaseValue = 0.1f, // ramp progress percentage added per hit
-        .maxLevel = 1,
+        .primaryBaseValue   = 0.3f, // +30%, 40%, 50% move speed at cap
+        .primaryPerLevel = 0.1f,
+        .secondaryBaseValue = 0.05f, // 5% ramp progress added per hit
+        .maxLevel = 3,
         .triggerType = RUNE_TRIGGER_DAMAGE_ENEMY,
         .triggerBaseValue = 1.0f,
         .triggerCallback  = rapierCallback
