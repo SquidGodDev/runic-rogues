@@ -884,6 +884,70 @@ void proximityProjectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, in
 	}
 }
 
+// Fires a full circle of evenly spaced projectiles, rotated so one of them flies straight
+// at the player. count is the number of projectiles, speed applies to all of them.
+static void fireProjectileRing(Enemy *curEnemy, EnemyData *curEnemyData, int count, float speed) {
+	if (count <= 0) {
+		return;
+	}
+	float baseAngle = atan2f(playerY - curEnemy->y, playerX - curEnemy->x);
+	float sector = 2.0f * PI / (float)count;
+	for (int i = 0; i < count; i++) {
+		float angle = baseAngle + i * sector;
+		float dx = cosf(angle);
+		float dy = sinf(angle);
+		float px = curEnemy->x + dx * PROJECTILE_OFFSET;
+		float py = curEnemy->y + dy * PROJECTILE_OFFSET;
+		fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, dx, dy, speed, curEnemyData->attackDamage, curEnemyData->projectileData);
+	}
+}
+
+// Walks toward the player, then winds up and bursts a ring of projectiles in every direction.
+// abilityDataSecondary is the projectile count, abilityDataTertiary is the projectile speed.
+void ringProjectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
+
+		if (playerInAttackDetectionRange(index)) {
+			if (curEnemy->attackCooldown <= 0) {
+				curEnemy->attackCooldown = curEnemyData->attackCooldown;
+				curEnemy->stateTimer = curEnemyData->prepTime;
+				transitionToState(curEnemy, ENEMY_STATE_PREP);
+				playEnemyPrepSFX(curEnemy, curEnemyData);
+				addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemyData->prepTime);
+			}
+		} else {
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+		}
+
+		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+	} else if (curEnemy->state == ENEMY_STATE_PREP) {
+		if (curEnemy->stateTimer <= 0) {
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		playEnemyAttackSFX(curEnemy, curEnemyData);
+
+		// Burst the ring once the attack animation reaches its active frame
+		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			curEnemy->attackedPlayer = true;
+			fireProjectileRing(curEnemy, curEnemyData, (int)curEnemyData->abilityDataSecondary, curEnemyData->abilityDataTertiary);
+		}
+
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			curEnemy->stateTimer = curEnemyData->postAttackTime;
+			curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
+			transitionToState(curEnemy, ENEMY_STATE_POST_ATTACK);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_POST_ATTACK) {
+		if (curEnemy->stateTimer <= 0) {
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
 // Kites to a standoff distance and lobs a single slow, telegraphed projectile.
 // abilityDataPrimary is projectile speed, abilityDataSecondary is the preferred standoff distance.
 void lobberEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
