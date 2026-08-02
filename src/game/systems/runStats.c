@@ -124,8 +124,10 @@ void runStatsCaptureFinal(bool wasVictory) {
 
     if (wasVictory) {
         // Winning a run unlocks the next difficulty level for the class it was
-        // played with. Persist immediately so the unlock survives a power-off.
+        // played with, and unlocks the next class in select order. Persist
+        // immediately so the unlocks survive a power-off.
         unlockNextDifficultyForClass(getCurrentClassType(), getRunDifficulty());
+        setClassUnlocked((ClassType)(getCurrentClassType() + 1), true);
         saveGame();
     }
 

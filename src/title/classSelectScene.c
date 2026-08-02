@@ -89,6 +89,11 @@
 #define CLASS_3D_MODEL_FRAME_TIME 1.0f / DEFAULT_TARGET_FPS
 #define SLIDE_DURATION 0.35f
 
+// Locked-class overlay: the lock icon and its two text lines are stacked and
+// centered on screen, sliding horizontally with the class model behind them.
+#define LOCK_TEXT_GAP 4       // below the lock icon before the "LOCKED" line
+#define LOCK_TEXT_LINE_GAP 1  // between the "LOCKED" line and the hint line
+
 typedef struct ClassBitmapTableData {
     BitmapTablePath bitmapTablePath;
     int introEndFrame;
@@ -389,6 +394,50 @@ static void drawInfoPopups(int popupY) {
     }
 }
 
+static void drawClassLockOverlay(int classIndex, float groupX) {
+    if (isClassUnlocked((ClassType)classIndex)) {
+        return;
+    }
+    if (groupX <= -100.0f || groupX >= (float)SCREEN_WIDTH + 100.0f) {
+        return;
+    }
+
+    bool isJapanese = (SETTINGS.language == LANGUAGE_JP);
+    LCDFont *font = isJapanese ? fontSubJPDoubleOutline : fontSubENDoubleOutline;
+    int textTracking = isJapanese ? 0 : -3;
+    int fontHeight = pd->graphics->getFontHeight(font);
+
+    LCDBitmap *lock = BITMAPS[BITMAP_CLASS_SELECT_LOCK];
+    int lockW = 0, lockH = 0;
+    pd->graphics->getBitmapData(lock, &lockW, &lockH, NULL, NULL, NULL);
+
+    const char *locked = getLocString(STR_CLASS_SELECT_LOCKED);
+    const char *prevName = isJapanese ? classData[classIndex - 1].nameJP : classData[classIndex - 1].name;
+    char *hint = NULL;
+    pd->system->formatString(&hint, getLocString(STR_CLASS_SELECT_UNLOCK_HINT), prevName);
+    const char *hintText = (hint != NULL) ? hint : "";
+
+    int top = (SCREEN_HEIGHT - lockH) / 2;
+    int centerX = (int)groupX;
+
+    pd->graphics->setDrawMode(kDrawModeCopy);
+    pd->graphics->drawBitmap(lock, centerX - lockW / 2, top, kBitmapUnflipped);
+
+    pd->graphics->setFont(font);
+    pd->graphics->setTextTracking(textTracking);
+    int lockedWidth = pd->graphics->getTextWidth(font, locked, strlen(locked), kUTF8Encoding, textTracking);
+    int lockedY = top + lockH + LOCK_TEXT_GAP;
+    pd->graphics->drawText(locked, strlen(locked), kUTF8Encoding, centerX - lockedWidth / 2, lockedY);
+
+    int hintWidth = pd->graphics->getTextWidth(font, hintText, strlen(hintText), kUTF8Encoding, textTracking);
+    int hintY = lockedY + fontHeight + LOCK_TEXT_LINE_GAP;
+    pd->graphics->drawText(hintText, strlen(hintText), kUTF8Encoding, centerX - hintWidth / 2, hintY);
+
+    if (hint != NULL) {
+        pd->system->realloc(hint, 0);
+    }
+}
+
 void updateClassSelectScene(float deltaTime) {
     pd->graphics->clear(kColorBlack);
 
@@ -446,6 +495,7 @@ void updateClassSelectScene(float deltaTime) {
         int modelDrawY = (SCREEN_HEIGHT - m->height) / 2 + MODEL_Y_OFFSET;
         LCDBitmap *frame = pd->graphics->getTableBitmap(m->bitmapTable, m->currentFrame);
         pd->graphics->drawBitmap(frame, modelDrawX, modelDrawY, kBitmapUnflipped);
+        drawClassLockOverlay(i, groupX);
     }
 
     bool isJapanese = (SETTINGS.language == LANGUAGE_JP);
@@ -562,10 +612,14 @@ void updateClassSelectScene(float deltaTime) {
             }
 
             if (pushed & kButtonA) {
-                playSound(SFX_UI_RUNE_SLIDE);
-                infoOpen = true;
-                infoSlideStart = infoDisplay;
-                infoSlideTime = SLIDE_DURATION;
+                if (!isClassUnlocked((ClassType)selectedIndex)) {
+                    playSound(SFX_CLASS_ERROR);
+                } else {
+                    playSound(SFX_UI_RUNE_SLIDE);
+                    infoOpen = true;
+                    infoSlideStart = infoDisplay;
+                    infoSlideTime = SLIDE_DURATION;
+                }
             } else if (pushed & kButtonB) {
                 playSound(SFX_CLASS_BACK);
                 switchScene(SCENE_TITLE);

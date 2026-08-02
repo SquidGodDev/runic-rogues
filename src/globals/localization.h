@@ -91,6 +91,8 @@ typedef enum StringKey {
     STR_CLASS_SELECT_SELECT,
     STR_CLASS_SELECT_BASIC_TAG,
     STR_CLASS_SELECT_SPECIAL_TAG,
+    STR_CLASS_SELECT_LOCKED,
+    STR_CLASS_SELECT_UNLOCK_HINT, // printf format: name of the class to win with
 
     // Difficulty selector (STR_DIFFICULTY_0..4 must stay contiguous and ordered)
     STR_DIFFICULTY_0,

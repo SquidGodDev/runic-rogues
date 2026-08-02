@@ -103,6 +103,8 @@ static const char *STR_KEYS[STR_COUNT] = {
     [STR_CLASS_SELECT_SELECT] = "class_select.select",
     [STR_CLASS_SELECT_BASIC_TAG] = "class_select.basic_tag",
     [STR_CLASS_SELECT_SPECIAL_TAG] = "class_select.special_tag",
+    [STR_CLASS_SELECT_LOCKED] = "class_select.locked",
+    [STR_CLASS_SELECT_UNLOCK_HINT] = "class_select.unlock_hint",
 
     [STR_DIFFICULTY_0] = "difficulty.0",
     [STR_DIFFICULTY_1] = "difficulty.1",

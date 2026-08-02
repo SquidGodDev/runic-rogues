@@ -173,6 +173,12 @@ static void applyKeyValue(const char *key, const char *value) {
         setClassLastSelectedDifficulty((ClassType)2, parseInt(value));
     } else if (strcmp(key, "classLastDifficulty3") == 0) {
         setClassLastSelectedDifficulty((ClassType)3, parseInt(value));
+    } else if (strcmp(key, "classUnlocked1") == 0) {
+        setClassUnlocked((ClassType)1, parseInt(value) != 0);
+    } else if (strcmp(key, "classUnlocked2") == 0) {
+        setClassUnlocked((ClassType)2, parseInt(value) != 0);
+    } else if (strcmp(key, "classUnlocked3") == 0) {
+        setClassUnlocked((ClassType)3, parseInt(value) != 0);
     }
 }
 
@@ -240,7 +246,10 @@ void saveGame(void) {
         "classLastDifficulty0=%d\n"
         "classLastDifficulty1=%d\n"
         "classLastDifficulty2=%d\n"
-        "classLastDifficulty3=%d\n",
+        "classLastDifficulty3=%d\n"
+        "classUnlocked1=%d\n"
+        "classUnlocked2=%d\n"
+        "classUnlocked3=%d\n",
         SAVE_VERSION,
         (int)SETTINGS.language,
         (int)SETTINGS.controlScheme,
@@ -278,7 +287,10 @@ void saveGame(void) {
         getClassLastSelectedDifficulty((ClassType)0),
         getClassLastSelectedDifficulty((ClassType)1),
         getClassLastSelectedDifficulty((ClassType)2),
-        getClassLastSelectedDifficulty((ClassType)3)
+        getClassLastSelectedDifficulty((ClassType)3),
+        getClassUnlockedStored((ClassType)1) ? 1 : 0,
+        getClassUnlockedStored((ClassType)2) ? 1 : 0,
+        getClassUnlockedStored((ClassType)3) ? 1 : 0
     );
 
     if (len > 0 && body != NULL) {

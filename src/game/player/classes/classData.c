@@ -67,7 +67,41 @@ void initClassLocalization(void) {
     }
 }
 
-ClassType currentClass = CLASS_KNIGHT;
+ClassType currentClass = CLASS_MAGE;
+
+// Stored unlock flags for classes past Mage. Mage (index 0) is always unlocked
+// and is not tracked here. Populated from the save on boot.
+static bool classUnlocked[CLASS_COUNT];
+
+bool isClassUnlocked(ClassType classType) {
+    if (DEBUG.enabled) {
+        return true;
+    }
+    if (classType < 0 || classType >= CLASS_COUNT) {
+        return false;
+    }
+    if (classType == CLASS_MAGE) {
+        return true;
+    }
+    return classUnlocked[classType];
+}
+
+bool getClassUnlockedStored(ClassType classType) {
+    if (classType < 0 || classType >= CLASS_COUNT) {
+        return false;
+    }
+    if (classType == CLASS_MAGE) {
+        return true;
+    }
+    return classUnlocked[classType];
+}
+
+void setClassUnlocked(ClassType classType, bool unlocked) {
+    if (classType <= CLASS_MAGE || classType >= CLASS_COUNT) {
+        return;
+    }
+    classUnlocked[classType] = unlocked;
+}
 
 ClassType getCurrentClassType(void) {
     return currentClass;
