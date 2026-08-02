@@ -179,7 +179,7 @@ SpellData baseSpellData[SPELL_COUNT] = {
         .cooldown = 0.5f,
         .damage = 15,
         .knockbackTime = 0.3f,
-        .knockbackAmount = 3.0f,
+        .knockbackAmount = 2.0f,
         .meleeData = (MeleeData) {
             .range = CELL_SIZE * 1.5f
         },
