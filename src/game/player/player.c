@@ -33,6 +33,7 @@
 #define THORNS_ROOT_COUNT 8 // Roots summoned in a ring when hit
 
 #define DOUBLE_TAP_TIME 0.3f // Seconds
+#define DASH_DEBOUNCE_TIME 0.08f // Seconds; ignore second taps sooner than this (button bounce)
 
 // === Extern variables ===
 float playerX, playerY;
@@ -441,9 +442,11 @@ void handleInput(float deltaTime)
 	PDButtons pressedDirection = pushed & (kButtonLeft | kButtonRight | kButtonUp | kButtonDown);
 	if (pressedDirection && !(current & specialSpellButton) && movementStats.curDashTime <= 0) {
 		if (movementStats.dashDoubleTapTime > 0 && (movementStats.dashMovementDir & pressedDirection)) {
-			movementStats.dashDoubleTapTime = 0;
-			if (dashEnabled) {
-				castUtilitySpell();
+			if (DOUBLE_TAP_TIME - movementStats.dashDoubleTapTime >= DASH_DEBOUNCE_TIME) {
+				movementStats.dashDoubleTapTime = 0;
+				if (dashEnabled) {
+					castUtilitySpell();
+				}
 			}
 		} else {
 			movementStats.dashDoubleTapTime = DOUBLE_TAP_TIME;
