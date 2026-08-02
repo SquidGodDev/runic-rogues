@@ -1448,7 +1448,7 @@ static void elderSpawnRootWarnings(Enemy *curEnemy) {
 		for (int root = 1; root <= elderProperties->attack2Count; root++) {
 			float offsetX = dx * (float)(root * elderProperties->attack2Spacing);
 			float offsetY = dy * (float)(root * elderProperties->attack2Spacing);
-			spawnParticle(PARTICLE_TYPE_WARNING, curEnemy->x + offsetX, curEnemy->y + offsetY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /*enemyParticle*/);
+			spawnParticle(PARTICLE_TYPE_WARNING_MEDIUM, curEnemy->x + offsetX, curEnemy->y + offsetY, curEnemy->x, curEnemy->y, PARTICLE_TYPE_BOSS_ROOT_ATTACK, true /*enemyParticle*/);
 		}
 	}
 }

@@ -85,6 +85,15 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 		.damageRadius = 0,
 		.sfx = SFX_NONE
 	},
+	[PARTICLE_TYPE_WARNING_MEDIUM] = {
+		.frameCount = 3,
+		.animationTime = 0.3f,
+		.textureIndex = TEXTURE_PARTICLE_WARNING,
+		.damageFrame = 0,
+		.damage = 0,
+		.damageRadius = 0,
+		.sfx = SFX_NONE
+	},
 	[PARTICLE_TYPE_WARNING_LONG] = {
 		.frameCount = 6,
 		.animationTime = 0.3f,
