@@ -794,56 +794,8 @@ void slamEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 	}
 }
 
-void projectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
-	if (curEnemy->state == ENEMY_STATE_IDLE) {
-		playEnemyIdleSFX(curEnemy, curEnemyData);
-		// Start shooting projectile if player is in range
-		if (curEnemy->attackCooldown <= 0 && playerInAttackDetectionRange(index)) {
-			playEnemyPrepSFX(curEnemy, curEnemyData);
-			curEnemy->attackCooldown = curEnemyData->attackCooldown;
-			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
-			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
-		}
-
-		// Choose a random target position to move towards
-		if (curEnemy->abilityCooldown <= 0) {
-			if (randInt(0, 100) < 33) {
-				curEnemy->targetX = playerX;
-				curEnemy->targetY = playerY;
-			} else {
-				curEnemy->targetX = curEnemy->x + randInt(-1, 1) * CELL_SIZE;
-				curEnemy->targetY = curEnemy->y + randInt(-1, 1) * CELL_SIZE;
-			}
-			curEnemy->abilityCooldown = curEnemyData->abilityDataSecondary;
-		}
-		moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
-	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
-		// Fire projectile towards player if attack animation passes active frame
-		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
-			curEnemy->attackedPlayer = true;
-			float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy->x, curEnemy->y));
-			float deltaX = (playerX - curEnemy->x) / distanceToPlayer;
-			float deltaY = (playerY - curEnemy->y) / distanceToPlayer;
-			float projectileSpeed = curEnemyData->abilityDataPrimary;
-			float damage = curEnemyData->attackDamage;
-			float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
-			float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
-			fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, projectileSpeed, damage, curEnemyData->projectileData);
-			if (curEnemyData->attackSFX != SFX_NONE) {
-				playSoundSpatial(curEnemyData->attackSFX, curEnemy->x, curEnemy->y);
-			}
-		}
-
-		// Transition back to idle state after attack animation ends
-		if (attackAnimationReset) {
-			curEnemy->attackedPlayer = false;
-			transitionToState(curEnemy, ENEMY_STATE_IDLE);
-		}
-	}
-}
-
 // Walks straight toward the player like a proximity enemy, then once the player is within
-// attack detection range it stops to fire a single projectile (like projectileEnemyUpdate).
+// attack detection range it stops to fire a single projectile.
 void proximityProjectileEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {
 		playEnemyIdleSFX(curEnemy, curEnemyData);
@@ -1393,6 +1345,139 @@ void bansheeUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool att
 		// After every shot has fired, wander to a new position on the next animation loop
 		if (curEnemy->stateCount >= BANSHEE_VOLLEY_SHOT_COUNT && attackAnimationReset) {
 			curEnemy->stateCount = 0;
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
+// === Imp constants ===
+#define IMP_ARC_ANGLE (10.0f * PI / 180.0f)      // Full arc the shots are spread across, radians
+#define IMP_ARRIVAL_RADIUS (CELL_SIZE * 0.75f)   // How close the imp gets before it stops to fire
+#define IMP_RETREAT_SAMPLES 20                   // Candidate cells scored per repositioning
+#define IMP_OPPOSITE_WEIGHT (CELL_SIZE * 5.0f)   // How strongly the far side of the room is favoured
+
+// Picks the best of IMP_RETREAT_SAMPLES random floor cells in the imp's room, favouring cells that are far
+// from the player and on the opposite side of the room from them. minDistance is the minimum distance from
+// the imp's current position; it is relaxed if no sample clears it. Leaves the target unchanged if every
+// sample was blocked.
+static void impPickRetreatTarget(Enemy *curEnemy, float minDistance) {
+	int roomIndex = getCurrentRoomIndex();
+	Point interiorMin = getRoomInteriorMin(roomIndex);
+	Point interiorMax = getRoomInteriorMax(roomIndex);
+	float minDistanceSq = minDistance * minDistance;
+
+	// Direction pointing from the player through the room center — cells this way are "opposite" the player
+	float centerX = (interiorMin.x + interiorMax.x + 1) * CELL_SIZE / 2.0f;
+	float centerY = (interiorMin.y + interiorMax.y + 1) * CELL_SIZE / 2.0f;
+	float awayX = centerX - playerX;
+	float awayY = centerY - playerY;
+	float awayLength = sqrtf(awayX * awayX + awayY * awayY);
+	if (awayLength > 0.001f) {
+		awayX /= awayLength;
+		awayY /= awayLength;
+	} else {
+		awayX = 0.0f;
+		awayY = 0.0f;
+	}
+
+	float bestScore = 0.0f;
+	float bestX = 0.0f;
+	float bestY = 0.0f;
+	bool foundAny = false;
+	bool foundFarEnough = false;
+	for (int attempt = 0; attempt < IMP_RETREAT_SAMPLES; attempt++) {
+		int cellX = randInt(interiorMin.x, interiorMax.x);
+		int cellY = randInt(interiorMin.y, interiorMax.y);
+		if (isBlocked(cellX, cellY)) {
+			continue;
+		}
+		float candidateX = cellX * CELL_SIZE + CELL_SIZE / 2.0f;
+		float candidateY = cellY * CELL_SIZE + CELL_SIZE / 2.0f;
+
+		float dx = candidateX - curEnemy->x;
+		float dy = candidateY - curEnemy->y;
+		bool farEnough = dx * dx + dy * dy >= minDistanceSq;
+		if (foundFarEnough && !farEnough) {
+			continue;
+		}
+
+		float toPlayerX = candidateX - playerX;
+		float toPlayerY = candidateY - playerY;
+		float distanceToPlayer = sqrtf(toPlayerX * toPlayerX + toPlayerY * toPlayerY);
+		float alignment = distanceToPlayer > 0.001f ? (toPlayerX * awayX + toPlayerY * awayY) / distanceToPlayer : 0.0f;
+		float score = distanceToPlayer + alignment * IMP_OPPOSITE_WEIGHT;
+
+		// A candidate that clears minDistance always beats one that does not
+		if (farEnough && !foundFarEnough) {
+			foundFarEnough = true;
+		} else if (foundAny && score <= bestScore) {
+			continue;
+		}
+		foundAny = true;
+		bestScore = score;
+		bestX = candidateX;
+		bestY = candidateY;
+	}
+
+	if (foundAny) {
+		curEnemy->targetX = bestX;
+		curEnemy->targetY = bestY;
+	}
+}
+
+// Fires abilityDataPrimary projectiles at once, evenly spaced across IMP_ARC_ANGLE and centred on the
+// player's position at the moment of firing.
+static void impFireArc(Enemy *curEnemy, EnemyData *curEnemyData, int shotCount) {
+	float centerAngle = atan2f(playerY - curEnemy->y, playerX - curEnemy->x);
+	float spacing = shotCount > 1 ? IMP_ARC_ANGLE / (shotCount - 1) : 0.0f;
+	float startAngle = centerAngle - IMP_ARC_ANGLE * 0.5f;
+	for (int i = 0; i < shotCount; i++) {
+		float angle = shotCount > 1 ? startAngle + i * spacing : centerAngle;
+		float deltaX = cosf(angle);
+		float deltaY = sinf(angle);
+		float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+		float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+		fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, curEnemyData->abilityDataSecondary, curEnemyData->attackDamage, curEnemyData->projectileData);
+	}
+}
+
+// Scurries to positions away from the player; on arrival it fires abilityDataPrimary projectiles all at once
+// in an arc aimed at the player, then repositions and repeats. abilityDataSecondary is the projectile speed,
+// abilityDataTertiary is the minimum distance between positions. stateCount is the queued-target flag while
+// idle.
+void impUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
+
+		// No position queued yet (fresh spawn or just finished an arc) — pick the next position
+		if (curEnemy->stateCount == 0) {
+			impPickRetreatTarget(curEnemy, curEnemyData->abilityDataTertiary);
+			curEnemy->stateCount = 1;
+		}
+
+		float dx = curEnemy->targetX - curEnemy->x;
+		float dy = curEnemy->targetY - curEnemy->y;
+		if (dx * dx + dy * dy > IMP_ARRIVAL_RADIUS * IMP_ARRIVAL_RADIUS) {
+			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
+			return;
+		}
+
+		// Arrived: start the attack, the arc aims at wherever the player is when it actually fires
+		curEnemy->stateCount = 0;
+		transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+		addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+		playEnemyPrepSFX(curEnemy, curEnemyData);
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		playEnemyAttackSFX(curEnemy, curEnemyData);
+
+		if (!curEnemy->attackedPlayer && curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			curEnemy->attackedPlayer = true;
+			impFireArc(curEnemy, curEnemyData, (int)curEnemyData->abilityDataPrimary);
+		}
+
+		// Move to a new position once the attack animation finishes
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
 			transitionToState(curEnemy, ENEMY_STATE_IDLE);
 		}
 	}
