@@ -121,20 +121,20 @@ void encloseMapInWalls(int width, int height) {
 static void generateMultiRoomDungeon(void) {
     fillMap(MAP_WALL);
 
-    // Start hallway: x=[1,5] floor, y=8. Entrance gate tracks x=5 to close behind player.
+    // Start hallway: x=[1,5] floor, on the corridor line. Entrance gate tracks x=5 to close behind player.
     for (int x = 1; x <= 5; x++) {
-        setCell(x, 8, MAP_FLOOR);
+        setCell(x, DUNGEON_CORRIDOR_Y, MAP_FLOOR);
     }
     entranceGate = (RoomGate){ .cellCount = 1 };
-    entranceGate.cells[0] = (Point){.x = 5, .y = 8};
+    entranceGate.cells[0] = (Point){.x = 5, .y = DUNGEON_CORRIDOR_Y};
 
-    // Non-boss rooms: 5 rooms of 9x9 interior, stride 14 (9 room + 5 hallway).
-    // Row is centered at y=8 so the 15-tall boss room can center on the same corridor line.
-    int roomInteriorSize = 9;
-    int hallwayLength = 5;
+    // Non-boss rooms: square interiors, stride = room + hallway.
+    // Row is centered on the corridor line so the boss room can center on the same line.
+    int roomInteriorSize = NON_BOSS_ROOM_INTERIOR_SIZE;
+    int hallwayLength = ROOM_HALLWAY_LENGTH;
     for (int i = 0; i < NON_BOSS_ROOM_COUNT; i++) {
         int minX = 6 + i * (roomInteriorSize + hallwayLength);
-        int minY = 4;
+        int minY = DUNGEON_CORRIDOR_Y - roomInteriorSize / 2;
         int maxX = minX + roomInteriorSize - 1;
         int maxY = minY + roomInteriorSize - 1;
         dungeonRooms[i] = (DungeonRoom){
@@ -229,7 +229,7 @@ Point getPlayerSpawnMapPosition(void) {
         DungeonRoom *room = &dungeonRooms[DEBUG.skipToRoom - 1];
         return (Point){.x = room->interiorMinX + 1, .y = room->centerY};
     }
-    return (Point){.x = 1, .y = 8};
+    return (Point){.x = 1, .y = DUNGEON_CORRIDOR_Y};
 }
 
 Point getExitMapPosition(void) {

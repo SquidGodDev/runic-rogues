@@ -11,7 +11,11 @@
 #define DUNGEON_ROOM_COUNT 6
 #define NON_BOSS_ROOM_COUNT (DUNGEON_ROOM_COUNT - 1)
 
-#define BOSS_ROOM_INTERIOR_SIZE 9
+// Dungeon layout tunables
+#define NON_BOSS_ROOM_INTERIOR_SIZE 7  // width/height of each non-boss room interior
+#define BOSS_ROOM_INTERIOR_SIZE 9      // width/height of the boss room interior
+#define ROOM_HALLWAY_LENGTH 5          // length of the hallways connecting rooms
+#define DUNGEON_CORRIDOR_Y 8           // map row that all rooms/gates are centered on
 
 extern int map[MAP_WIDTH * MAP_HEIGHT];
 
