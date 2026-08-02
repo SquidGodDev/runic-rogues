@@ -6,7 +6,7 @@
 #define BASE_HEALTH_REGEN_RATE 0.0f
 #define BASE_UTILITY_SPELL_COUNT 3
 #define BASE_UTILITY_SPELL_CHARGE_RATE 0.2f
-#define BASE_MOVE_SPEED 40.0f
+#define BASE_MOVE_SPEED 30.0f
 
 int getPlayerMaxHealth(void) {
     int maxHealth = BASE_MAX_HEALTH;

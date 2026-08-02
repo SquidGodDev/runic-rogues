@@ -638,7 +638,7 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         // Max health + move speed handled directly in playerStats.c
         .iconIndex = BITMAP_RUNE_KNIGHTS_HELM,
         .primaryBaseValue   = 30,     // +30 max health
-        .secondaryBaseValue = -0.30f, // -30% move speed
+        .secondaryBaseValue = -0.15f, // -15% move speed
         .maxLevel = 1,
         .secondaryModifyOperation = MODIFY_OP_MULTIPLY,
         .classFilter = RUNE_CLASS_FILTER_KNIGHT
