@@ -298,9 +298,10 @@ static void updateTutorialPhase(float deltaTime) {
                 Point maxP = getRoomInteriorMax(0);
                 Point center = getRoomCenter(0);
                 int cellX, cellY;
+                int wallInset = 1;
                 switch (r1ArrowStep) {
-                    case 0: cellX = (int)maxP.x - 2; cellY = (int)minP.y + 2; break;
-                    case 1: cellX = (int)maxP.x - 2; cellY = (int)maxP.y - 2; break;
+                    case 0: cellX = (int)maxP.x - wallInset; cellY = (int)minP.y + wallInset; break;
+                    case 1: cellX = (int)maxP.x - wallInset; cellY = (int)maxP.y - wallInset; break;
                     default: cellX = (int)center.x; cellY = (int)center.y; break;
                 }
                 int worldX = cellX * CELL_SIZE + CELL_SIZE / 2;
