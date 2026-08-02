@@ -274,6 +274,8 @@ rune.bomb_arrow.name,"Bomb Arrow","爆弾矢"
 rune.bomb_arrow.desc,"Every {T} fully-charged arrows drop a bomb on the first enemy hit.","{T}回ためうちの矢を放つごとに、最初に当たった敵に爆弾を落とす。"
 rune.quickdraw.name,"Quickdraw","早撃ち"
 rune.quickdraw.desc,"Decreases bow draw time by {1}%.","弓のためうち時間が{1}%減少する。"
+rune.revive.name,"Revive","蘇生"
+rune.revive.desc,"The first time you would die, revive with {1}% of your max health.","初めて倒れたとき、最大体力の{1}%で復活する。"
 
 # == Spell names and descriptions ==
 spell.none.name,"None","なし"

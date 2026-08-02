@@ -140,6 +140,9 @@ void drawRuneHUD(void) {
         } else if (type == RUNE_TYPE_STONE_GOLEM && !playerIsMoving()) {
             drawStaticSlot(slotIndex, getRuneHudIconIndex(type));
             slotIndex++;
+        } else if (type == RUNE_TYPE_REVIVE && reviveIsAvailable()) {
+            drawStaticSlot(slotIndex, getRuneHudIconIndex(type));
+            slotIndex++;
         } else if (type == RUNE_TYPE_ADRENALINE && adrenalineIsActive()) {
             drawStaticSlot(slotIndex, getRuneHudIconIndex(type));
             slotIndex++;

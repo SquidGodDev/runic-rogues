@@ -56,6 +56,7 @@ typedef enum RuneType {
     RUNE_TYPE_HIGH_VOLTAGE,
     RUNE_TYPE_BOMB_ARROW,
     RUNE_TYPE_QUICKDRAW,
+    RUNE_TYPE_REVIVE,
     RUNE_TYPE_COUNT
 } RuneType;
 
@@ -167,6 +168,9 @@ bool bulwarkIsAvailable(void);
 void consumeBulwark(void);
 // Adrenaline: active while owned and below 33% health.
 bool adrenalineIsActive(void);
+// Revive: available when owned and not yet spent this run.
+bool reviveIsAvailable(void);
+void consumeRevive(void);
 // Black Hole: only one is active at a time; cleared with the particles it drives.
 void clearBlackHole(void);
 // HUD fill (0..1) for Black Hole; reaches 1.0 when the next kill spawns a hole.

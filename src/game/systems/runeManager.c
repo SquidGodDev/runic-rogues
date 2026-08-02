@@ -49,6 +49,7 @@ static float rapierProgress;  // move-speed ramp (0..1)
 static float rapierWindow;    // seconds left before Rapier resets
 static float rootwalkerTimer; // accumulates while moving, spawns roots at interval
 static bool bulwarkAvailable; // Bulwark shield, consumed on the first hit each room
+static bool reviveAvailable;  // Revive, consumed on the first death of the run
 static float blackHoleTime;      // seconds left on the active black hole
 static float blackHolePullTimer; // seconds until the next pull is applied
 static float blackHoleX;
@@ -697,6 +698,14 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .primaryModifyOperation = MODIFY_OP_MULTIPLY,
         .applySpellModifierPrimary = modifyChargeTime,
         .classFilter = RUNE_CLASS_FILTER_RANGER
+    },
+    [RUNE_TYPE_REVIVE] = {
+        // Death interception handled directly in damagePlayer()
+        .iconIndex = BITMAP_RUNE_REVIVE,
+        .hudIconIndex = BITMAP_RUNE_HUD_REVIVE,
+        .primaryBaseValue = 0.25f, // health fraction restored on revive
+        .maxLevel = 1,
+        .primaryModifyOperation = MODIFY_OP_MULTIPLY
     }
 };
 
@@ -752,6 +761,7 @@ static const char *RUNE_LOC_IDS[RUNE_TYPE_COUNT] = {
     [RUNE_TYPE_HIGH_VOLTAGE] = "high_voltage",
     [RUNE_TYPE_BOMB_ARROW] = "bomb_arrow",
     [RUNE_TYPE_QUICKDRAW] = "quickdraw",
+    [RUNE_TYPE_REVIVE] = "revive",
 };
 
 void initRuneLocalization(void) {
@@ -812,6 +822,7 @@ void initRunes(void) {
     rapierWindow = 0.0f;
     rootwalkerTimer = 0.0f;
     bulwarkAvailable = true;
+    reviveAvailable = true;
     kunaiWasDashing = false;
     clearBlackHole();
 
@@ -1237,6 +1248,14 @@ bool bulwarkIsAvailable(void) {
 void consumeBulwark(void) {
     playSound(SFX_SHIELD_BREAK);
     bulwarkAvailable = false;
+}
+
+bool reviveIsAvailable(void) {
+    return runeIsOwned(RUNE_TYPE_REVIVE) && reviveAvailable;
+}
+
+void consumeRevive(void) {
+    reviveAvailable = false;
 }
 
 bool adrenalineIsActive(void) {

@@ -30,6 +30,7 @@
 #define FIRE_POSITION_OFFSET CELL_SIZE / 2
 
 #define HIT_INVINCIBILITY_TIME 0.5f // Seconds
+#define REVIVE_INVINCIBILITY_TIME 2.0f // Grace period after the Revive rune saves you
 #define THORNS_ROOT_COUNT 8 // Roots summoned in a ring when hit
 
 #define DOUBLE_TAP_TIME 0.3f // Seconds
@@ -845,6 +846,15 @@ void damagePlayer(float amount) {
     runStatsRecordDamageTaken((int)amount);
     playerHealth -= amount;
     if (playerHealth <= 0) {
+        if (reviveIsAvailable()) {
+            consumeRevive();
+            playerHealth = getPlayerMaxHealth() * getRuneValue(RUNE_TYPE_REVIVE);
+            playerState.hitInvincibility = REVIVE_INVINCIBILITY_TIME;
+            playSound(SFX_HEAL);
+            screenShake(SCREEN_SHAKE_STRONG);
+            flashHealthUI();
+            return;
+        }
         playerHealth = 0;
 		playerState.dead = 1;
         pd->graphics->clear(kColorBlack);
