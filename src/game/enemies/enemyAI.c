@@ -120,7 +120,7 @@ static const ElderBossProperties ELDER_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][BO
 			.rootRepeatInterval = 2.0f,
 			.dashPrepTime       = 1.0f,
 			.dashDistance       = CELL_SIZE * 3.0f,
-			.dashCount          = 5,
+			.dashCount          = 4,
 			.dashSpeed          = 2.5f,
 			.projectileWaves    = 8,
 			.projectilesPerWave = 8,
