@@ -132,7 +132,7 @@ ParticleData particleData[PARTICLE_TYPE_COUNT] = {
 	},
 	[PARTICLE_TYPE_SERPENT_TAIL] = {
 		.frameCount = 7,
-		.animationTime = 0.06f,
+		.animationTime = 0.05f,
 		.textureIndex = TEXTURE_PARTICLE_SERPENT_TAIL,
 		.damageFrame = 3,
 		.damage = 10,
