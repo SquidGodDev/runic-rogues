@@ -56,3 +56,7 @@ void clearParticles(void);
 int spawnParticle(ParticleType type, float x, float y, float sourceX, float sourceY, ParticleType spawnOnEndParticleType, bool enemyParticle);
 void spawnEnemyWithSpawnParticle(int enemyType, float x, float y);
 void updateParticles(float deltaTime);
+
+// Lays a static line of warning particles from (x, y) along the unit direction (dirX, dirY), one
+// every `spacing` units out to `length` — a telegraph for a straight-line attack.
+void spawnWarningLine(ParticleType type, float x, float y, float dirX, float dirY, float length, float spacing);

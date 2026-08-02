@@ -628,6 +628,85 @@ void meleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 	}
 }
 
+#define LUNGING_MELEE_WARNING_SPACING CELL_SIZE
+
+// Long-lunge melee: at prep start it locks a straight lunge path toward the player (capped at the
+// abilityDataSecondary reach or the first wall) and telegraphs it with a static line of warning
+// particles, then lunges down that locked line when prep ends. Like meleeEnemyUpdate but with a
+// much longer, telegraphed reach whose direction is fixed at the moment prep begins.
+void lungingMeleeEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
+	if (curEnemy->state == ENEMY_STATE_IDLE) {
+		playEnemyIdleSFX(curEnemy, curEnemyData);
+
+		if (playerInAttackDetectionRange(index)) {
+			if (curEnemy->attackCooldown <= 0) {
+				curEnemy->attackCooldown = curEnemyData->attackCooldown;
+				curEnemy->stateTimer = curEnemyData->prepTime;
+				transitionToState(curEnemy, ENEMY_STATE_PREP);
+				playEnemyPrepSFX(curEnemy, curEnemyData);
+				addAttackIntentIndicator(curEnemy->x, curEnemy->y, curEnemyData->prepTime);
+
+				// Lock the lunge path toward the player now, capped at the reach or the first wall
+				float wallX, wallY;
+				castRayToWall(curEnemy->x, curEnemy->y, playerX, playerY, &wallX, &wallY);
+				float dx = wallX - curEnemy->x;
+				float dy = wallY - curEnemy->y;
+				float wallDist = sqrtf(dx * dx + dy * dy);
+				float dirX = 1.0f;
+				float dirY = 0.0f;
+				if (wallDist > 0.001f) {
+					dirX = dx / wallDist;
+					dirY = dy / wallDist;
+				}
+				float maxReach = curEnemyData->abilityDataSecondary;
+				float reach = (wallDist < maxReach) ? wallDist : maxReach;
+				curEnemy->targetX = curEnemy->x + dirX * reach;
+				curEnemy->targetY = curEnemy->y + dirY * reach;
+				spawnWarningLine(PARTICLE_TYPE_WARNING_SHORT, curEnemy->x, curEnemy->y, dirX, dirY, reach, LUNGING_MELEE_WARNING_SPACING);
+			}
+		} else {
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+		}
+
+		moveEnemy(curEnemy, index, playerX, playerY, curEnemyData->moveSpeed);
+	} else if (curEnemy->state == ENEMY_STATE_PREP) {
+		// Hold the windup pose; the lunge path was locked and telegraphed at prep start
+		if (curEnemy->stateTimer <= 0) {
+			float dx = curEnemy->targetX - curEnemy->x;
+			float dy = curEnemy->targetY - curEnemy->y;
+			float dist = sqrtf(dx * dx + dy * dy);
+			// Hold the lunge move active long enough to travel the locked distance at the lunge speed
+			curEnemy->abilityCooldown = dist / (curEnemyData->abilityDataPrimary * DEFAULT_TARGET_FPS);
+			transitionToState(curEnemy, ENEMY_STATE_ATTACK_1);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_ATTACK_1) {
+		playEnemyAttackSFX(curEnemy, curEnemyData);
+
+		if (curEnemy->abilityCooldown > 0) {
+			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
+		}
+
+		if (curEnemy->animationFrame >= curEnemyData->attackActiveFrame) {
+			if (!curEnemy->attackedPlayer && playerInAttackDistance(index)) {
+				curEnemy->attackedPlayer = true;
+				damagePlayerFromDirection(curEnemyData->attackDamage, curEnemy->x, curEnemy->y);
+			}
+		}
+
+		if (attackAnimationReset) {
+			curEnemy->attackedPlayer = false;
+			curEnemy->attackCooldown = curEnemyData->attackCooldown;
+			curEnemy->stateTimer = curEnemyData->postAttackTime;
+			curEnemy->animationFrame = curEnemyData->attackFrameEnd - 1;
+			transitionToState(curEnemy, ENEMY_STATE_POST_ATTACK);
+		}
+	} else if (curEnemy->state == ENEMY_STATE_POST_ATTACK) {
+		if (curEnemy->stateTimer <= 0) {
+			transitionToState(curEnemy, ENEMY_STATE_IDLE);
+		}
+	}
+}
+
 // Melee that scurries directly away from the player during recovery (hit-and-run)
 void hitAndRunEnemyUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool attackAnimationReset) {
 	if (curEnemy->state == ENEMY_STATE_IDLE) {

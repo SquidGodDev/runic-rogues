@@ -248,6 +248,17 @@ int spawnParticle(ParticleType type, float x, float y, float sourceX, float sour
 	return newParticleIndex;
 }
 
+// Lays a static line of warning particles from (x, y) along the unit direction (dirX, dirY), one
+// every `spacing` units out to `length` — a telegraph for a straight-line attack.
+void spawnWarningLine(ParticleType type, float x, float y, float dirX, float dirY, float length, float spacing) {
+	if (spacing <= 0.0f) {
+		return;
+	}
+	for (float d = spacing; d <= length; d += spacing) {
+		spawnParticle(type, x + dirX * d, y + dirY * d, x, y, PARTICLE_TYPE_NONE, true /*enemyParticle*/);
+	}
+}
+
 void spawnEnemyWithSpawnParticle(int enemyType, float x, float y) {
 	int idx = spawnParticle(PARTICLE_TYPE_SPAWN, x, y, x, y, PARTICLE_TYPE_NONE, false /*enemyParticle*/);
 	if (idx >= 0) {
