@@ -368,9 +368,17 @@ static void updateTutorialPhase(float deltaTime) {
             closeRoomGate(1);
             setCurrentRoomIndex(2);
             setTutorialAbilities(false, true, false);
+            // Anchor at the far side (depth) but keep the group symmetric about
+            // the room's center row so it reads as centered facing the player
+            Point center = getRoomCenter(2);
+            int fx = getRoomInteriorMax(2).x - 2;
+            float offsets[3][2] = {{-0.5f, 0}, {0, -0.5f}, {0, 0.5f}};
             for (int i = 0; i < 3; i++) {
-                Point p = getRoomSpawnPosition(2, i);
-                spawnEnemy(ENEMY_TYPE_DUMMY, (int)p.x, (int)p.y, false);
+                float mapX = fx + offsets[i][0];
+                float mapY = center.y + offsets[i][1];
+                int worldX = (int)(mapX * CELL_SIZE + CELL_SIZE / 2);
+                int worldY = (int)(mapY * CELL_SIZE + CELL_SIZE / 2);
+                spawnEnemy(ENEMY_TYPE_DUMMY, worldX, worldY, false);
             }
             openTutorialDialog(r3Pages);
             tPhase = TUTORIAL_R3_DIALOG;
