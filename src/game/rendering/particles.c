@@ -4,6 +4,7 @@
 #include "globals/globals.h"
 #include "game/player/player.h"
 #include "game/entities/entities.h"
+#include "game/entities/projectiles.h"
 #include "game/enemies/enemies.h"
 #include "game/rendering/particles.h"
 #include "game/rendering/textures.h"
@@ -243,9 +244,18 @@ int spawnParticle(ParticleType type, float x, float y, float sourceX, float sour
 		.appliedDamage = false,
 		.spawnTriggered = false,
 		.pendingEnemyType = -1,
+		.burstEnemyType = -1,
 		.spawnOnEndParticleType = spawnOnEndParticleType
 	};
 	return newParticleIndex;
+}
+
+int spawnParticleWithProjectileBurst(ParticleType type, float x, float y, float sourceX, float sourceY, int burstEnemyType) {
+	int idx = spawnParticle(type, x, y, sourceX, sourceY, PARTICLE_TYPE_NONE, true /*enemyParticle*/);
+	if (idx >= 0) {
+		particles[idx].burstEnemyType = burstEnemyType;
+	}
+	return idx;
 }
 
 // Lays a static line of warning particles from (x, y) along the unit direction (dirX, dirY), one
@@ -296,6 +306,12 @@ void updateParticles(float deltaTime) {
 				playSoundSpatial(data->sfx, curParticle->x, curParticle->y);
 			}
 			curParticle->appliedDamage = true;
+			if (curParticle->burstEnemyType >= 0) {
+				EnemyData *burstData = &enemyData[curParticle->burstEnemyType];
+				float baseAngle = atan2f(playerY - curParticle->y, playerX - curParticle->x);
+				fireEnemyProjectileRing(curParticle->x, curParticle->y, (int)burstData->abilityDataTertiary, baseAngle,
+					burstData->projectileData.speed, burstData->attackDamage, burstData->projectileData);
+			}
 			if (curParticle->enemyParticle) {
 				float distSquared = distanceSquared(curParticle->x, curParticle->y, playerX, playerY);
 				if (distSquared < data->damageRadius * data->damageRadius) {

@@ -38,4 +38,7 @@ void clearProjectiles(void);
 void fireProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, float damage, int textureIndex, bool isEnemy, SpellProjectileData spellProjectileData);
 void firePlayerProjectile(float x, float y, float deltaX, float deltaY, float damage, SpellProjectileData spellProjectileData);
 void fireEnemyProjectile(float x, float y, float sourceX, float sourceY, float deltaX, float deltaY, float speed, float damage, SpellProjectileData spellProjectileData);
+// Fires count evenly spaced enemy projectiles in a full circle around (x, y), rotated so one of
+// them flies along startAngle.
+void fireEnemyProjectileRing(float x, float y, int count, float startAngle, float speed, float damage, SpellProjectileData spellProjectileData);
 void updateProjectiles(float deltaTime);

@@ -88,6 +88,21 @@ void fireEnemyProjectile(float x, float y, float sourceX, float sourceY, float d
 	fireProjectile(x, y, sourceX, sourceY, deltaX, deltaY, speed, damage, textureIndex, 1 /*isEnemy*/, spellProjectileData);
 }
 
+void fireEnemyProjectileRing(float x, float y, int count, float startAngle, float speed, float damage, SpellProjectileData spellProjectileData) {
+	if (count <= 0) {
+		return;
+	}
+	float sector = 2.0f * PI / (float)count;
+	for (int i = 0; i < count; i++) {
+		float angle = startAngle + i * sector;
+		float deltaX = cosf(angle);
+		float deltaY = sinf(angle);
+		float projectileX = x + deltaX * PROJECTILE_OFFSET;
+		float projectileY = y + deltaY * PROJECTILE_OFFSET;
+		fireEnemyProjectile(projectileX, projectileY, x, y, deltaX, deltaY, speed, damage, spellProjectileData);
+	}
+}
+
 static bool projectileHitsWall(float x, float y) {
 	int mapX = (int)((x + MAP_CHECK_OFFSET_X) / CELL_SIZE);
 	int mapY = (int)((y + MAP_CHECK_OFFSET_Y) / CELL_SIZE);

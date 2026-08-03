@@ -449,11 +449,12 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.prepSFX = SFX_NONE,
 		.attackSFX = SFX_BOMBER_ATTACK,
 		.health = 130,
-		.attackDamage = 1,
+		.attackDamage = 10, // Damage of each projectile in the detonation ring
 		.attackCooldown = 0,
 		.moveSpeed = 0.6f,
 		.abilityDataPrimary = CELL_SIZE * 5.0f, // Minimum distance between random positions
 		.abilityDataSecondary = CELL_SIZE * 0.75f, // Arrival radius for reaching a position
+		.abilityDataTertiary = 16, // Projectiles fired when the bomb detonates
 		.textureIndex = TEXTURE_BOMBER,
 		.idleFrameEnd = 10,
 		.attackFrameStart = 11,
@@ -463,10 +464,8 @@ EnemyData enemyData[ENEMY_TYPE_COUNT] = {
 		.deathFrameEnd = 25,
 		.frameTime = 0.1f,
 		.projectileData = {
-			.textureIndex = TEXTURE_BOMB_PROJECTILE,
-			.frameCount = 1,
-			.hitParticle = PARTICLE_TYPE_ENEMY_BOMB,
-			.timeoutParticle = PARTICLE_TYPE_ENEMY_BOMB,
+			.speed = 10.0f, // Speed of the detonation ring projectiles
+			.activeTime = 1.5f
 		},
 		.update = bomberUpdate
 	},

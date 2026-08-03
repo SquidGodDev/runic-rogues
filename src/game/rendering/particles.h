@@ -46,6 +46,7 @@ typedef struct Particle {
 	bool appliedDamage;
 	bool spawnTriggered;
 	int pendingEnemyType;
+	int burstEnemyType; // Enemy type whose projectile ring fires when the particle damages, -1 for none
 	ParticleType spawnOnEndParticleType;
 } Particle;
 
@@ -55,6 +56,9 @@ void initParticles(void);
 void clearParticles(void);
 int spawnParticle(ParticleType type, float x, float y, float sourceX, float sourceY, ParticleType spawnOnEndParticleType, bool enemyParticle);
 void spawnEnemyWithSpawnParticle(int enemyType, float x, float y);
+// Spawns an enemy particle that also bursts a ring of burstEnemyType's projectiles when it damages.
+// The ring count comes from that enemy's abilityDataTertiary, its speed/visuals from projectileData.
+int spawnParticleWithProjectileBurst(ParticleType type, float x, float y, float sourceX, float sourceY, int burstEnemyType);
 void updateParticles(float deltaTime);
 
 // Lays a static line of warning particles from (x, y) along the unit direction (dirX, dirY), one
