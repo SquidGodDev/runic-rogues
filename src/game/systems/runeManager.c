@@ -631,8 +631,8 @@ RuneData RUNE_DATA[RUNE_TYPE_COUNT] = {
         .secondaryBaseValue = -0.5f, // pull strength, negative to draw enemies inward
         .maxLevel = 3,
         .triggerType = RUNE_TRIGGER_KILL_ENEMY,
-        .triggerBaseValue = 5.0f, // enemies defeated between spawns
-        .triggerPerLevel  = -1.0f, // 5 / 4 / 3 kills at levels 1-3
+        .triggerBaseValue = 3.0f, // enemies defeated between spawns
+        .triggerPerLevel  = -1.0f, // 3 / 2 / 1 kills at levels 1-3
         .triggerCallback  = blackHoleCallback
     },
     [RUNE_TYPE_KNIGHTS_HELM] = {
