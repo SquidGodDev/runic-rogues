@@ -445,9 +445,9 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sprinklerProjectileDamage = 12,
 			.volleyLineCount       = 16, // Radial lines fired per shot
 			.volleyShots           = 5, // Projectiles per line per volley
-			.volleyCount           = 3, // Number of volleys per phase
+			.volleyCount           = 2, // Number of volleys per phase
 			.volleyShotSpacing     = 0.4f, // Time between shots within a volley
-			.volleySpacing         = 2.0f, // Time between volleys
+			.volleySpacing         = 1.5f, // Time between volleys
 			.volleyProjectileSpeed = 58.0f,
 			.volleyProjectileDamage = 12,
 			.volleyWarningLead     = 1.3f,
@@ -467,10 +467,10 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 		// Phase 1
 		{
 			.attackCooldown        = 3.0f,
-			.chargeCount           = 4,
+			.chargeCount           = 3,
 			.chargePrepTime        = 0.4f,
 			.chargeDistance        = CELL_SIZE * 21.0f,
-			.chargeSpeed           = 3.5f,
+			.chargeSpeed           = 3.0f,
 			.chargeDamage          = 14,
 			.chargeInterval        = 0.3f,
 			.sprinklerShots            = 20,
@@ -480,7 +480,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sprinklerProjectileDamage = 14,
 			.volleyLineCount       = 16, // Radial lines fired per shot
 			.volleyShots           = 8, // Projectiles per line per volley
-			.volleyCount           = 3, // Number of volleys per phase
+			.volleyCount           = 2, // Number of volleys per phase
 			.volleyShotSpacing     = 0.3f, // Time between shots within a volley
 			.volleySpacing         = 1.0f, // Time between volleys
 			.volleyProjectileSpeed = 66.0f,
@@ -504,10 +504,10 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 	{
 		{
 			.attackCooldown        = 3.0f,
-			.chargeCount           = 4,
+			.chargeCount           = 3,
 			.chargePrepTime        = 0.4f,
 			.chargeDistance        = CELL_SIZE * 21.0f,
-			.chargeSpeed           = 3.5f,
+			.chargeSpeed           = 3.0f,
 			.chargeDamage          = 14,
 			.chargeInterval        = 0.3f,
 			.sprinklerShots            = 20,
@@ -525,7 +525,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyWarningLead     = 1.0f,
 			.volleyMoveSpeed       = 2.5f,
 			.volleyRepositionTime  = 1.5f,
-			.sweepCount            = 3, // Walls swept per attack, alternating axis
+			.sweepCount            = 2, // Walls swept per attack, alternating axis
 			.sweepInterval         = 1.2f,
 			.sweepMoveSpeed        = 2.5f,
 			.sweepArrivalDelay     = 0.55f,
@@ -551,7 +551,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sprinklerProjectileDamage = 14,
 			.volleyLineCount       = 16, // Radial lines fired per shot
 			.volleyShots           = 10, // Projectiles per line per volley
-			.volleyCount           = 3, // Number of volleys per phase
+			.volleyCount           = 2, // Number of volleys per phase
 			.volleyShotSpacing     = 0.275f, // Time between shots within a volley
 			.volleySpacing         = 0.5f, // Time between volleys
 			.volleyProjectileSpeed = 66.0f,
