@@ -456,7 +456,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sweepCount            = 3, // Walls swept per attack, alternating axis
 			.sweepInterval         = 1.6f,
 			.sweepMoveSpeed        = 2.0f,
-			.sweepArrivalDelay     = 0.7f,
+			.sweepArrivalDelay     = 1.2f,
 			.sweepProjectileSpeed  = 50.0f,
 			.sweepProjectileDamage = 12,
 			.summonCount           = 4,
@@ -491,7 +491,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sweepCount            = 3, // Walls swept per attack, alternating axis
 			.sweepInterval         = 1.2f,
 			.sweepMoveSpeed        = 2.5f,
-			.sweepArrivalDelay     = 0.55f,
+			.sweepArrivalDelay     = 0.9f,
 			.sweepProjectileSpeed  = 58.0f,
 			.sweepProjectileDamage = 14,
 			.summonCount           = 3,
@@ -528,7 +528,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sweepCount            = 2, // Walls swept per attack, alternating axis
 			.sweepInterval         = 1.2f,
 			.sweepMoveSpeed        = 2.5f,
-			.sweepArrivalDelay     = 0.55f,
+			.sweepArrivalDelay     = 0.9f,
 			.sweepProjectileSpeed  = 58.0f,
 			.sweepProjectileDamage = 14,
 			.summonCount           = 3,
@@ -562,7 +562,7 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.sweepCount            = 3, // Walls swept per attack, alternating axis
 			.sweepInterval         = 1.0f,
 			.sweepMoveSpeed        = 3.0f,
-			.sweepArrivalDelay     = 0.45f,
+			.sweepArrivalDelay     = 0.7f,
 			.sweepProjectileSpeed  = 66.0f,
 			.sweepProjectileDamage = 14,
 			.summonCount           = 5,
