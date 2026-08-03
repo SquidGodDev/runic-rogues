@@ -1,25 +1,84 @@
+# 1.0.0 Changelog
+General Changes:
+- Made non-boss rooms smaller (7x7 instead of 9x9)
+- Swapped skip shop button with reroll (limited to 2 per floor)
+- Lock rogue, knight, and ranger classes - requires winning a run with a previous class to unlock 
+- Changed exit arrow to be a 3D arrow with the stem to be more clear
+Enemy Changes:
+- Increased enemy movement speeds across the board
+- Change big slime attack pattern to firing a ring of projectiles
+- Made serpent tail attack faster
+- Increase skeleton move speed and attack range
+- Changed imp attack pattern to fire an arc of projectiles
+- Changed flying tome attack pattern to firing a ring of projectiles
+- Changed living armor attack pattern to a lunging dash
+- Changed bomber bombs - now creates a ring of lingering projectiles upon detonation
+Boss Changes:
+- Made Elder boss root attack a bit faster
+- Decrease all bosses health by a bit
+- Buffed Wraith boss projectile attacks a bit
+- Added wall to wall projectile sweep attack to Dragon boss
+- General buffs overall to boss difficulty
+Player Changes:
+- Reduced knight attack knockback
+- Slightly reduced player movement speed
+- Added debouncing to the player dash, so accidental dashes caused by hardware sending an extra ghost input should be ignored more often
+Rune Changes:
+- Added Revive rune
+- Buffed Black Hole Rune (requires less kills)
+- Nerfed Viking Rune
+- Nerf movespeed runes (swift, rapier, crescendo)
+- Nerfed "Enchanted Amulet" and "Arcane Staff" runes - change to fire an additional time on every N casts
+Onboarding Changes:
+- Added language selection screen on first launch
+- Show arrow pointing to settings menu in tutorial
+- Added tutorial skip confirmation dialog
+Bug Fixes:
+- Changed exit prompt from "Next Room" to "Next Floor"
+- Got rid of all PO (pocket operator) synth sound effects which were causing frame drops (banshee, baby dragon, mummy, imp)
+
 # TODO
 - Check https://saffroncr.itch.io/katavatis/devlog/1534514/building-a-tiny-3d-renderer-for-a-tiny-handheld for perf improvement notes
 - Add roar sfx to second boss phase
-- Add language select on launch (or start on the title screen first?)
+- Add new phases to bosses?
+- Increase movement speed and movement patterns of bosses inbetween attacks
+
+# Changes
+- Change to every X instead of percent chance (black hole, potion, etc)
+- More enemy attack patterns
+- Campfire/bonus rune choice
+
+# Balance
+- Buff glass dagger
+
+# New features
+- Save feature
+- Endless mode
+- Achievements
+- Class locking
+- Pause menu map
+
+# Maybe features
+- Challenge room
+- Meta currency? Coins?
+
+# Rune Ideas
+- Rune to buff ranger net
+- Slow synergy runes
+- Blowing in mic to push enemies back
+- Gladiator: Swing crank to do a spin attack (5 second cooldown)
+- Revive
+- Quick Draw: Faster charge rate for ranger (disable pocket watch for ranger)
+- Time freeze/slow time
+- Runes when you're out of dashes
+- Fire laser when standing still for 3 seconds
+- Every x something shoot out ring of projectiles
 
 ## Playthrough Notes
 - Adjust move speed, health per class
 - Change banshee to summoner class
-- Black hole spell
 - Slow effect doesn't feel impactful
 - Projectile speed feels so-so (make base speed slower?)
-
-Translation Review Order:
-1. Title
-2. Tutorial
-3. Area names
-4. Class names
-5. Spell names
-6. Class descriptions
-7. Rune names
-8. Rune descriptions
-9. Settings
 
 Implement the following runes. Any rune icons should copy the images/runes/empty.png as a placeholder. Any rune HUD icons should be a transparent empty square for now. Any numbers used in the runes should be stored as primary/secondary/tertiary values into the RuneData itself to make it easy to adjust.
 
@@ -32,22 +91,11 @@ Slow/Freeze:
 - Ice Cube: Dashing through enemies slows them
 
 Dash:
-- Thunder Boots: Dashing arcs lightning towards the nearest 1, 2, 3 enemie(s)
-- Kunai: Dashing through enemies damages them
-  - 5 damage
-- Feather: Dash distance is doubled
 - Locomotive: Deal increased damaged based on your current movement speed
   - Uncapped. Scale is that if the player is going 100% faster than their base speed (double their base speed), that equals 50% more damage
 
-Mage:
-- High Voltage: Lightning spell arcs to (1, 2, 3) more enemies
-
 Knight:
 - Throat Spray: Increases range and damage of Roaring Shout.
-
-Ranger:
-- Bomb Arrow: Max charge arrows have a 20% chance of dropping a bomb on the first enemy hit
-- Quickdraw: Decrease bow draw time by (15%, 30%, 50%)
 
 ## Runes
   - Start rune for each class
@@ -69,24 +117,6 @@ Ranger:
     - More damage low health
     - More damage full health
     - Spawn random buff areas/pickups around map
-## Ascension difficulty
-  1. Heal less after bosses (Heal 50% of missing health instead of 100% after each floor)
-  2. Enemies are more challenging (non-boss enemies deal 20% more damage and attack cooldown is 20% less)
-  3. Bosses are more challenging (use Difficulty 1 in the boss properties)
-  4. Start each run with less health (Start at 80% health)
--8, +8 x
--16 y
-  
-  - Less health
-  - Heal less after each area
-  - No healing
-  - Enemies attack faster
-  - Enemies move faster
-  - Enemies more challenging attack patterns
-  - Enemies more damage
-  - Enemies more health
-  - Boss more challenging attack patterns
-  - Boss even more challenging
 ## Credits
   - https://kaylousberg.itch.io/kaykit-adventurers
   - https://piiixl.itch.io/1-bit-patterns-and-tiles
