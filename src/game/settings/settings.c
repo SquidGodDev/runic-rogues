@@ -16,7 +16,7 @@ static Language systemLanguage(void) {
 
 void resetGeneralSettings(void) {
     SETTINGS.language = systemLanguage();
-    SETTINGS.drawFPS = true;
+    SETTINGS.drawFPS = false;
     SETTINGS.showTimer = false;
     SETTINGS.targetFps = FPS_SETTING_40;
 }
