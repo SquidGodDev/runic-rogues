@@ -1506,7 +1506,7 @@ void bansheeUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool att
 }
 
 // === Imp constants ===
-#define IMP_ARC_ANGLE (10.0f * PI / 180.0f)      // Full arc the shots are spread across, radians
+#define IMP_ARC_ANGLE (15.0f * PI / 180.0f)      // Full arc the shots are spread across, radians
 #define IMP_ARRIVAL_RADIUS (CELL_SIZE * 0.75f)   // How close the imp gets before it stops to fire
 #define IMP_RETREAT_SAMPLES 20                   // Candidate cells scored per repositioning
 #define IMP_OPPOSITE_WEIGHT (CELL_SIZE * 5.0f)   // How strongly the far side of the room is favoured
