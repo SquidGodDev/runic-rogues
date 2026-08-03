@@ -214,8 +214,11 @@ typedef struct WraithBossProperties {
 	float rushIdleTime;       // Idle recovery between consecutive rush dashes
 	float prepTime;
 	float dashTime;
+	float dashSpeed;          // Dash move speed (per-frame step at DEFAULT_TARGET_FPS)
 	int   teleportCount;      // Teleport-and-shoot repetitions in the PROJECTILE phase
-	int   teleportShotCount;  // Aimed projectiles fired after each teleport
+	int   teleportShotCount;  // Aimed shots fired after each teleport; each shot is an arc
+	int   teleportArcCount;   // Projectiles per aimed shot, evenly spaced across teleportArcAngle
+	float teleportArcAngle;   // Full angle the arc spans, radians
 	float teleportIntentLead; // Attack intent warning shown on reveal before the shots start
 	float teleportProjectileSpeed; // Speed of the aimed projectiles in the PROJECTILE phase
 	float projectileCooldown; // Seconds between aimed projectiles
@@ -228,6 +231,7 @@ typedef struct WraithBossProperties {
 	int   volleyCount;            // Projectiles fired by each volley in the VOLLEY phase
 	float volleyShotSpacing;      // Seconds between volley shots
 	float volleyConeAngle;        // Full cone angle the shots scatter within, radians
+	float volleyAimTrackRate;     // Per-frame lerp factor dragging the locked aim back onto the player once the volley starts firing (0 = fully locked)
 	float volleyProjectileSpeed;
 	int   volleyRepeatCount;      // Number of volleys fired back-to-back in the VOLLEY phase
 	float volleyRepeatSpacing;    // Seconds between consecutive volleys
@@ -240,11 +244,14 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 		{
 			.attackCooldown     = 1.0f,
 			.idleTime           = 1.0f,
-			.rushIdleTime       = 1.0f,
+			.rushIdleTime       = 0.6f,
 			.prepTime           = 1.0f,
 			.dashTime           = 2.5f,
+			.dashSpeed          = 1.5f,
 			.teleportCount      = 3,
 			.teleportShotCount  = 3,
+			.teleportArcCount   = 5,
+			.teleportArcAngle   = 15.0f * PI / 180.0f,
 			.teleportIntentLead = 1.5f,
 			.teleportProjectileSpeed = 70.0f,
 			.projectileCooldown = 0.5f,
@@ -257,6 +264,7 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyCount           = 10,
 			.volleyShotSpacing     = 0.1f,
 			.volleyConeAngle       = 15.0f * PI / 180.0f,
+			.volleyAimTrackRate    = 0.06f,
 			.volleyProjectileSpeed = 60.0f,
 			.volleyRepeatCount     = 3,
 			.volleyRepeatSpacing   = 1.0f,
@@ -265,11 +273,14 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 		{
 			.attackCooldown     = 1.0f,
 			.idleTime           = 0.5f,
-			.rushIdleTime       = 0.5f,
+			.rushIdleTime       = 0.3f,
 			.prepTime           = 0.5f,
 			.dashTime           = 2.5f,
+			.dashSpeed          = 1.8f,
 			.teleportCount      = 3,
 			.teleportShotCount  = 5,
+			.teleportArcCount   = 5,
+			.teleportArcAngle   = 15.0f * PI / 180.0f,
 			.teleportIntentLead = 1.5f,
 			.teleportProjectileSpeed = 70.0f,
 			.projectileCooldown = 0.3f,
@@ -282,6 +293,7 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyCount           = 15,
 			.volleyShotSpacing     = 0.1f,
 			.volleyConeAngle       = 20.0f * PI / 180.0f,
+			.volleyAimTrackRate    = 0.1f,
 			.volleyProjectileSpeed = 60.0f,
 			.volleyRepeatCount     = 3,
 			.volleyRepeatSpacing   = 0.5f,
@@ -292,11 +304,14 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 		{
 			.attackCooldown     = 1.0f,
 			.idleTime           = 0.5f,
-			.rushIdleTime       = 0.5f,
+			.rushIdleTime       = 0.3f,
 			.prepTime           = 0.5f,
 			.dashTime           = 2.5f,
+			.dashSpeed          = 1.8f,
 			.teleportCount      = 3,
 			.teleportShotCount  = 5,
+			.teleportArcCount   = 5,
+			.teleportArcAngle   = 15.0f * PI / 180.0f,
 			.teleportIntentLead = 1.5f,
 			.teleportProjectileSpeed = 70.0f,
 			.projectileCooldown = 0.3f,
@@ -309,6 +324,7 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyCount           = 15,
 			.volleyShotSpacing     = 0.1f,
 			.volleyConeAngle       = 20.0f * PI / 180.0f,
+			.volleyAimTrackRate    = 0.1f,
 			.volleyProjectileSpeed = 60.0f,
 			.volleyRepeatCount     = 3,
 			.volleyRepeatSpacing   = 0.5f,
@@ -319,8 +335,11 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.rushIdleTime       = 0.2f,
 			.prepTime           = 0.2f,
 			.dashTime           = 1.5f,
+			.dashSpeed          = 2.0f,
 			.teleportCount      = 3,
 			.teleportShotCount  = 8,
+			.teleportArcCount   = 5,
+			.teleportArcAngle   = 15.0f * PI / 180.0f,
 			.teleportIntentLead = 1.0f,
 			.teleportProjectileSpeed = 105.0f, // 1.5x base for the hardest phase
 			.projectileCooldown = 0.3f,
@@ -333,6 +352,7 @@ static const WraithBossProperties WRAITH_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyCount           = 10,
 			.volleyShotSpacing     = 0.1f,
 			.volleyConeAngle       = 30.0f * PI / 180.0f,
+			.volleyAimTrackRate    = 0.15f,
 			.volleyProjectileSpeed = 90.0f,
 			.volleyRepeatCount     = 5,
 			.volleyRepeatSpacing   = 0.3f,
@@ -1888,7 +1908,8 @@ void elderBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool a
 }
 
 // Locks the volley aim onto the player's current position and telegraphs the cone: one warning
-// line down the center and one along each edge.
+// line down the center and one along each edge. The aim then drifts back onto the player once the
+// volley starts firing (see volleyAimTrackRate).
 static void wraithAimVolley(Enemy *curEnemy) {
 	curEnemy->targetX = playerX;
 	curEnemy->targetY = playerY;
@@ -1909,6 +1930,24 @@ static void wraithFireVolleyShot(Enemy *curEnemy, EnemyData *curEnemyData) {
 	float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
 	playSoundSpatial(SFX_WRAITH_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
 	fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, wraithProperties->volleyProjectileSpeed, curEnemyData->attackDamage, curEnemyData->projectileData);
+}
+
+// Fires one aimed shot of the teleport attack: teleportArcCount projectiles evenly spaced across
+// teleportArcAngle, centred on the player's position at the moment of firing.
+static void wraithFireTeleportArc(Enemy *curEnemy, EnemyData *curEnemyData) {
+	int shotCount = wraithProperties->teleportArcCount;
+	float centerAngle = atan2f(playerY - curEnemy->y, playerX - curEnemy->x);
+	float spacing = shotCount > 1 ? wraithProperties->teleportArcAngle / (shotCount - 1) : 0.0f;
+	float startAngle = centerAngle - wraithProperties->teleportArcAngle * 0.5f;
+	playSoundSpatial(SFX_WRAITH_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
+	for (int i = 0; i < shotCount; i++) {
+		float angle = shotCount > 1 ? startAngle + i * spacing : centerAngle;
+		float deltaX = cosf(angle);
+		float deltaY = sinf(angle);
+		float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
+		float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
+		fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, wraithProperties->teleportProjectileSpeed, curEnemyData->attackDamage, curEnemyData->projectileData);
+	}
 }
 
 // Starts one teleport rep: a spawn particle covers the boss, then it vanishes and relocates.
@@ -1949,13 +1988,7 @@ static void wraithUpdateTeleportAttack(Enemy *curEnemy, EnemyData *curEnemyData)
 		curEnemy->attackCycle = WRAITH_TELEPORT_PHASE_FIRE;
 		curEnemy->abilityCooldown = wraithProperties->teleportIntentLead;
 	} else {
-		float distanceToPlayer = sqrtf(distanceSquared(playerX, playerY, curEnemy->x, curEnemy->y));
-		float deltaX = (playerX - curEnemy->x) / distanceToPlayer;
-		float deltaY = (playerY - curEnemy->y) / distanceToPlayer;
-		float projectileX = curEnemy->x + deltaX * PROJECTILE_OFFSET;
-		float projectileY = curEnemy->y + deltaY * PROJECTILE_OFFSET;
-		playSoundSpatial(SFX_WRAITH_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
-		fireEnemyProjectile(projectileX, projectileY, curEnemy->x, curEnemy->y, deltaX, deltaY, wraithProperties->teleportProjectileSpeed, curEnemyData->attackDamage, curEnemyData->projectileData);
+		wraithFireTeleportArc(curEnemy, curEnemyData);
 		curEnemy->stateCount++;
 		curEnemy->abilityCooldown = wraithProperties->projectileCooldown;
 		if (curEnemy->stateCount % wraithProperties->teleportShotCount == 0) {
@@ -2075,7 +2108,7 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		}
 
 		if (curEnemy->state == WRAITH_STATE_DASH) {
-			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->abilityDataPrimary);
+			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, wraithProperties->dashSpeed);
 			if (curEnemy->attackCycle == 0) {
 				float arriveDX = curEnemy->targetX - curEnemy->x;
 				float arriveDY = curEnemy->targetY - curEnemy->y;
@@ -2089,6 +2122,11 @@ void wraithBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		} else if (curEnemy->state == WRAITH_STATE_SUMMON) {
 			moveEnemy(curEnemy, index, curEnemy->targetX, curEnemy->targetY, curEnemyData->moveSpeed);
 		} else if (curEnemy->state == WRAITH_STATE_VOLLEY) {
+			// The telegraphed cone holds until the first shot leaves, then the aim eases onto the player
+			if (curEnemy->stateCount > 0) {
+				curEnemy->targetX = lerp(curEnemy->targetX, playerX, wraithProperties->volleyAimTrackRate);
+				curEnemy->targetY = lerp(curEnemy->targetY, playerY, wraithProperties->volleyAimTrackRate);
+			}
 			if (curEnemy->attackCycle < wraithProperties->volleyRepeatCount && curEnemy->abilityCooldown <= 0) {
 				wraithFireVolleyShot(curEnemy, curEnemyData);
 				curEnemy->stateCount++;
