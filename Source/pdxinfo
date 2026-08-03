@@ -3,5 +3,5 @@ author=SquidGod
 description=A 3D fantasy roguelike
 bundleID=com.squidgod.runicrogues
 version=1.0.0
-buildNumber=8
+buildNumber=9
 imagePath=launcherImages
