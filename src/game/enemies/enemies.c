@@ -802,7 +802,7 @@ void transitionToState(Enemy *enemy, EnemyState newState) {
 		enemy->animationFrame = 0;
 	} else if (newState == ENEMY_STATE_PREP) {
 		enemy->animationFrame = curEnemyData->prepFrameStart - 1;
-	} else if (newState == ENEMY_STATE_ATTACK_1 || newState == ENEMY_STATE_ATTACK_2 || newState == ENEMY_STATE_ATTACK_3) {
+	} else if (newState == ENEMY_STATE_ATTACK_1 || newState == ENEMY_STATE_ATTACK_2 || newState == ENEMY_STATE_ATTACK_3 || newState == ENEMY_STATE_ATTACK_4) {
 		enemy->animationFrame = curEnemyData->attackFrameStart - 1;
 	} else if (newState == ENEMY_STATE_DEAD) {
 		enemy->animationFrame = curEnemyData->deathFrameStart - 1;
@@ -855,7 +855,7 @@ bool updateEnemyAnimation(Enemy *curEnemy, EnemyData *curEnemyData, float deltaT
 			if (curEnemy->animationFrame >= curEnemyData->prepFrameEnd) {
 				curEnemy->animationFrame = curEnemyData->prepFrameEnd - 1;
 			}
-		} else if (curEnemy->state == ENEMY_STATE_ATTACK_1 || curEnemy->state == ENEMY_STATE_ATTACK_2 || curEnemy->state == ENEMY_STATE_ATTACK_3) {
+		} else if (curEnemy->state == ENEMY_STATE_ATTACK_1 || curEnemy->state == ENEMY_STATE_ATTACK_2 || curEnemy->state == ENEMY_STATE_ATTACK_3 || curEnemy->state == ENEMY_STATE_ATTACK_4) {
 			if (curEnemy->animationFrame >= curEnemyData->attackFrameEnd) {
 				curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
 				attackAnimationReset = true;
@@ -1016,7 +1016,8 @@ void cancelEnemyAttack(int index) {
 	if (curEnemy->state == ENEMY_STATE_PREP ||
 		curEnemy->state == ENEMY_STATE_ATTACK_1 ||
 		curEnemy->state == ENEMY_STATE_ATTACK_2 ||
-		curEnemy->state == ENEMY_STATE_ATTACK_3) {
+		curEnemy->state == ENEMY_STATE_ATTACK_3 ||
+		curEnemy->state == ENEMY_STATE_ATTACK_4) {
 		curEnemy->attackedPlayer = false;
 		curEnemy->stateTimer = 0;
 		curEnemy->stateCount = 0;

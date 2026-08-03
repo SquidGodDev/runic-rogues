@@ -410,7 +410,16 @@ typedef struct DragonBossProperties {
 	float volleyProjectileSpeed;
 	int   volleyProjectileDamage;
 	float volleyWarningLead;     // Seconds the warning lines show before the first shot of each volley
-	// Attack 4 — summon adds
+	float volleyMoveSpeed;       // Speed it flies to the room center before the first volley
+	float volleyRepositionTime;  // Max seconds spent repositioning before the volley starts anyway
+	// Attack 4 — walls of projectiles sweeping across the room
+	int   sweepCount;            // Walls swept per attack; the axis alternates between walls
+	float sweepInterval;         // Minimum seconds between walls; the dragon repositions during it
+	float sweepMoveSpeed;        // Speed it flies to the middle of the wall it fires from
+	float sweepArrivalDelay;     // Seconds it holds at the wall after arriving before the wall fires
+	float sweepProjectileSpeed;
+	int   sweepProjectileDamage;
+	// Attack 5 — summon adds
 	int   summonCount;           // Enemies summoned per attack (also caps active non-boss enemies)
 	int   summonMinSpecials;     // Minimum specials among the summons (0 = all basic fodder)
 	float summonRadius;          // Spawn scatter radius around the dragon
@@ -442,6 +451,14 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyProjectileSpeed = 58.0f,
 			.volleyProjectileDamage = 12,
 			.volleyWarningLead     = 1.3f,
+			.volleyMoveSpeed       = 2.0f,
+			.volleyRepositionTime  = 2.0f,
+			.sweepCount            = 3, // Walls swept per attack, alternating axis
+			.sweepInterval         = 1.6f,
+			.sweepMoveSpeed        = 2.0f,
+			.sweepArrivalDelay     = 0.7f,
+			.sweepProjectileSpeed  = 50.0f,
+			.sweepProjectileDamage = 12,
 			.summonCount           = 4,
 			.summonMinSpecials     = 0,
 			.summonRadius          = CELL_SIZE * 2.0f,
@@ -469,6 +486,14 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyProjectileSpeed = 66.0f,
 			.volleyProjectileDamage = 14,
 			.volleyWarningLead     = 1.0f,
+			.volleyMoveSpeed       = 2.5f,
+			.volleyRepositionTime  = 1.5f,
+			.sweepCount            = 3, // Walls swept per attack, alternating axis
+			.sweepInterval         = 1.2f,
+			.sweepMoveSpeed        = 2.5f,
+			.sweepArrivalDelay     = 0.55f,
+			.sweepProjectileSpeed  = 58.0f,
+			.sweepProjectileDamage = 14,
 			.summonCount           = 3,
 			.summonMinSpecials     = 3,
 			.summonRadius          = CELL_SIZE * 2.0f,
@@ -498,6 +523,14 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyProjectileSpeed = 66.0f,
 			.volleyProjectileDamage = 14,
 			.volleyWarningLead     = 1.0f,
+			.volleyMoveSpeed       = 2.5f,
+			.volleyRepositionTime  = 1.5f,
+			.sweepCount            = 3, // Walls swept per attack, alternating axis
+			.sweepInterval         = 1.2f,
+			.sweepMoveSpeed        = 2.5f,
+			.sweepArrivalDelay     = 0.55f,
+			.sweepProjectileSpeed  = 58.0f,
+			.sweepProjectileDamage = 14,
 			.summonCount           = 3,
 			.summonMinSpecials     = 3,
 			.summonRadius          = CELL_SIZE * 2.0f,
@@ -524,6 +557,14 @@ static const DragonBossProperties DRAGON_BOSS_PROPERTIES[BOSS_DIFFICULTY_COUNT][
 			.volleyProjectileSpeed = 66.0f,
 			.volleyProjectileDamage = 14,
 			.volleyWarningLead     = 0.8f,
+			.volleyMoveSpeed       = 3.0f,
+			.volleyRepositionTime  = 1.5f,
+			.sweepCount            = 3, // Walls swept per attack, alternating axis
+			.sweepInterval         = 1.0f,
+			.sweepMoveSpeed        = 3.0f,
+			.sweepArrivalDelay     = 0.45f,
+			.sweepProjectileSpeed  = 66.0f,
+			.sweepProjectileDamage = 14,
 			.summonCount           = 5,
 			.summonMinSpecials     = 5,
 			.summonRadius          = CELL_SIZE * 2.0f,
@@ -539,9 +580,12 @@ typedef enum DragonAttackCycle {
 	DRAGON_ATTACK_CYCLE_CHARGE,
 	DRAGON_ATTACK_CYCLE_SPRINKLER,
 	DRAGON_ATTACK_CYCLE_VOLLEY,
+	DRAGON_ATTACK_CYCLE_SWEEP,
 	DRAGON_ATTACK_CYCLE_SUMMON,
 	DRAGON_ATTACK_CYCLE_COUNT
 } DragonAttackCycle;
+
+#define DRAGON_STATE_SWEEP ENEMY_STATE_ATTACK_4
 
 // Summon attack holds in the post-attack (held) pose; the dragon otherwise never uses POST_ATTACK.
 #define DRAGON_STATE_SUMMON ENEMY_STATE_POST_ATTACK
@@ -550,6 +594,14 @@ typedef enum DragonAttackCycle {
 // ATTACKING = dashing, SPACING = winding up (holding the prep pose while the warning line telegraphs).
 #define DRAGON_SUBSTATE_ATTACKING 0  // Playing the attack animation / firing
 #define DRAGON_SUBSTATE_SPACING   1  // Holding the last attack frame between shots
+
+// Volley reposition sub-state, stored in Enemy.nextState while in ENEMY_STATE_ATTACK_3. The dragon
+// flies to the room center before the first volley so its radial lines cover the room evenly.
+#define DRAGON_VOLLEY_REPOSITIONING 2
+
+// Sweep sub-state, stored in Enemy.nextState while in DRAGON_STATE_SWEEP.
+#define DRAGON_SWEEP_REPOSITIONING 0  // Flying to the middle of the edge it will fire from
+#define DRAGON_SWEEP_SETTLING      1  // In place, holding for sweepArrivalDelay before firing
 
 // Sprinkler firing sub-state, stored in Enemy.nextState while in ENEMY_STATE_ATTACK_2. The dragon
 // homes in on the room center during its idle wander, so the sweep opens fire from there immediately.
@@ -2211,6 +2263,63 @@ static void dragonFireSprinkler(Enemy *curEnemy, EnemyData *curEnemyData, float 
 	}
 }
 
+// Projectiles are spaced two thirds of a cell apart along the wall — tight enough to pressure the
+// player, wide enough to walk a gap between them (a dash's i-frames cover the rest).
+#define DRAGON_SWEEP_LANE_SPACING_NUM 2
+#define DRAGON_SWEEP_LANE_SPACING_DEN 3
+
+// A sweep wall fills one edge of the boss room and travels to the far side.
+typedef struct DragonSweepWall {
+	float dirX, dirY;           // Travel direction of the wall
+	float startX, startY;       // World position of the first lane's spawn point
+	float laneStepX, laneStepY; // Offset from one lane to the next
+	int   laneCount;
+	float originX, originY;     // Middle of the edge the wall fires from — where the dragon posts up
+} DragonSweepWall;
+
+// Lays out the wall for the given sweep: the axis alternates every sweep and the travel direction
+// flips every two, so a long enough attack walks the wall through all four directions in turn.
+static void dragonSweepWallLayout(int sweepIndex, DragonSweepWall *wall) {
+	int roomIndex = getCurrentRoomIndex();
+	Point interiorMin = getRoomInteriorMin(roomIndex);
+	Point interiorMax = getRoomInteriorMax(roomIndex);
+
+	bool alongX = (sweepIndex % 2) == 0;
+	bool forward = ((sweepIndex / 2) % 2) == 0;
+
+	int travelMin = alongX ? interiorMin.x : interiorMin.y;
+	int travelMax = alongX ? interiorMax.x : interiorMax.y;
+	int laneMin = alongX ? interiorMin.y : interiorMin.x;
+	int laneMax = alongX ? interiorMax.y : interiorMax.x;
+	int startCell = forward ? travelMin : travelMax;
+	int midLane = (laneMin + laneMax) / 2;
+
+	float direction = forward ? 1.0f : -1.0f;
+	wall->dirX = alongX ? direction : 0.0f;
+	wall->dirY = alongX ? 0.0f : direction;
+	float laneStep = (float)CELL_SIZE * DRAGON_SWEEP_LANE_SPACING_NUM / DRAGON_SWEEP_LANE_SPACING_DEN;
+	wall->laneStepX = alongX ? 0.0f : laneStep;
+	wall->laneStepY = alongX ? laneStep : 0.0f;
+	wall->laneCount = (laneMax - laneMin) * DRAGON_SWEEP_LANE_SPACING_DEN / DRAGON_SWEEP_LANE_SPACING_NUM + 1;
+	wall->startX = (alongX ? startCell : laneMin) * CELL_SIZE + CELL_SIZE / 2.0f;
+	wall->startY = (alongX ? laneMin : startCell) * CELL_SIZE + CELL_SIZE / 2.0f;
+	wall->originX = (alongX ? startCell : midLane) * CELL_SIZE + CELL_SIZE / 2.0f;
+	wall->originY = (alongX ? midLane : startCell) * CELL_SIZE + CELL_SIZE / 2.0f;
+}
+
+// Spawns the wall itself: one projectile per lane, all launched from the near edge at once.
+static void dragonFireSweepWall(Enemy *curEnemy, EnemyData *curEnemyData, const DragonSweepWall *wall) {
+	playSoundSpatial(SFX_DRAGON_BOSS_PROJECTILE, curEnemy->x, curEnemy->y);
+	for (int lane = 0; lane < wall->laneCount; lane++) {
+		float px = wall->startX + wall->laneStepX * lane;
+		float py = wall->startY + wall->laneStepY * lane;
+		if (isBlocked((int)(px / CELL_SIZE), (int)(py / CELL_SIZE))) {
+			continue;
+		}
+		fireEnemyProjectile(px, py, curEnemy->x, curEnemy->y, wall->dirX, wall->dirY, dragonProperties->sweepProjectileSpeed, dragonProperties->sweepProjectileDamage, curEnemyData->projectileData);
+	}
+}
+
 // Summons summonCount adds around the dragon (basic fodder, or specials when summonMinSpecials is set).
 // The roll is capped by the count, which doubles as the active non-boss enemy limit in bossSpawnSummonsCapped.
 static void dragonSummonAdds(Enemy *curEnemy) {
@@ -2226,6 +2335,10 @@ static void dragonSummonAdds(Enemy *curEnemy) {
 
 #define DRAGON_WANDER_MIN_SPACING (CELL_SIZE * 4.0f)
 #define DRAGON_WANDER_ARRIVAL_RADIUS (CELL_SIZE * 0.5f)
+#define DRAGON_REPOSITION_ARRIVAL_RADIUS (CELL_SIZE * 0.5f)
+// Stall guard only — long enough that it never binds unless adds shove the dragon off course
+// indefinitely, in which case the wall fires from wherever it got to instead of hanging the fight.
+#define DRAGON_SWEEP_REPOSITION_TIMEOUT 2.5f
 
 static void dragonReturnToIdle(Enemy *curEnemy) {
 	transitionToState(curEnemy, ENEMY_STATE_IDLE);
@@ -2259,6 +2372,15 @@ static void dragonBeginAttack(Enemy *curEnemy) {
 		}
 		case DRAGON_ATTACK_CYCLE_VOLLEY: {
 			transitionToState(curEnemy, ENEMY_STATE_ATTACK_3);
+			curEnemy->nextState = DRAGON_VOLLEY_REPOSITIONING;
+			curEnemy->stateTimer = dragonProperties->volleyRepositionTime;
+			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
+			break;
+		}
+		case DRAGON_ATTACK_CYCLE_SWEEP: {
+			transitionToState(curEnemy, DRAGON_STATE_SWEEP);
+			curEnemy->nextState = DRAGON_SWEEP_REPOSITIONING;
+			curEnemy->stateTimer = DRAGON_SWEEP_REPOSITION_TIMEOUT;
 			addAttackIntentIndicator(curEnemy->x, curEnemy->y, 0.0f);
 			break;
 		}
@@ -2379,11 +2501,68 @@ void dragonBossUpdate(Enemy *curEnemy, EnemyData *curEnemyData, int index, bool 
 		return;
 	}
 
+	if (curEnemy->state == DRAGON_STATE_SWEEP) {
+		// == Walls of projectiles sweeping across the room ==
+		// Each sweep the dragon darts to the middle of the edge it is about to fire from, rears up
+		// there for sweepArrivalDelay so the wall reads before it lands, then spits it across the room.
+		DragonSweepWall wall;
+		dragonSweepWallLayout(curEnemy->stateCount, &wall);
+
+		if (curEnemy->nextState == DRAGON_SWEEP_REPOSITIONING) {
+			float dx = wall.originX - curEnemy->x;
+			float dy = wall.originY - curEnemy->y;
+			bool inPosition = dx * dx + dy * dy <= DRAGON_REPOSITION_ARRIVAL_RADIUS * DRAGON_REPOSITION_ARRIVAL_RADIUS;
+			if (!inPosition && curEnemy->stateTimer > 0) {
+				moveEnemy(curEnemy, index, wall.originX, wall.originY, dragonProperties->sweepMoveSpeed);
+				return;
+			}
+			curEnemy->nextState = DRAGON_SWEEP_SETTLING;
+			curEnemy->stateTimer = dragonProperties->sweepArrivalDelay;
+			playEnemyPrepSFX(curEnemy, curEnemyData);
+			return;
+		}
+
+		// Holds the wind-up until the arrival delay elapses, and never fires sooner than
+		// sweepInterval after the previous wall
+		if (curEnemy->stateTimer > 0 || curEnemy->abilityCooldown > 0) {
+			return;
+		}
+
+		dragonFireSweepWall(curEnemy, curEnemyData, &wall);
+		curEnemy->stateCount++;
+		if (curEnemy->stateCount >= dragonProperties->sweepCount) {
+			dragonReturnToIdle(curEnemy);
+		} else {
+			curEnemy->nextState = DRAGON_SWEEP_REPOSITIONING;
+			curEnemy->stateTimer = DRAGON_SWEEP_REPOSITION_TIMEOUT;
+			curEnemy->abilityCooldown = dragonProperties->sweepInterval;
+		}
+		return;
+	}
+
 	if (curEnemy->state == ENEMY_STATE_ATTACK_3) {
 		// == Rapid aimed volleys ==
 		int lineCount = dragonProperties->volleyLineCount;
 		int shotsPerVolley = dragonProperties->volleyShots;
 		int totalShots = shotsPerVolley * dragonProperties->volleyCount;
+
+		if (curEnemy->nextState == DRAGON_VOLLEY_REPOSITIONING) {
+			// Dart to the room center first so the radial lines reach every corner. If the allowance
+			// runs out on the way, open fire from wherever it got to rather than stalling the attack.
+			float centerX, centerY;
+			dragonRoomCenter(&centerX, &centerY);
+			float dx = centerX - curEnemy->x;
+			float dy = centerY - curEnemy->y;
+			bool inPosition = dx * dx + dy * dy <= DRAGON_REPOSITION_ARRIVAL_RADIUS * DRAGON_REPOSITION_ARRIVAL_RADIUS;
+			if (!inPosition && curEnemy->stateTimer > 0) {
+				moveEnemy(curEnemy, index, centerX, centerY, dragonProperties->volleyMoveSpeed);
+				return;
+			}
+			curEnemy->nextState = DRAGON_SUBSTATE_ATTACKING;
+			curEnemy->animationFrame = curEnemyData->attackFrameStart - 1;
+			curEnemy->animationTime = curEnemyData->frameTime;
+			curEnemy->abilityCooldown = 0;
+		}
 
 		if (curEnemy->nextState == DRAGON_SUBSTATE_SPACING) {
 			// Hold the last attack frame during the gap between volleys
