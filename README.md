@@ -1,5 +1,10 @@
 # Runic Rogues
-Source code for my Playdate game "Runic Rogues", a 3D fantasy spellcasting roguelike built on a custom raycasting engine written in C. Pick one of four classes (Mage, Rogue, Knight, or Ranger) and fight your way through room after room of enemies across three areas: the Twilight Court, the Lost Archives, and the Echoing Caverns. Select runes that give you upgrades, create synergistic builds, and fight against 3 different bullet hell boss battles. Fully localized in English and Japanese. You can get the game on [Catalog](https://play.date/games/runic-rogues/).
+Source code for my Playdate game "Runic Rogues", a 3D fantasy spellcasting roguelike built on a custom raycasting engine written in C. Pick one of four classes (Mage, Rogue, Knight, or Ranger) and fight your way through room after room of enemies across three areas: the Twilight Court, the Lost Archives, and the Echoing Caverns. Select runes that give you upgrades, create synergistic builds, and fight against 3 different bullet hell boss battles. Fully localized in English and Japanese. You can see the game in action in the [trailer](https://youtu.be/Iw3_OlA3yOk) and get the game on [Catalog](https://play.date/games/runic-rogues/).
+
+![1](https://github.com/user-attachments/assets/2dc46ef1-3286-4dc7-bf92-5f997858a520")
+<img width="400" height="240" alt="DragonBossWarrior_hnyJyB4-ezgif com-optimize-gray" src="https://github.com/user-attachments/assets/8f99de48-f347-4dda-a62d-27b348c341af" />
+<img width="400" height="240" alt="UpgradeSelect_AfYBBPf-ezgif com-optimize-gray" src="https://github.com/user-attachments/assets/d68a4276-f592-46ea-a614-ccc45f1afd31" />
+<img width="400" height="240" alt="ClassSelect1-ezgif com-optimize-gray" src="https://github.com/user-attachments/assets/9ac3bf2e-b67e-4b9f-8069-95f11da7b2f4" />
 
 ## Building
 Requires the [Playdate SDK](https://play.date/dev/) with the `PLAYDATE_SDK_PATH` environment variable set, plus CMake and Ninja.
