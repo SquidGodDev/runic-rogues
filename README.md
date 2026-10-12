@@ -5,7 +5,7 @@ Source code for my Playdate game "Runic Rogues", a 3D fantasy spellcasting rogue
 <img width="400" height="240" alt="BasicCombat" src="https://github.com/user-attachments/assets/2dc46ef1-3286-4dc7-bf92-5f997858a520" />
 <img width="400" height="240" alt="DragonBossWarrior" src="https://github.com/user-attachments/assets/8f99de48-f347-4dda-a62d-27b348c341af" />
 <img width="400" height="240" alt="UpgradeSelect" src="https://github.com/user-attachments/assets/d68a4276-f592-46ea-a614-ccc45f1afd31" />
-<img width="400" height="240" alt="ClassSelect1" src="https://github.com/user-attachments/assets/9ac3bf2e-b67e-4b9f-8069-95f11da7b2f4" />
+<img width="400" height="240" alt="ClassSelect" src="https://github.com/user-attachments/assets/b91d1bcc-c64f-41bb-8736-d0c5ef68488b" />
 </p>
 
 ## Building
